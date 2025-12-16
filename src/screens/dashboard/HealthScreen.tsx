@@ -165,9 +165,45 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const [expandedClinic, setExpandedClinic] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
+  // Filter states
+  const [filterOpenNow, setFilterOpenNow] = useState(false);
+  const [filterHasPhone, setFilterHasPhone] = useState(false);
+  const [filterWalkIn, setFilterWalkIn] = useState(false);
+  const [filterFree, setFilterFree] = useState(false);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
+
+  // Filter clinics based on active filters
+  const getFilteredClinics = () => {
+    let filtered = clinics;
+
+    if (filterHasPhone) {
+      filtered = filtered.filter(c => c.phone);
+    }
+
+    if (filterOpenNow) {
+      filtered = filtered.filter(c => isClinicOpen(c));
+    }
+
+    if (filterWalkIn) {
+      filtered = filtered.filter(c => c.acceptsWalkIns === true);
+    }
+
+    if (filterFree) {
+      filtered = filtered.filter(c =>
+        c.name?.toLowerCase().includes('free') ||
+        c.description?.toLowerCase().includes('free') ||
+        c.description?.toLowerCase().includes('sliding') ||
+        c.description?.toLowerCase().includes('low-cost') ||
+        c.description?.toLowerCase().includes('no cost')
+      );
+    }
+
+    return filtered;
+  };
+
+  const filteredClinics = getFilteredClinics();
 
   // Get current day and check if clinic is open
   const getCurrentDay = (): string => {
@@ -202,13 +238,16 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     return isSpanish ? dayNames[day]?.es : dayNames[day]?.en;
   };
 
-  const addToTodo = (title: string) => {
+  const addToTodo = (title: string, resourceUrl?: string, resourcePhone?: string) => {
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title,
         completed: false,
         category: 'healthcare',
+        resourceType: 'clinic',
+        resourceUrl,
+        resourcePhone,
       },
     });
     Alert.alert(
@@ -525,6 +564,54 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         </Text>
       </View>
 
+      {/* Filter Chips */}
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+          <TouchableOpacity
+            style={[styles.filterChip, filterOpenNow && styles.filterChipActive]}
+            onPress={() => setFilterOpenNow(!filterOpenNow)}
+          >
+            <Text style={[styles.filterChipText, filterOpenNow && styles.filterChipTextActive]}>
+              🕐 {isSpanish ? 'Abierto Ahora' : 'Open Now'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterHasPhone && styles.filterChipActive]}
+            onPress={() => setFilterHasPhone(!filterHasPhone)}
+          >
+            <Text style={[styles.filterChipText, filterHasPhone && styles.filterChipTextActive]}>
+              📞 {isSpanish ? 'Con Teléfono' : 'Has Phone'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterWalkIn && styles.filterChipActive]}
+            onPress={() => setFilterWalkIn(!filterWalkIn)}
+          >
+            <Text style={[styles.filterChipText, filterWalkIn && styles.filterChipTextActive]}>
+              🚶 {isSpanish ? 'Sin Cita' : 'Walk-ins'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterFree && styles.filterChipActive]}
+            onPress={() => setFilterFree(!filterFree)}
+          >
+            <Text style={[styles.filterChipText, filterFree && styles.filterChipTextActive]}>
+              💚 {isSpanish ? 'Gratis' : 'Free'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Results count */}
+      {clinics.length > 0 && (
+        <Text style={styles.resultsCount}>
+          {filteredClinics.length} {isSpanish ? 'de' : 'of'} {clinics.length} {isSpanish ? 'clínicas' : 'clinics'}
+        </Text>
+      )}
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0D9488" />
@@ -532,8 +619,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
             {isSpanish ? 'Buscando clínicas...' : 'Finding clinics...'}
           </Text>
         </View>
-      ) : clinics.length > 0 ? (
-        clinics.map((clinic) => {
+      ) : filteredClinics.length > 0 ? (
+        filteredClinics.map((clinic) => {
           const isOpen = isClinicOpen(clinic);
           const isExpanded = expandedClinic === clinic.id;
 
@@ -675,7 +762,9 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
                     onPress={() => addToTodo(
                       isOpen
                         ? `${isSpanish ? 'Visitar' : 'Visit'} ${clinic.name}`
-                        : `${isSpanish ? 'Llamar a' : 'Call'} ${clinic.name} ${isSpanish ? 'cuando abra' : 'when they open'}`
+                        : `${isSpanish ? 'Llamar a' : 'Call'} ${clinic.name} ${isSpanish ? 'cuando abra' : 'when they open'}`,
+                      clinic.website,
+                      clinic.phone
                     )}
                   >
                     <Text style={[styles.addTodoButtonLargeText, !isOpen && styles.addTodoButtonHighlightText]}>
@@ -1640,5 +1729,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#64748B',
+  },
+  // Filter styles
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterScroll: {
+    flexGrow: 0,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  filterChipActive: {
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+  resultsCount: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
   },
 });

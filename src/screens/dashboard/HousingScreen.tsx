@@ -285,17 +285,63 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const [expandedCounselor, setExpandedCounselor] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
+  // Filter states
+  const [filterOpenNow, setFilterOpenNow] = useState(false);
+  const [filterHasPhone, setFilterHasPhone] = useState(false);
+  const [filterEmergency, setFilterEmergency] = useState(false);
+  const [filterFamily, setFilterFamily] = useState(false);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
 
-  const addToTodo = (title: string) => {
+  // Filter housing resources based on active filters
+  const getFilteredCounselors = () => {
+    let filtered = counselors;
+
+    if (filterHasPhone) {
+      filtered = filtered.filter(c => c.phone);
+    }
+
+    if (filterOpenNow) {
+      filtered = filtered.filter(c => {
+        const status = isResourceOpen(c.hours);
+        return status.isOpen;
+      });
+    }
+
+    if (filterEmergency) {
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes('emergency') ||
+        c.name.toLowerCase().includes('shelter') ||
+        c.name.toLowerCase().includes('crisis') ||
+        c.id.includes('shelter') ||
+        c.id.includes('211')
+      );
+    }
+
+    if (filterFamily) {
+      filtered = filtered.filter(c =>
+        c.name.toLowerCase().includes('family') ||
+        c.eligibility?.toLowerCase().includes('families') ||
+        c.id.includes('family')
+      );
+    }
+
+    return filtered;
+  };
+
+  const filteredCounselors = getFilteredCounselors();
+
+  const addToTodo = (title: string, resourceUrl?: string, resourcePhone?: string) => {
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title,
         completed: false,
         category: 'housing',
+        resourceType: 'housing',
+        resourceUrl,
+        resourcePhone,
       },
     });
     Alert.alert(
@@ -551,6 +597,54 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           : isSpanish ? 'Basado en tu ubicación' : 'Based on your location'}
       </Text>
 
+      {/* Filter Chips */}
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+          <TouchableOpacity
+            style={[styles.filterChip, filterOpenNow && styles.filterChipActive]}
+            onPress={() => setFilterOpenNow(!filterOpenNow)}
+          >
+            <Text style={[styles.filterChipText, filterOpenNow && styles.filterChipTextActive]}>
+              🕐 {isSpanish ? 'Abierto Ahora' : 'Open Now'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterHasPhone && styles.filterChipActive]}
+            onPress={() => setFilterHasPhone(!filterHasPhone)}
+          >
+            <Text style={[styles.filterChipText, filterHasPhone && styles.filterChipTextActive]}>
+              📞 {isSpanish ? 'Con Teléfono' : 'Has Phone'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterEmergency && styles.filterChipActive]}
+            onPress={() => setFilterEmergency(!filterEmergency)}
+          >
+            <Text style={[styles.filterChipText, filterEmergency && styles.filterChipTextActive]}>
+              🆘 {isSpanish ? 'Refugio' : 'Shelter'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterFamily && styles.filterChipActive]}
+            onPress={() => setFilterFamily(!filterFamily)}
+          >
+            <Text style={[styles.filterChipText, filterFamily && styles.filterChipTextActive]}>
+              👨‍👩‍👧 {isSpanish ? 'Familias' : 'Families'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Results count */}
+      {counselors.length > 0 && (
+        <Text style={styles.resultsCount}>
+          {filteredCounselors.length} {isSpanish ? 'de' : 'of'} {counselors.length} {isSpanish ? 'recursos' : 'resources'}
+        </Text>
+      )}
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#7C3AED" />
@@ -558,8 +652,8 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
             {isSpanish ? 'Buscando recursos...' : 'Finding resources...'}
           </Text>
         </View>
-      ) : counselors.length > 0 ? (
-        counselors.map((counselor) => {
+      ) : filteredCounselors.length > 0 ? (
+        filteredCounselors.map((counselor) => {
           const isExpanded = expandedCounselor === counselor.id;
           const openStatus = isResourceOpen(counselor.hours);
           const isCurated = counselor.id.startsWith('curated-');
@@ -720,7 +814,11 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
                   {/* Add to todo */}
                   <TouchableOpacity
                     style={styles.addToTodoFullButton}
-                    onPress={() => addToTodo(`${isSpanish ? 'Contactar' : 'Contact'} ${counselor.name}`)}
+                    onPress={() => addToTodo(
+                      `${isSpanish ? 'Contactar' : 'Contact'} ${counselor.name}`,
+                      counselor.website,
+                      counselor.phone
+                    )}
                   >
                     <Text style={styles.addToTodoFullText}>
                       + {isSpanish ? 'Agregar a mi lista de tareas' : 'Add to my to-do list'}
@@ -2020,5 +2118,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Filter styles
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterScroll: {
+    flexGrow: 0,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  filterChipActive: {
+    backgroundColor: '#7C3AED',
+    borderColor: '#7C3AED',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+  resultsCount: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
   },
 });

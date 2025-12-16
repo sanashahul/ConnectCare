@@ -49,6 +49,11 @@ export interface TodoItem {
   completed: boolean;
   createdBy: 'individual' | 'caseworker';
   createdAt: string;
+  // Resource linking for clickable to-do items
+  resourceType?: 'job' | 'housing' | 'clinic';
+  resourceUrl?: string;
+  resourcePhone?: string;
+  category?: ServiceCategory;
 }
 
 export interface UserProfile {

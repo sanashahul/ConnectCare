@@ -9,6 +9,7 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -165,15 +166,55 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 
 export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const [activeSection, setActiveSection] = useState<'foryou' | 'search' | 'quickhire' | 'help' | null>(null);
   const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  // Filter states
+  const [filterHasPhone, setFilterHasPhone] = useState(false);
+  const [filterJobType, setFilterJobType] = useState<'all' | 'training' | 'job-site'>('all');
+  const [filterOpenNow, setFilterOpenNow] = useState(false);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
+
+  // Filter jobs based on active filters
+  const getFilteredJobs = () => {
+    let filtered = jobs;
+
+    if (filterHasPhone) {
+      filtered = filtered.filter(job => job.phone);
+    }
+
+    if (filterJobType === 'training') {
+      filtered = filtered.filter(job =>
+        job.name.toLowerCase().includes('training') ||
+        job.name.toLowerCase().includes('job corps') ||
+        job.name.toLowerCase().includes('americorps') ||
+        job.services?.some(s => s.toLowerCase().includes('training'))
+      );
+    } else if (filterJobType === 'job-site') {
+      filtered = filtered.filter(job =>
+        job.website?.includes('indeed') ||
+        job.website?.includes('usajobs') ||
+        job.website?.includes('linkedin') ||
+        job.website?.includes('snagajob')
+      );
+    }
+
+    if (filterOpenNow) {
+      filtered = filtered.filter(job => {
+        const status = isResourceOpen(job.hours);
+        return status.isOpen;
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredJobs = getFilteredJobs();
 
   const loadJobs = async () => {
     if (!userProfile?.location) return;
@@ -195,6 +236,25 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
   const handleCall = (phone: string) => {
     Linking.openURL(`tel:${phone}`);
+  };
+
+  const addToTodo = (title: string, resourceUrl?: string, resourcePhone?: string) => {
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title,
+        completed: false,
+        category: 'employment',
+        resourceType: 'job',
+        resourceUrl,
+        resourcePhone,
+      },
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
+      [{ text: 'OK' }]
+    );
   };
 
   const openJobSite = (site: string) => {
@@ -335,6 +395,54 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Capacitación, búsqueda de empleo y más' : 'Training, job search, and more'}
       </Text>
 
+      {/* Filter Chips */}
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+          <TouchableOpacity
+            style={[styles.filterChip, filterOpenNow && styles.filterChipActive]}
+            onPress={() => setFilterOpenNow(!filterOpenNow)}
+          >
+            <Text style={[styles.filterChipText, filterOpenNow && styles.filterChipTextActive]}>
+              🕐 {isSpanish ? 'Abierto Ahora' : 'Open Now'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterHasPhone && styles.filterChipActive]}
+            onPress={() => setFilterHasPhone(!filterHasPhone)}
+          >
+            <Text style={[styles.filterChipText, filterHasPhone && styles.filterChipTextActive]}>
+              📞 {isSpanish ? 'Con Teléfono' : 'Has Phone'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterJobType === 'training' && styles.filterChipActive]}
+            onPress={() => setFilterJobType(filterJobType === 'training' ? 'all' : 'training')}
+          >
+            <Text style={[styles.filterChipText, filterJobType === 'training' && styles.filterChipTextActive]}>
+              🎓 {isSpanish ? 'Capacitación' : 'Training'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterJobType === 'job-site' && styles.filterChipActive]}
+            onPress={() => setFilterJobType(filterJobType === 'job-site' ? 'all' : 'job-site')}
+          >
+            <Text style={[styles.filterChipText, filterJobType === 'job-site' && styles.filterChipTextActive]}>
+              🔍 {isSpanish ? 'Sitios de Empleo' : 'Job Sites'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Results count */}
+      {jobs.length > 0 && (
+        <Text style={styles.resultsCount}>
+          {filteredJobs.length} {isSpanish ? 'de' : 'of'} {jobs.length} {isSpanish ? 'recursos' : 'resources'}
+        </Text>
+      )}
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#EA580C" />
@@ -342,8 +450,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
             {isSpanish ? 'Cargando recursos...' : 'Loading resources...'}
           </Text>
         </View>
-      ) : jobs.length > 0 ? (
-        jobs.map((job) => {
+      ) : filteredJobs.length > 0 ? (
+        filteredJobs.map((job) => {
           const openStatus = isResourceOpen(job.hours);
           const isExpanded = expandedJob === job.id;
 
@@ -473,6 +581,20 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
                       </TouchableOpacity>
                     )}
                   </View>
+
+                  {/* Add to To-Do button */}
+                  <TouchableOpacity
+                    style={styles.addToTodoButton}
+                    onPress={() => addToTodo(
+                      `${isSpanish ? 'Aplicar a' : 'Apply to'} ${isSpanish && job.nameEs ? job.nameEs : job.name}`,
+                      job.website,
+                      job.phone
+                    )}
+                  >
+                    <Text style={styles.addToTodoButtonText}>
+                      + {isSpanish ? 'Agregar a mi lista de tareas' : 'Add to my to-do list'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </TouchableOpacity>
@@ -1170,5 +1292,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#0D9488',
+  },
+  addToTodoButton: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  addToTodoButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  // Filter styles
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterScroll: {
+    flexGrow: 0,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  filterChipActive: {
+    backgroundColor: '#EA580C',
+    borderColor: '#EA580C',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+  resultsCount: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
   },
 });

@@ -14,6 +14,7 @@ import {
   Platform,
   Animated,
   Easing,
+  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -1387,22 +1388,75 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         ) : (
           <>
             {pendingTodos.slice(0, 4).map((todo) => (
-              <TouchableOpacity
-                key={todo.id}
-                style={styles.todoItem}
-                onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
-              >
-                <View style={styles.todoCheckbox}>
-                  <Text style={styles.todoCheckmark}></Text>
-                </View>
-                <Text style={styles.todoText}>{todo.title}</Text>
+              <View key={todo.id} style={styles.todoItemContainer}>
                 <TouchableOpacity
-                  style={styles.todoDeleteButton}
-                  onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+                  style={styles.todoItem}
+                  onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
                 >
+                  <View style={styles.todoCheckbox}>
+                    <Text style={styles.todoCheckmark}></Text>
+                  </View>
+                  <View style={styles.todoContent}>
+                    <Text style={styles.todoText}>{todo.title}</Text>
+                    {/* Resource type badge */}
+                    {todo.resourceType && (
+                      <View style={[
+                        styles.todoResourceBadge,
+                        todo.resourceType === 'job' && { backgroundColor: '#FFF7ED' },
+                        todo.resourceType === 'housing' && { backgroundColor: '#F5F3FF' },
+                        todo.resourceType === 'clinic' && { backgroundColor: '#F0FDFA' },
+                      ]}>
+                        <Text style={[
+                          styles.todoResourceBadgeText,
+                          todo.resourceType === 'job' && { color: '#EA580C' },
+                          todo.resourceType === 'housing' && { color: '#7C3AED' },
+                          todo.resourceType === 'clinic' && { color: '#0D9488' },
+                        ]}>
+                          {todo.resourceType === 'job' ? '💼' : todo.resourceType === 'housing' ? '🏠' : '🏥'}
+                          {' '}
+                          {todo.resourceType === 'job'
+                            ? (isSpanish ? 'Empleo' : 'Job')
+                            : todo.resourceType === 'housing'
+                              ? (isSpanish ? 'Vivienda' : 'Housing')
+                              : (isSpanish ? 'Salud' : 'Health')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={styles.todoDeleteButton}
+                    onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+                  >
                   <Text style={styles.todoDeleteText}>×</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
+
+              {/* Action buttons for linked resources */}
+              {(todo.resourceUrl || todo.resourcePhone) && (
+                <View style={styles.todoActions}>
+                  {todo.resourcePhone && (
+                    <TouchableOpacity
+                      style={styles.todoActionButton}
+                      onPress={() => Linking.openURL(`tel:${todo.resourcePhone}`)}
+                    >
+                      <Text style={styles.todoActionButtonText}>
+                        📞 {isSpanish ? 'Llamar' : 'Call'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {todo.resourceUrl && (
+                    <TouchableOpacity
+                      style={[styles.todoActionButton, styles.todoActionButtonPrimary]}
+                      onPress={() => Linking.openURL(todo.resourceUrl!)}
+                    >
+                      <Text style={styles.todoActionButtonTextPrimary}>
+                        🌐 {isSpanish ? 'Ir al sitio' : 'Go to site'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
             ))}
             {pendingTodos.length > 4 && (
               <Text style={styles.moreText}>
@@ -1886,6 +1940,53 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 12,
     textAlign: 'center',
+  },
+  todoItemContainer: {
+    marginBottom: 8,
+  },
+  todoContent: {
+    flex: 1,
+  },
+  todoResourceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  todoResourceBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  todoActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginLeft: 38,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  todoActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  todoActionButtonPrimary: {
+    backgroundColor: '#0D9488',
+  },
+  todoActionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  todoActionButtonTextPrimary: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   quickHelpSection: {
     marginTop: 16,
