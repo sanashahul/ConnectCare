@@ -1024,15 +1024,14 @@ interface LinkableTextProps {
 }
 
 const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#7C3AED' }) => {
-  // Pattern to match URLs (with and without http), phone numbers, and special numbers like 211, 988
-  const urlPattern = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
-  const phonePattern = /(?:1-)?(?:\d{3}[-.]?)?\d{3}[-.]?\d{4}|(?<!\d)(?:211|988|911|741741)(?!\d)/g;
-
-  // Parse the text into segments
+  // Parse the text into segments with URLs and phone numbers
   const parseText = (input: string): Array<{ type: 'text' | 'url' | 'phone'; value: string }> => {
     const segments: Array<{ type: 'text' | 'url' | 'phone'; value: string }> = [];
-    let remaining = input;
-    let lastIndex = 0;
+
+    // Pattern to match URLs (with and without http)
+    const urlPattern = /https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?/gi;
+    // Pattern for phone numbers (avoiding lookbehind for Hermes compatibility)
+    const phonePattern = /\b(?:1-)?(?:\d{3}[-.]?)?\d{3}[-.]?\d{4}\b|\b(?:211|988|911|741741)\b/g;
 
     // Combined pattern for both URLs and phone numbers
     const combinedPattern = new RegExp(
@@ -1040,7 +1039,9 @@ const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#
       'gi'
     );
 
+    let lastIndex = 0;
     let match;
+
     while ((match = combinedPattern.exec(input)) !== null) {
       // Add text before match
       if (match.index > lastIndex) {
