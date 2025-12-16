@@ -7,7 +7,8 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 
 // Get API key at runtime (not at module load time)
 const getApiKey = (): string => {
-  const key = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+  // Temporarily hardcoded for testing - will use env var after confirming it works
+  const key = 'AIzaSyBZIoQ1zly-0duFyrRBVPz-LQY85PrNeZg';
   console.log('Gemini API Key loaded:', key ? 'Yes (length: ' + key.length + ')' : 'No');
   return key;
 };
