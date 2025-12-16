@@ -10,6 +10,9 @@ import {
   CategorySelectionScreen,
   QuestionnaireScreen,
   DashboardScreen,
+  HealthScreen,
+  JobsScreen,
+  HousingScreen,
   CaseWorkerEntryScreen,
   CaseWorkerDashboardScreen,
 } from '../screens';
@@ -22,6 +25,9 @@ export type RootStackParamList = {
   CategorySelection: undefined;
   Questionnaire: undefined;
   Dashboard: undefined;
+  Health: undefined;
+  Jobs: undefined;
+  Housing: undefined;
   CaseWorkerEntry: undefined;
   CaseWorkerDashboard: undefined;
 };
@@ -79,6 +85,11 @@ export const AppNavigator: React.FC = () => {
           component={DashboardScreen}
           options={{ gestureEnabled: false }}
         />
+
+        {/* Category Screens */}
+        <Stack.Screen name="Health" component={HealthScreen} />
+        <Stack.Screen name="Jobs" component={JobsScreen} />
+        <Stack.Screen name="Housing" component={HousingScreen} />
 
         {/* Case Worker */}
         <Stack.Screen name="CaseWorkerEntry" component={CaseWorkerEntryScreen} />

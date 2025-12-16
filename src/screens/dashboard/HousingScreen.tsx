@@ -1,0 +1,857 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Linking,
+  ActivityIndicator,
+} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useApp } from '../../context/AppContext';
+import { getHousingResources } from '../../services';
+import { Resource } from '../../types';
+
+type HousingScreenProps = {
+  navigation: NativeStackNavigationProp<any>;
+};
+
+// For You content - personalized housing resources
+const HOUSING_FOR_YOU = [
+  {
+    id: 'hfy1',
+    title: 'Understanding Section 8',
+    titleEs: 'Entendiendo la Sección 8',
+    description: 'Housing choice voucher program explained',
+    descriptionEs: 'Programa de vales de vivienda explicado',
+    icon: '🏠',
+    color: '#7C3AED',
+    details: [
+      'Section 8 helps pay rent for low-income families',
+      'You pay about 30% of your income, voucher covers the rest',
+      'Apply through your local Public Housing Authority (PHA)',
+      'Waitlists can be long - apply to multiple PHAs',
+    ],
+    detailsEs: [
+      'La Sección 8 ayuda a pagar el alquiler para familias de bajos ingresos',
+      'Pagas aproximadamente el 30% de tus ingresos, el vale cubre el resto',
+      'Aplica a través de tu Autoridad de Vivienda Pública (PHA) local',
+      'Las listas de espera pueden ser largas - aplica a múltiples PHAs',
+    ],
+  },
+  {
+    id: 'hfy2',
+    title: 'Emergency Shelter Guide',
+    titleEs: 'Guía de Refugios de Emergencia',
+    description: 'Finding immediate shelter',
+    descriptionEs: 'Encontrando refugio inmediato',
+    icon: '🆘',
+    color: '#DC2626',
+    details: [
+      'Call 211 for local shelter information 24/7',
+      'Many shelters require check-in by certain times',
+      'Bring ID if you have it (not always required)',
+      'Ask about services: meals, showers, case management',
+    ],
+    detailsEs: [
+      'Llama al 211 para información sobre refugios locales 24/7',
+      'Muchos refugios requieren registro a ciertas horas',
+      'Trae identificación si la tienes (no siempre requerida)',
+      'Pregunta sobre servicios: comidas, duchas, gestión de casos',
+    ],
+  },
+  {
+    id: 'hfy3',
+    title: 'Rental Assistance Programs',
+    titleEs: 'Programas de Asistencia de Renta',
+    description: 'Help paying rent',
+    descriptionEs: 'Ayuda para pagar la renta',
+    icon: '💰',
+    color: '#0D9488',
+    details: [
+      'Emergency rental assistance available through local agencies',
+      'Utility assistance programs can help with bills',
+      'Many churches and nonprofits offer one-time assistance',
+      'Contact 211 or local Community Action Agency',
+    ],
+    detailsEs: [
+      'Asistencia de emergencia de alquiler disponible a través de agencias locales',
+      'Programas de asistencia de servicios públicos pueden ayudar con facturas',
+      'Muchas iglesias y organizaciones sin fines de lucro ofrecen asistencia única',
+      'Contacta al 211 o la Agencia de Acción Comunitaria local',
+    ],
+  },
+  {
+    id: 'hfy4',
+    title: 'Tenant Rights',
+    titleEs: 'Derechos del Inquilino',
+    description: 'Know your rights as a renter',
+    descriptionEs: 'Conoce tus derechos como inquilino',
+    icon: '⚖️',
+    color: '#EA580C',
+    details: [
+      'Landlords must provide habitable housing',
+      'You cannot be evicted without proper legal process',
+      'Discrimination based on race, religion, disability is illegal',
+      'Keep copies of all rental agreements and communications',
+    ],
+    detailsEs: [
+      'Los propietarios deben proporcionar vivienda habitable',
+      'No pueden desalojarte sin el proceso legal adecuado',
+      'La discriminación basada en raza, religión, discapacidad es ilegal',
+      'Guarda copias de todos los acuerdos de alquiler y comunicaciones',
+    ],
+  },
+];
+
+// Housing options
+const HOUSING_OPTIONS = [
+  { id: 'ho1', title: 'Emergency Shelter', titleEs: 'Refugio de Emergencia', type: 'Emergency', typeEs: 'Emergencia', availability: 'Tonight', availabilityEs: 'Esta noche', icon: '🛏️' },
+  { id: 'ho2', title: 'Transitional Housing', titleEs: 'Vivienda de Transición', type: '6-month program', typeEs: 'Programa de 6 meses', availability: 'Waitlist', availabilityEs: 'Lista de espera', icon: '🏠' },
+  { id: 'ho3', title: 'Shared Room - Section 8', titleEs: 'Cuarto Compartido - Sección 8', type: 'Voucher accepted', typeEs: 'Vale aceptado', availability: 'Available', availabilityEs: 'Disponible', icon: '🔑' },
+  { id: 'ho4', title: 'Family Shelter', titleEs: 'Refugio Familiar', type: 'Families only', typeEs: 'Solo familias', availability: '2 spots', availabilityEs: '2 lugares', icon: '👨‍👩‍👧' },
+  { id: 'ho5', title: 'Veterans Housing', titleEs: 'Vivienda para Veteranos', type: 'VASH Program', typeEs: 'Programa VASH', availability: 'Apply now', availabilityEs: 'Aplica ahora', icon: '🎖️' },
+];
+
+// Emergency resources
+const HOUSING_HOTLINES = [
+  { id: 'hh1', name: 'National Homeless Hotline', nameEs: 'Línea Nacional para Personas Sin Hogar', description: '24/7 shelter referrals', descriptionEs: 'Referencias de refugio 24/7', phone: '1-800-231-6946', icon: '📞' },
+  { id: 'hh2', name: '211', nameEs: '211', description: 'Local resources & shelter info', descriptionEs: 'Recursos locales e información de refugios', phone: '211', icon: '🆘' },
+  { id: 'hh3', name: 'Domestic Violence Hotline', nameEs: 'Línea de Violencia Doméstica', description: 'Safe shelter for DV survivors', descriptionEs: 'Refugio seguro para sobrevivientes de VD', phone: '1-800-799-7233', icon: '💜' },
+];
+
+export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
+  const { t, i18n } = useTranslation();
+  const { state } = useApp();
+  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | null>(null);
+  const [counselors, setCounselors] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  const isSpanish = i18n.language === 'es';
+  const userProfile = state.userProfile;
+
+  const loadCounselors = async () => {
+    if (!userProfile?.location) return;
+    setIsLoading(true);
+    try {
+      const results = await getHousingResources(userProfile.location);
+      setCounselors(results);
+    } catch (error) {
+      console.error('Error loading counselors:', error);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (activeSection === 'find' && counselors.length === 0) {
+      loadCounselors();
+    }
+  }, [activeSection]);
+
+  const handleCall = (phone: string) => {
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const renderMainGrid = () => (
+    <View style={styles.gridContainer}>
+      <Text style={styles.sectionTitle}>
+        {isSpanish ? 'Recursos de Vivienda' : 'Housing Resources'}
+      </Text>
+      <Text style={styles.sectionSubtitle}>
+        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
+      </Text>
+
+      <View style={styles.grid}>
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
+          onPress={() => setActiveSection('foryou')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
+            <Text style={styles.gridIcon}>⭐</Text>
+          </View>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
+          <Text style={styles.gridDescription}>
+            {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
+          onPress={() => setActiveSection('find')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
+            <Text style={styles.gridIcon}>🔍</Text>
+          </View>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Vivienda' : 'Find Housing'}</Text>
+          <Text style={styles.gridDescription}>
+            {isSpanish ? 'Consejeros cerca de ti' : 'Counselors near you'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
+          onPress={() => setActiveSection('options')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
+            <Text style={styles.gridIcon}>🏠</Text>
+          </View>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Opciones' : 'Options'}</Text>
+          <Text style={styles.gridDescription}>
+            {isSpanish ? 'Tipos de vivienda' : 'Housing types'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
+          onPress={() => setActiveSection('help')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
+            <Text style={styles.gridIcon}>🚨</Text>
+          </View>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Ayuda Urgente' : 'Urgent Help'}</Text>
+          <Text style={styles.gridDescription}>
+            {isSpanish ? 'Líneas de emergencia' : 'Emergency hotlines'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderForYou = () => (
+    <View style={styles.detailContainer}>
+      <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+        <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.detailTitle}>
+        {isSpanish ? 'Para Ti' : 'For You'}
+      </Text>
+      <Text style={styles.detailSubtitle}>
+        {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
+      </Text>
+
+      {HOUSING_FOR_YOU.map((item) => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.resourceCard}
+          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
+        >
+          <View style={styles.resourceHeader}>
+            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
+              <Text style={styles.resourceIcon}>{item.icon}</Text>
+            </View>
+            <View style={styles.resourceInfo}>
+              <Text style={styles.resourceTitle}>
+                {isSpanish ? item.titleEs : item.title}
+              </Text>
+              <Text style={styles.resourceDescription}>
+                {isSpanish ? item.descriptionEs : item.description}
+              </Text>
+            </View>
+            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
+          </View>
+
+          {expandedItem === item.id && (
+            <View style={styles.resourceDetails}>
+              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
+                <View key={index} style={styles.detailRow}>
+                  <Text style={styles.detailBullet}>•</Text>
+                  <Text style={styles.detailText}>{detail}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderFind = () => (
+    <View style={styles.detailContainer}>
+      <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+        <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.detailTitle}>
+        {isSpanish ? 'Consejeros de Vivienda' : 'Housing Counselors'}
+      </Text>
+      <Text style={styles.detailSubtitle}>
+        {userProfile?.location?.city
+          ? `${isSpanish ? 'En' : 'In'} ${userProfile.location.city}, ${userProfile.location.state}`
+          : isSpanish ? 'Basado en tu ubicación' : 'Based on your location'}
+      </Text>
+
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7C3AED" />
+          <Text style={styles.loadingText}>
+            {isSpanish ? 'Buscando consejeros...' : 'Finding counselors...'}
+          </Text>
+        </View>
+      ) : counselors.length > 0 ? (
+        counselors.map((counselor) => (
+          <TouchableOpacity
+            key={counselor.id}
+            style={styles.counselorCard}
+            onPress={() => counselor.phone && handleCall(counselor.phone)}
+          >
+            <View style={styles.counselorHeader}>
+              <Text style={styles.counselorIcon}>🏠</Text>
+              <View style={styles.counselorInfo}>
+                <Text style={styles.counselorName}>{counselor.name}</Text>
+                {counselor.address && (
+                  <Text style={styles.counselorAddress}>{counselor.address}</Text>
+                )}
+                {counselor.distance && (
+                  <Text style={styles.counselorDistance}>
+                    📍 {counselor.distance.toFixed(1)} {isSpanish ? 'millas' : 'miles'}
+                  </Text>
+                )}
+              </View>
+            </View>
+            {counselor.phone && (
+              <View style={styles.callButton}>
+                <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyText}>
+            {isSpanish
+              ? 'No se encontraron consejeros. Llama al 211 para obtener recursos locales.'
+              : 'No counselors found. Call 211 for local resources.'}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderOptions = () => (
+    <View style={styles.detailContainer}>
+      <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+        <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.detailTitle}>
+        {isSpanish ? 'Opciones de Vivienda' : 'Housing Options'}
+      </Text>
+      <Text style={styles.detailSubtitle}>
+        {isSpanish ? 'Tipos de vivienda disponibles' : 'Available housing types'}
+      </Text>
+
+      {HOUSING_OPTIONS.map((option) => (
+        <View key={option.id} style={styles.optionCard}>
+          <View style={styles.optionHeader}>
+            <View style={styles.optionIconContainer}>
+              <Text style={styles.optionIcon}>{option.icon}</Text>
+            </View>
+            <View style={styles.optionInfo}>
+              <Text style={styles.optionTitle}>
+                {isSpanish ? option.titleEs : option.title}
+              </Text>
+              <Text style={styles.optionType}>
+                {isSpanish ? option.typeEs : option.type}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.optionFooter}>
+            <View style={styles.availabilityTag}>
+              <Text style={styles.availabilityText}>
+                {isSpanish ? option.availabilityEs : option.availability}
+              </Text>
+            </View>
+          </View>
+        </View>
+      ))}
+
+      <View style={styles.tipCard}>
+        <Text style={styles.tipIcon}>💡</Text>
+        <Text style={styles.tipText}>
+          {isSpanish
+            ? 'Consejo: Llama al 211 para encontrar refugios con disponibilidad actual en tu área.'
+            : 'Tip: Call 211 to find shelters with current availability in your area.'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  const renderHelp = () => (
+    <View style={styles.detailContainer}>
+      <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+        <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.detailTitle}>
+        {isSpanish ? 'Ayuda Urgente' : 'Urgent Help'}
+      </Text>
+      <Text style={styles.detailSubtitle}>
+        {isSpanish ? 'Toca para llamar inmediatamente' : 'Tap to call immediately'}
+      </Text>
+
+      {HOUSING_HOTLINES.map((resource) => (
+        <TouchableOpacity
+          key={resource.id}
+          style={styles.urgentCard}
+          onPress={() => handleCall(resource.phone)}
+        >
+          <View style={styles.urgentIconContainer}>
+            <Text style={styles.urgentIcon}>{resource.icon}</Text>
+          </View>
+          <View style={styles.urgentInfo}>
+            <Text style={styles.urgentName}>
+              {isSpanish ? resource.nameEs : resource.name}
+            </Text>
+            <Text style={styles.urgentDescription}>
+              {isSpanish ? resource.descriptionEs : resource.description}
+            </Text>
+            <Text style={styles.urgentPhone}>{resource.phone}</Text>
+          </View>
+          <View style={styles.urgentCallButton}>
+            <Text style={styles.urgentCallText}>📞</Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+
+      <View style={styles.emergencyNote}>
+        <Text style={styles.emergencyNoteText}>
+          {isSpanish
+            ? '⚠️ Si estás en peligro inmediato, llama al 911.'
+            : '⚠️ If you are in immediate danger, call 911.'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Text style={styles.headerBackText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>🏠 {isSpanish ? 'Vivienda' : 'Housing'}</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {activeSection === null && renderMainGrid()}
+        {activeSection === 'foryou' && renderForYou()}
+        {activeSection === 'find' && renderFind()}
+        {activeSection === 'options' && renderOptions()}
+        {activeSection === 'help' && renderHelp()}
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FEFEFE',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  headerBack: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerBackText: {
+    fontSize: 20,
+    color: '#0F172A',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  content: {
+    flex: 1,
+  },
+  gridContainer: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 24,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  gridItem: {
+    width: '48%',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  gridIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  gridIcon: {
+    fontSize: 28,
+  },
+  gridTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  gridDescription: {
+    fontSize: 13,
+    color: '#64748B',
+  },
+  detailContainer: {
+    padding: 20,
+  },
+  backButton: {
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#7C3AED',
+    fontWeight: '600',
+  },
+  detailTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  detailSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 24,
+  },
+  resourceCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  resourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resourceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  resourceIcon: {
+    fontSize: 24,
+  },
+  resourceInfo: {
+    flex: 1,
+  },
+  resourceTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  resourceDescription: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  expandIcon: {
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  resourceDetails: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  detailBullet: {
+    fontSize: 14,
+    color: '#7C3AED',
+    marginRight: 8,
+    fontWeight: '700',
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#475569',
+    flex: 1,
+    lineHeight: 20,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#64748B',
+  },
+  counselorCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  counselorHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  counselorIcon: {
+    fontSize: 32,
+    marginRight: 14,
+  },
+  counselorInfo: {
+    flex: 1,
+  },
+  counselorName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  counselorAddress: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 4,
+  },
+  counselorDistance: {
+    fontSize: 13,
+    color: '#7C3AED',
+    fontWeight: '600',
+  },
+  callButton: {
+    backgroundColor: '#F5F3FF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#EDE9FE',
+  },
+  callButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#7C3AED',
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  optionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  optionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#F5F3FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  optionIcon: {
+    fontSize: 24,
+  },
+  optionInfo: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  optionType: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  optionFooter: {
+    flexDirection: 'row',
+  },
+  availabilityTag: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  availabilityText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0D9488',
+  },
+  tipCard: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  tipIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#92400E',
+    flex: 1,
+    lineHeight: 20,
+  },
+  urgentCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  urgentIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  urgentIcon: {
+    fontSize: 28,
+  },
+  urgentInfo: {
+    flex: 1,
+  },
+  urgentName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  urgentDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 4,
+  },
+  urgentPhone: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
+  urgentCallButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  urgentCallText: {
+    fontSize: 20,
+  },
+  emergencyNote: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  emergencyNoteText: {
+    fontSize: 14,
+    color: '#92400E',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});

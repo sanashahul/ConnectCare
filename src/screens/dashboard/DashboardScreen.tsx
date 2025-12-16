@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,815 +6,80 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Linking,
-  Alert,
-  ActivityIndicator,
-  TextInput,
+  StatusBar,
   Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
-import { Resource, ServiceCategory } from '../../types';
-import { getSampleResources, filterResourcesByAnswers } from '../../utils/resources';
-import { formatDistance } from '../../utils/location';
 import * as Clipboard from 'expo-clipboard';
-import {
-  getHealthcareResources,
-  getEmploymentResources,
-  getHousingResources,
-} from '../../services';
 
-type TabType = 'resources' | 'todos' | 'caseworker';
-
-// Educational content for each category
-const HEALTHCARE_GUIDES = [
-  {
-    id: 'hg1',
-    title: 'Understanding Medicaid',
-    titleEs: 'Entendiendo Medicaid',
-    description: 'Free or low-cost health coverage for eligible individuals',
-    descriptionEs: 'Cobertura de salud gratuita o de bajo costo para personas elegibles',
-    icon: '🏥',
-    content: [
-      'Medicaid is a government program providing free or low-cost health coverage',
-      'Eligibility is based on income, family size, and other factors',
-      'Coverage includes doctor visits, hospital stays, prescriptions, and more',
-      'Apply at your local Department of Social Services or healthcare.gov',
-    ],
-  },
-  {
-    id: 'hg2',
-    title: 'How to Use the Emergency Room',
-    titleEs: 'Cómo Usar la Sala de Emergencias',
-    description: 'When to go and what to expect',
-    descriptionEs: 'Cuándo ir y qué esperar',
-    icon: '🚑',
-    content: [
-      'ERs must treat you regardless of ability to pay (EMTALA law)',
-      'Go for life-threatening emergencies: chest pain, difficulty breathing, severe bleeding',
-      'For non-emergencies, urgent care or clinics are faster and cheaper',
-      'Bring ID and any medications you take if possible',
-    ],
-  },
-  {
-    id: 'hg3',
-    title: 'Getting Health Insurance',
-    titleEs: 'Obteniendo Seguro Médico',
-    description: 'Options for coverage in the US',
-    descriptionEs: 'Opciones de cobertura en EE.UU.',
-    icon: '📋',
-    content: [
-      'Marketplace plans available at healthcare.gov (open enrollment Nov-Jan)',
-      'Medicaid for low-income individuals (apply anytime)',
-      'Community health centers offer sliding-scale fees without insurance',
-      'Some states have additional programs - check with local social services',
-    ],
-  },
-  {
-    id: 'hg4',
-    title: 'Free & Low-Cost Clinics',
-    titleEs: 'Clínicas Gratuitas y de Bajo Costo',
-    description: 'Where to get care without insurance',
-    descriptionEs: 'Dónde obtener atención sin seguro',
-    icon: '💊',
-    content: [
-      'Federally Qualified Health Centers (FQHCs) serve everyone regardless of ability to pay',
-      'Free clinics are run by volunteers and nonprofits',
-      'Sliding scale fees mean you pay based on your income',
-      'Call 211 to find free clinics in your area',
-    ],
-  },
-];
-
-const EMPLOYMENT_GUIDES = [
-  {
-    id: 'eg1',
-    title: 'Building Your Resume',
-    titleEs: 'Creando Tu Currículum',
-    description: 'Tips for creating an effective resume',
-    descriptionEs: 'Consejos para crear un currículum efectivo',
-    icon: '📝',
-    content: [
-      'Keep it to one page with clear sections',
-      'Include contact info, work history, skills, and education',
-      'Use action words: managed, created, improved, led',
-      'Many libraries offer free resume help and printing',
-    ],
-  },
-  {
-    id: 'eg2',
-    title: 'Interview Preparation',
-    titleEs: 'Preparación para Entrevistas',
-    description: 'How to succeed in job interviews',
-    descriptionEs: 'Cómo tener éxito en entrevistas de trabajo',
-    icon: '🤝',
-    content: [
-      'Research the company before your interview',
-      'Practice common questions: "Tell me about yourself", "Why do you want this job?"',
-      'Dress professionally - clean, neat clothing',
-      'Arrive 10-15 minutes early',
-    ],
-  },
-  {
-    id: 'eg3',
-    title: 'Work Authorization',
-    titleEs: 'Autorización de Trabajo',
-    description: 'Understanding work permits and eligibility',
-    descriptionEs: 'Entendiendo permisos de trabajo y elegibilidad',
-    icon: '📄',
-    content: [
-      'US citizens and permanent residents can work without restrictions',
-      'Work permits (EAD) allow certain visa holders to work',
-      'Some employers sponsor work visas for qualified candidates',
-      'Day labor centers often have fewer documentation requirements',
-    ],
-  },
-  {
-    id: 'eg4',
-    title: 'Job Training Programs',
-    titleEs: 'Programas de Capacitación Laboral',
-    description: 'Free programs to build job skills',
-    descriptionEs: 'Programas gratuitos para desarrollar habilidades',
-    icon: '🎓',
-    content: [
-      'Workforce development centers offer free training',
-      'Community colleges have certificate programs',
-      'Many nonprofits offer job readiness programs',
-      'Look for programs in high-demand fields: healthcare, construction, tech',
-    ],
-  },
-];
-
-const HOUSING_GUIDES = [
-  {
-    id: 'hog1',
-    title: 'Understanding Section 8',
-    titleEs: 'Entendiendo la Sección 8',
-    description: 'Housing choice voucher program explained',
-    descriptionEs: 'Programa de vales de vivienda explicado',
-    icon: '🏠',
-    content: [
-      'Section 8 helps pay rent for low-income families',
-      'You pay about 30% of your income, voucher covers the rest',
-      'Apply through your local Public Housing Authority (PHA)',
-      'Waitlists can be long - apply to multiple PHAs',
-    ],
-  },
-  {
-    id: 'hog2',
-    title: 'Emergency Shelter Guide',
-    titleEs: 'Guía de Refugios de Emergencia',
-    description: 'Finding immediate shelter',
-    descriptionEs: 'Encontrando refugio inmediato',
-    icon: '🆘',
-    content: [
-      'Call 211 for local shelter information 24/7',
-      'Many shelters require check-in by certain times',
-      'Bring ID if you have it (not always required)',
-      'Ask about services: meals, showers, case management',
-    ],
-  },
-  {
-    id: 'hog3',
-    title: 'Rental Assistance Programs',
-    titleEs: 'Programas de Asistencia de Renta',
-    description: 'Help paying rent',
-    descriptionEs: 'Ayuda para pagar la renta',
-    icon: '💰',
-    content: [
-      'Emergency rental assistance available through local agencies',
-      'Utility assistance programs can help with bills',
-      'Many churches and nonprofits offer one-time assistance',
-      'Contact 211 or local Community Action Agency',
-    ],
-  },
-  {
-    id: 'hog4',
-    title: 'Tenant Rights',
-    titleEs: 'Derechos del Inquilino',
-    description: 'Know your rights as a renter',
-    descriptionEs: 'Conoce tus derechos como inquilino',
-    icon: '⚖️',
-    content: [
-      'Landlords must provide habitable housing',
-      'You cannot be evicted without proper legal process',
-      'Discrimination based on race, religion, disability is illegal',
-      'Keep copies of all rental agreements and communications',
-    ],
-  },
-];
-
-// Sample urgent care / emergency resources
-const URGENT_RESOURCES = {
-  healthcare: [
-    { id: 'u1', name: 'Emergency: 911', description: 'Life-threatening emergencies', phone: '911', icon: '🚨' },
-    { id: 'u2', name: 'Suicide & Crisis Lifeline', description: '24/7 mental health crisis support', phone: '988', icon: '💚' },
-    { id: 'u3', name: 'Poison Control', description: 'Poisoning emergencies', phone: '1-800-222-1222', icon: '☠️' },
-    { id: 'u4', name: 'SAMHSA Helpline', description: 'Substance abuse help 24/7', phone: '1-800-662-4357', icon: '🤝' },
-  ],
-  employment: [
-    { id: 'ue1', name: 'Unemployment Office', description: 'File for unemployment benefits', phone: '1-877-872-5627', icon: '📋' },
-    { id: 'ue2', name: 'Worker Rights Hotline', description: 'Report workplace violations', phone: '1-866-487-9243', icon: '⚖️' },
-  ],
-  housing: [
-    { id: 'uh1', name: 'National Homeless Hotline', description: '24/7 shelter referrals', phone: '1-800-231-6946', icon: '📞' },
-    { id: 'uh2', name: '211', description: 'Local resources & shelter info', phone: '211', icon: '🆘' },
-    { id: 'uh3', name: 'Domestic Violence Hotline', description: 'Safe shelter for DV survivors', phone: '1-800-799-7233', icon: '💜' },
-  ],
+type DashboardScreenProps = {
+  navigation: NativeStackNavigationProp<any>;
 };
 
-// Sample job listings
-const SAMPLE_JOBS = [
-  { id: 'j1', title: 'Warehouse Associate', company: 'Amazon Warehouse', pay: '$18-22/hr', type: 'Full-time', icon: '📦' },
-  { id: 'j2', title: 'Food Service Worker', company: 'Local Restaurant', pay: '$15-17/hr + tips', type: 'Part-time', icon: '🍽️' },
-  { id: 'j3', title: 'Retail Sales Associate', company: 'Target', pay: '$16-19/hr', type: 'Full-time', icon: '🛒' },
-  { id: 'j4', title: 'Cleaning Staff', company: 'CleanCo Services', pay: '$14-16/hr', type: 'Part-time', icon: '🧹' },
-  { id: 'j5', title: 'Delivery Driver', company: 'DoorDash', pay: '$15-25/hr', type: 'Flexible', icon: '🚗' },
-  { id: 'j6', title: 'Construction Helper', company: 'BuildRight Inc', pay: '$17-22/hr', type: 'Full-time', icon: '🔨' },
+// AI Case Manager quick topics
+const AI_TOPICS = [
+  { id: 'shelter', label: 'Find Shelter', labelEs: 'Buscar Refugio', icon: '🏠', category: 'housing' },
+  { id: 'clinic', label: 'Free Clinic', labelEs: 'Clínica Gratis', icon: '🏥', category: 'healthcare' },
+  { id: 'job', label: 'Find Jobs', labelEs: 'Buscar Trabajo', icon: '💼', category: 'employment' },
+  { id: 'food', label: 'Food Help', labelEs: 'Ayuda Comida', icon: '🍽️', category: 'general' },
+  { id: 'documents', label: 'Get ID/Docs', labelEs: 'Obtener ID', icon: '🪪', category: 'general' },
+  { id: '211', label: 'Call 211', labelEs: 'Llamar 211', icon: '📞', category: 'general' },
 ];
 
-// Sample housing listings
-const SAMPLE_HOUSING = [
-  { id: 'h1', title: 'Emergency Shelter Bed', organization: 'City Mission', type: 'Emergency', availability: 'Tonight', icon: '🛏️' },
-  { id: 'h2', title: 'Transitional Housing', organization: 'Hope House', type: '6-month program', availability: 'Waitlist', icon: '🏠' },
-  { id: 'h3', title: 'Shared Room - Section 8', organization: 'Housing Authority', type: 'Voucher accepted', availability: 'Available', icon: '🔑' },
-  { id: 'h4', title: 'Family Shelter', organization: 'Family Promise', type: 'Families only', availability: '2 spots', icon: '👨‍👩‍👧' },
-  { id: 'h5', title: 'Veterans Housing', organization: 'VA Services', type: 'VASH Program', availability: 'Apply now', icon: '🎖️' },
-];
+// AI responses based on topic
+const getAIResponse = (topicId: string, isSpanish: boolean, location?: string): string => {
+  const responses: Record<string, { en: string; es: string }> = {
+    shelter: {
+      en: `I can help you find shelter. Here are your options:\n\n📞 Call 211 - They have real-time info on available beds${location ? ` in ${location}` : ''}.\n\n📞 National Homeless Hotline: 1-800-231-6946 (24/7)\n\n💡 Tip: Many shelters have specific check-in times (usually 5-8pm). Call ahead to reserve a bed.`,
+      es: `Puedo ayudarte a encontrar refugio. Aquí están tus opciones:\n\n📞 Llama al 211 - Tienen información en tiempo real sobre camas disponibles${location ? ` en ${location}` : ''}.\n\n📞 Línea Nacional: 1-800-231-6946 (24/7)\n\n💡 Consejo: Muchos refugios tienen horarios específicos de entrada (usualmente 5-8pm). Llama con anticipación.`,
+    },
+    clinic: {
+      en: `Here's how to find free healthcare:\n\n🏥 Federally Qualified Health Centers serve everyone regardless of ability to pay.\n\n📱 Visit findahealthcenter.hrsa.gov to find one near you.\n\n📞 Call 211 for local free clinics.\n\n💡 Many centers offer sliding-scale fees based on your income.`,
+      es: `Así puedes encontrar atención médica gratuita:\n\n🏥 Los Centros de Salud Federalmente Calificados atienden a todos sin importar la capacidad de pago.\n\n📱 Visita findahealthcenter.hrsa.gov para encontrar uno cerca.\n\n📞 Llama al 211 para clínicas gratuitas locales.\n\n💡 Muchos centros ofrecen tarifas basadas en tus ingresos.`,
+    },
+    job: {
+      en: `Here are ways to find work:\n\n💼 Indeed.com, LinkedIn - Popular job sites\n🏛️ USAJobs.gov - Government jobs\n📍 Local workforce development center\n\n⚡ Quick-hire jobs: Warehouse, restaurant, retail, cleaning, delivery\n\n💡 Tip: Libraries offer free resume help!`,
+      es: `Aquí hay formas de encontrar trabajo:\n\n💼 Indeed.com, LinkedIn - Sitios de empleo populares\n🏛️ USAJobs.gov - Trabajos del gobierno\n📍 Centro de desarrollo laboral local\n\n⚡ Trabajos de contratación rápida: Almacén, restaurante, retail, limpieza, entregas\n\n💡 Consejo: ¡Las bibliotecas ofrecen ayuda gratuita con currículos!`,
+    },
+    food: {
+      en: `Here's how to get food assistance:\n\n🍽️ Call 211 for local food banks\n📱 FeedingAmerica.org - Find pantries nearby\n⛪ Many churches offer free meals\n\n📋 Apply for SNAP (food stamps) at your local social services office.\n\n💡 Food banks usually don't require proof of income.`,
+      es: `Así puedes obtener asistencia alimentaria:\n\n🍽️ Llama al 211 para bancos de comida locales\n📱 FeedingAmerica.org - Encuentra despensas cerca\n⛪ Muchas iglesias ofrecen comidas gratis\n\n📋 Aplica para SNAP (cupones de comida) en tu oficina local de servicios sociales.\n\n💡 Los bancos de comida usualmente no requieren prueba de ingresos.`,
+    },
+    documents: {
+      en: `Here's how to replace important documents:\n\n🪪 Birth Certificate: Contact vital records in your birth state\n📋 Social Security Card: Visit ssa.gov or local SSA office\n🚗 Driver's License: Visit DMV with proof of identity\n\n💡 Many shelters and social service agencies help with document replacement for free. Call 211 for local resources.`,
+      es: `Así puedes reemplazar documentos importantes:\n\n🪪 Acta de nacimiento: Contacta el registro civil del estado donde naciste\n📋 Tarjeta de Seguro Social: Visita ssa.gov o la oficina local de SSA\n🚗 Licencia de conducir: Visita el DMV con prueba de identidad\n\n💡 Muchos refugios y agencias de servicios sociales ayudan con el reemplazo de documentos gratis. Llama al 211.`,
+    },
+    '211': {
+      en: `211 is a free, confidential service that connects you to local resources 24/7.\n\n📞 Just dial 211 from any phone\n💬 Or text your ZIP code to 898-211\n🌐 Visit 211.org\n\nThey can help with:\n• Shelter & housing\n• Food assistance\n• Healthcare\n• Utility assistance\n• Job resources\n• And more!`,
+      es: `211 es un servicio gratuito y confidencial que te conecta con recursos locales 24/7.\n\n📞 Solo marca 211 desde cualquier teléfono\n💬 O envía tu código postal al 898-211\n🌐 Visita 211.org\n\nPueden ayudarte con:\n• Refugio y vivienda\n• Asistencia alimentaria\n• Atención médica\n• Asistencia de servicios\n• Recursos de empleo\n• ¡Y más!`,
+    },
+  };
 
-// AI Case Manager Knowledge Base
-interface CaseManagerTopic {
-  id: string;
-  question: string;
-  questionEs: string;
-  keywords: string[];
-  category?: ServiceCategory | 'general';
-  getResponse: (profile: any, isSpanish: boolean) => string;
-}
-
-const AI_CASE_MANAGER_TOPICS: CaseManagerTopic[] = [
-  // Housing Topics
-  {
-    id: 'shelter-tonight',
-    question: 'I need a place to sleep tonight',
-    questionEs: 'Necesito un lugar para dormir esta noche',
-    keywords: ['shelter', 'sleep', 'tonight', 'homeless', 'bed', 'dormir', 'refugio'],
-    category: 'housing',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Entiendo que necesitas refugio urgente. Aquí están tus mejores opciones:\n\n📞 Llama al 211 - Tienen información sobre refugios con camas disponibles en ${profile?.location?.city || 'tu área'}.\n\n📞 Línea Nacional de Personas Sin Hogar: 1-800-231-6946 (24/7)\n\n🏠 La Salvation Army ofrece refugios de emergencia - llama al 1-800-725-2769.\n\n💡 Consejo: Muchos refugios tienen horarios de entrada específicos (usualmente 5-8pm). Llama con anticipación para reservar una cama.`
-      : `I understand you need shelter urgently. Here are your best options:\n\n📞 Call 211 - They have info on shelters with available beds in ${profile?.location?.city || 'your area'}.\n\n📞 National Homeless Hotline: 1-800-231-6946 (24/7)\n\n🏠 Salvation Army has emergency shelters - call 1-800-725-2769.\n\n💡 Tip: Many shelters have specific check-in times (usually 5-8pm). Call ahead to reserve a bed.`,
-  },
-  {
-    id: 'section-8',
-    question: 'How do I apply for Section 8 housing?',
-    questionEs: '¿Cómo aplico para vivienda Sección 8?',
-    keywords: ['section 8', 'voucher', 'housing assistance', 'rent help', 'sección 8', 'asistencia'],
-    category: 'housing',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `La Sección 8 (Vales de Elección de Vivienda) es un programa federal que ayuda a pagar el alquiler. Así es como aplicar:\n\n1️⃣ Contacta tu Autoridad de Vivienda Pública (PHA) local\n2️⃣ Pregunta cuando abre la lista de espera\n3️⃣ Completa la solicitud cuando esté abierta\n4️⃣ Proporciona documentos de ingresos e identificación\n\n⚠️ Las listas de espera pueden ser largas (meses a años). Aplica a múltiples PHAs en tu área.\n\n📞 Llama al 211 para encontrar tu PHA local en ${profile?.location?.state || 'tu estado'}.`
-      : `Section 8 (Housing Choice Vouchers) is a federal program that helps pay rent. Here's how to apply:\n\n1️⃣ Contact your local Public Housing Authority (PHA)\n2️⃣ Ask when the waitlist opens\n3️⃣ Complete application when it's open\n4️⃣ Provide income documents and ID\n\n⚠️ Waitlists can be long (months to years). Apply to multiple PHAs in your area.\n\n📞 Call 211 to find your local PHA in ${profile?.location?.state || 'your state'}.`,
-  },
-  {
-    id: 'rent-help',
-    question: 'I need help paying rent this month',
-    questionEs: 'Necesito ayuda para pagar el alquiler este mes',
-    keywords: ['rent', 'pay', 'behind', 'eviction', 'late', 'alquiler', 'pagar', 'atraso'],
-    category: 'housing',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Hay varios programas que pueden ayudar con el alquiler:\n\n🆘 Asistencia de Emergencia:\n• Llama al 211 para programas locales\n• Contacta iglesias y organizaciones sin fines de lucro locales\n• Programa de Asistencia de Alquiler de Emergencia (ERA)\n\n⚖️ Si enfrentas desalojo:\n• Tienes derechos legales - no pueden desalojarte inmediatamente\n• Busca asistencia legal gratuita en tu área\n\n💡 Actúa rápido - cuanto antes pidas ayuda, más opciones tendrás.`
-      : `There are several programs that can help with rent:\n\n🆘 Emergency Assistance:\n• Call 211 for local programs\n• Contact local churches and nonprofits\n• Emergency Rental Assistance (ERA) program\n\n⚖️ If facing eviction:\n• You have legal rights - they can't evict you immediately\n• Look for free legal aid in your area\n\n💡 Act fast - the sooner you ask for help, the more options you'll have.`,
-  },
-  // Healthcare Topics
-  {
-    id: 'no-insurance',
-    question: 'I need healthcare but have no insurance',
-    questionEs: 'Necesito atención médica pero no tengo seguro',
-    keywords: ['insurance', 'no insurance', 'uninsured', 'doctor', 'medical', 'seguro', 'médico'],
-    category: 'healthcare',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Hay varias opciones para obtener atención médica sin seguro:\n\n🏥 Centros de Salud Federales (FQHCs):\n• Atienden a todos sin importar capacidad de pago\n• Tarifas basadas en ingresos (sliding scale)\n• Busca uno cerca en findahealthcenter.hrsa.gov\n\n💊 Clínicas Gratuitas:\n• Operadas por voluntarios y organizaciones sin fines de lucro\n• Llama al 211 para encontrar una cerca\n\n📋 Medicaid:\n• Si tienes bajos ingresos, podrías calificar\n• Aplica en healthcare.gov o tu oficina local de servicios sociales\n\n${profile?.location?.city ? `📍 Busca "free clinic ${profile.location.city}" para opciones locales.` : ''}`
-      : `You have several options for healthcare without insurance:\n\n🏥 Federally Qualified Health Centers (FQHCs):\n• Serve everyone regardless of ability to pay\n• Sliding scale fees based on income\n• Find one at findahealthcenter.hrsa.gov\n\n💊 Free Clinics:\n• Run by volunteers and nonprofits\n• Call 211 to find one nearby\n\n📋 Medicaid:\n• If you have low income, you may qualify\n• Apply at healthcare.gov or your local social services office\n\n${profile?.location?.city ? `📍 Search "free clinic ${profile.location.city}" for local options.` : ''}`,
-  },
-  {
-    id: 'mental-health',
-    question: 'I need mental health support',
-    questionEs: 'Necesito apoyo de salud mental',
-    keywords: ['mental', 'depression', 'anxiety', 'stress', 'counseling', 'therapy', 'depresión', 'ansiedad'],
-    category: 'healthcare',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Tu salud mental es importante y hay ayuda disponible:\n\n📞 Líneas de Crisis (24/7):\n• 988 - Línea de Prevención del Suicidio y Crisis\n• 1-800-662-4357 - Línea de SAMHSA\n\n🧠 Servicios Gratuitos/Bajo Costo:\n• Centros de Salud Mental Comunitarios\n• FQHCs ofrecen servicios de salud mental\n• Aplicaciones gratuitas: Woebot, MindShift\n\n💡 Muchos centros ofrecen tarifas según tus ingresos. Llama al 211 para opciones en ${profile?.location?.city || 'tu área'}.`
-      : `Your mental health matters and help is available:\n\n📞 Crisis Lines (24/7):\n• 988 - Suicide & Crisis Lifeline\n• 1-800-662-4357 - SAMHSA Helpline\n\n🧠 Free/Low-Cost Services:\n• Community Mental Health Centers\n• FQHCs offer mental health services\n• Free apps: Woebot, MindShift\n\n💡 Many centers offer sliding-scale fees based on income. Call 211 for options in ${profile?.location?.city || 'your area'}.`,
-  },
-  {
-    id: 'prescriptions',
-    question: 'I can\'t afford my medications',
-    questionEs: 'No puedo pagar mis medicamentos',
-    keywords: ['medication', 'prescription', 'medicine', 'afford', 'pills', 'medicamento', 'receta'],
-    category: 'healthcare',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Hay formas de obtener medicamentos a menor costo:\n\n💊 Programas de Asistencia:\n• NeedyMeds.org - Base de datos de programas de descuento\n• RxAssist.org - Conecta con programas de asistencia\n• Programas de asistencia del fabricante\n\n🏪 Opciones de Bajo Costo:\n• Walmart $4 generics\n• Costco pharmacy (no necesitas membresía)\n• GoodRx - cupones gratuitos de descuento\n\n🏥 FQHCs a menudo tienen farmacias con descuento o programas de medicamentos gratuitos.`
-      : `There are ways to get medications at lower cost:\n\n💊 Assistance Programs:\n• NeedyMeds.org - Database of discount programs\n• RxAssist.org - Connects you with assistance programs\n• Manufacturer patient assistance programs\n\n🏪 Low-Cost Options:\n• Walmart $4 generics\n• Costco pharmacy (no membership needed)\n• GoodRx - free discount coupons\n\n🏥 FQHCs often have discount pharmacies or free medication programs.`,
-  },
-  // Employment Topics
-  {
-    id: 'find-job',
-    question: 'How do I find a job?',
-    questionEs: '¿Cómo encuentro trabajo?',
-    keywords: ['job', 'work', 'employment', 'hire', 'trabajo', 'empleo', 'contratar'],
-    category: 'employment',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Aquí hay recursos para encontrar trabajo:\n\n💼 Dónde Buscar:\n• Indeed.com, LinkedIn, Craigslist jobs\n• Oficina de Desarrollo de la Fuerza Laboral local\n• Agencias de empleo temporal\n• Ferias de trabajo locales\n\n📝 Prepárate:\n• Las bibliotecas ofrecen ayuda gratuita con currículos\n• Practica preguntas de entrevista comunes\n• Viste profesionalmente (ropa limpia y ordenada)\n\n🎯 Trabajos que contratan rápido:\n• Almacenes, restaurantes, retail, limpieza, construcción\n• Muchos pagan el mismo día o semanalmente\n\n${profile?.location?.city ? `📍 Busca "${profile.location.city} workforce development" para recursos locales.` : ''}`
-      : `Here are resources to find work:\n\n💼 Where to Look:\n• Indeed.com, LinkedIn, Craigslist jobs\n• Local Workforce Development office\n• Temp agencies\n• Local job fairs\n\n📝 Get Ready:\n• Libraries offer free resume help\n• Practice common interview questions\n• Dress professionally (clean, neat clothes)\n\n🎯 Jobs that hire quickly:\n• Warehouse, restaurant, retail, cleaning, construction\n• Many pay same-day or weekly\n\n${profile?.location?.city ? `📍 Search "${profile.location.city} workforce development" for local resources.` : ''}`,
-  },
-  {
-    id: 'job-training',
-    question: 'I want to learn new job skills',
-    questionEs: 'Quiero aprender nuevas habilidades laborales',
-    keywords: ['training', 'skills', 'learn', 'certificate', 'education', 'capacitación', 'habilidades'],
-    category: 'employment',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Hay muchos programas de capacitación gratuitos:\n\n🎓 Capacitación Gratuita:\n• Centros de Desarrollo de la Fuerza Laboral - programas gratuitos\n• Colegios comunitarios - programas de certificación\n• Job Corps (para edades 16-24)\n• YearUp, Per Scholas (tech)\n\n💻 Cursos Gratis en Línea:\n• Google Career Certificates\n• Coursera (certificados con ayuda financiera)\n• Khan Academy, LinkedIn Learning (gratis en bibliotecas)\n\n🔨 Campos de Alta Demanda:\n• Salud (CNA, flebotomía)\n• Construcción, electricidad, plomería\n• Tecnología (IT support, coding)`
-      : `There are many free training programs:\n\n🎓 Free Training:\n• Workforce Development Centers - free programs\n• Community colleges - certificate programs\n• Job Corps (ages 16-24)\n• YearUp, Per Scholas (tech)\n\n💻 Free Online Courses:\n• Google Career Certificates\n• Coursera (certificates with financial aid)\n• Khan Academy, LinkedIn Learning (free at libraries)\n\n🔨 High-Demand Fields:\n• Healthcare (CNA, phlebotomy)\n• Construction, electrical, plumbing\n• Tech (IT support, coding)`,
-  },
-  // General/Emergency Topics
-  {
-    id: 'food-help',
-    question: 'I need help getting food',
-    questionEs: 'Necesito ayuda para conseguir comida',
-    keywords: ['food', 'hungry', 'eat', 'meals', 'pantry', 'comida', 'hambre', 'comer'],
-    category: 'general',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Hay varias formas de obtener comida:\n\n🍽️ Recursos Inmediatos:\n• Llama al 211 para bancos de comida locales\n• FeedingAmerica.org - encuentra despensas cerca\n• Muchas iglesias ofrecen comidas gratis\n\n📋 Programas de Asistencia:\n• SNAP (cupones de comida) - aplica en tu oficina local de servicios sociales\n• WIC - para mujeres embarazadas y niños pequeños\n• Programas de comidas escolares gratuitas\n\n💡 Los bancos de comida no requieren prueba de ingresos en la mayoría de los casos.`
-      : `There are several ways to get food:\n\n🍽️ Immediate Resources:\n• Call 211 for local food banks\n• FeedingAmerica.org - find pantries nearby\n• Many churches offer free meals\n\n📋 Assistance Programs:\n• SNAP (food stamps) - apply at local social services\n• WIC - for pregnant women and young children\n• Free school meal programs\n\n💡 Food banks don't require proof of income in most cases.`,
-  },
-  {
-    id: 'veteran-services',
-    question: 'What help is available for veterans?',
-    questionEs: '¿Qué ayuda hay disponible para veteranos?',
-    keywords: ['veteran', 'military', 'va', 'service', 'veterano', 'militar'],
-    category: 'general',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Los veteranos tienen acceso a muchos servicios especiales:\n\n🎖️ Recursos del VA:\n• Atención médica del VA - 1-877-222-8387\n• HUD-VASH - vales de vivienda para veteranos sin hogar\n• SSVF - servicios de apoyo para familias de veteranos\n\n📞 Líneas Directas:\n• Línea de Crisis para Veteranos: 988, oprime 1\n• Asistencia de Beneficios del VA: 1-800-827-1000\n\n💼 Empleo:\n• VETS program - ayuda con empleo\n• Muchos empleadores tienen preferencia por veteranos\n\n🏠 Vivienda:\n• Programas de vivienda específicos para veteranos\n• Refugios solo para veteranos en muchas ciudades`
-      : `Veterans have access to many special services:\n\n🎖️ VA Resources:\n• VA Healthcare - 1-877-222-8387\n• HUD-VASH - housing vouchers for homeless vets\n• SSVF - supportive services for veteran families\n\n📞 Direct Lines:\n• Veterans Crisis Line: 988, press 1\n• VA Benefits Assistance: 1-800-827-1000\n\n💼 Employment:\n• VETS program - employment help\n• Many employers have veteran preference\n\n🏠 Housing:\n• Veteran-specific housing programs\n• Veterans-only shelters in many cities`,
-  },
-  {
-    id: 'documents',
-    question: 'I lost my ID/documents',
-    questionEs: 'Perdí mi identificación/documentos',
-    keywords: ['id', 'identification', 'documents', 'license', 'birth certificate', 'identificación', 'documentos'],
-    category: 'general',
-    getResponse: (profile, isSpanish) => isSpanish
-      ? `Reemplazar documentos es importante. Aquí está cómo:\n\n🪪 Identificación:\n• Acta de nacimiento: Contacta el Registro Civil del estado donde naciste\n• Tarjeta de Seguro Social: ssa.gov o visita una oficina local\n• Licencia de conducir: Visita el DMV con prueba de identidad\n\n💡 Consejos:\n• Muchas agencias de servicios sociales ayudan gratis con esto\n• Algunas organizaciones pagan las tarifas de reemplazo\n• Llama al 211 para ayuda local con documentos\n\n📍 Los refugios y centros de servicios a menudo tienen programas de asistencia con documentos.`
-      : `Replacing documents is important. Here's how:\n\n🪪 Identification:\n• Birth certificate: Contact vital records in your birth state\n• Social Security card: ssa.gov or visit local office\n• Driver's license: Visit DMV with proof of identity\n\n💡 Tips:\n• Many social service agencies help with this for free\n• Some organizations pay replacement fees\n• Call 211 for local document assistance\n\n📍 Shelters and service centers often have document assistance programs.`,
-  },
-];
-
-// Quick action categories for AI Case Manager
-const AI_QUICK_ACTIONS = {
-  housing: [
-    { id: 'shelter', label: 'Find Shelter', labelEs: 'Buscar Refugio', icon: '🏠' },
-    { id: 'rent', label: 'Rent Help', labelEs: 'Ayuda con Alquiler', icon: '💰' },
-    { id: 'section8', label: 'Section 8', labelEs: 'Sección 8', icon: '📋' },
-  ],
-  healthcare: [
-    { id: 'clinic', label: 'Free Clinic', labelEs: 'Clínica Gratis', icon: '🏥' },
-    { id: 'mental', label: 'Mental Health', labelEs: 'Salud Mental', icon: '🧠' },
-    { id: 'meds', label: 'Medications', labelEs: 'Medicamentos', icon: '💊' },
-  ],
-  employment: [
-    { id: 'jobs', label: 'Find Jobs', labelEs: 'Buscar Trabajo', icon: '💼' },
-    { id: 'training', label: 'Job Training', labelEs: 'Capacitación', icon: '🎓' },
-    { id: 'resume', label: 'Resume Help', labelEs: 'Ayuda con CV', icon: '📝' },
-  ],
-  general: [
-    { id: 'food', label: 'Food Help', labelEs: 'Ayuda Comida', icon: '🍽️' },
-    { id: 'documents', label: 'Documents', labelEs: 'Documentos', icon: '🪪' },
-    { id: '211', label: 'Call 211', labelEs: 'Llamar 211', icon: '📞' },
-  ],
+  const response = responses[topicId];
+  return response ? (isSpanish ? response.es : response.en) : '';
 };
 
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
   content: string;
-  timestamp: Date;
 }
 
-// Healthcare triage questions
-const TRIAGE_QUESTIONS = [
-  {
-    id: 'severity',
-    question: 'How would you describe your situation?',
-    questionEs: '¿Cómo describirías tu situación?',
-    options: [
-      { id: 'emergency', label: 'Life-threatening emergency', labelEs: 'Emergencia que pone en peligro la vida', score: 10 },
-      { id: 'urgent', label: 'Urgent - needs attention today', labelEs: 'Urgente - necesita atención hoy', score: 7 },
-      { id: 'soon', label: 'Need care soon (within a week)', labelEs: 'Necesito atención pronto (dentro de una semana)', score: 4 },
-      { id: 'routine', label: 'Routine check-up or non-urgent', labelEs: 'Chequeo de rutina o no urgente', score: 1 },
-    ],
-  },
-  {
-    id: 'symptoms',
-    question: 'Are you experiencing any of these symptoms?',
-    questionEs: '¿Estás experimentando alguno de estos síntomas?',
-    options: [
-      { id: 'chest', label: 'Chest pain or difficulty breathing', labelEs: 'Dolor en el pecho o dificultad para respirar', score: 10 },
-      { id: 'bleeding', label: 'Severe bleeding or injury', labelEs: 'Sangrado severo o lesión', score: 9 },
-      { id: 'mental', label: 'Thoughts of self-harm', labelEs: 'Pensamientos de hacerse daño', score: 10 },
-      { id: 'fever', label: 'High fever or severe pain', labelEs: 'Fiebre alta o dolor severo', score: 6 },
-      { id: 'mild', label: 'Mild symptoms (cold, minor pain)', labelEs: 'Síntomas leves (resfriado, dolor menor)', score: 2 },
-      { id: 'none', label: 'None of the above', labelEs: 'Ninguno de los anteriores', score: 0 },
-    ],
-  },
-  {
-    id: 'duration',
-    question: 'How long have you had this issue?',
-    questionEs: '¿Cuánto tiempo llevas con este problema?',
-    options: [
-      { id: 'just_now', label: 'Just started / very sudden', labelEs: 'Acaba de empezar / muy repentino', score: 5 },
-      { id: 'hours', label: 'A few hours', labelEs: 'Unas pocas horas', score: 4 },
-      { id: 'days', label: 'A few days', labelEs: 'Unos pocos días', score: 3 },
-      { id: 'weeks', label: 'A week or more', labelEs: 'Una semana o más', score: 2 },
-      { id: 'ongoing', label: 'Ongoing / chronic condition', labelEs: 'Continuo / condición crónica', score: 1 },
-    ],
-  },
-];
-
-type TriageResult = 'emergency' | 'urgent' | 'soon' | 'routine' | null;
-
-export const DashboardScreen: React.FC = () => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeTab, setActiveTab] = useState<TabType>('resources');
-  const [activeCategory, setActiveCategory] = useState<ServiceCategory | null>(null);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [codeCopied, setCodeCopied] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<string>('recommended');
-  const [jobListings, setJobListings] = useState<Resource[]>([]);
-  const [housingListings, setHousingListings] = useState<Resource[]>([]);
-  const [isLoadingSearch, setIsLoadingSearch] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['recommended']);
-  const [showTriageModal, setShowTriageModal] = useState(false);
-  const [triageStep, setTriageStep] = useState(0);
-  const [triageAnswers, setTriageAnswers] = useState<Record<string, number>>({});
-  const [triageResult, setTriageResult] = useState<TriageResult>(null);
-
-  // AI Case Manager state
-  const [showAICaseManager, setShowAICaseManager] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
-  const [isAITyping, setIsAITyping] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
+  const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
-  const isSpanish = i18n.language === 'es';
-
-  useEffect(() => {
-    if (categories.length > 0 && !activeCategory) {
-      setActiveCategory(categories[0]);
-    }
-  }, [categories]);
-
-  useEffect(() => {
-    if (activeCategory && userProfile?.location) {
-      loadResources();
-    }
-  }, [activeCategory, userProfile?.location]);
-
-  // Load listings for search sections
-  useEffect(() => {
-    const loadSearchListings = async () => {
-      if (!userProfile?.location) return;
-
-      if (activeSection === 'jobs' && jobListings.length === 0) {
-        setIsLoadingSearch(true);
-        const jobs = await getEmploymentResources(userProfile.location);
-        setJobListings(jobs);
-        setIsLoadingSearch(false);
-      }
-
-      if (activeSection === 'housing' && housingListings.length === 0) {
-        setIsLoadingSearch(true);
-        const housing = await getHousingResources(userProfile.location);
-        setHousingListings(housing);
-        setIsLoadingSearch(false);
-      }
-    };
-
-    loadSearchListings();
-  }, [activeSection, userProfile?.location]);
-
-  const loadResources = async () => {
-    if (!activeCategory || !userProfile?.location) return;
-
-    setIsLoading(true);
-    try {
-      let apiResources: Resource[] = [];
-
-      // Fetch resources from real APIs based on category
-      switch (activeCategory) {
-        case 'healthcare':
-          apiResources = await getHealthcareResources(userProfile.location);
-          break;
-        case 'employment':
-          apiResources = await getEmploymentResources(userProfile.location);
-          break;
-        case 'housing':
-          apiResources = await getHousingResources(userProfile.location);
-          break;
-      }
-
-      // If API returns results, use them; otherwise fall back to sample data
-      if (apiResources.length > 0) {
-        setResources(apiResources);
-      } else {
-        // Fallback to sample data if APIs return nothing
-        const rawResources = getSampleResources(userProfile.location, activeCategory);
-        const filtered = filterResourcesByAnswers(
-          rawResources,
-          userProfile.answers,
-          activeCategory
-        );
-        setResources(filtered);
-      }
-    } catch (error) {
-      console.error('Error loading resources:', error);
-      // Fallback to sample data on error
-      const rawResources = getSampleResources(userProfile.location, activeCategory);
-      const filtered = filterResourcesByAnswers(
-        rawResources,
-        userProfile.answers,
-        activeCategory
-      );
-      setResources(filtered);
-    }
-    setIsLoading(false);
-  };
-
-  const handleCall = (phone: string) => {
-    Linking.openURL(`tel:${phone}`);
-  };
-
-  const handleWebsite = (url: string) => {
-    Linking.openURL(url);
-  };
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev =>
-      prev.includes(sectionId)
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
-  };
-
-  const isSectionExpanded = (sectionId: string) => expandedSections.includes(sectionId);
-
-  // Triage functions
-  const startTriage = () => {
-    setTriageStep(0);
-    setTriageAnswers({});
-    setTriageResult(null);
-    setShowTriageModal(true);
-  };
-
-  const handleTriageAnswer = (questionId: string, score: number) => {
-    const newAnswers = { ...triageAnswers, [questionId]: score };
-    setTriageAnswers(newAnswers);
-
-    if (triageStep < TRIAGE_QUESTIONS.length - 1) {
-      setTriageStep(triageStep + 1);
-    } else {
-      // Calculate result
-      const totalScore = Object.values(newAnswers).reduce((sum, s) => sum + s, 0);
-      let result: TriageResult;
-
-      if (totalScore >= 15) {
-        result = 'emergency';
-      } else if (totalScore >= 10) {
-        result = 'urgent';
-      } else if (totalScore >= 5) {
-        result = 'soon';
-      } else {
-        result = 'routine';
-      }
-
-      setTriageResult(result);
-    }
-  };
-
-  const closeTriage = () => {
-    setShowTriageModal(false);
-    setTriageStep(0);
-    setTriageAnswers({});
-    setTriageResult(null);
-  };
-
-  // AI Case Manager functions
-  const openAICaseManager = () => {
-    setShowAICaseManager(true);
-    if (chatMessages.length === 0) {
-      // Add initial greeting
-      const greeting: ChatMessage = {
-        id: 'greeting',
-        type: 'ai',
-        content: isSpanish
-          ? `¡Hola${userProfile?.name ? ` ${userProfile.name}` : ''}! Soy tu Administrador de Casos IA. Estoy aquí para ayudarte a encontrar recursos de vivienda, salud y empleo.\n\n¿En qué puedo ayudarte hoy? Puedes preguntarme sobre:\n• Refugios y vivienda\n• Clínicas y atención médica\n• Búsqueda de empleo y capacitación\n• Comida y servicios de emergencia`
-          : `Hi${userProfile?.name ? ` ${userProfile.name}` : ''}! I'm your AI Case Manager. I'm here to help you find housing, healthcare, and employment resources.\n\nHow can I help you today? You can ask me about:\n• Shelters and housing\n• Clinics and healthcare\n• Job search and training\n• Food and emergency services`,
-        timestamp: new Date(),
-      };
-      setChatMessages([greeting]);
-    }
-  };
-
-  const closeAICaseManager = () => {
-    setShowAICaseManager(false);
-  };
-
-  const findBestTopicMatch = (input: string): CaseManagerTopic | null => {
-    const lowerInput = input.toLowerCase();
-
-    // Check for keyword matches
-    let bestMatch: CaseManagerTopic | null = null;
-    let maxMatches = 0;
-
-    for (const topic of AI_CASE_MANAGER_TOPICS) {
-      let matches = 0;
-      for (const keyword of topic.keywords) {
-        if (lowerInput.includes(keyword.toLowerCase())) {
-          matches++;
-        }
-      }
-      if (matches > maxMatches) {
-        maxMatches = matches;
-        bestMatch = topic;
-      }
-    }
-
-    return maxMatches > 0 ? bestMatch : null;
-  };
-
-  const generateAIResponse = (input: string): string => {
-    // Try to find a matching topic
-    const matchedTopic = findBestTopicMatch(input);
-
-    if (matchedTopic) {
-      return matchedTopic.getResponse(userProfile, isSpanish);
-    }
-
-    // Generic helpful response if no match
-    return isSpanish
-      ? `Entiendo que necesitas ayuda. Aquí hay algunas opciones:\n\n📞 Llama al 211 - Pueden conectarte con recursos locales para casi cualquier necesidad.\n\n¿Puedes decirme más específicamente qué tipo de ayuda necesitas?\n• Vivienda o refugio\n• Atención médica\n• Empleo o capacitación\n• Comida o asistencia de emergencia\n\nTambién puedes usar los botones de acción rápida arriba para temas comunes.`
-      : `I understand you need help. Here are some options:\n\n📞 Call 211 - They can connect you with local resources for almost any need.\n\nCan you tell me more specifically what kind of help you need?\n• Housing or shelter\n• Healthcare\n• Employment or training\n• Food or emergency assistance\n\nYou can also use the quick action buttons above for common topics.`;
-  };
-
-  const handleAISend = () => {
-    if (!userInput.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: userInput,
-      timestamp: new Date(),
-    };
-
-    setChatMessages(prev => [...prev, userMessage]);
-    setUserInput('');
-    setIsAITyping(true);
-
-    // Simulate AI "thinking" then respond
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content: generateAIResponse(userMessage.content),
-        timestamp: new Date(),
-      };
-      setChatMessages(prev => [...prev, aiResponse]);
-      setIsAITyping(false);
-    }, 800);
-  };
-
-  const handleQuickAction = (actionId: string) => {
-    // Map quick actions to topic IDs
-    const actionToTopic: Record<string, string> = {
-      'shelter': 'shelter-tonight',
-      'rent': 'rent-help',
-      'section8': 'section-8',
-      'clinic': 'no-insurance',
-      'mental': 'mental-health',
-      'meds': 'prescriptions',
-      'jobs': 'find-job',
-      'training': 'job-training',
-      'resume': 'find-job',
-      'food': 'food-help',
-      'documents': 'documents',
-      '211': 'food-help', // Will give 211 info
-    };
-
-    const topicId = actionToTopic[actionId];
-    const topic = AI_CASE_MANAGER_TOPICS.find(t => t.id === topicId);
-
-    if (actionId === '211') {
-      handleCall('211');
-      return;
-    }
-
-    if (topic) {
-      const userMessage: ChatMessage = {
-        id: `user-${Date.now()}`,
-        type: 'user',
-        content: isSpanish ? topic.questionEs : topic.question,
-        timestamp: new Date(),
-      };
-
-      const aiResponse: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content: topic.getResponse(userProfile, isSpanish),
-        timestamp: new Date(),
-      };
-
-      setChatMessages(prev => [...prev, userMessage, aiResponse]);
-    }
-  };
-
-  const handleSuggestedQuestion = (topic: CaseManagerTopic) => {
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: isSpanish ? topic.questionEs : topic.question,
-      timestamp: new Date(),
-    };
-
-    setChatMessages(prev => [...prev, userMessage]);
-    setIsAITyping(true);
-
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content: topic.getResponse(userProfile, isSpanish),
-        timestamp: new Date(),
-      };
-      setChatMessages(prev => [...prev, aiResponse]);
-      setIsAITyping(false);
-    }, 600);
-  };
-
-  const getTriageRecommendation = () => {
-    switch (triageResult) {
-      case 'emergency':
-        return {
-          title: isSpanish ? '¡Llama al 911 ahora!' : 'Call 911 Now!',
-          description: isSpanish
-            ? 'Según tus respuestas, esto podría ser una emergencia médica. Por favor llama al 911 o ve a la sala de emergencias más cercana inmediatamente.'
-            : 'Based on your answers, this could be a medical emergency. Please call 911 or go to the nearest emergency room immediately.',
-          action: '911',
-          color: '#DC2626',
-          icon: '🚨',
-        };
-      case 'urgent':
-        return {
-          title: isSpanish ? 'Busca Atención Urgente Hoy' : 'Seek Urgent Care Today',
-          description: isSpanish
-            ? 'Tus síntomas necesitan atención hoy. Visita un centro de atención urgente o clínica sin cita previa.'
-            : 'Your symptoms need attention today. Visit an urgent care center or walk-in clinic.',
-          action: 'urgent',
-          color: '#F59E0B',
-          icon: '⚠️',
-        };
-      case 'soon':
-        return {
-          title: isSpanish ? 'Programa una Cita Pronto' : 'Schedule an Appointment Soon',
-          description: isSpanish
-            ? 'Deberías ver a un médico dentro de los próximos días. Contacta una clínica para programar una cita.'
-            : 'You should see a doctor within the next few days. Contact a clinic to schedule an appointment.',
-          action: 'schedule',
-          color: '#3B82F6',
-          icon: '📅',
-        };
-      case 'routine':
-        return {
-          title: isSpanish ? 'Atención de Rutina' : 'Routine Care',
-          description: isSpanish
-            ? 'Tus síntomas no parecen urgentes. Puedes programar una cita regular con un proveedor de atención primaria.'
-            : 'Your symptoms don\'t appear urgent. You can schedule a regular appointment with a primary care provider.',
-          action: 'routine',
-          color: '#10B981',
-          icon: '✅',
-        };
-      default:
-        return null;
-    }
-  };
-
-  const handleDirections = (resource: Resource) => {
-    const mapUrl = `https://maps.google.com/?q=${resource.lat},${resource.lng}`;
-    Linking.openURL(mapUrl);
-  };
 
   const handleCopyCode = async () => {
     if (userProfile?.shareCode) {
@@ -824,1138 +89,309 @@ export const DashboardScreen: React.FC = () => {
     }
   };
 
-  const handleToggleTodo = (todoId: string) => {
-    dispatch({ type: 'TOGGLE_TODO', payload: todoId });
+  const handleAITopic = (topicId: string) => {
+    const topic = AI_TOPICS.find((t) => t.id === topicId);
+    if (!topic) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: isSpanish ? topic.labelEs : topic.label,
+    };
+
+    const aiResponse: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      type: 'ai',
+      content: getAIResponse(topicId, isSpanish, userProfile?.location?.city),
+    };
+
+    setChatMessages([...chatMessages, userMessage, aiResponse]);
   };
 
-  const handleAddTodo = () => {
-    Alert.alert(
-      'Add Task',
-      'This would open a task input modal in the full app.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Add Sample Task',
-          onPress: () => {
-            dispatch({
-              type: 'ADD_TODO',
-              payload: {
-                title: 'New task - tap to edit',
-                priority: 'normal',
-                completed: false,
-                createdBy: 'individual',
-              },
-            });
-          },
-        },
-      ]
-    );
-  };
+  const handleSendMessage = () => {
+    if (!userInput.trim()) return;
 
-  const getGuides = () => {
-    switch (activeCategory) {
-      case 'healthcare': return HEALTHCARE_GUIDES;
-      case 'employment': return EMPLOYMENT_GUIDES;
-      case 'housing': return HOUSING_GUIDES;
-      default: return [];
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: userInput,
+    };
+
+    // Simple keyword matching for response
+    let responseId = '211'; // Default to 211 info
+    const lowerInput = userInput.toLowerCase();
+    if (lowerInput.includes('shelter') || lowerInput.includes('sleep') || lowerInput.includes('refugio') || lowerInput.includes('dormir')) {
+      responseId = 'shelter';
+    } else if (lowerInput.includes('clinic') || lowerInput.includes('doctor') || lowerInput.includes('health') || lowerInput.includes('médico') || lowerInput.includes('clínica')) {
+      responseId = 'clinic';
+    } else if (lowerInput.includes('job') || lowerInput.includes('work') || lowerInput.includes('trabajo') || lowerInput.includes('empleo')) {
+      responseId = 'job';
+    } else if (lowerInput.includes('food') || lowerInput.includes('hungry') || lowerInput.includes('eat') || lowerInput.includes('comida') || lowerInput.includes('hambre')) {
+      responseId = 'food';
+    } else if (lowerInput.includes('id') || lowerInput.includes('document') || lowerInput.includes('birth') || lowerInput.includes('license') || lowerInput.includes('documento') || lowerInput.includes('identificación')) {
+      responseId = 'documents';
     }
+
+    const aiResponse: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      type: 'ai',
+      content: getAIResponse(responseId, isSpanish, userProfile?.location?.city),
+    };
+
+    setChatMessages([...chatMessages, userMessage, aiResponse]);
+    setUserInput('');
   };
 
-  const getUrgentResources = () => {
-    return URGENT_RESOURCES[activeCategory || 'healthcare'] || [];
-  };
+  const renderCategoryGrid = () => {
+    const allCategories = [
+      { id: 'healthcare', icon: '🏥', label: 'Health', labelEs: 'Salud', color: '#F0FDFA', iconBg: '#CCFBF1', screen: 'Health' },
+      { id: 'employment', icon: '💼', label: 'Jobs', labelEs: 'Empleo', color: '#FFF7ED', iconBg: '#FFEDD5', screen: 'Jobs' },
+      { id: 'housing', icon: '🏠', label: 'Housing', labelEs: 'Vivienda', color: '#F5F3FF', iconBg: '#EDE9FE', screen: 'Housing' },
+    ];
 
-  const getSectionTabs = () => {
-    switch (activeCategory) {
-      case 'healthcare':
-        return [
-          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
-          { id: 'clinics', label: '🔍 Find Clinics', labelEs: '🔍 Buscar Clínicas' },
-          { id: 'learn', label: '📚 Learn', labelEs: '📚 Aprender' },
-          { id: 'urgent', label: '🚨 Urgent', labelEs: '🚨 Urgente' },
-        ];
-      case 'employment':
-        return [
-          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
-          { id: 'jobs', label: '💼 Jobs', labelEs: '💼 Empleos' },
-          { id: 'learn', label: '📚 Resources', labelEs: '📚 Recursos' },
-          { id: 'urgent', label: '📋 Help', labelEs: '📋 Ayuda' },
-        ];
-      case 'housing':
-        return [
-          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
-          { id: 'housing', label: '🏠 Apply', labelEs: '🏠 Aplicar' },
-          { id: 'learn', label: '📚 Learn', labelEs: '📚 Aprender' },
-          { id: 'urgent', label: '🆘 Emergency', labelEs: '🆘 Emergencia' },
-        ];
-      default:
-        return [];
-    }
-  };
+    // Filter to show only selected categories, but always show AI
+    const displayCategories = allCategories.filter((cat) => categories.includes(cat.id as any));
 
-  const renderSectionContent = () => {
-    switch (activeSection) {
-      case 'recommended':
-        return renderRecommendedSection();
-      case 'clinics':
-      case 'jobs':
-      case 'housing':
-        return renderSearchSection();
-      case 'learn':
-        return renderLearnSection();
-      case 'urgent':
-        return renderUrgentSection();
-      default:
-        return null;
-    }
-  };
-
-  const renderRecommendedSection = () => (
-    <View style={styles.sectionContent}>
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recomendado Para Ti' : 'Recommended For You'}
-      </Text>
-      <Text style={styles.sectionSubtitle}>
-        {isSpanish
-          ? 'Basado en tus respuestas del cuestionario'
-          : 'Based on your questionnaire answers'}
-      </Text>
-
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
-        </View>
-      ) : resources.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            {isSpanish ? 'No se encontraron recursos' : 'No resources found'}
-          </Text>
-        </View>
-      ) : (
-        resources.slice(0, 4).map((resource) => (
-          <View key={resource.id} style={styles.resourceCard}>
-            <View style={styles.resourceHeader}>
-              <Text style={styles.resourceName}>{resource.name}</Text>
-              {resource.distance && (
-                <Text style={styles.resourceDistance}>
-                  {formatDistance(resource.distance)}
-                </Text>
-              )}
-            </View>
-            <Text style={styles.resourceAddress}>{resource.address}</Text>
-            {resource.description && (
-              <Text style={styles.resourceDescription}>{resource.description}</Text>
-            )}
-            {resource.services && resource.services.length > 0 && (
-              <View style={styles.servicesTags}>
-                {resource.services.slice(0, 3).map((service, idx) => (
-                  <View key={idx} style={styles.serviceTag}>
-                    <Text style={styles.serviceTagText}>{service}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            <View style={styles.resourceActions}>
-              {resource.phone && (
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => handleCall(resource.phone!)}
-                >
-                  <Text style={styles.actionButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-                </TouchableOpacity>
-              )}
-              {resource.website && (
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => handleWebsite(resource.website!)}
-                >
-                  <Text style={styles.actionButtonText}>🌐 {isSpanish ? 'Web' : 'Web'}</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleDirections(resource)}
-              >
-                <Text style={styles.actionButtonText}>🗺️ {isSpanish ? 'Ir' : 'Go'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
-      )}
-    </View>
-  );
-
-  const renderSearchSection = () => (
-    <View style={styles.sectionContent}>
-      <Text style={styles.sectionTitle}>
-        {activeCategory === 'healthcare' && (isSpanish ? 'Buscar Clínicas' : 'Find Clinics')}
-        {activeCategory === 'employment' && (isSpanish ? 'Buscar Empleos' : 'Find Jobs')}
-        {activeCategory === 'housing' && (isSpanish ? 'Vivienda Disponible' : 'Housing Available')}
-      </Text>
-
-      <View style={styles.searchBox}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={isSpanish ? 'Buscar...' : 'Search...'}
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {activeCategory === 'employment' && (
-        <View style={styles.listContainer}>
-          {isLoadingSearch ? (
-            <ActivityIndicator size="large" color="#2563EB" style={{ padding: 40 }} />
-          ) : jobListings.length > 0 ? (
-            jobListings.filter(job =>
-              !searchQuery || job.name.toLowerCase().includes(searchQuery.toLowerCase())
-            ).map((job) => (
-              <TouchableOpacity
-                key={job.id}
-                style={styles.listCard}
-                onPress={() => job.website && handleWebsite(job.website)}
-              >
-                <Text style={styles.listIcon}>💼</Text>
-                <View style={styles.listContent}>
-                  <Text style={styles.listTitle}>{job.name}</Text>
-                  <Text style={styles.listSubtitle}>{job.description}</Text>
-                  <View style={styles.listMeta}>
-                    {job.services && job.services[0] && (
-                      <Text style={styles.listMetaText}>{job.services[0]}</Text>
-                    )}
-                    {job.services && job.services[1] && (
-                      <Text style={styles.listMetaBadge}>{job.services[1]}</Text>
-                    )}
-                  </View>
-                </View>
-                <Text style={styles.listArrow}>→</Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            SAMPLE_JOBS.map((job) => (
-              <TouchableOpacity key={job.id} style={styles.listCard}>
-                <Text style={styles.listIcon}>{job.icon}</Text>
-                <View style={styles.listContent}>
-                  <Text style={styles.listTitle}>{job.title}</Text>
-                  <Text style={styles.listSubtitle}>{job.company}</Text>
-                  <View style={styles.listMeta}>
-                    <Text style={styles.listMetaText}>{job.pay}</Text>
-                    <Text style={styles.listMetaBadge}>{job.type}</Text>
-                  </View>
-                </View>
-                <Text style={styles.listArrow}>→</Text>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-      )}
-
-      {activeCategory === 'housing' && (
-        <View style={styles.listContainer}>
-          {isLoadingSearch ? (
-            <ActivityIndicator size="large" color="#2563EB" style={{ padding: 40 }} />
-          ) : housingListings.length > 0 ? (
-            housingListings.filter(housing =>
-              !searchQuery || housing.name.toLowerCase().includes(searchQuery.toLowerCase())
-            ).map((housing) => (
-              <TouchableOpacity
-                key={housing.id}
-                style={styles.listCard}
-                onPress={() => housing.website && handleWebsite(housing.website)}
-              >
-                <Text style={styles.listIcon}>🏠</Text>
-                <View style={styles.listContent}>
-                  <Text style={styles.listTitle}>{housing.name}</Text>
-                  <Text style={styles.listSubtitle}>{housing.description}</Text>
-                  <View style={styles.listMeta}>
-                    {housing.services && housing.services[0] && (
-                      <Text style={styles.listMetaText}>{housing.services[0]}</Text>
-                    )}
-                    {housing.phone && (
-                      <TouchableOpacity onPress={() => handleCall(housing.phone!)}>
-                        <Text style={[styles.listMetaBadge, styles.availableBadge]}>
-                          📞 {housing.phone}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-                <Text style={styles.listArrow}>→</Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            SAMPLE_HOUSING.map((housing) => (
-              <TouchableOpacity key={housing.id} style={styles.listCard}>
-                <Text style={styles.listIcon}>{housing.icon}</Text>
-                <View style={styles.listContent}>
-                  <Text style={styles.listTitle}>{housing.title}</Text>
-                  <Text style={styles.listSubtitle}>{housing.organization}</Text>
-                  <View style={styles.listMeta}>
-                    <Text style={styles.listMetaText}>{housing.type}</Text>
-                    <Text style={[
-                      styles.listMetaBadge,
-                      housing.availability === 'Tonight' || housing.availability === 'Available'
-                        ? styles.availableBadge : null
-                    ]}>
-                      {housing.availability}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.listArrow}>→</Text>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-      )}
-
-      {activeCategory === 'healthcare' && (
-        <View style={styles.listContainer}>
-          {resources.map((resource) => (
-            <TouchableOpacity key={resource.id} style={styles.listCard}>
-              <Text style={styles.listIcon}>🏥</Text>
-              <View style={styles.listContent}>
-                <Text style={styles.listTitle}>{resource.name}</Text>
-                <Text style={styles.listSubtitle}>{resource.address}</Text>
-                {resource.distance && (
-                  <Text style={styles.listMetaText}>{formatDistance(resource.distance)}</Text>
-                )}
-              </View>
-              <Text style={styles.listArrow}>→</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-
-  const renderLearnSection = () => {
-    const guides = getGuides();
     return (
-      <View style={styles.sectionContent}>
-        <Text style={styles.sectionTitle}>
-          {activeCategory === 'healthcare' && (isSpanish ? 'Aprende Sobre Salud' : 'Learn About Healthcare')}
-          {activeCategory === 'employment' && (isSpanish ? 'Recursos de Empleo' : 'Employment Resources')}
-          {activeCategory === 'housing' && (isSpanish ? 'Guía de Vivienda' : 'Housing Guide')}
-        </Text>
-        <Text style={styles.sectionSubtitle}>
-          {isSpanish
-            ? 'Información importante para ayudarte'
-            : 'Important information to help you'}
-        </Text>
-
-        {guides.map((guide) => (
+      <View style={styles.categoryGrid}>
+        {displayCategories.map((category) => (
           <TouchableOpacity
-            key={guide.id}
-            style={styles.guideCard}
-            onPress={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+            key={category.id}
+            style={[styles.categoryCard, { backgroundColor: category.color }]}
+            onPress={() => navigation.navigate(category.screen)}
           >
-            <View style={styles.guideHeader}>
-              <Text style={styles.guideIcon}>{guide.icon}</Text>
-              <View style={styles.guideInfo}>
-                <Text style={styles.guideTitle}>
-                  {isSpanish ? guide.titleEs : guide.title}
-                </Text>
-                <Text style={styles.guideDescription}>
-                  {isSpanish ? guide.descriptionEs : guide.description}
-                </Text>
-              </View>
-              <Text style={styles.guideArrow}>
-                {expandedGuide === guide.id ? '▼' : '▶'}
-              </Text>
+            <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
+              <Text style={styles.categoryIcon}>{category.icon}</Text>
             </View>
-
-            {expandedGuide === guide.id && (
-              <View style={styles.guideContent}>
-                {guide.content.map((item, idx) => (
-                  <View key={idx} style={styles.guideContentItem}>
-                    <Text style={styles.guideContentBullet}>•</Text>
-                    <Text style={styles.guideContentText}>{item}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
+            <Text style={styles.categoryLabel}>
+              {isSpanish ? category.labelEs : category.label}
+            </Text>
           </TouchableOpacity>
         ))}
-      </View>
-    );
-  };
 
-  const renderUrgentSection = () => {
-    const urgentItems = getUrgentResources();
-    return (
-      <View style={styles.sectionContent}>
-        <Text style={styles.sectionTitle}>
-          {activeCategory === 'healthcare' && (isSpanish ? 'Ayuda de Emergencia' : 'Emergency Help')}
-          {activeCategory === 'employment' && (isSpanish ? 'Ayuda Urgente' : 'Urgent Help')}
-          {activeCategory === 'housing' && (isSpanish ? 'Refugio de Emergencia' : 'Emergency Shelter')}
-        </Text>
-        <Text style={styles.sectionSubtitle}>
-          {isSpanish ? 'Recursos disponibles 24/7' : '24/7 resources available'}
-        </Text>
-
-        <View style={styles.urgentWarning}>
-          <Text style={styles.urgentWarningIcon}>⚠️</Text>
-          <Text style={styles.urgentWarningText}>
-            {isSpanish
-              ? 'Si es una emergencia que pone en peligro tu vida, llama al 911'
-              : 'If this is a life-threatening emergency, call 911'}
-          </Text>
-        </View>
-
-        {urgentItems.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.urgentCard}
-            onPress={() => handleCall(item.phone)}
-          >
-            <Text style={styles.urgentIcon}>{item.icon}</Text>
-            <View style={styles.urgentInfo}>
-              <Text style={styles.urgentName}>{item.name}</Text>
-              <Text style={styles.urgentDescription}>{item.description}</Text>
-            </View>
-            <View style={styles.urgentPhone}>
-              <Text style={styles.urgentPhoneText}>{item.phone}</Text>
-              <Text style={styles.urgentPhoneLabel}>{isSpanish ? 'Llamar' : 'Call'}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
-  const renderResourcesTab = () => {
-    const sectionTabs = getSectionTabs();
-    const guides = getGuides();
-    const urgentItems = getUrgentResources();
-
-    return (
-      <View style={styles.tabContent}>
-        {/* Category Pills */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[styles.categoryTab, activeCategory === category && styles.categoryTabActive]}
-              onPress={() => {
-                setActiveCategory(category);
-                setExpandedSections(['recommended']);
-              }}
-            >
-              <Text style={styles.categoryTabIcon}>
-                {category === 'healthcare' ? '🏥' : category === 'employment' ? '💼' : '🏠'}
-              </Text>
-              <Text
-                style={[
-                  styles.categoryTabText,
-                  activeCategory === category && styles.categoryTabTextActive,
-                ]}
-              >
-                {category === 'healthcare'
-                  ? (isSpanish ? 'Salud' : 'Health')
-                  : category === 'employment'
-                  ? (isSpanish ? 'Empleo' : 'Jobs')
-                  : (isSpanish ? 'Vivienda' : 'Housing')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* All Sections on One Page */}
-        <ScrollView style={styles.sectionScrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.allSectionsContainer}>
-
-            {/* Need Healthcare Now Button - Only for healthcare */}
-            {activeCategory === 'healthcare' && (
-              <TouchableOpacity style={styles.healthcareNowButton} onPress={startTriage}>
-                <View style={styles.healthcareNowContent}>
-                  <Text style={styles.healthcareNowIcon}>🩺</Text>
-                  <View style={styles.healthcareNowText}>
-                    <Text style={styles.healthcareNowTitle}>
-                      {isSpanish ? '¿Necesitas Atención Ahora?' : 'Need Healthcare Now?'}
-                    </Text>
-                    <Text style={styles.healthcareNowSubtitle}>
-                      {isSpanish ? 'Responde unas preguntas para saber qué hacer' : 'Answer a few questions to find out what to do'}
-                    </Text>
-                  </View>
-                  <Text style={styles.healthcareNowArrow}>→</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {/* FOR YOU Section */}
-            <TouchableOpacity
-              style={styles.sectionCard}
-              onPress={() => toggleSection('recommended')}
-            >
-              <View style={styles.sectionCardHeader}>
-                <Text style={styles.sectionCardIcon}>⭐</Text>
-                <View style={styles.sectionCardInfo}>
-                  <Text style={styles.sectionCardTitle}>
-                    {isSpanish ? 'Para Ti' : 'For You'}
-                  </Text>
-                  <Text style={styles.sectionCardSubtitle}>
-                    {isSpanish ? 'Recomendaciones personalizadas' : 'Personalized recommendations'}
-                  </Text>
-                </View>
-                <Text style={styles.sectionCardArrow}>
-                  {isSectionExpanded('recommended') ? '▼' : '▶'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {isSectionExpanded('recommended') && (
-              <View style={styles.sectionCardContent}>
-                {isLoading ? (
-                  <ActivityIndicator size="large" color="#2563EB" style={{ padding: 20 }} />
-                ) : resources.length === 0 ? (
-                  <Text style={styles.emptyText}>
-                    {isSpanish ? 'No se encontraron recursos' : 'No resources found'}
-                  </Text>
-                ) : (
-                  resources.slice(0, 3).map((resource) => (
-                    <View key={resource.id} style={styles.miniResourceCard}>
-                      <Text style={styles.miniResourceName}>{resource.name}</Text>
-                      <Text style={styles.miniResourceAddress}>{resource.address}</Text>
-                      <View style={styles.miniResourceActions}>
-                        {resource.phone && (
-                          <TouchableOpacity onPress={() => handleCall(resource.phone!)}>
-                            <Text style={styles.miniActionText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-                          </TouchableOpacity>
-                        )}
-                        {resource.website && (
-                          <TouchableOpacity onPress={() => handleWebsite(resource.website!)}>
-                            <Text style={styles.miniActionText}>🌐 Web</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </View>
-                  ))
-                )}
-              </View>
-            )}
-
-            {/* FIND/SEARCH Section */}
-            <TouchableOpacity
-              style={styles.sectionCard}
-              onPress={() => toggleSection('search')}
-            >
-              <View style={styles.sectionCardHeader}>
-                <Text style={styles.sectionCardIcon}>
-                  {activeCategory === 'healthcare' ? '🔍' : activeCategory === 'employment' ? '💼' : '🏠'}
-                </Text>
-                <View style={styles.sectionCardInfo}>
-                  <Text style={styles.sectionCardTitle}>
-                    {activeCategory === 'healthcare' && (isSpanish ? 'Buscar Clínicas' : 'Find Clinics')}
-                    {activeCategory === 'employment' && (isSpanish ? 'Buscar Empleos' : 'Find Jobs')}
-                    {activeCategory === 'housing' && (isSpanish ? 'Buscar Vivienda' : 'Find Housing')}
-                  </Text>
-                  <Text style={styles.sectionCardSubtitle}>
-                    {isSpanish ? 'Explorar opciones cerca de ti' : 'Explore options near you'}
-                  </Text>
-                </View>
-                <Text style={styles.sectionCardArrow}>
-                  {isSectionExpanded('search') ? '▼' : '▶'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {isSectionExpanded('search') && (
-              <View style={styles.sectionCardContent}>
-                <View style={styles.searchBox}>
-                  <Text style={styles.searchIcon}>🔍</Text>
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder={isSpanish ? 'Buscar...' : 'Search...'}
-                    placeholderTextColor="#9CA3AF"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                  />
-                </View>
-
-                {activeCategory === 'healthcare' && resources.slice(0, 4).map((resource) => (
-                  <View key={resource.id} style={styles.miniResourceCard}>
-                    <Text style={styles.miniResourceName}>{resource.name}</Text>
-                    <Text style={styles.miniResourceAddress}>{resource.address}</Text>
-                    {resource.distance && (
-                      <Text style={styles.miniResourceDistance}>{formatDistance(resource.distance)}</Text>
-                    )}
-                  </View>
-                ))}
-
-                {activeCategory === 'employment' && (
-                  isLoadingSearch ? (
-                    <ActivityIndicator size="small" color="#2563EB" />
-                  ) : (jobListings.length > 0 ? jobListings : SAMPLE_JOBS.map(j => ({
-                    id: j.id, name: j.title, description: j.company, services: [j.pay, j.type]
-                  } as any))).slice(0, 4).map((job: any) => (
-                    <View key={job.id} style={styles.miniResourceCard}>
-                      <Text style={styles.miniResourceName}>{job.name || job.title}</Text>
-                      <Text style={styles.miniResourceAddress}>{job.description || job.company}</Text>
-                    </View>
-                  ))
-                )}
-
-                {activeCategory === 'housing' && (
-                  isLoadingSearch ? (
-                    <ActivityIndicator size="small" color="#2563EB" />
-                  ) : (housingListings.length > 0 ? housingListings : SAMPLE_HOUSING.map(h => ({
-                    id: h.id, name: h.title, description: h.organization, phone: undefined
-                  } as any))).slice(0, 4).map((housing: any) => (
-                    <View key={housing.id} style={styles.miniResourceCard}>
-                      <Text style={styles.miniResourceName}>{housing.name || housing.title}</Text>
-                      <Text style={styles.miniResourceAddress}>{housing.description || housing.organization}</Text>
-                    </View>
-                  ))
-                )}
-              </View>
-            )}
-
-            {/* LEARN Section */}
-            <TouchableOpacity
-              style={styles.sectionCard}
-              onPress={() => toggleSection('learn')}
-            >
-              <View style={styles.sectionCardHeader}>
-                <Text style={styles.sectionCardIcon}>📚</Text>
-                <View style={styles.sectionCardInfo}>
-                  <Text style={styles.sectionCardTitle}>
-                    {isSpanish ? 'Aprender' : 'Learn'}
-                  </Text>
-                  <Text style={styles.sectionCardSubtitle}>
-                    {isSpanish ? 'Guías y recursos educativos' : 'Guides and educational resources'}
-                  </Text>
-                </View>
-                <Text style={styles.sectionCardArrow}>
-                  {isSectionExpanded('learn') ? '▼' : '▶'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {isSectionExpanded('learn') && (
-              <View style={styles.sectionCardContent}>
-                {guides.map((guide) => (
-                  <TouchableOpacity
-                    key={guide.id}
-                    style={styles.guideCard}
-                    onPress={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
-                  >
-                    <View style={styles.guideHeader}>
-                      <Text style={styles.guideIcon}>{guide.icon}</Text>
-                      <View style={styles.guideInfo}>
-                        <Text style={styles.guideTitle}>
-                          {isSpanish ? guide.titleEs : guide.title}
-                        </Text>
-                        <Text style={styles.guideDescription}>
-                          {isSpanish ? guide.descriptionEs : guide.description}
-                        </Text>
-                      </View>
-                      <Text style={styles.guideArrow}>
-                        {expandedGuide === guide.id ? '▼' : '▶'}
-                      </Text>
-                    </View>
-                    {expandedGuide === guide.id && (
-                      <View style={styles.guideContent}>
-                        {guide.content.map((item, idx) => (
-                          <View key={idx} style={styles.guideContentItem}>
-                            <Text style={styles.guideContentBullet}>•</Text>
-                            <Text style={styles.guideContentText}>{item}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* URGENT Section */}
-            <TouchableOpacity
-              style={[styles.sectionCard, styles.urgentSectionCard]}
-              onPress={() => toggleSection('urgent')}
-            >
-              <View style={styles.sectionCardHeader}>
-                <Text style={styles.sectionCardIcon}>🚨</Text>
-                <View style={styles.sectionCardInfo}>
-                  <Text style={styles.sectionCardTitle}>
-                    {activeCategory === 'healthcare' && (isSpanish ? 'Emergencia' : 'Emergency')}
-                    {activeCategory === 'employment' && (isSpanish ? 'Ayuda Urgente' : 'Urgent Help')}
-                    {activeCategory === 'housing' && (isSpanish ? 'Refugio de Emergencia' : 'Emergency Shelter')}
-                  </Text>
-                  <Text style={styles.sectionCardSubtitle}>
-                    {isSpanish ? 'Recursos 24/7' : '24/7 resources'}
-                  </Text>
-                </View>
-                <Text style={styles.sectionCardArrow}>
-                  {isSectionExpanded('urgent') ? '▼' : '▶'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {isSectionExpanded('urgent') && (
-              <View style={styles.sectionCardContent}>
-                <View style={styles.urgentWarning}>
-                  <Text style={styles.urgentWarningIcon}>⚠️</Text>
-                  <Text style={styles.urgentWarningText}>
-                    {isSpanish
-                      ? 'Si es una emergencia, llama al 911'
-                      : 'If this is an emergency, call 911'}
-                  </Text>
-                </View>
-                {urgentItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.urgentCard}
-                    onPress={() => handleCall(item.phone)}
-                  >
-                    <Text style={styles.urgentIcon}>{item.icon}</Text>
-                    <View style={styles.urgentInfo}>
-                      <Text style={styles.urgentName}>{item.name}</Text>
-                      <Text style={styles.urgentDescription}>{item.description}</Text>
-                    </View>
-                    <View style={styles.urgentPhone}>
-                      <Text style={styles.urgentPhoneText}>{item.phone}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            <View style={{ height: 100 }} />
+        {/* AI Case Manager Block */}
+        <TouchableOpacity
+          style={[styles.categoryCard, { backgroundColor: '#F0F9FF' }]}
+          onPress={() => setShowAI(true)}
+        >
+          <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
+            <Text style={styles.categoryIcon}>🤖</Text>
           </View>
-        </ScrollView>
+          <Text style={styles.categoryLabel}>
+            {isSpanish ? 'AI Ayuda' : 'AI Help'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   };
 
-  const renderTodosTab = () => {
+  const renderTodos = () => {
     const todos = userProfile?.todos || [];
     const pendingTodos = todos.filter((t) => !t.completed);
-    const completedTodos = todos.filter((t) => t.completed);
+
+    if (pendingTodos.length === 0) return null;
 
     return (
-      <View style={styles.tabContent}>
-        <View style={styles.todosHeader}>
-          <Text style={styles.todosTitle}>
-            {isSpanish ? 'Tu Lista de Tareas' : 'Your To-Do List'}
-          </Text>
-          <TouchableOpacity style={styles.addTodoButton} onPress={handleAddTodo}>
-            <Text style={styles.addTodoText}>+ {isSpanish ? 'Agregar' : 'Add'}</Text>
+      <View style={styles.todosSection}>
+        <Text style={styles.sectionHeader}>
+          {isSpanish ? 'Mis Tareas' : 'My To-Dos'}
+        </Text>
+        {pendingTodos.slice(0, 3).map((todo) => (
+          <TouchableOpacity
+            key={todo.id}
+            style={styles.todoItem}
+            onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+          >
+            <View style={styles.todoCheckbox} />
+            <Text style={styles.todoText}>{todo.title}</Text>
           </TouchableOpacity>
-        </View>
-
-        {todos.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyTitle}>
-              {isSpanish ? 'No hay tareas aún' : 'No tasks yet'}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {isSpanish
-                ? 'Las tareas tuyas o de tu trabajador social aparecerán aquí'
-                : 'Tasks from you or your case worker will appear here'}
-            </Text>
-          </View>
-        ) : (
-          <ScrollView style={styles.todosList}>
-            {pendingTodos.map((todo) => (
-              <TouchableOpacity
-                key={todo.id}
-                style={styles.todoItem}
-                onPress={() => handleToggleTodo(todo.id)}
-              >
-                <View style={styles.todoCheckbox}>
-                  <View style={styles.checkbox} />
-                </View>
-                <View style={styles.todoContent}>
-                  <Text style={styles.todoTitle}>{todo.title}</Text>
-                  {todo.priority === 'urgent' && (
-                    <View style={styles.urgentBadge}>
-                      <Text style={styles.urgentBadgeText}>
-                        {isSpanish ? 'Urgente' : 'Urgent'}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-
-            {completedTodos.length > 0 && (
-              <>
-                <Text style={styles.completedHeader}>
-                  {isSpanish ? 'Completadas' : 'Completed'}
-                </Text>
-                {completedTodos.map((todo) => (
-                  <TouchableOpacity
-                    key={todo.id}
-                    style={[styles.todoItem, styles.todoItemCompleted]}
-                    onPress={() => handleToggleTodo(todo.id)}
-                  >
-                    <View style={styles.todoCheckbox}>
-                      <View style={[styles.checkbox, styles.checkboxChecked]}>
-                        <Text style={styles.checkmark}>✓</Text>
-                      </View>
-                    </View>
-                    <View style={styles.todoContent}>
-                      <Text style={[styles.todoTitle, styles.todoTitleCompleted]}>
-                        {todo.title}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
-          </ScrollView>
+        ))}
+        {pendingTodos.length > 3 && (
+          <Text style={styles.moreText}>
+            +{pendingTodos.length - 3} {isSpanish ? 'más' : 'more'}
+          </Text>
         )}
       </View>
     );
   };
 
-  const renderCaseworkerTab = () => (
-    <View style={styles.tabContent}>
-      <View style={styles.caseworkerSection}>
-        <Text style={styles.sectionTitle}>
-          {isSpanish ? 'Trabajador Social' : 'Case Worker'}
-        </Text>
-
-        {userProfile?.connectedCaseWorkerId ? (
-          <View style={styles.connectedCard}>
-            <View style={styles.connectedIcon}>
-              <Text style={styles.connectedIconText}>👥</Text>
-            </View>
-            <Text style={styles.connectedStatus}>
-              {isSpanish ? 'Conectado' : 'Connected'}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.notConnectedCard}>
-            <Text style={styles.notConnectedTitle}>
-              {isSpanish ? 'Sin Trabajador Social Conectado' : 'No Case Worker Connected'}
-            </Text>
-            <Text style={styles.notConnectedDesc}>
-              {isSpanish
-                ? 'Comparte tu código con un trabajador social para conectarte'
-                : 'Share your code with a case worker to connect'}
-            </Text>
-
-            <View style={styles.shareCodeSection}>
-              <Text style={styles.shareCodeLabel}>
-                {isSpanish ? 'Tu Código' : 'Your Code'}
-              </Text>
-              <TouchableOpacity style={styles.shareCodeBox} onPress={handleCopyCode}>
-                <Text style={styles.shareCode}>{userProfile?.shareCode || '---'}</Text>
-                <Text style={styles.copyIcon}>📋</Text>
-              </TouchableOpacity>
-              <Text style={styles.tapToCopy}>
-                {codeCopied
-                  ? (isSpanish ? '¡Código copiado!' : 'Code copied!')
-                  : (isSpanish ? 'Toca para copiar' : 'Tap to copy')}
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>
-          {isSpanish ? 'Hola' : 'Hello'}, {userProfile?.name || 'Friend'}
-        </Text>
-        <Text style={styles.headerTitle}>
-          {isSpanish ? 'Tu Panel' : 'Your Dashboard'}
-        </Text>
-      </View>
-
-      {/* Tab Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'resources' && styles.tabActive]}
-          onPress={() => setActiveTab('resources')}
-        >
-          <Text style={[styles.tabText, activeTab === 'resources' && styles.tabTextActive]}>
-            {isSpanish ? 'Recursos' : 'Resources'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'todos' && styles.tabActive]}
-          onPress={() => setActiveTab('todos')}
-        >
-          <Text style={[styles.tabText, activeTab === 'todos' && styles.tabTextActive]}>
-            {isSpanish ? 'Tareas' : 'To-Do'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'caseworker' && styles.tabActive]}
-          onPress={() => setActiveTab('caseworker')}
-        >
-          <Text style={[styles.tabText, activeTab === 'caseworker' && styles.tabTextActive]}>
-            {isSpanish ? 'Ayuda' : 'Support'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Tab Content */}
-      {activeTab === 'resources' && renderResourcesTab()}
-      {activeTab === 'todos' && renderTodosTab()}
-      {activeTab === 'caseworker' && renderCaseworkerTab()}
-
-      {/* Triage Modal */}
-      <Modal
-        visible={showTriageModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeTriage}
-      >
-        <View style={styles.triageModalOverlay}>
-          <View style={styles.triageModalContent}>
-            {/* Close button */}
-            <TouchableOpacity style={styles.triageCloseButton} onPress={closeTriage}>
-              <Text style={styles.triageCloseText}>✕</Text>
-            </TouchableOpacity>
-
-            {!triageResult ? (
-              <>
-                {/* Question */}
-                <Text style={styles.triageTitle}>
-                  {isSpanish ? TRIAGE_QUESTIONS[triageStep].questionEs : TRIAGE_QUESTIONS[triageStep].question}
-                </Text>
-
-                <Text style={styles.triageProgress}>
-                  {triageStep + 1} / {TRIAGE_QUESTIONS.length}
-                </Text>
-
-                {/* Options */}
-                <ScrollView style={styles.triageOptions}>
-                  {TRIAGE_QUESTIONS[triageStep].options.map((option) => (
-                    <TouchableOpacity
-                      key={option.id}
-                      style={styles.triageOption}
-                      onPress={() => handleTriageAnswer(TRIAGE_QUESTIONS[triageStep].id, option.score)}
-                    >
-                      <Text style={styles.triageOptionText}>
-                        {isSpanish ? option.labelEs : option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </>
-            ) : (
-              <>
-                {/* Result */}
-                {(() => {
-                  const rec = getTriageRecommendation();
-                  if (!rec) return null;
-                  return (
-                    <View style={styles.triageResultContainer}>
-                      <Text style={[styles.triageResultIcon, { fontSize: 60 }]}>{rec.icon}</Text>
-                      <Text style={[styles.triageResultTitle, { color: rec.color }]}>{rec.title}</Text>
-                      <Text style={styles.triageResultDescription}>{rec.description}</Text>
-
-                      {rec.action === '911' && (
-                        <TouchableOpacity
-                          style={[styles.triageActionButton, { backgroundColor: '#DC2626' }]}
-                          onPress={() => {
-                            handleCall('911');
-                            closeTriage();
-                          }}
-                        >
-                          <Text style={styles.triageActionButtonText}>
-                            📞 {isSpanish ? 'Llamar al 911' : 'Call 911'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-
-                      {rec.action === 'urgent' && (
-                        <TouchableOpacity
-                          style={[styles.triageActionButton, { backgroundColor: '#F59E0B' }]}
-                          onPress={() => {
-                            toggleSection('search');
-                            closeTriage();
-                          }}
-                        >
-                          <Text style={styles.triageActionButtonText}>
-                            🔍 {isSpanish ? 'Buscar Atención Urgente' : 'Find Urgent Care'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-
-                      {(rec.action === 'schedule' || rec.action === 'routine') && (
-                        <TouchableOpacity
-                          style={[styles.triageActionButton, { backgroundColor: '#3B82F6' }]}
-                          onPress={() => {
-                            toggleSection('recommended');
-                            closeTriage();
-                          }}
-                        >
-                          <Text style={styles.triageActionButtonText}>
-                            🏥 {isSpanish ? 'Ver Clínicas' : 'View Clinics'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-
-                      <TouchableOpacity style={styles.triageDoneButton} onPress={closeTriage}>
-                        <Text style={styles.triageDoneButtonText}>
-                          {isSpanish ? 'Cerrar' : 'Close'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })()}
-              </>
-            )}
-          </View>
+  const renderAIModal = () => (
+    <Modal visible={showAI} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.aiContainer}>
+        <View style={styles.aiHeader}>
+          <TouchableOpacity onPress={() => setShowAI(false)} style={styles.aiCloseButton}>
+            <Text style={styles.aiCloseText}>✕</Text>
+          </TouchableOpacity>
+          <Text style={styles.aiTitle}>🤖 {isSpanish ? 'AI Asistente' : 'AI Assistant'}</Text>
+          <View style={styles.aiSpacer} />
         </View>
-      </Modal>
 
-      {/* AI Case Manager Modal */}
-      <Modal
-        visible={showAICaseManager}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeAICaseManager}
-      >
-        <View style={styles.aiModalOverlay}>
-          <View style={styles.aiModalContent}>
-            {/* Header */}
-            <View style={styles.aiModalHeader}>
-              <View style={styles.aiHeaderLeft}>
-                <Text style={styles.aiHeaderIcon}>🤖</Text>
-                <View>
-                  <Text style={styles.aiHeaderTitle}>
-                    {isSpanish ? 'Administrador de Casos IA' : 'AI Case Manager'}
-                  </Text>
-                  <Text style={styles.aiHeaderSubtitle}>
-                    {isSpanish ? 'Aquí para ayudarte' : 'Here to help you'}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity style={styles.aiCloseButton} onPress={closeAICaseManager}>
-                <Text style={styles.aiCloseText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+        <ScrollView style={styles.aiContent} showsVerticalScrollIndicator={false}>
+          {chatMessages.length === 0 ? (
+            <View style={styles.aiWelcome}>
+              <Text style={styles.aiWelcomeTitle}>
+                {isSpanish ? '¿Cómo puedo ayudarte?' : 'How can I help you?'}
+              </Text>
+              <Text style={styles.aiWelcomeSubtitle}>
+                {isSpanish ? 'Toca un tema o escribe tu pregunta' : 'Tap a topic or type your question'}
+              </Text>
 
-            {/* Quick Actions */}
-            <View style={styles.aiQuickActions}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {[
-                  ...AI_QUICK_ACTIONS.housing,
-                  ...AI_QUICK_ACTIONS.healthcare,
-                  ...AI_QUICK_ACTIONS.general.slice(0, 2),
-                ].map((action) => (
+              <View style={styles.aiTopicsGrid}>
+                {AI_TOPICS.map((topic) => (
                   <TouchableOpacity
-                    key={action.id}
-                    style={styles.aiQuickActionButton}
-                    onPress={() => handleQuickAction(action.id)}
+                    key={topic.id}
+                    style={styles.aiTopicCard}
+                    onPress={() => handleAITopic(topic.id)}
                   >
-                    <Text style={styles.aiQuickActionIcon}>{action.icon}</Text>
-                    <Text style={styles.aiQuickActionLabel}>
-                      {isSpanish ? action.labelEs : action.label}
+                    <Text style={styles.aiTopicIcon}>{topic.icon}</Text>
+                    <Text style={styles.aiTopicLabel}>
+                      {isSpanish ? topic.labelEs : topic.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             </View>
-
-            {/* Chat Messages */}
-            <ScrollView style={styles.aiChatContainer} showsVerticalScrollIndicator={false}>
+          ) : (
+            <View style={styles.chatContainer}>
               {chatMessages.map((message) => (
                 <View
                   key={message.id}
                   style={[
-                    styles.aiChatBubble,
-                    message.type === 'user' ? styles.aiUserBubble : styles.aiAIBubble,
+                    styles.chatBubble,
+                    message.type === 'user' ? styles.userBubble : styles.aiBubble,
                   ]}
                 >
-                  {message.type === 'ai' && (
-                    <Text style={styles.aiAvatarIcon}>🤖</Text>
-                  )}
-                  <View style={[
-                    styles.aiBubbleContent,
-                    message.type === 'user' ? styles.aiUserBubbleContent : styles.aiAIBubbleContent,
-                  ]}>
-                    <Text style={[
-                      styles.aiBubbleText,
-                      message.type === 'user' ? styles.aiUserBubbleText : styles.aiAIBubbleText,
-                    ]}>
-                      {message.content}
-                    </Text>
-                  </View>
+                  <Text
+                    style={[
+                      styles.chatText,
+                      message.type === 'user' ? styles.userText : styles.aiText,
+                    ]}
+                  >
+                    {message.content}
+                  </Text>
                 </View>
               ))}
 
-              {isAITyping && (
-                <View style={[styles.aiChatBubble, styles.aiAIBubble]}>
-                  <Text style={styles.aiAvatarIcon}>🤖</Text>
-                  <View style={[styles.aiBubbleContent, styles.aiAIBubbleContent]}>
-                    <Text style={styles.aiTypingText}>
-                      {isSpanish ? 'Escribiendo...' : 'Typing...'}
+              {/* Quick topics after conversation */}
+              <View style={styles.quickTopicsRow}>
+                {AI_TOPICS.slice(0, 4).map((topic) => (
+                  <TouchableOpacity
+                    key={topic.id}
+                    style={styles.quickTopicChip}
+                    onPress={() => handleAITopic(topic.id)}
+                  >
+                    <Text style={styles.quickTopicText}>
+                      {topic.icon} {isSpanish ? topic.labelEs : topic.label}
                     </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Suggested Questions */}
-              {chatMessages.length <= 1 && (
-                <View style={styles.aiSuggestedQuestions}>
-                  <Text style={styles.aiSuggestedTitle}>
-                    {isSpanish ? 'Preguntas Comunes:' : 'Common Questions:'}
-                  </Text>
-                  {AI_CASE_MANAGER_TOPICS.slice(0, 4).map((topic) => (
-                    <TouchableOpacity
-                      key={topic.id}
-                      style={styles.aiSuggestedButton}
-                      onPress={() => handleSuggestedQuestion(topic)}
-                    >
-                      <Text style={styles.aiSuggestedText}>
-                        {isSpanish ? topic.questionEs : topic.question}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </ScrollView>
-
-            {/* Input Area */}
-            <View style={styles.aiInputContainer}>
-              <TextInput
-                style={styles.aiTextInput}
-                placeholder={isSpanish ? '¿En qué puedo ayudarte?' : 'How can I help you?'}
-                placeholderTextColor="#9CA3AF"
-                value={userInput}
-                onChangeText={setUserInput}
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.aiSendButton,
-                  !userInput.trim() && styles.aiSendButtonDisabled
-                ]}
-                onPress={handleAISend}
-                disabled={!userInput.trim()}
-              >
-                <Text style={styles.aiSendButtonText}>➤</Text>
-              </TouchableOpacity>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.aiInputContainer}>
+          <TextInput
+            style={styles.aiInput}
+            value={userInput}
+            onChangeText={setUserInput}
+            placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
+            placeholderTextColor="#94A3B8"
+            multiline
+          />
+          <TouchableOpacity style={styles.aiSendButton} onPress={handleSendMessage}>
+            <Text style={styles.aiSendText}>→</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>
+              {isSpanish ? '¡Hola' : 'Hello'}, {userProfile?.name || 'Friend'}! 👋
+            </Text>
+            <Text style={styles.subtitle}>
+              {isSpanish ? 'Tus recursos personalizados' : 'Your personalized resources'}
+            </Text>
           </View>
         </View>
-      </Modal>
 
-      {/* Floating AI Case Manager Button */}
-      <TouchableOpacity
-        style={styles.floatingAIButton}
-        onPress={openAICaseManager}
-      >
-        <Text style={styles.floatingAIIcon}>🤖</Text>
-        <Text style={styles.floatingAIText}>
-          {isSpanish ? 'IA' : 'AI'}
+        {/* Share Code Card */}
+        {userProfile?.shareCode && (
+          <TouchableOpacity style={styles.shareCodeCard} onPress={handleCopyCode}>
+            <View style={styles.shareCodeContent}>
+              <Text style={styles.shareCodeLabel}>
+                {isSpanish ? 'Tu Código de Compartir' : 'Your Share Code'}
+              </Text>
+              <Text style={styles.shareCode}>{userProfile.shareCode}</Text>
+            </View>
+            <View style={styles.copyButton}>
+              <Text style={styles.copyButtonText}>
+                {codeCopied ? '✓' : isSpanish ? 'Copiar' : 'Copy'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Category Grid */}
+        <Text style={styles.sectionHeader}>
+          {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
         </Text>
-      </TouchableOpacity>
+        {renderCategoryGrid()}
+
+        {/* Todos */}
+        {renderTodos()}
+
+        {/* Quick Help */}
+        <View style={styles.quickHelpSection}>
+          <Text style={styles.sectionHeader}>
+            {isSpanish ? 'Ayuda Rápida' : 'Quick Help'}
+          </Text>
+          <View style={styles.quickHelpGrid}>
+            <TouchableOpacity
+              style={styles.quickHelpCard}
+              onPress={() => {
+                setShowAI(true);
+                setTimeout(() => handleAITopic('211'), 100);
+              }}
+            >
+              <Text style={styles.quickHelpIcon}>📞</Text>
+              <Text style={styles.quickHelpLabel}>{isSpanish ? 'Llamar 211' : 'Call 211'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickHelpCard}
+              onPress={() => {
+                setShowAI(true);
+                setTimeout(() => handleAITopic('food'), 100);
+              }}
+            >
+              <Text style={styles.quickHelpIcon}>🍽️</Text>
+              <Text style={styles.quickHelpLabel}>{isSpanish ? 'Comida' : 'Food'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickHelpCard}
+              onPress={() => {
+                setShowAI(true);
+                setTimeout(() => handleAITopic('documents'), 100);
+              }}
+            >
+              <Text style={styles.quickHelpIcon}>🪪</Text>
+              <Text style={styles.quickHelpLabel}>{isSpanish ? 'Documentos' : 'Documents'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* AI Modal */}
+      {renderAIModal()}
     </SafeAreaView>
   );
 };
@@ -1963,1085 +399,334 @@ export const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FEFEFE',
+  },
+  content: {
+    flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 12,
-    backgroundColor: '#FAFAFA',
+    padding: 24,
+    paddingBottom: 16,
   },
   greeting: {
-    fontSize: 15,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  headerTitle: {
     fontSize: 28,
     fontWeight: '800',
     color: '#0F172A',
-    letterSpacing: -0.5,
-    marginTop: 4,
+    marginBottom: 4,
   },
-  tabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    backgroundColor: '#FAFAFA',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  tabActive: {
-    borderBottomWidth: 3,
-    borderBottomColor: '#0D9488',
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
-  tabTextActive: {
-    color: '#0D9488',
-  },
-  tabContent: {
-    flex: 1,
-  },
-  categoryTabs: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    maxHeight: 64,
-  },
-  categoryTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  categoryTabActive: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
-    shadowColor: '#0D9488',
-    shadowOpacity: 0.3,
-  },
-  categoryTabIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  categoryTabText: {
-    fontSize: 15,
-    color: '#475569',
-    fontWeight: '600',
-  },
-  categoryTabTextActive: {
-    color: '#FFFFFF',
-  },
-  sectionTabs: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    maxHeight: 54,
-  },
-  sectionTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 10,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-  },
-  sectionTabActive: {
-    backgroundColor: '#CCFBF1',
-  },
-  sectionTabText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  sectionTabTextActive: {
-    color: '#0D9488',
-    fontWeight: '700',
-  },
-  sectionScrollView: {
-    flex: 1,
-  },
-  sectionContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 120,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 6,
-    letterSpacing: -0.3,
-  },
-  sectionSubtitle: {
-    fontSize: 15,
-    color: '#64748B',
-    marginBottom: 18,
-    lineHeight: 22,
-  },
-  loadingContainer: {
-    paddingVertical: 48,
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    paddingVertical: 48,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 56,
-    marginBottom: 18,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 10,
-  },
-  emptySubtitle: {
-    fontSize: 15,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  emptyText: {
+  subtitle: {
     fontSize: 16,
     color: '#64748B',
   },
-  resourceCard: {
+  shareCodeCard: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    backgroundColor: '#F0FDFA',
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: '#CCFBF1',
+  },
+  shareCodeContent: {
+    flex: 1,
+  },
+  shareCodeLabel: {
+    fontSize: 13,
+    color: '#0D9488',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  shareCode: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: 2,
+  },
+  copyButton: {
+    backgroundColor: '#0D9488',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  copyButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  sectionHeader: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+  },
+  categoryCard: {
+    width: '47%',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 12,
+    alignItems: 'center',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  categoryIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  categoryIcon: {
+    fontSize: 32,
+  },
+  categoryLabel: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  todosSection: {
+    marginHorizontal: 20,
+    marginTop: 16,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
-    marginBottom: 14,
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
-    shadowRadius: 16,
+    shadowRadius: 12,
     elevation: 3,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
-  resourceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  resourceName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0F172A',
-    flex: 1,
-    letterSpacing: -0.2,
-  },
-  resourceDistance: {
-    fontSize: 13,
-    color: '#0D9488',
-    fontWeight: '700',
-  },
-  resourceAddress: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 8,
-  },
-  resourceDescription: {
-    fontSize: 14,
-    color: '#475569',
-    marginBottom: 12,
-    lineHeight: 21,
-  },
-  servicesTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  serviceTag: {
-    backgroundColor: '#F0FDFA',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#CCFBF1',
-  },
-  serviceTagText: {
-    fontSize: 12,
-    color: '#0F766E',
-    fontWeight: '600',
-  },
-  resourceActions: {
-    flexDirection: 'row',
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 14,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#F0FDFA',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#CCFBF1',
-  },
-  actionButtonText: {
-    fontSize: 14,
-    color: '#0D9488',
-    fontWeight: '600',
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    marginBottom: 18,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchIcon: {
-    fontSize: 18,
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#0F172A',
-  },
-  listContainer: {
-    gap: 12,
-  },
-  listCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  listIcon: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  listContent: {
-    flex: 1,
-  },
-  listTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  listSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  listMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    gap: 10,
-  },
-  listMetaText: {
-    fontSize: 13,
-    color: '#0D9488',
-    fontWeight: '600',
-  },
-  listMetaBadge: {
-    fontSize: 12,
-    color: '#64748B',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    fontWeight: '500',
-  },
-  availableBadge: {
-    backgroundColor: '#CCFBF1',
-    color: '#0F766E',
-  },
-  listArrow: {
-    fontSize: 18,
-    color: '#9CA3AF',
-  },
-  guideCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 10,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  guideHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-  },
-  guideIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  guideInfo: {
-    flex: 1,
-  },
-  guideTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  guideDescription: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  guideArrow: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  guideContent: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-    backgroundColor: '#F9FAFB',
-  },
-  guideContentItem: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  guideContentBullet: {
-    fontSize: 14,
-    color: '#2563EB',
-    marginRight: 8,
-    marginTop: 1,
-  },
-  guideContentText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#4B5563',
-    lineHeight: 20,
-  },
-  urgentWarning: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  urgentWarningIcon: {
-    fontSize: 18,
-    marginRight: 10,
-  },
-  urgentWarningText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#991B1B',
-  },
-  urgentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  urgentIcon: {
-    fontSize: 28,
-    marginRight: 12,
-  },
-  urgentInfo: {
-    flex: 1,
-  },
-  urgentName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  urgentDescription: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  urgentPhone: {
-    alignItems: 'center',
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  urgentPhoneText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  urgentPhoneLabel: {
-    fontSize: 10,
-    color: '#FECACA',
-  },
-  todosHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  todosTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  addTodoButton: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  addTodoText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  todosList: {
-    paddingHorizontal: 24,
-  },
   todoItem: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  todoItemCompleted: {
-    opacity: 0.6,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   todoCheckbox: {
-    marginRight: 12,
-  },
-  checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: '#CBD5E1',
+    marginRight: 14,
   },
-  checkboxChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  todoContent: {
+  todoText: {
+    fontSize: 16,
+    color: '#0F172A',
     flex: 1,
   },
-  todoTitle: {
-    fontSize: 15,
-    color: '#1F2937',
+  moreText: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 12,
+    textAlign: 'center',
   },
-  todoTitleCompleted: {
-    textDecorationLine: 'line-through',
-    color: '#9CA3AF',
-  },
-  urgentBadge: {
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  urgentBadgeText: {
-    fontSize: 11,
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  completedHeader: {
-    fontSize: 13,
-    color: '#6B7280',
+  quickHelpSection: {
     marginTop: 16,
-    marginBottom: 10,
+    marginBottom: 32,
   },
-  caseworkerSection: {
-    padding: 24,
-  },
-  connectedCard: {
-    backgroundColor: '#D1FAE5',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-  },
-  connectedIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  connectedIconText: {
-    fontSize: 32,
-  },
-  connectedStatus: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#065F46',
-  },
-  notConnectedCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  notConnectedTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  notConnectedDesc: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  shareCodeSection: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  shareCodeLabel: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  shareCodeBox: {
+  quickHelpGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
+    gap: 12,
   },
-  shareCode: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    letterSpacing: 2,
-    marginRight: 12,
-  },
-  copyIcon: {
-    fontSize: 18,
-  },
-  tapToCopy: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 8,
-  },
-  // New single-page layout styles
-  allSectionsContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  sectionCard: {
-    backgroundColor: '#FFFFFF',
+  quickHelpCard: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
     borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
     padding: 16,
-  },
-  sectionCardIcon: {
-    fontSize: 28,
-    marginRight: 14,
-  },
-  sectionCardInfo: {
-    flex: 1,
-  },
-  sectionCardTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  sectionCardSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  sectionCardArrow: {
-    fontSize: 14,
-    color: '#9CA3AF',
-  },
-  sectionCardContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  urgentSectionCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-  },
-  miniResourceCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 10,
-  },
-  miniResourceName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  miniResourceAddress: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  miniResourceDistance: {
-    fontSize: 12,
-    color: '#2563EB',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  miniResourceActions: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 10,
-  },
-  miniActionText: {
-    fontSize: 14,
-    color: '#2563EB',
-    fontWeight: '500',
-  },
-  // Healthcare Now Button styles
-  healthcareNowButton: {
-    backgroundColor: '#DC2626',
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  healthcareNowContent: {
-    flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-  },
-  healthcareNowIcon: {
-    fontSize: 32,
-    marginRight: 14,
-  },
-  healthcareNowText: {
-    flex: 1,
-  },
-  healthcareNowTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  healthcareNowSubtitle: {
-    fontSize: 13,
-    color: '#FECACA',
-    marginTop: 2,
-  },
-  healthcareNowArrow: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  // Triage Modal styles
-  triageModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  triageModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    minHeight: '60%',
-    maxHeight: '85%',
-  },
-  triageCloseButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  triageCloseText: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  triageTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginTop: 20,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  triageProgress: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  triageOptions: {
-    flex: 1,
-  },
-  triageOption: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
   },
-  triageOptionText: {
-    fontSize: 16,
-    color: '#1F2937',
-    textAlign: 'center',
+  quickHelpIcon: {
+    fontSize: 28,
+    marginBottom: 8,
   },
-  triageResultContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  triageResultIcon: {
-    marginBottom: 16,
-  },
-  triageResultTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  triageResultDescription: {
-    fontSize: 16,
-    color: '#4B5563',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-    paddingHorizontal: 16,
-  },
-  triageActionButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    marginBottom: 12,
-    width: '100%',
-  },
-  triageActionButtonText: {
-    fontSize: 16,
+  quickHelpLabel: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#475569',
     textAlign: 'center',
   },
-  triageDoneButton: {
-    paddingVertical: 12,
-    marginTop: 8,
-  },
-  triageDoneButtonText: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  // AI Case Manager styles
-  floatingAIButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#0D9488',
-    width: 68,
-    height: 68,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#0D9488',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 100,
-    borderWidth: 3,
-    borderColor: '#5EEAD4',
-  },
-  floatingAIIcon: {
-    fontSize: 30,
-  },
-  floatingAIText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginTop: -2,
-    letterSpacing: 0.5,
-  },
-  aiModalOverlay: {
+  // AI Modal Styles
+  aiContainer: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: '#FEFEFE',
   },
-  aiModalContent: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-    marginTop: 50,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-  },
-  aiModalHeader: {
+  aiHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    backgroundColor: '#0D9488',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-  },
-  aiHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  aiHeaderIcon: {
-    fontSize: 36,
-    marginRight: 14,
-  },
-  aiHeaderTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.3,
-  },
-  aiHeaderSubtitle: {
-    fontSize: 14,
-    color: '#A7F3D0',
-    fontWeight: '500',
+    borderBottomColor: '#F1F5F9',
   },
   aiCloseButton: {
     width: 40,
     height: 40,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiCloseText: {
+    fontSize: 18,
+    color: '#64748B',
+  },
+  aiTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  aiQuickActions: {
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+  aiSpacer: {
+    width: 40,
   },
-  aiQuickActionButton: {
+  aiContent: {
+    flex: 1,
+  },
+  aiWelcome: {
+    padding: 24,
+  },
+  aiWelcomeTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  aiWelcomeSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  aiTopicsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  aiTopicCard: {
+    width: '48%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    padding: 20,
     alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  aiTopicIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  aiTopicLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  chatContainer: {
+    padding: 20,
+  },
+  chatBubble: {
+    maxWidth: '85%',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+  },
+  userBubble: {
+    backgroundColor: '#0D9488',
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
+  },
+  aiBubble: {
+    backgroundColor: '#F1F5F9',
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  chatText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  userText: {
+    color: '#FFFFFF',
+  },
+  aiText: {
+    color: '#0F172A',
+  },
+  quickTopicsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+  },
+  quickTopicChip: {
     backgroundColor: '#F0FDFA',
-    paddingVertical: 14,
+    borderRadius: 20,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 16,
-    marginHorizontal: 5,
-    minWidth: 88,
     borderWidth: 1,
     borderColor: '#CCFBF1',
   },
-  aiQuickActionIcon: {
-    fontSize: 24,
-    marginBottom: 6,
-  },
-  aiQuickActionLabel: {
-    fontSize: 12,
-    color: '#0F766E',
+  quickTopicText: {
+    fontSize: 13,
     fontWeight: '600',
-    textAlign: 'center',
-  },
-  aiChatContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  aiChatBubble: {
-    flexDirection: 'row',
-    marginBottom: 18,
-  },
-  aiUserBubble: {
-    justifyContent: 'flex-end',
-  },
-  aiAIBubble: {
-    justifyContent: 'flex-start',
-  },
-  aiAvatarIcon: {
-    fontSize: 28,
-    marginRight: 10,
-    marginTop: 4,
-  },
-  aiBubbleContent: {
-    maxWidth: '80%',
-    padding: 16,
-    borderRadius: 20,
-  },
-  aiUserBubbleContent: {
-    backgroundColor: '#0D9488',
-    borderBottomRightRadius: 6,
-    marginLeft: 'auto',
-  },
-  aiAIBubbleContent: {
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  aiBubbleText: {
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  aiUserBubbleText: {
-    color: '#FFFFFF',
-  },
-  aiAIBubbleText: {
-    color: '#334155',
-  },
-  aiTypingText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontStyle: 'italic',
-  },
-  aiSuggestedQuestions: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-  },
-  aiSuggestedTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748B',
-    marginBottom: 14,
-  },
-  aiSuggestedButton: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-  },
-  aiSuggestedText: {
-    fontSize: 15,
-    color: '#475569',
-    fontWeight: '500',
+    color: '#0D9488',
   },
   aiInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    padding: 20,
-    paddingBottom: 36,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: '#F1F5F9',
+    backgroundColor: '#FEFEFE',
   },
-  aiTextInput: {
+  aiInput: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 14,
     fontSize: 16,
-    maxHeight: 120,
     color: '#0F172A',
-    borderWidth: 2,
+    maxHeight: 120,
+    borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   aiSendButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#0D9488',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
-    shadowColor: '#0D9488',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
   },
-  aiSendButtonDisabled: {
-    backgroundColor: '#CBD5E1',
-    shadowOpacity: 0,
-  },
-  aiSendButtonText: {
-    fontSize: 22,
+  aiSendText: {
+    fontSize: 24,
     color: '#FFFFFF',
+    fontWeight: '600',
   },
 });
