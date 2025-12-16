@@ -124,13 +124,41 @@ const HOUSING_HOTLINES = [
   { id: 'hh3', name: 'Domestic Violence Hotline', nameEs: 'Línea de Violencia Doméstica', description: 'Safe shelter for DV survivors', descriptionEs: 'Refugio seguro para sobrevivientes de VD', phone: '1-800-799-7233', icon: '💜' },
 ];
 
+// Need Housing Now triage questions
+const HOUSING_TRIAGE = [
+  {
+    id: 'situation',
+    question: 'What is your current situation?',
+    questionEs: '¿Cuál es tu situación actual?',
+    options: [
+      { id: 'tonight', label: 'I need a place to sleep tonight', labelEs: 'Necesito un lugar para dormir esta noche', urgency: 'immediate' },
+      { id: 'few_days', label: 'I will need shelter in the next few days', labelEs: 'Necesitaré refugio en los próximos días', urgency: 'urgent' },
+      { id: 'eviction', label: 'I am facing eviction', labelEs: 'Estoy enfrentando un desalojo', urgency: 'urgent' },
+      { id: 'unsafe', label: 'I am in an unsafe living situation', labelEs: 'Estoy en una situación de vivienda insegura', urgency: 'immediate' },
+    ],
+  },
+  {
+    id: 'who',
+    question: 'Who needs shelter?',
+    questionEs: '¿Quién necesita refugio?',
+    options: [
+      { id: 'just_me', label: 'Just me', labelEs: 'Solo yo', type: 'single' },
+      { id: 'with_family', label: 'Me and my family/children', labelEs: 'Yo y mi familia/hijos', type: 'family' },
+      { id: 'couple', label: 'Me and my partner', labelEs: 'Yo y mi pareja', type: 'couple' },
+      { id: 'veteran', label: 'I am a veteran', labelEs: 'Soy veterano', type: 'veteran' },
+    ],
+  },
+];
+
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
   const [counselors, setCounselors] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [triageStep, setTriageStep] = useState(0);
+  const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -157,8 +185,103 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
     Linking.openURL(`tel:${phone}`);
   };
 
+  const handleTriageAnswer = (questionId: string, answerId: string) => {
+    setTriageAnswers({ ...triageAnswers, [questionId]: answerId });
+    if (triageStep < HOUSING_TRIAGE.length - 1) {
+      setTriageStep(triageStep + 1);
+    } else {
+      setTriageStep(HOUSING_TRIAGE.length); // Show results
+    }
+  };
+
+  const resetTriage = () => {
+    setTriageStep(0);
+    setTriageAnswers({});
+  };
+
+  const getTriageRecommendation = () => {
+    const situation = triageAnswers['situation'];
+    const who = triageAnswers['who'];
+
+    if (situation === 'tonight' || situation === 'unsafe') {
+      return {
+        urgency: 'immediate',
+        title: isSpanish ? '¡Necesitas ayuda ahora!' : 'You need help now!',
+        message: isSpanish
+          ? 'Basado en tu situación, deberías llamar inmediatamente para encontrar refugio.'
+          : 'Based on your situation, you should call immediately to find shelter.',
+        actions: [
+          { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
+          { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+        ],
+      };
+    }
+
+    if (who === 'veteran') {
+      return {
+        urgency: 'veteran',
+        title: isSpanish ? 'Recursos para Veteranos' : 'Veteran Resources',
+        message: isSpanish
+          ? 'Como veterano, tienes acceso a programas especiales de vivienda.'
+          : 'As a veteran, you have access to special housing programs.',
+        actions: [
+          { label: isSpanish ? 'VA Housing' : 'VA Housing', phone: '1-877-222-8387', primary: true },
+          { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: false },
+        ],
+      };
+    }
+
+    if (who === 'with_family') {
+      return {
+        urgency: 'family',
+        title: isSpanish ? 'Refugio Familiar' : 'Family Shelter',
+        message: isSpanish
+          ? 'Hay refugios específicos para familias con niños.'
+          : 'There are shelters specifically for families with children.',
+        actions: [
+          { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
+          { label: isSpanish ? 'Family Promise' : 'Family Promise', phone: '1-866-586-4483', primary: false },
+        ],
+      };
+    }
+
+    return {
+      urgency: 'standard',
+      title: isSpanish ? 'Encontrar Vivienda' : 'Find Housing',
+      message: isSpanish
+        ? 'Llama al 211 para conectarte con recursos de vivienda en tu área.'
+        : 'Call 211 to connect with housing resources in your area.',
+      actions: [
+        { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
+        { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+      ],
+    };
+  };
+
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Need Housing Now Banner */}
+      <TouchableOpacity
+        style={styles.needNowBanner}
+        onPress={() => {
+          resetTriage();
+          setActiveSection('needNow');
+        }}
+      >
+        <View style={styles.needNowContent}>
+          <Text style={styles.needNowIcon}>🏠</Text>
+          <View style={styles.needNowTextContainer}>
+            <Text style={styles.needNowTitle}>
+              {isSpanish ? '¿Necesitas Vivienda Ahora?' : 'Need Housing Now?'}
+            </Text>
+            <Text style={styles.needNowSubtitle}>
+              {isSpanish ? 'Toca aquí para ayuda inmediata' : 'Tap here for immediate help'}
+            </Text>
+          </View>
+          <Text style={styles.needNowArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>
         {isSpanish ? 'Recursos de Vivienda' : 'Housing Resources'}
       </Text>
@@ -211,11 +334,11 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           onPress={() => setActiveSection('help')}
         >
           <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
-            <Text style={styles.gridIcon}>🚨</Text>
+            <Text style={styles.gridIcon}>📞</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Ayuda Urgente' : 'Urgent Help'}</Text>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Líneas de Ayuda' : 'Helplines'}</Text>
           <Text style={styles.gridDescription}>
-            {isSpanish ? 'Líneas de emergencia' : 'Emergency hotlines'}
+            {isSpanish ? 'Números de emergencia' : 'Emergency numbers'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -449,9 +572,120 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {activeSection === 'find' && renderFind()}
         {activeSection === 'options' && renderOptions()}
         {activeSection === 'help' && renderHelp()}
+        {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
     </SafeAreaView>
   );
+
+  function renderNeedNow() {
+    const currentQuestion = HOUSING_TRIAGE[triageStep];
+    const showResults = triageStep >= HOUSING_TRIAGE.length;
+    const recommendation = showResults ? getTriageRecommendation() : null;
+
+    return (
+      <View style={styles.detailContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            resetTriage();
+            setActiveSection(null);
+          }}
+        >
+          <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+        </TouchableOpacity>
+
+        {!showResults ? (
+          <>
+            <View style={styles.triageHeader}>
+              <Text style={styles.triageEmoji}>🏠</Text>
+              <Text style={styles.triageTitle}>
+                {isSpanish ? 'Necesito Vivienda Ahora' : 'Need Housing Now'}
+              </Text>
+              <Text style={styles.triageProgress}>
+                {triageStep + 1} / {HOUSING_TRIAGE.length}
+              </Text>
+            </View>
+
+            <Text style={styles.triageQuestion}>
+              {isSpanish ? currentQuestion.questionEs : currentQuestion.question}
+            </Text>
+
+            <View style={styles.triageOptions}>
+              {currentQuestion.options.map((option: any) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={styles.triageOption}
+                  onPress={() => handleTriageAnswer(currentQuestion.id, option.id)}
+                >
+                  <Text style={styles.triageOptionText}>
+                    {isSpanish ? option.labelEs : option.label}
+                  </Text>
+                  <Text style={styles.triageOptionArrow}>→</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.resultContainer}>
+              <View
+                style={[
+                  styles.resultHeader,
+                  recommendation?.urgency === 'immediate' && styles.resultHeaderUrgent,
+                ]}
+              >
+                <Text style={styles.resultEmoji}>
+                  {recommendation?.urgency === 'immediate' ? '🚨' : '🏠'}
+                </Text>
+                <Text style={styles.resultTitle}>{recommendation?.title}</Text>
+              </View>
+
+              <Text style={styles.resultMessage}>{recommendation?.message}</Text>
+
+              <View style={styles.resultActions}>
+                {recommendation?.actions.map((action: any, index: number) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.resultButton,
+                      action.primary ? styles.resultButtonPrimary : styles.resultButtonSecondary,
+                    ]}
+                    onPress={() => handleCall(action.phone)}
+                  >
+                    <Text
+                      style={[
+                        styles.resultButtonText,
+                        action.primary ? styles.resultButtonTextPrimary : styles.resultButtonTextSecondary,
+                      ]}
+                    >
+                      📞 {action.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.additionalInfo}>
+                <Text style={styles.additionalInfoTitle}>
+                  {isSpanish ? 'Consejos Importantes' : 'Important Tips'}
+                </Text>
+                <Text style={styles.additionalInfoText}>
+                  {isSpanish
+                    ? '• Muchos refugios tienen horarios de registro (usualmente 5-8pm)\n• Trae identificación si la tienes\n• Pregunta sobre comidas, duchas y servicios de gestión de casos\n• Si estás en peligro, llama al 911'
+                    : "• Many shelters have check-in times (usually 5-8pm)\n• Bring ID if you have it\n• Ask about meals, showers, and case management\n• If you're in danger, call 911"}
+                </Text>
+              </View>
+
+              <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
+                <Text style={styles.startOverText}>
+                  {isSpanish ? 'Empezar de Nuevo' : 'Start Over'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    );
+  }
 };
 
 const styles = StyleSheet.create({
@@ -853,5 +1087,192 @@ const styles = StyleSheet.create({
     color: '#92400E',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  // Need Housing Now Banner
+  needNowBanner: {
+    backgroundColor: '#DC2626',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  needNowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  needNowIcon: {
+    fontSize: 40,
+    marginRight: 16,
+  },
+  needNowTextContainer: {
+    flex: 1,
+  },
+  needNowTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  needNowSubtitle: {
+    fontSize: 14,
+    color: '#FECACA',
+  },
+  needNowArrow: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  // Triage styles
+  triageHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  triageEmoji: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  triageTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  triageProgress: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  triageQuestion: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 30,
+  },
+  triageOptions: {
+    gap: 12,
+  },
+  triageOption: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
+    marginBottom: 12,
+  },
+  triageOptionText: {
+    fontSize: 16,
+    color: '#0F172A',
+    flex: 1,
+    fontWeight: '600',
+  },
+  triageOptionArrow: {
+    fontSize: 20,
+    color: '#7C3AED',
+    fontWeight: '600',
+  },
+  // Result styles
+  resultContainer: {
+    alignItems: 'center',
+  },
+  resultHeader: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#CCFBF1',
+  },
+  resultHeaderUrgent: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  resultEmoji: {
+    fontSize: 56,
+    marginBottom: 12,
+  },
+  resultTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  resultMessage: {
+    fontSize: 16,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  resultActions: {
+    width: '100%',
+    gap: 12,
+    marginBottom: 24,
+  },
+  resultButton: {
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resultButtonPrimary: {
+    backgroundColor: '#DC2626',
+  },
+  resultButtonSecondary: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  resultButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  resultButtonTextPrimary: {
+    color: '#FFFFFF',
+  },
+  resultButtonTextSecondary: {
+    color: '#475569',
+  },
+  additionalInfo: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    marginBottom: 20,
+  },
+  additionalInfoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  additionalInfoText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 22,
+  },
+  startOverButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  startOverText: {
+    fontSize: 16,
+    color: '#7C3AED',
+    fontWeight: '600',
   },
 });
