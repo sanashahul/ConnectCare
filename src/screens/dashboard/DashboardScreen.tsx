@@ -242,6 +242,164 @@ const SAMPLE_HOUSING = [
   { id: 'h5', title: 'Veterans Housing', organization: 'VA Services', type: 'VASH Program', availability: 'Apply now', icon: '🎖️' },
 ];
 
+// AI Case Manager Knowledge Base
+interface CaseManagerTopic {
+  id: string;
+  question: string;
+  questionEs: string;
+  keywords: string[];
+  category?: ServiceCategory | 'general';
+  getResponse: (profile: any, isSpanish: boolean) => string;
+}
+
+const AI_CASE_MANAGER_TOPICS: CaseManagerTopic[] = [
+  // Housing Topics
+  {
+    id: 'shelter-tonight',
+    question: 'I need a place to sleep tonight',
+    questionEs: 'Necesito un lugar para dormir esta noche',
+    keywords: ['shelter', 'sleep', 'tonight', 'homeless', 'bed', 'dormir', 'refugio'],
+    category: 'housing',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Entiendo que necesitas refugio urgente. Aquí están tus mejores opciones:\n\n📞 Llama al 211 - Tienen información sobre refugios con camas disponibles en ${profile?.location?.city || 'tu área'}.\n\n📞 Línea Nacional de Personas Sin Hogar: 1-800-231-6946 (24/7)\n\n🏠 La Salvation Army ofrece refugios de emergencia - llama al 1-800-725-2769.\n\n💡 Consejo: Muchos refugios tienen horarios de entrada específicos (usualmente 5-8pm). Llama con anticipación para reservar una cama.`
+      : `I understand you need shelter urgently. Here are your best options:\n\n📞 Call 211 - They have info on shelters with available beds in ${profile?.location?.city || 'your area'}.\n\n📞 National Homeless Hotline: 1-800-231-6946 (24/7)\n\n🏠 Salvation Army has emergency shelters - call 1-800-725-2769.\n\n💡 Tip: Many shelters have specific check-in times (usually 5-8pm). Call ahead to reserve a bed.`,
+  },
+  {
+    id: 'section-8',
+    question: 'How do I apply for Section 8 housing?',
+    questionEs: '¿Cómo aplico para vivienda Sección 8?',
+    keywords: ['section 8', 'voucher', 'housing assistance', 'rent help', 'sección 8', 'asistencia'],
+    category: 'housing',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `La Sección 8 (Vales de Elección de Vivienda) es un programa federal que ayuda a pagar el alquiler. Así es como aplicar:\n\n1️⃣ Contacta tu Autoridad de Vivienda Pública (PHA) local\n2️⃣ Pregunta cuando abre la lista de espera\n3️⃣ Completa la solicitud cuando esté abierta\n4️⃣ Proporciona documentos de ingresos e identificación\n\n⚠️ Las listas de espera pueden ser largas (meses a años). Aplica a múltiples PHAs en tu área.\n\n📞 Llama al 211 para encontrar tu PHA local en ${profile?.location?.state || 'tu estado'}.`
+      : `Section 8 (Housing Choice Vouchers) is a federal program that helps pay rent. Here's how to apply:\n\n1️⃣ Contact your local Public Housing Authority (PHA)\n2️⃣ Ask when the waitlist opens\n3️⃣ Complete application when it's open\n4️⃣ Provide income documents and ID\n\n⚠️ Waitlists can be long (months to years). Apply to multiple PHAs in your area.\n\n📞 Call 211 to find your local PHA in ${profile?.location?.state || 'your state'}.`,
+  },
+  {
+    id: 'rent-help',
+    question: 'I need help paying rent this month',
+    questionEs: 'Necesito ayuda para pagar el alquiler este mes',
+    keywords: ['rent', 'pay', 'behind', 'eviction', 'late', 'alquiler', 'pagar', 'atraso'],
+    category: 'housing',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Hay varios programas que pueden ayudar con el alquiler:\n\n🆘 Asistencia de Emergencia:\n• Llama al 211 para programas locales\n• Contacta iglesias y organizaciones sin fines de lucro locales\n• Programa de Asistencia de Alquiler de Emergencia (ERA)\n\n⚖️ Si enfrentas desalojo:\n• Tienes derechos legales - no pueden desalojarte inmediatamente\n• Busca asistencia legal gratuita en tu área\n\n💡 Actúa rápido - cuanto antes pidas ayuda, más opciones tendrás.`
+      : `There are several programs that can help with rent:\n\n🆘 Emergency Assistance:\n• Call 211 for local programs\n• Contact local churches and nonprofits\n• Emergency Rental Assistance (ERA) program\n\n⚖️ If facing eviction:\n• You have legal rights - they can't evict you immediately\n• Look for free legal aid in your area\n\n💡 Act fast - the sooner you ask for help, the more options you'll have.`,
+  },
+  // Healthcare Topics
+  {
+    id: 'no-insurance',
+    question: 'I need healthcare but have no insurance',
+    questionEs: 'Necesito atención médica pero no tengo seguro',
+    keywords: ['insurance', 'no insurance', 'uninsured', 'doctor', 'medical', 'seguro', 'médico'],
+    category: 'healthcare',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Hay varias opciones para obtener atención médica sin seguro:\n\n🏥 Centros de Salud Federales (FQHCs):\n• Atienden a todos sin importar capacidad de pago\n• Tarifas basadas en ingresos (sliding scale)\n• Busca uno cerca en findahealthcenter.hrsa.gov\n\n💊 Clínicas Gratuitas:\n• Operadas por voluntarios y organizaciones sin fines de lucro\n• Llama al 211 para encontrar una cerca\n\n📋 Medicaid:\n• Si tienes bajos ingresos, podrías calificar\n• Aplica en healthcare.gov o tu oficina local de servicios sociales\n\n${profile?.location?.city ? `📍 Busca "free clinic ${profile.location.city}" para opciones locales.` : ''}`
+      : `You have several options for healthcare without insurance:\n\n🏥 Federally Qualified Health Centers (FQHCs):\n• Serve everyone regardless of ability to pay\n• Sliding scale fees based on income\n• Find one at findahealthcenter.hrsa.gov\n\n💊 Free Clinics:\n• Run by volunteers and nonprofits\n• Call 211 to find one nearby\n\n📋 Medicaid:\n• If you have low income, you may qualify\n• Apply at healthcare.gov or your local social services office\n\n${profile?.location?.city ? `📍 Search "free clinic ${profile.location.city}" for local options.` : ''}`,
+  },
+  {
+    id: 'mental-health',
+    question: 'I need mental health support',
+    questionEs: 'Necesito apoyo de salud mental',
+    keywords: ['mental', 'depression', 'anxiety', 'stress', 'counseling', 'therapy', 'depresión', 'ansiedad'],
+    category: 'healthcare',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Tu salud mental es importante y hay ayuda disponible:\n\n📞 Líneas de Crisis (24/7):\n• 988 - Línea de Prevención del Suicidio y Crisis\n• 1-800-662-4357 - Línea de SAMHSA\n\n🧠 Servicios Gratuitos/Bajo Costo:\n• Centros de Salud Mental Comunitarios\n• FQHCs ofrecen servicios de salud mental\n• Aplicaciones gratuitas: Woebot, MindShift\n\n💡 Muchos centros ofrecen tarifas según tus ingresos. Llama al 211 para opciones en ${profile?.location?.city || 'tu área'}.`
+      : `Your mental health matters and help is available:\n\n📞 Crisis Lines (24/7):\n• 988 - Suicide & Crisis Lifeline\n• 1-800-662-4357 - SAMHSA Helpline\n\n🧠 Free/Low-Cost Services:\n• Community Mental Health Centers\n• FQHCs offer mental health services\n• Free apps: Woebot, MindShift\n\n💡 Many centers offer sliding-scale fees based on income. Call 211 for options in ${profile?.location?.city || 'your area'}.`,
+  },
+  {
+    id: 'prescriptions',
+    question: 'I can\'t afford my medications',
+    questionEs: 'No puedo pagar mis medicamentos',
+    keywords: ['medication', 'prescription', 'medicine', 'afford', 'pills', 'medicamento', 'receta'],
+    category: 'healthcare',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Hay formas de obtener medicamentos a menor costo:\n\n💊 Programas de Asistencia:\n• NeedyMeds.org - Base de datos de programas de descuento\n• RxAssist.org - Conecta con programas de asistencia\n• Programas de asistencia del fabricante\n\n🏪 Opciones de Bajo Costo:\n• Walmart $4 generics\n• Costco pharmacy (no necesitas membresía)\n• GoodRx - cupones gratuitos de descuento\n\n🏥 FQHCs a menudo tienen farmacias con descuento o programas de medicamentos gratuitos.`
+      : `There are ways to get medications at lower cost:\n\n💊 Assistance Programs:\n• NeedyMeds.org - Database of discount programs\n• RxAssist.org - Connects you with assistance programs\n• Manufacturer patient assistance programs\n\n🏪 Low-Cost Options:\n• Walmart $4 generics\n• Costco pharmacy (no membership needed)\n• GoodRx - free discount coupons\n\n🏥 FQHCs often have discount pharmacies or free medication programs.`,
+  },
+  // Employment Topics
+  {
+    id: 'find-job',
+    question: 'How do I find a job?',
+    questionEs: '¿Cómo encuentro trabajo?',
+    keywords: ['job', 'work', 'employment', 'hire', 'trabajo', 'empleo', 'contratar'],
+    category: 'employment',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Aquí hay recursos para encontrar trabajo:\n\n💼 Dónde Buscar:\n• Indeed.com, LinkedIn, Craigslist jobs\n• Oficina de Desarrollo de la Fuerza Laboral local\n• Agencias de empleo temporal\n• Ferias de trabajo locales\n\n📝 Prepárate:\n• Las bibliotecas ofrecen ayuda gratuita con currículos\n• Practica preguntas de entrevista comunes\n• Viste profesionalmente (ropa limpia y ordenada)\n\n🎯 Trabajos que contratan rápido:\n• Almacenes, restaurantes, retail, limpieza, construcción\n• Muchos pagan el mismo día o semanalmente\n\n${profile?.location?.city ? `📍 Busca "${profile.location.city} workforce development" para recursos locales.` : ''}`
+      : `Here are resources to find work:\n\n💼 Where to Look:\n• Indeed.com, LinkedIn, Craigslist jobs\n• Local Workforce Development office\n• Temp agencies\n• Local job fairs\n\n📝 Get Ready:\n• Libraries offer free resume help\n• Practice common interview questions\n• Dress professionally (clean, neat clothes)\n\n🎯 Jobs that hire quickly:\n• Warehouse, restaurant, retail, cleaning, construction\n• Many pay same-day or weekly\n\n${profile?.location?.city ? `📍 Search "${profile.location.city} workforce development" for local resources.` : ''}`,
+  },
+  {
+    id: 'job-training',
+    question: 'I want to learn new job skills',
+    questionEs: 'Quiero aprender nuevas habilidades laborales',
+    keywords: ['training', 'skills', 'learn', 'certificate', 'education', 'capacitación', 'habilidades'],
+    category: 'employment',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Hay muchos programas de capacitación gratuitos:\n\n🎓 Capacitación Gratuita:\n• Centros de Desarrollo de la Fuerza Laboral - programas gratuitos\n• Colegios comunitarios - programas de certificación\n• Job Corps (para edades 16-24)\n• YearUp, Per Scholas (tech)\n\n💻 Cursos Gratis en Línea:\n• Google Career Certificates\n• Coursera (certificados con ayuda financiera)\n• Khan Academy, LinkedIn Learning (gratis en bibliotecas)\n\n🔨 Campos de Alta Demanda:\n• Salud (CNA, flebotomía)\n• Construcción, electricidad, plomería\n• Tecnología (IT support, coding)`
+      : `There are many free training programs:\n\n🎓 Free Training:\n• Workforce Development Centers - free programs\n• Community colleges - certificate programs\n• Job Corps (ages 16-24)\n• YearUp, Per Scholas (tech)\n\n💻 Free Online Courses:\n• Google Career Certificates\n• Coursera (certificates with financial aid)\n• Khan Academy, LinkedIn Learning (free at libraries)\n\n🔨 High-Demand Fields:\n• Healthcare (CNA, phlebotomy)\n• Construction, electrical, plumbing\n• Tech (IT support, coding)`,
+  },
+  // General/Emergency Topics
+  {
+    id: 'food-help',
+    question: 'I need help getting food',
+    questionEs: 'Necesito ayuda para conseguir comida',
+    keywords: ['food', 'hungry', 'eat', 'meals', 'pantry', 'comida', 'hambre', 'comer'],
+    category: 'general',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Hay varias formas de obtener comida:\n\n🍽️ Recursos Inmediatos:\n• Llama al 211 para bancos de comida locales\n• FeedingAmerica.org - encuentra despensas cerca\n• Muchas iglesias ofrecen comidas gratis\n\n📋 Programas de Asistencia:\n• SNAP (cupones de comida) - aplica en tu oficina local de servicios sociales\n• WIC - para mujeres embarazadas y niños pequeños\n• Programas de comidas escolares gratuitas\n\n💡 Los bancos de comida no requieren prueba de ingresos en la mayoría de los casos.`
+      : `There are several ways to get food:\n\n🍽️ Immediate Resources:\n• Call 211 for local food banks\n• FeedingAmerica.org - find pantries nearby\n• Many churches offer free meals\n\n📋 Assistance Programs:\n• SNAP (food stamps) - apply at local social services\n• WIC - for pregnant women and young children\n• Free school meal programs\n\n💡 Food banks don't require proof of income in most cases.`,
+  },
+  {
+    id: 'veteran-services',
+    question: 'What help is available for veterans?',
+    questionEs: '¿Qué ayuda hay disponible para veteranos?',
+    keywords: ['veteran', 'military', 'va', 'service', 'veterano', 'militar'],
+    category: 'general',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Los veteranos tienen acceso a muchos servicios especiales:\n\n🎖️ Recursos del VA:\n• Atención médica del VA - 1-877-222-8387\n• HUD-VASH - vales de vivienda para veteranos sin hogar\n• SSVF - servicios de apoyo para familias de veteranos\n\n📞 Líneas Directas:\n• Línea de Crisis para Veteranos: 988, oprime 1\n• Asistencia de Beneficios del VA: 1-800-827-1000\n\n💼 Empleo:\n• VETS program - ayuda con empleo\n• Muchos empleadores tienen preferencia por veteranos\n\n🏠 Vivienda:\n• Programas de vivienda específicos para veteranos\n• Refugios solo para veteranos en muchas ciudades`
+      : `Veterans have access to many special services:\n\n🎖️ VA Resources:\n• VA Healthcare - 1-877-222-8387\n• HUD-VASH - housing vouchers for homeless vets\n• SSVF - supportive services for veteran families\n\n📞 Direct Lines:\n• Veterans Crisis Line: 988, press 1\n• VA Benefits Assistance: 1-800-827-1000\n\n💼 Employment:\n• VETS program - employment help\n• Many employers have veteran preference\n\n🏠 Housing:\n• Veteran-specific housing programs\n• Veterans-only shelters in many cities`,
+  },
+  {
+    id: 'documents',
+    question: 'I lost my ID/documents',
+    questionEs: 'Perdí mi identificación/documentos',
+    keywords: ['id', 'identification', 'documents', 'license', 'birth certificate', 'identificación', 'documentos'],
+    category: 'general',
+    getResponse: (profile, isSpanish) => isSpanish
+      ? `Reemplazar documentos es importante. Aquí está cómo:\n\n🪪 Identificación:\n• Acta de nacimiento: Contacta el Registro Civil del estado donde naciste\n• Tarjeta de Seguro Social: ssa.gov o visita una oficina local\n• Licencia de conducir: Visita el DMV con prueba de identidad\n\n💡 Consejos:\n• Muchas agencias de servicios sociales ayudan gratis con esto\n• Algunas organizaciones pagan las tarifas de reemplazo\n• Llama al 211 para ayuda local con documentos\n\n📍 Los refugios y centros de servicios a menudo tienen programas de asistencia con documentos.`
+      : `Replacing documents is important. Here's how:\n\n🪪 Identification:\n• Birth certificate: Contact vital records in your birth state\n• Social Security card: ssa.gov or visit local office\n• Driver's license: Visit DMV with proof of identity\n\n💡 Tips:\n• Many social service agencies help with this for free\n• Some organizations pay replacement fees\n• Call 211 for local document assistance\n\n📍 Shelters and service centers often have document assistance programs.`,
+  },
+];
+
+// Quick action categories for AI Case Manager
+const AI_QUICK_ACTIONS = {
+  housing: [
+    { id: 'shelter', label: 'Find Shelter', labelEs: 'Buscar Refugio', icon: '🏠' },
+    { id: 'rent', label: 'Rent Help', labelEs: 'Ayuda con Alquiler', icon: '💰' },
+    { id: 'section8', label: 'Section 8', labelEs: 'Sección 8', icon: '📋' },
+  ],
+  healthcare: [
+    { id: 'clinic', label: 'Free Clinic', labelEs: 'Clínica Gratis', icon: '🏥' },
+    { id: 'mental', label: 'Mental Health', labelEs: 'Salud Mental', icon: '🧠' },
+    { id: 'meds', label: 'Medications', labelEs: 'Medicamentos', icon: '💊' },
+  ],
+  employment: [
+    { id: 'jobs', label: 'Find Jobs', labelEs: 'Buscar Trabajo', icon: '💼' },
+    { id: 'training', label: 'Job Training', labelEs: 'Capacitación', icon: '🎓' },
+    { id: 'resume', label: 'Resume Help', labelEs: 'Ayuda con CV', icon: '📝' },
+  ],
+  general: [
+    { id: 'food', label: 'Food Help', labelEs: 'Ayuda Comida', icon: '🍽️' },
+    { id: 'documents', label: 'Documents', labelEs: 'Documentos', icon: '🪪' },
+    { id: '211', label: 'Call 211', labelEs: 'Llamar 211', icon: '📞' },
+  ],
+};
+
+interface ChatMessage {
+  id: string;
+  type: 'user' | 'ai';
+  content: string;
+  timestamp: Date;
+}
+
 // Healthcare triage questions
 const TRIAGE_QUESTIONS = [
   {
@@ -303,6 +461,12 @@ export const DashboardScreen: React.FC = () => {
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, number>>({});
   const [triageResult, setTriageResult] = useState<TriageResult>(null);
+
+  // AI Case Manager state
+  const [showAICaseManager, setShowAICaseManager] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isAITyping, setIsAITyping] = useState(false);
 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
@@ -446,6 +610,158 @@ export const DashboardScreen: React.FC = () => {
     setTriageStep(0);
     setTriageAnswers({});
     setTriageResult(null);
+  };
+
+  // AI Case Manager functions
+  const openAICaseManager = () => {
+    setShowAICaseManager(true);
+    if (chatMessages.length === 0) {
+      // Add initial greeting
+      const greeting: ChatMessage = {
+        id: 'greeting',
+        type: 'ai',
+        content: isSpanish
+          ? `¡Hola${userProfile?.name ? ` ${userProfile.name}` : ''}! Soy tu Administrador de Casos IA. Estoy aquí para ayudarte a encontrar recursos de vivienda, salud y empleo.\n\n¿En qué puedo ayudarte hoy? Puedes preguntarme sobre:\n• Refugios y vivienda\n• Clínicas y atención médica\n• Búsqueda de empleo y capacitación\n• Comida y servicios de emergencia`
+          : `Hi${userProfile?.name ? ` ${userProfile.name}` : ''}! I'm your AI Case Manager. I'm here to help you find housing, healthcare, and employment resources.\n\nHow can I help you today? You can ask me about:\n• Shelters and housing\n• Clinics and healthcare\n• Job search and training\n• Food and emergency services`,
+        timestamp: new Date(),
+      };
+      setChatMessages([greeting]);
+    }
+  };
+
+  const closeAICaseManager = () => {
+    setShowAICaseManager(false);
+  };
+
+  const findBestTopicMatch = (input: string): CaseManagerTopic | null => {
+    const lowerInput = input.toLowerCase();
+
+    // Check for keyword matches
+    let bestMatch: CaseManagerTopic | null = null;
+    let maxMatches = 0;
+
+    for (const topic of AI_CASE_MANAGER_TOPICS) {
+      let matches = 0;
+      for (const keyword of topic.keywords) {
+        if (lowerInput.includes(keyword.toLowerCase())) {
+          matches++;
+        }
+      }
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        bestMatch = topic;
+      }
+    }
+
+    return maxMatches > 0 ? bestMatch : null;
+  };
+
+  const generateAIResponse = (input: string): string => {
+    // Try to find a matching topic
+    const matchedTopic = findBestTopicMatch(input);
+
+    if (matchedTopic) {
+      return matchedTopic.getResponse(userProfile, isSpanish);
+    }
+
+    // Generic helpful response if no match
+    return isSpanish
+      ? `Entiendo que necesitas ayuda. Aquí hay algunas opciones:\n\n📞 Llama al 211 - Pueden conectarte con recursos locales para casi cualquier necesidad.\n\n¿Puedes decirme más específicamente qué tipo de ayuda necesitas?\n• Vivienda o refugio\n• Atención médica\n• Empleo o capacitación\n• Comida o asistencia de emergencia\n\nTambién puedes usar los botones de acción rápida arriba para temas comunes.`
+      : `I understand you need help. Here are some options:\n\n📞 Call 211 - They can connect you with local resources for almost any need.\n\nCan you tell me more specifically what kind of help you need?\n• Housing or shelter\n• Healthcare\n• Employment or training\n• Food or emergency assistance\n\nYou can also use the quick action buttons above for common topics.`;
+  };
+
+  const handleAISend = () => {
+    if (!userInput.trim()) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: userInput,
+      timestamp: new Date(),
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setUserInput('');
+    setIsAITyping(true);
+
+    // Simulate AI "thinking" then respond
+    setTimeout(() => {
+      const aiResponse: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: generateAIResponse(userMessage.content),
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+      setIsAITyping(false);
+    }, 800);
+  };
+
+  const handleQuickAction = (actionId: string) => {
+    // Map quick actions to topic IDs
+    const actionToTopic: Record<string, string> = {
+      'shelter': 'shelter-tonight',
+      'rent': 'rent-help',
+      'section8': 'section-8',
+      'clinic': 'no-insurance',
+      'mental': 'mental-health',
+      'meds': 'prescriptions',
+      'jobs': 'find-job',
+      'training': 'job-training',
+      'resume': 'find-job',
+      'food': 'food-help',
+      'documents': 'documents',
+      '211': 'food-help', // Will give 211 info
+    };
+
+    const topicId = actionToTopic[actionId];
+    const topic = AI_CASE_MANAGER_TOPICS.find(t => t.id === topicId);
+
+    if (actionId === '211') {
+      handleCall('211');
+      return;
+    }
+
+    if (topic) {
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        type: 'user',
+        content: isSpanish ? topic.questionEs : topic.question,
+        timestamp: new Date(),
+      };
+
+      const aiResponse: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: topic.getResponse(userProfile, isSpanish),
+        timestamp: new Date(),
+      };
+
+      setChatMessages(prev => [...prev, userMessage, aiResponse]);
+    }
+  };
+
+  const handleSuggestedQuestion = (topic: CaseManagerTopic) => {
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: isSpanish ? topic.questionEs : topic.question,
+      timestamp: new Date(),
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setIsAITyping(true);
+
+    setTimeout(() => {
+      const aiResponse: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: topic.getResponse(userProfile, isSpanish),
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+      setIsAITyping(false);
+    }, 600);
   };
 
   const getTriageRecommendation = () => {
@@ -1495,6 +1811,151 @@ export const DashboardScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* AI Case Manager Modal */}
+      <Modal
+        visible={showAICaseManager}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeAICaseManager}
+      >
+        <View style={styles.aiModalOverlay}>
+          <View style={styles.aiModalContent}>
+            {/* Header */}
+            <View style={styles.aiModalHeader}>
+              <View style={styles.aiHeaderLeft}>
+                <Text style={styles.aiHeaderIcon}>🤖</Text>
+                <View>
+                  <Text style={styles.aiHeaderTitle}>
+                    {isSpanish ? 'Administrador de Casos IA' : 'AI Case Manager'}
+                  </Text>
+                  <Text style={styles.aiHeaderSubtitle}>
+                    {isSpanish ? 'Aquí para ayudarte' : 'Here to help you'}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.aiCloseButton} onPress={closeAICaseManager}>
+                <Text style={styles.aiCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick Actions */}
+            <View style={styles.aiQuickActions}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {[
+                  ...AI_QUICK_ACTIONS.housing,
+                  ...AI_QUICK_ACTIONS.healthcare,
+                  ...AI_QUICK_ACTIONS.general.slice(0, 2),
+                ].map((action) => (
+                  <TouchableOpacity
+                    key={action.id}
+                    style={styles.aiQuickActionButton}
+                    onPress={() => handleQuickAction(action.id)}
+                  >
+                    <Text style={styles.aiQuickActionIcon}>{action.icon}</Text>
+                    <Text style={styles.aiQuickActionLabel}>
+                      {isSpanish ? action.labelEs : action.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Chat Messages */}
+            <ScrollView style={styles.aiChatContainer} showsVerticalScrollIndicator={false}>
+              {chatMessages.map((message) => (
+                <View
+                  key={message.id}
+                  style={[
+                    styles.aiChatBubble,
+                    message.type === 'user' ? styles.aiUserBubble : styles.aiAIBubble,
+                  ]}
+                >
+                  {message.type === 'ai' && (
+                    <Text style={styles.aiAvatarIcon}>🤖</Text>
+                  )}
+                  <View style={[
+                    styles.aiBubbleContent,
+                    message.type === 'user' ? styles.aiUserBubbleContent : styles.aiAIBubbleContent,
+                  ]}>
+                    <Text style={[
+                      styles.aiBubbleText,
+                      message.type === 'user' ? styles.aiUserBubbleText : styles.aiAIBubbleText,
+                    ]}>
+                      {message.content}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+
+              {isAITyping && (
+                <View style={[styles.aiChatBubble, styles.aiAIBubble]}>
+                  <Text style={styles.aiAvatarIcon}>🤖</Text>
+                  <View style={[styles.aiBubbleContent, styles.aiAIBubbleContent]}>
+                    <Text style={styles.aiTypingText}>
+                      {isSpanish ? 'Escribiendo...' : 'Typing...'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Suggested Questions */}
+              {chatMessages.length <= 1 && (
+                <View style={styles.aiSuggestedQuestions}>
+                  <Text style={styles.aiSuggestedTitle}>
+                    {isSpanish ? 'Preguntas Comunes:' : 'Common Questions:'}
+                  </Text>
+                  {AI_CASE_MANAGER_TOPICS.slice(0, 4).map((topic) => (
+                    <TouchableOpacity
+                      key={topic.id}
+                      style={styles.aiSuggestedButton}
+                      onPress={() => handleSuggestedQuestion(topic)}
+                    >
+                      <Text style={styles.aiSuggestedText}>
+                        {isSpanish ? topic.questionEs : topic.question}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Input Area */}
+            <View style={styles.aiInputContainer}>
+              <TextInput
+                style={styles.aiTextInput}
+                placeholder={isSpanish ? '¿En qué puedo ayudarte?' : 'How can I help you?'}
+                placeholderTextColor="#9CA3AF"
+                value={userInput}
+                onChangeText={setUserInput}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.aiSendButton,
+                  !userInput.trim() && styles.aiSendButtonDisabled
+                ]}
+                onPress={handleAISend}
+                disabled={!userInput.trim()}
+              >
+                <Text style={styles.aiSendButtonText}>➤</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Floating AI Case Manager Button */}
+      <TouchableOpacity
+        style={styles.floatingAIButton}
+        onPress={openAICaseManager}
+      >
+        <Text style={styles.floatingAIIcon}>🤖</Text>
+        <Text style={styles.floatingAIText}>
+          {isSpanish ? 'IA' : 'AI'}
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -2319,5 +2780,216 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  // AI Case Manager styles
+  floatingAIButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    backgroundColor: '#7C3AED',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 100,
+  },
+  floatingAIIcon: {
+    fontSize: 28,
+  },
+  floatingAIText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: -2,
+  },
+  aiModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  aiModalContent: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginTop: 50,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  aiModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#7C3AED',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  aiHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  aiHeaderIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  aiHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  aiHeaderSubtitle: {
+    fontSize: 13,
+    color: '#E9D5FF',
+  },
+  aiCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiCloseText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  aiQuickActions: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  aiQuickActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    minWidth: 80,
+  },
+  aiQuickActionIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  aiQuickActionLabel: {
+    fontSize: 11,
+    color: '#4B5563',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  aiChatContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  aiChatBubble: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  aiUserBubble: {
+    justifyContent: 'flex-end',
+  },
+  aiAIBubble: {
+    justifyContent: 'flex-start',
+  },
+  aiAvatarIcon: {
+    fontSize: 24,
+    marginRight: 8,
+    marginTop: 4,
+  },
+  aiBubbleContent: {
+    maxWidth: '80%',
+    padding: 14,
+    borderRadius: 18,
+  },
+  aiUserBubbleContent: {
+    backgroundColor: '#7C3AED',
+    borderBottomRightRadius: 4,
+    marginLeft: 'auto',
+  },
+  aiAIBubbleContent: {
+    backgroundColor: '#F3F4F6',
+    borderBottomLeftRadius: 4,
+  },
+  aiBubbleText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  aiUserBubbleText: {
+    color: '#FFFFFF',
+  },
+  aiAIBubbleText: {
+    color: '#1F2937',
+  },
+  aiTypingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontStyle: 'italic',
+  },
+  aiSuggestedQuestions: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  aiSuggestedTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  aiSuggestedButton: {
+    backgroundColor: '#F9FAFB',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  aiSuggestedText: {
+    fontSize: 14,
+    color: '#4B5563',
+  },
+  aiInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 16,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  aiTextInput: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    fontSize: 15,
+    maxHeight: 100,
+    color: '#1F2937',
+  },
+  aiSendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  aiSendButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  aiSendButtonText: {
+    fontSize: 20,
+    color: '#FFFFFF',
   },
 });
