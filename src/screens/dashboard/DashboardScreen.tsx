@@ -1012,6 +1012,101 @@ const typingStyles = StyleSheet.create({
   },
 });
 
+/**
+ * LinkableText Component
+ * Parses text and makes URLs, phone numbers clickable
+ */
+interface LinkableTextProps {
+  text: string;
+  style?: any;
+  linkColor?: string;
+}
+
+const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#7C3AED' }) => {
+  // Pattern to match URLs (with and without http), phone numbers, and special numbers like 211, 988
+  const urlPattern = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+  const phonePattern = /(?:1-)?(?:\d{3}[-.]?)?\d{3}[-.]?\d{4}|(?<!\d)(?:211|988|911|741741)(?!\d)/g;
+
+  // Parse the text into segments
+  const parseText = (input: string): Array<{ type: 'text' | 'url' | 'phone'; value: string }> => {
+    const segments: Array<{ type: 'text' | 'url' | 'phone'; value: string }> = [];
+    let remaining = input;
+    let lastIndex = 0;
+
+    // Combined pattern for both URLs and phone numbers
+    const combinedPattern = new RegExp(
+      `(${urlPattern.source})|(${phonePattern.source})`,
+      'gi'
+    );
+
+    let match;
+    while ((match = combinedPattern.exec(input)) !== null) {
+      // Add text before match
+      if (match.index > lastIndex) {
+        segments.push({ type: 'text', value: input.slice(lastIndex, match.index) });
+      }
+
+      // Determine if it's a URL or phone
+      const matchedValue = match[0];
+      if (/^(https?:\/\/|www\.|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,})/i.test(matchedValue)) {
+        segments.push({ type: 'url', value: matchedValue });
+      } else {
+        segments.push({ type: 'phone', value: matchedValue });
+      }
+
+      lastIndex = match.index + matchedValue.length;
+    }
+
+    // Add remaining text
+    if (lastIndex < input.length) {
+      segments.push({ type: 'text', value: input.slice(lastIndex) });
+    }
+
+    return segments;
+  };
+
+  const handleLinkPress = async (type: 'url' | 'phone', value: string) => {
+    try {
+      if (type === 'url') {
+        // Add https:// if not present
+        let url = value;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        await Linking.openURL(url);
+      } else {
+        // Phone number
+        const cleanNumber = value.replace(/[^\d]/g, '');
+        await Linking.openURL(`tel:${cleanNumber}`);
+      }
+    } catch (error) {
+      console.error('Failed to open link:', error);
+    }
+  };
+
+  const segments = parseText(text);
+
+  return (
+    <Text style={style}>
+      {segments.map((segment, index) => {
+        if (segment.type === 'text') {
+          return <Text key={index}>{segment.value}</Text>;
+        } else {
+          return (
+            <Text
+              key={index}
+              style={{ color: linkColor, textDecorationLine: 'underline' }}
+              onPress={() => handleLinkPress(segment.type, segment.value)}
+            >
+              {segment.value}
+            </Text>
+          );
+        }
+      })}
+    </Text>
+  );
+};
+
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
@@ -1436,14 +1531,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
                       message.type === 'user' ? styles.userBubble : styles.aiBubble,
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.chatText,
-                        message.type === 'user' ? styles.userText : styles.aiText,
-                      ]}
-                    >
-                      {message.content}
-                    </Text>
+                    {message.type === 'ai' ? (
+                      <LinkableText
+                        text={message.content}
+                        style={[styles.chatText, styles.aiText]}
+                        linkColor="#7C3AED"
+                      />
+                    ) : (
+                      <Text
+                        style={[styles.chatText, styles.userText]}
+                      >
+                        {message.content}
+                      </Text>
+                    )}
                   </View>
 
                   {/* Show follow-up suggestions after AI responses */}

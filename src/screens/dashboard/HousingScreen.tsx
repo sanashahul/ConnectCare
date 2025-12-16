@@ -16,6 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
+import { HousingResource } from '../../services/housingApi';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -216,13 +217,72 @@ const HOUSING_TRIAGE = [
   },
 ];
 
+/**
+ * Check if a shelter/resource is currently open based on hours string
+ */
+const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; statusEs: string } => {
+  if (!hours) {
+    return { isOpen: true, status: 'Call for hours', statusEs: 'Llame para horarios' };
+  }
+
+  const hoursLower = hours.toLowerCase();
+
+  // 24/7 resources are always open
+  if (hoursLower.includes('24') || hoursLower.includes('24/7')) {
+    return { isOpen: true, status: 'Open 24/7', statusEs: 'Abierto 24/7' };
+  }
+
+  // Get current day and hour
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentDay = now.getDay(); // 0 = Sunday
+
+  // Check if it's a weekend
+  const isWeekend = currentDay === 0 || currentDay === 6;
+
+  // Check for Mon-Fri patterns
+  if (hoursLower.includes('mon-fri') || hoursLower.includes('lun-vie')) {
+    if (isWeekend) {
+      return { isOpen: false, status: 'Closed - Opens Monday', statusEs: 'Cerrado - Abre el lunes' };
+    }
+
+    // Try to extract hours (e.g., "9 AM - 5 PM" or "8:00 AM - 5:00 PM")
+    const timeMatch = hours.match(/(\d{1,2})(?::00)?\s*(?:AM|am)?\s*-\s*(\d{1,2})(?::00)?\s*(?:PM|pm)?/i);
+    if (timeMatch) {
+      const openHour = parseInt(timeMatch[1]);
+      let closeHour = parseInt(timeMatch[2]);
+      // Assume PM for closing time if > 5 and <= 12
+      if (closeHour <= 12 && closeHour >= 1 && closeHour < openHour) {
+        closeHour += 12;
+      }
+
+      if (currentHour >= openHour && currentHour < closeHour) {
+        return { isOpen: true, status: `Open until ${closeHour > 12 ? closeHour - 12 : closeHour} PM`, statusEs: `Abierto hasta las ${closeHour > 12 ? closeHour - 12 : closeHour} PM` };
+      } else if (currentHour < openHour) {
+        return { isOpen: false, status: `Opens at ${openHour} AM`, statusEs: `Abre a las ${openHour} AM` };
+      } else {
+        return { isOpen: false, status: 'Closed - Opens tomorrow', statusEs: 'Cerrado - Abre mañana' };
+      }
+    }
+  }
+
+  // Default for hotlines (assume open)
+  if (hoursLower.includes('hotline') || hoursLower.includes('crisis')) {
+    return { isOpen: true, status: 'Hotline Available', statusEs: 'Línea disponible' };
+  }
+
+  // Default case
+  return { isOpen: true, status: 'Call to confirm', statusEs: 'Llame para confirmar' };
+};
+
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
-  const [counselors, setCounselors] = useState<Resource[]>([]);
+  const [counselors, setCounselors] = useState<HousingResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [expandedCounselor, setExpandedCounselor] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
 
@@ -483,7 +543,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.detailTitle}>
-        {isSpanish ? 'Consejeros de Vivienda' : 'Housing Counselors'}
+        {isSpanish ? 'Refugios y Consejeros' : 'Shelters & Counselors'}
       </Text>
       <Text style={styles.detailSubtitle}>
         {userProfile?.location?.city
@@ -495,57 +555,196 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#7C3AED" />
           <Text style={styles.loadingText}>
-            {isSpanish ? 'Buscando consejeros...' : 'Finding counselors...'}
+            {isSpanish ? 'Buscando recursos...' : 'Finding resources...'}
           </Text>
         </View>
       ) : counselors.length > 0 ? (
-        counselors.map((counselor) => (
-          <View key={counselor.id} style={styles.counselorCard}>
-            <View style={styles.counselorHeader}>
-              <Text style={styles.counselorIcon}>
-                {counselor.id.startsWith('osm-shelter') ? '🛏️' : '🏠'}
-              </Text>
-              <View style={styles.counselorInfo}>
-                <Text style={styles.counselorName}>{counselor.name}</Text>
-                {counselor.description && (
-                  <Text style={styles.counselorDescription}>{counselor.description}</Text>
-                )}
-                {counselor.address && (
-                  <Text style={styles.counselorAddress}>{counselor.address}</Text>
-                )}
-                {counselor.distance !== undefined && counselor.distance > 0 && (
-                  <Text style={styles.counselorDistance}>
-                    📍 {counselor.distance.toFixed(1)} {isSpanish ? 'millas' : 'miles'}
-                  </Text>
-                )}
+        counselors.map((counselor) => {
+          const isExpanded = expandedCounselor === counselor.id;
+          const openStatus = isResourceOpen(counselor.hours);
+          const isCurated = counselor.id.startsWith('curated-');
+
+          // Get icon based on type
+          const getIcon = () => {
+            if (counselor.id.includes('veteran')) return '🎖️';
+            if (counselor.id.includes('youth') || counselor.id.includes('covenant')) return '👦';
+            if (counselor.id.includes('family')) return '👨‍👩‍👧';
+            if (counselor.id.includes('dv') || counselor.id.includes('domestic')) return '💜';
+            if (counselor.id.includes('shelter') || counselor.id.includes('salvation')) return '🛏️';
+            if (counselor.id.includes('211')) return '📞';
+            if (counselor.id.startsWith('hud-')) return '🏛️';
+            return '🏠';
+          };
+
+          return (
+            <TouchableOpacity
+              key={counselor.id}
+              style={[
+                styles.shelterCard,
+                isCurated && styles.shelterCardCurated,
+              ]}
+              onPress={() => setExpandedCounselor(isExpanded ? null : counselor.id)}
+              activeOpacity={0.7}
+            >
+              {/* Header */}
+              <View style={styles.shelterHeader}>
+                <View style={[
+                  styles.shelterIconContainer,
+                  { backgroundColor: openStatus.isOpen ? '#ECFDF5' : '#FEF2F2' }
+                ]}>
+                  <Text style={styles.shelterIcon}>{getIcon()}</Text>
+                </View>
+                <View style={styles.shelterInfo}>
+                  <Text style={styles.shelterName}>{counselor.name}</Text>
+                  {counselor.phone && (
+                    <Text style={styles.shelterPhone}>{counselor.phone}</Text>
+                  )}
+                  <View style={styles.statusRow}>
+                    <View style={[
+                      styles.statusBadge,
+                      openStatus.isOpen ? styles.statusBadgeOpen : styles.statusBadgeClosed
+                    ]}>
+                      <Text style={[
+                        styles.statusText,
+                        openStatus.isOpen ? styles.statusTextOpen : styles.statusTextClosed
+                      ]}>
+                        {isSpanish ? openStatus.statusEs : openStatus.status}
+                      </Text>
+                    </View>
+                    {isCurated && (
+                      <View style={styles.verifiedBadge}>
+                        <Text style={styles.verifiedText}>✓ {isSpanish ? 'Verificado' : 'Verified'}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <Text style={styles.expandArrow}>{isExpanded ? '▼' : '▶'}</Text>
               </View>
-            </View>
-            <View style={styles.counselorActions}>
-              {counselor.phone && (
-                <TouchableOpacity
-                  style={styles.callButton}
-                  onPress={() => handleCall(counselor.phone!)}
-                >
-                  <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-                </TouchableOpacity>
+
+              {/* Expanded content */}
+              {isExpanded && (
+                <View style={styles.shelterExpanded}>
+                  {/* Description */}
+                  {counselor.description && (
+                    <Text style={styles.shelterDescription}>{counselor.description}</Text>
+                  )}
+
+                  {/* Address */}
+                  {counselor.address && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>📍 {isSpanish ? 'Dirección' : 'Address'}:</Text>
+                      <Text style={styles.infoValue}>{counselor.address}</Text>
+                    </View>
+                  )}
+
+                  {/* Hours */}
+                  {counselor.hours && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>🕐 {isSpanish ? 'Horario' : 'Hours'}:</Text>
+                      <Text style={styles.infoValue}>
+                        {isSpanish ? counselor.hoursEs || counselor.hours : counselor.hours}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Eligibility */}
+                  {counselor.eligibility && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>✅ {isSpanish ? 'Elegibilidad' : 'Eligibility'}:</Text>
+                      <Text style={styles.infoValue}>
+                        {isSpanish ? counselor.eligibilityEs || counselor.eligibility : counselor.eligibility}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Intake Info */}
+                  {counselor.intakeInfo && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>📋 {isSpanish ? 'Admisión' : 'Intake'}:</Text>
+                      <Text style={styles.infoValue}>
+                        {isSpanish ? counselor.intakeInfoEs || counselor.intakeInfo : counselor.intakeInfo}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Services */}
+                  {counselor.servicesDetailed && counselor.servicesDetailed.length > 0 && (
+                    <View style={styles.servicesSection}>
+                      <Text style={styles.servicesTitle}>
+                        {isSpanish ? 'Servicios Disponibles:' : 'Services Available:'}
+                      </Text>
+                      {(isSpanish ? counselor.servicesDetailedEs || counselor.servicesDetailed : counselor.servicesDetailed).map((service, idx) => (
+                        <View key={idx} style={styles.serviceItem}>
+                          <Text style={styles.serviceBullet}>•</Text>
+                          <Text style={styles.serviceText}>{service}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Service tags */}
+                  {counselor.services && counselor.services.length > 0 && (
+                    <View style={styles.tagsContainer}>
+                      {counselor.services.slice(0, 4).map((service, idx) => (
+                        <View key={idx} style={styles.serviceTag}>
+                          <Text style={styles.serviceTagText}>{service}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Action buttons */}
+                  <View style={styles.shelterActions}>
+                    {counselor.phone && (
+                      <TouchableOpacity
+                        style={styles.primaryCallButton}
+                        onPress={() => handleCall(counselor.phone!)}
+                      >
+                        <Text style={styles.primaryCallButtonText}>
+                          📞 {isSpanish ? 'Llamar Ahora' : 'Call Now'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    {counselor.website && (
+                      <TouchableOpacity
+                        style={styles.websiteButton}
+                        onPress={() => Linking.openURL(counselor.website!)}
+                      >
+                        <Text style={styles.websiteButtonText}>
+                          🌐 {isSpanish ? 'Sitio Web' : 'Website'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Add to todo */}
+                  <TouchableOpacity
+                    style={styles.addToTodoFullButton}
+                    onPress={() => addToTodo(`${isSpanish ? 'Contactar' : 'Contact'} ${counselor.name}`)}
+                  >
+                    <Text style={styles.addToTodoFullText}>
+                      + {isSpanish ? 'Agregar a mi lista de tareas' : 'Add to my to-do list'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-              <TouchableOpacity
-                style={styles.addTodoButton}
-                onPress={() => addToTodo(`${isSpanish ? 'Contactar' : 'Contact'} ${counselor.name}`)}
-              >
-                <Text style={styles.addTodoButtonText}>+ {isSpanish ? 'Tarea' : 'To-Do'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
+            </TouchableOpacity>
+          );
+        })
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🔍</Text>
           <Text style={styles.emptyText}>
             {isSpanish
-              ? 'No se encontraron consejeros. Llama al 211 para obtener recursos locales.'
-              : 'No counselors found. Call 211 for local resources.'}
+              ? 'No se encontraron recursos. Llama al 211 para obtener ayuda local.'
+              : 'No resources found. Call 211 for local help.'}
           </Text>
+          <TouchableOpacity
+            style={styles.call211Button}
+            onPress={() => handleCall('211')}
+          >
+            <Text style={styles.call211ButtonText}>📞 {isSpanish ? 'Llamar 211' : 'Call 211'}</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -1606,5 +1805,220 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#7C3AED',
     fontWeight: '600',
+  },
+  // Expandable Shelter Card styles
+  shelterCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  shelterCardCurated: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#7C3AED',
+  },
+  shelterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  shelterIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  shelterIcon: {
+    fontSize: 26,
+  },
+  shelterInfo: {
+    flex: 1,
+  },
+  shelterName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  shelterPhone: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#7C3AED',
+    marginBottom: 6,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusBadgeOpen: {
+    backgroundColor: '#ECFDF5',
+  },
+  statusBadgeClosed: {
+    backgroundColor: '#FEF2F2',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusTextOpen: {
+    color: '#059669',
+  },
+  statusTextClosed: {
+    color: '#DC2626',
+  },
+  verifiedBadge: {
+    backgroundColor: '#F5F3FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  verifiedText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#7C3AED',
+  },
+  expandArrow: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginLeft: 8,
+  },
+  shelterExpanded: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  shelterDescription: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  infoRow: {
+    marginBottom: 12,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+  servicesSection: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  servicesTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  serviceItem: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  serviceBullet: {
+    fontSize: 14,
+    color: '#7C3AED',
+    marginRight: 8,
+    fontWeight: '700',
+  },
+  serviceText: {
+    fontSize: 14,
+    color: '#475569',
+    flex: 1,
+    lineHeight: 20,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  serviceTag: {
+    backgroundColor: '#F5F3FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  serviceTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7C3AED',
+  },
+  shelterActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  primaryCallButton: {
+    flex: 1,
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  primaryCallButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  websiteButton: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  websiteButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  addToTodoFullButton: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  addToTodoFullText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  call211Button: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  call211ButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
