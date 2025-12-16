@@ -3,8 +3,14 @@
  * Provides intelligent conversational AI for the Case Manager
  */
 
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+// Get API key at runtime (not at module load time)
+const getApiKey = (): string => {
+  const key = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+  console.log('Gemini API Key loaded:', key ? 'Yes (length: ' + key.length + ')' : 'No');
+  return key;
+};
 
 export interface AIMessage {
   role: 'user' | 'model';
@@ -80,6 +86,8 @@ export const sendMessageToAI = async (
   conversationHistory: AIMessage[],
   userContext: UserContext
 ): Promise<string> => {
+  const GEMINI_API_KEY = getApiKey();
+
   if (!GEMINI_API_KEY) {
     console.warn('Gemini API key not configured');
     return getFallbackResponse(userMessage, userContext);
@@ -213,5 +221,5 @@ const getFallbackResponse = (userMessage: string, context: UserContext): string 
  * Check if the AI service is available
  */
 export const isAIAvailable = (): boolean => {
-  return !!GEMINI_API_KEY;
+  return !!getApiKey();
 };
