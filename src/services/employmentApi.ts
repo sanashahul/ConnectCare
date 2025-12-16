@@ -20,10 +20,10 @@
 import { Resource, Location } from '../types';
 import { calculateDistance } from '../utils/location';
 
-// Note: For Adzuna, you need to sign up at developer.adzuna.com (free)
-// These are placeholder values - replace with real keys
-const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID || '';
-const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY || '';
+// Adzuna API credentials
+// Sign up at developer.adzuna.com (free tier available)
+const ADZUNA_APP_ID = process.env.EXPO_PUBLIC_ADZUNA_APP_ID || '';
+const ADZUNA_APP_KEY = process.env.EXPO_PUBLIC_ADZUNA_APP_KEY || '';
 
 /**
  * Extended Resource type with employment-specific fields
