@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
+import { EmploymentResource } from '../../services/employmentApi';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -124,13 +125,52 @@ const EMPLOYMENT_RESOURCES = [
   { id: 'er2', name: 'Worker Rights Hotline', nameEs: 'Línea de Derechos del Trabajador', description: 'Report workplace violations', descriptionEs: 'Reportar violaciones laborales', phone: '1-866-487-9243', icon: '⚖️' },
 ];
 
+// Helper function to determine if a resource is currently open
+const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; statusEs: string } => {
+  if (!hours) {
+    return { isOpen: true, status: 'Call for hours', statusEs: 'Llame para horarios' };
+  }
+
+  const hoursLower = hours.toLowerCase();
+
+  // Check for 24/7 services
+  if (hoursLower.includes('24') || hoursLower.includes('24/7') || hoursLower.includes('24 hours')) {
+    return { isOpen: true, status: 'Open 24/7', statusEs: 'Abierto 24/7' };
+  }
+
+  // Check for online services
+  if (hoursLower.includes('online')) {
+    return { isOpen: true, status: 'Available Online', statusEs: 'Disponible en línea' };
+  }
+
+  // Try to parse standard business hours
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentHour = now.getHours();
+
+  // Simple weekday check (Mon-Fri patterns)
+  if (hoursLower.includes('mon-fri') || hoursLower.includes('lun-vie')) {
+    if (currentDay >= 1 && currentDay <= 5) {
+      // Check if within typical business hours (8 AM - 5 PM)
+      if (currentHour >= 8 && currentHour < 17) {
+        return { isOpen: true, status: 'Open Now', statusEs: 'Abierto Ahora' };
+      }
+    }
+    return { isOpen: false, status: 'Closed', statusEs: 'Cerrado' };
+  }
+
+  // Default: show hours as status
+  return { isOpen: true, status: 'See hours', statusEs: 'Ver horarios' };
+};
+
 export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state } = useApp();
   const [activeSection, setActiveSection] = useState<'foryou' | 'search' | 'quickhire' | 'help' | null>(null);
-  const [jobs, setJobs] = useState<Resource[]>([]);
+  const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -289,67 +329,162 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.detailTitle}>
-        {isSpanish ? 'Buscar Trabajos' : 'Job Search'}
+        {isSpanish ? 'Recursos de Empleo' : 'Employment Resources'}
       </Text>
       <Text style={styles.detailSubtitle}>
-        {isSpanish ? 'Sitios de búsqueda de empleo' : 'Job search websites'}
-      </Text>
-
-      {/* Job Search Sites */}
-      <View style={styles.jobSitesGrid}>
-        <TouchableOpacity style={styles.jobSiteCard} onPress={() => openJobSite('indeed')}>
-          <Text style={styles.jobSiteIcon}>💼</Text>
-          <Text style={styles.jobSiteName}>Indeed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.jobSiteCard} onPress={() => openJobSite('linkedin')}>
-          <Text style={styles.jobSiteIcon}>🔗</Text>
-          <Text style={styles.jobSiteName}>LinkedIn</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.jobSiteCard} onPress={() => openJobSite('usajobs')}>
-          <Text style={styles.jobSiteIcon}>🏛️</Text>
-          <Text style={styles.jobSiteName}>USAJobs</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.subSectionTitle}>
-        {isSpanish ? 'Trabajos Cerca de Ti' : 'Jobs Near You'}
+        {isSpanish ? 'Capacitación, búsqueda de empleo y más' : 'Training, job search, and more'}
       </Text>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#EA580C" />
           <Text style={styles.loadingText}>
-            {isSpanish ? 'Buscando trabajos...' : 'Finding jobs...'}
+            {isSpanish ? 'Cargando recursos...' : 'Loading resources...'}
           </Text>
         </View>
       ) : jobs.length > 0 ? (
-        jobs.slice(0, 10).map((job) => (
-          <TouchableOpacity
-            key={job.id}
-            style={styles.jobCard}
-            onPress={() => job.url && Linking.openURL(job.url)}
-          >
-            <View style={styles.jobHeader}>
-              <Text style={styles.jobIcon}>💼</Text>
-              <View style={styles.jobInfo}>
-                <Text style={styles.jobTitle}>{job.name}</Text>
-                {job.description && (
-                  <Text style={styles.jobCompany} numberOfLines={2}>{job.description}</Text>
-                )}
+        jobs.map((job) => {
+          const openStatus = isResourceOpen(job.hours);
+          const isExpanded = expandedJob === job.id;
+
+          return (
+            <TouchableOpacity
+              key={job.id}
+              style={styles.jobResourceCard}
+              onPress={() => setExpandedJob(isExpanded ? null : job.id)}
+              activeOpacity={0.7}
+            >
+              {/* Header with status */}
+              <View style={styles.jobResourceHeader}>
+                <View style={styles.jobResourceInfo}>
+                  <View style={styles.jobResourceTitleRow}>
+                    <Text style={styles.jobResourceTitle}>
+                      {isSpanish && job.nameEs ? job.nameEs : job.name}
+                    </Text>
+                    {job.phone && (
+                      <View style={styles.verifiedBadge}>
+                        <Text style={styles.verifiedBadgeText}>✓</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.jobResourceDescription} numberOfLines={isExpanded ? undefined : 2}>
+                    {isSpanish && job.descriptionEs ? job.descriptionEs : job.description}
+                  </Text>
+
+                  {/* Status and services */}
+                  <View style={styles.jobResourceTags}>
+                    <View style={[
+                      styles.statusBadge,
+                      { backgroundColor: openStatus.isOpen ? '#DCFCE7' : '#FEE2E2' }
+                    ]}>
+                      <Text style={[
+                        styles.statusBadgeText,
+                        { color: openStatus.isOpen ? '#166534' : '#991B1B' }
+                      ]}>
+                        {isSpanish ? openStatus.statusEs : openStatus.status}
+                      </Text>
+                    </View>
+                    {job.services?.slice(0, 2).map((service, idx) => (
+                      <View key={idx} style={styles.serviceTag}>
+                        <Text style={styles.serviceTagText}>
+                          {isSpanish && job.servicesEs?.[idx] ? job.servicesEs[idx] : service}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
               </View>
-            </View>
-            <View style={styles.viewButton}>
-              <Text style={styles.viewButtonText}>{isSpanish ? 'Ver' : 'View'} →</Text>
-            </View>
-          </TouchableOpacity>
-        ))
+
+              {/* Expanded content */}
+              {isExpanded && (
+                <View style={styles.jobResourceExpanded}>
+                  {/* Hours */}
+                  {job.hours && (
+                    <View style={styles.jobResourceSection}>
+                      <Text style={styles.jobResourceSectionTitle}>
+                        🕐 {isSpanish ? 'Horarios' : 'Hours'}
+                      </Text>
+                      <Text style={styles.jobResourceSectionText}>
+                        {isSpanish && job.hoursEs ? job.hoursEs : job.hours}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Eligibility */}
+                  {job.eligibility && (
+                    <View style={styles.jobResourceSection}>
+                      <Text style={styles.jobResourceSectionTitle}>
+                        ✅ {isSpanish ? 'Elegibilidad' : 'Eligibility'}
+                      </Text>
+                      <Text style={styles.jobResourceSectionText}>
+                        {isSpanish && job.eligibilityEs ? job.eligibilityEs : job.eligibility}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Detailed services */}
+                  {job.servicesDetailed && job.servicesDetailed.length > 0 && (
+                    <View style={styles.jobResourceSection}>
+                      <Text style={styles.jobResourceSectionTitle}>
+                        📋 {isSpanish ? 'Servicios' : 'Services'}
+                      </Text>
+                      {(isSpanish && job.servicesDetailedEs ? job.servicesDetailedEs : job.servicesDetailed).map((service, idx) => (
+                        <View key={idx} style={styles.detailRow}>
+                          <Text style={styles.detailBullet}>•</Text>
+                          <Text style={styles.detailText}>{service}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* How to Apply */}
+                  {job.howToApply && (
+                    <View style={styles.jobResourceSection}>
+                      <Text style={styles.jobResourceSectionTitle}>
+                        📝 {isSpanish ? 'Cómo Aplicar' : 'How to Apply'}
+                      </Text>
+                      <Text style={styles.jobResourceSectionText}>
+                        {isSpanish && job.howToApplyEs ? job.howToApplyEs : job.howToApply}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Action buttons */}
+                  <View style={styles.jobResourceActions}>
+                    {job.phone && (
+                      <TouchableOpacity
+                        style={styles.callButton}
+                        onPress={() => handleCall(job.phone!)}
+                      >
+                        <Text style={styles.callButtonText}>
+                          📞 {isSpanish ? 'Llamar' : 'Call'} {job.phone}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    {job.website && (
+                      <TouchableOpacity
+                        style={styles.websiteButton}
+                        onPress={() => Linking.openURL(job.website!)}
+                      >
+                        <Text style={styles.websiteButtonText}>
+                          🌐 {isSpanish ? 'Visitar Sitio Web' : 'Visit Website'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyIcon}>💼</Text>
           <Text style={styles.emptyText}>
             {isSpanish
-              ? 'Usa los sitios de arriba para buscar trabajos en tu área.'
-              : 'Use the sites above to search for jobs in your area.'}
+              ? 'Cargando recursos de empleo...'
+              : 'Loading employment resources...'}
           </Text>
         </View>
       )}
@@ -906,5 +1041,134 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#475569',
     lineHeight: 22,
+  },
+  // New styles for expandable job resource cards
+  jobResourceCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  jobResourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  jobResourceInfo: {
+    flex: 1,
+  },
+  jobResourceTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  jobResourceTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    flex: 1,
+  },
+  verifiedBadge: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  verifiedBadgeText: {
+    fontSize: 12,
+    color: '#166534',
+    fontWeight: '700',
+  },
+  jobResourceDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  jobResourceTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  serviceTag: {
+    backgroundColor: '#FFF7ED',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+  },
+  serviceTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#EA580C',
+  },
+  jobResourceExpanded: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  jobResourceSection: {
+    marginBottom: 16,
+  },
+  jobResourceSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  jobResourceSectionText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  jobResourceActions: {
+    marginTop: 8,
+    gap: 10,
+  },
+  callButton: {
+    backgroundColor: '#EA580C',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  callButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  websiteButton: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  websiteButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0D9488',
   },
 });

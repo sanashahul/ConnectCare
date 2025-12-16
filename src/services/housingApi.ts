@@ -20,7 +20,12 @@ import { calculateDistance } from '../utils/location';
 /**
  * Extended Resource type with housing-specific fields
  */
-export interface HousingResource extends Resource {
+export interface HousingResource extends Omit<Resource, 'hours'> {
+  // Spanish translations
+  nameEs?: string;
+  descriptionEs?: string;
+  servicesEs?: string[];
+  // Housing-specific fields
   hours?: string;
   hoursEs?: string;
   eligibility?: string;
@@ -59,7 +64,7 @@ export const fetchHUDShelters = async (
  * OpenStreetMap Overpass API - finds real shelter locations
  * Free, no key required
  */
-const fetchSheltersFromOSM = async (location: Location): Promise<Resource[]> => {
+const fetchSheltersFromOSM = async (location: Location): Promise<HousingResource[]> => {
   try {
     // Search within ~15 miles (0.25 degrees roughly)
     const bbox = `${location.latitude - 0.25},${location.longitude - 0.25},${location.latitude + 0.25},${location.longitude + 0.25}`;
@@ -99,7 +104,7 @@ const fetchSheltersFromOSM = async (location: Location): Promise<Resource[]> => 
       return [];
     }
 
-    return data.elements.slice(0, 10).map((element: any): Resource => {
+    return data.elements.slice(0, 10).map((element: any): HousingResource => {
       const lat = element.lat || element.center?.lat || location.latitude;
       const lng = element.lon || element.center?.lon || location.longitude;
       const tags = element.tags || {};
@@ -116,6 +121,8 @@ const fetchSheltersFromOSM = async (location: Location): Promise<Resource[]> => 
         lat,
         lng,
         distance: calculateDistance(location.latitude, location.longitude, lat, lng),
+        hours: 'Call for hours',
+        hoursEs: 'Llame para horarios',
       };
     });
   } catch (error) {
