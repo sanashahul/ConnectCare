@@ -255,6 +255,7 @@ export const DashboardScreen: React.FC = () => {
   const [jobListings, setJobListings] = useState<Resource[]>([]);
   const [housingListings, setHousingListings] = useState<Resource[]>([]);
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['recommended']);
 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
@@ -349,6 +350,16 @@ export const DashboardScreen: React.FC = () => {
   const handleWebsite = (url: string) => {
     Linking.openURL(url);
   };
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev =>
+      prev.includes(sectionId)
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
+  const isSectionExpanded = (sectionId: string) => expandedSections.includes(sectionId);
 
   const handleDirections = (resource: Resource) => {
     const mapUrl = `https://maps.google.com/?q=${resource.lat},${resource.lng}`;
@@ -766,6 +777,8 @@ export const DashboardScreen: React.FC = () => {
 
   const renderResourcesTab = () => {
     const sectionTabs = getSectionTabs();
+    const guides = getGuides();
+    const urgentItems = getUrgentResources();
 
     return (
       <View style={styles.tabContent}>
@@ -777,7 +790,7 @@ export const DashboardScreen: React.FC = () => {
               style={[styles.categoryTab, activeCategory === category && styles.categoryTabActive]}
               onPress={() => {
                 setActiveCategory(category);
-                setActiveSection('recommended');
+                setExpandedSections(['recommended']);
               }}
             >
               <Text style={styles.categoryTabIcon}>
@@ -799,27 +812,250 @@ export const DashboardScreen: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* Section Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sectionTabs}>
-          {sectionTabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[styles.sectionTab, activeSection === tab.id && styles.sectionTabActive]}
-              onPress={() => setActiveSection(tab.id)}
-            >
-              <Text style={[
-                styles.sectionTabText,
-                activeSection === tab.id && styles.sectionTabTextActive
-              ]}>
-                {isSpanish ? tab.labelEs : tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* All Sections on One Page */}
+        <ScrollView style={styles.sectionScrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.allSectionsContainer}>
 
-        {/* Section Content */}
-        <ScrollView style={styles.sectionScrollView}>
-          {renderSectionContent()}
+            {/* FOR YOU Section */}
+            <TouchableOpacity
+              style={styles.sectionCard}
+              onPress={() => toggleSection('recommended')}
+            >
+              <View style={styles.sectionCardHeader}>
+                <Text style={styles.sectionCardIcon}>⭐</Text>
+                <View style={styles.sectionCardInfo}>
+                  <Text style={styles.sectionCardTitle}>
+                    {isSpanish ? 'Para Ti' : 'For You'}
+                  </Text>
+                  <Text style={styles.sectionCardSubtitle}>
+                    {isSpanish ? 'Recomendaciones personalizadas' : 'Personalized recommendations'}
+                  </Text>
+                </View>
+                <Text style={styles.sectionCardArrow}>
+                  {isSectionExpanded('recommended') ? '▼' : '▶'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {isSectionExpanded('recommended') && (
+              <View style={styles.sectionCardContent}>
+                {isLoading ? (
+                  <ActivityIndicator size="large" color="#2563EB" style={{ padding: 20 }} />
+                ) : resources.length === 0 ? (
+                  <Text style={styles.emptyText}>
+                    {isSpanish ? 'No se encontraron recursos' : 'No resources found'}
+                  </Text>
+                ) : (
+                  resources.slice(0, 3).map((resource) => (
+                    <View key={resource.id} style={styles.miniResourceCard}>
+                      <Text style={styles.miniResourceName}>{resource.name}</Text>
+                      <Text style={styles.miniResourceAddress}>{resource.address}</Text>
+                      <View style={styles.miniResourceActions}>
+                        {resource.phone && (
+                          <TouchableOpacity onPress={() => handleCall(resource.phone!)}>
+                            <Text style={styles.miniActionText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+                          </TouchableOpacity>
+                        )}
+                        {resource.website && (
+                          <TouchableOpacity onPress={() => handleWebsite(resource.website!)}>
+                            <Text style={styles.miniActionText}>🌐 Web</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
+
+            {/* FIND/SEARCH Section */}
+            <TouchableOpacity
+              style={styles.sectionCard}
+              onPress={() => toggleSection('search')}
+            >
+              <View style={styles.sectionCardHeader}>
+                <Text style={styles.sectionCardIcon}>
+                  {activeCategory === 'healthcare' ? '🔍' : activeCategory === 'employment' ? '💼' : '🏠'}
+                </Text>
+                <View style={styles.sectionCardInfo}>
+                  <Text style={styles.sectionCardTitle}>
+                    {activeCategory === 'healthcare' && (isSpanish ? 'Buscar Clínicas' : 'Find Clinics')}
+                    {activeCategory === 'employment' && (isSpanish ? 'Buscar Empleos' : 'Find Jobs')}
+                    {activeCategory === 'housing' && (isSpanish ? 'Buscar Vivienda' : 'Find Housing')}
+                  </Text>
+                  <Text style={styles.sectionCardSubtitle}>
+                    {isSpanish ? 'Explorar opciones cerca de ti' : 'Explore options near you'}
+                  </Text>
+                </View>
+                <Text style={styles.sectionCardArrow}>
+                  {isSectionExpanded('search') ? '▼' : '▶'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {isSectionExpanded('search') && (
+              <View style={styles.sectionCardContent}>
+                <View style={styles.searchBox}>
+                  <Text style={styles.searchIcon}>🔍</Text>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder={isSpanish ? 'Buscar...' : 'Search...'}
+                    placeholderTextColor="#9CA3AF"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </View>
+
+                {activeCategory === 'healthcare' && resources.slice(0, 4).map((resource) => (
+                  <View key={resource.id} style={styles.miniResourceCard}>
+                    <Text style={styles.miniResourceName}>{resource.name}</Text>
+                    <Text style={styles.miniResourceAddress}>{resource.address}</Text>
+                    {resource.distance && (
+                      <Text style={styles.miniResourceDistance}>{formatDistance(resource.distance)}</Text>
+                    )}
+                  </View>
+                ))}
+
+                {activeCategory === 'employment' && (
+                  isLoadingSearch ? (
+                    <ActivityIndicator size="small" color="#2563EB" />
+                  ) : (jobListings.length > 0 ? jobListings : SAMPLE_JOBS.map(j => ({
+                    id: j.id, name: j.title, description: j.company, services: [j.pay, j.type]
+                  } as any))).slice(0, 4).map((job: any) => (
+                    <View key={job.id} style={styles.miniResourceCard}>
+                      <Text style={styles.miniResourceName}>{job.name || job.title}</Text>
+                      <Text style={styles.miniResourceAddress}>{job.description || job.company}</Text>
+                    </View>
+                  ))
+                )}
+
+                {activeCategory === 'housing' && (
+                  isLoadingSearch ? (
+                    <ActivityIndicator size="small" color="#2563EB" />
+                  ) : (housingListings.length > 0 ? housingListings : SAMPLE_HOUSING.map(h => ({
+                    id: h.id, name: h.title, description: h.organization, phone: undefined
+                  } as any))).slice(0, 4).map((housing: any) => (
+                    <View key={housing.id} style={styles.miniResourceCard}>
+                      <Text style={styles.miniResourceName}>{housing.name || housing.title}</Text>
+                      <Text style={styles.miniResourceAddress}>{housing.description || housing.organization}</Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
+
+            {/* LEARN Section */}
+            <TouchableOpacity
+              style={styles.sectionCard}
+              onPress={() => toggleSection('learn')}
+            >
+              <View style={styles.sectionCardHeader}>
+                <Text style={styles.sectionCardIcon}>📚</Text>
+                <View style={styles.sectionCardInfo}>
+                  <Text style={styles.sectionCardTitle}>
+                    {isSpanish ? 'Aprender' : 'Learn'}
+                  </Text>
+                  <Text style={styles.sectionCardSubtitle}>
+                    {isSpanish ? 'Guías y recursos educativos' : 'Guides and educational resources'}
+                  </Text>
+                </View>
+                <Text style={styles.sectionCardArrow}>
+                  {isSectionExpanded('learn') ? '▼' : '▶'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {isSectionExpanded('learn') && (
+              <View style={styles.sectionCardContent}>
+                {guides.map((guide) => (
+                  <TouchableOpacity
+                    key={guide.id}
+                    style={styles.guideCard}
+                    onPress={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                  >
+                    <View style={styles.guideHeader}>
+                      <Text style={styles.guideIcon}>{guide.icon}</Text>
+                      <View style={styles.guideInfo}>
+                        <Text style={styles.guideTitle}>
+                          {isSpanish ? guide.titleEs : guide.title}
+                        </Text>
+                        <Text style={styles.guideDescription}>
+                          {isSpanish ? guide.descriptionEs : guide.description}
+                        </Text>
+                      </View>
+                      <Text style={styles.guideArrow}>
+                        {expandedGuide === guide.id ? '▼' : '▶'}
+                      </Text>
+                    </View>
+                    {expandedGuide === guide.id && (
+                      <View style={styles.guideContent}>
+                        {guide.content.map((item, idx) => (
+                          <View key={idx} style={styles.guideContentItem}>
+                            <Text style={styles.guideContentBullet}>•</Text>
+                            <Text style={styles.guideContentText}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* URGENT Section */}
+            <TouchableOpacity
+              style={[styles.sectionCard, styles.urgentSectionCard]}
+              onPress={() => toggleSection('urgent')}
+            >
+              <View style={styles.sectionCardHeader}>
+                <Text style={styles.sectionCardIcon}>🚨</Text>
+                <View style={styles.sectionCardInfo}>
+                  <Text style={styles.sectionCardTitle}>
+                    {activeCategory === 'healthcare' && (isSpanish ? 'Emergencia' : 'Emergency')}
+                    {activeCategory === 'employment' && (isSpanish ? 'Ayuda Urgente' : 'Urgent Help')}
+                    {activeCategory === 'housing' && (isSpanish ? 'Refugio de Emergencia' : 'Emergency Shelter')}
+                  </Text>
+                  <Text style={styles.sectionCardSubtitle}>
+                    {isSpanish ? 'Recursos 24/7' : '24/7 resources'}
+                  </Text>
+                </View>
+                <Text style={styles.sectionCardArrow}>
+                  {isSectionExpanded('urgent') ? '▼' : '▶'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {isSectionExpanded('urgent') && (
+              <View style={styles.sectionCardContent}>
+                <View style={styles.urgentWarning}>
+                  <Text style={styles.urgentWarningIcon}>⚠️</Text>
+                  <Text style={styles.urgentWarningText}>
+                    {isSpanish
+                      ? 'Si es una emergencia, llama al 911'
+                      : 'If this is an emergency, call 911'}
+                  </Text>
+                </View>
+                {urgentItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.urgentCard}
+                    onPress={() => handleCall(item.phone)}
+                  >
+                    <Text style={styles.urgentIcon}>{item.icon}</Text>
+                    <View style={styles.urgentInfo}>
+                      <Text style={styles.urgentName}>{item.name}</Text>
+                      <Text style={styles.urgentDescription}>{item.description}</Text>
+                    </View>
+                    <View style={styles.urgentPhone}>
+                      <Text style={styles.urgentPhoneText}>{item.phone}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            <View style={{ height: 100 }} />
+          </View>
         </ScrollView>
       </View>
     );
@@ -1599,5 +1835,88 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 8,
+  },
+  // New single-page layout styles
+  allSectionsContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  sectionCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  sectionCardIcon: {
+    fontSize: 28,
+    marginRight: 14,
+  },
+  sectionCardInfo: {
+    flex: 1,
+  },
+  sectionCardTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  sectionCardSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  sectionCardArrow: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  sectionCardContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  urgentSectionCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
+  },
+  miniResourceCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 10,
+  },
+  miniResourceName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  miniResourceAddress: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  miniResourceDistance: {
+    fontSize: 12,
+    color: '#2563EB',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  miniResourceActions: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 10,
+  },
+  miniActionText: {
+    fontSize: 14,
+    color: '#2563EB',
+    fontWeight: '500',
   },
 });
