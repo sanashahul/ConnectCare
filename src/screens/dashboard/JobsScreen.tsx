@@ -175,7 +175,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   // Filter states
   const [filterHasPhone, setFilterHasPhone] = useState(false);
   const [filterJobType, setFilterJobType] = useState<'all' | 'training' | 'job-site'>('all');
-  const [filterOpenNow, setFilterOpenNow] = useState(false);
+  const [filterFullTime, setFilterFullTime] = useState(false);
+  const [filterEntryLevel, setFilterEntryLevel] = useState(false);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -204,11 +205,25 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       );
     }
 
-    if (filterOpenNow) {
-      filtered = filtered.filter(job => {
-        const status = isResourceOpen(job.hours);
-        return status.isOpen;
-      });
+    if (filterFullTime) {
+      filtered = filtered.filter(job =>
+        job.name.toLowerCase().includes('full-time') ||
+        job.name.toLowerCase().includes('full time') ||
+        job.jobType?.toLowerCase().includes('full') ||
+        job.description?.toLowerCase().includes('full-time') ||
+        job.description?.toLowerCase().includes('full time')
+      );
+    }
+
+    if (filterEntryLevel) {
+      filtered = filtered.filter(job =>
+        job.name.toLowerCase().includes('entry') ||
+        job.name.toLowerCase().includes('no experience') ||
+        job.eligibility?.toLowerCase().includes('no experience') ||
+        job.eligibility?.toLowerCase().includes('entry level') ||
+        job.description?.toLowerCase().includes('entry level') ||
+        job.description?.toLowerCase().includes('no experience required')
+      );
     }
 
     return filtered;
@@ -399,11 +414,20 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
           <TouchableOpacity
-            style={[styles.filterChip, filterOpenNow && styles.filterChipActive]}
-            onPress={() => setFilterOpenNow(!filterOpenNow)}
+            style={[styles.filterChip, filterFullTime && styles.filterChipActive]}
+            onPress={() => setFilterFullTime(!filterFullTime)}
           >
-            <Text style={[styles.filterChipText, filterOpenNow && styles.filterChipTextActive]}>
-              🕐 {isSpanish ? 'Abierto Ahora' : 'Open Now'}
+            <Text style={[styles.filterChipText, filterFullTime && styles.filterChipTextActive]}>
+              💼 {isSpanish ? 'Tiempo Completo' : 'Full-time'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterChip, filterEntryLevel && styles.filterChipActive]}
+            onPress={() => setFilterEntryLevel(!filterEntryLevel)}
+          >
+            <Text style={[styles.filterChipText, filterEntryLevel && styles.filterChipTextActive]}>
+              🌱 {isSpanish ? 'Nivel Inicial' : 'Entry Level'}
             </Text>
           </TouchableOpacity>
 

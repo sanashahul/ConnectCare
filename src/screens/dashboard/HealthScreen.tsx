@@ -174,38 +174,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
 
-  // Filter clinics based on active filters
-  const getFilteredClinics = () => {
-    let filtered = clinics;
-
-    if (filterHasPhone) {
-      filtered = filtered.filter(c => c.phone);
-    }
-
-    if (filterOpenNow) {
-      filtered = filtered.filter(c => isClinicOpen(c));
-    }
-
-    if (filterWalkIn) {
-      filtered = filtered.filter(c => c.acceptsWalkIns === true);
-    }
-
-    if (filterFree) {
-      filtered = filtered.filter(c =>
-        c.name?.toLowerCase().includes('free') ||
-        c.description?.toLowerCase().includes('free') ||
-        c.description?.toLowerCase().includes('sliding') ||
-        c.description?.toLowerCase().includes('low-cost') ||
-        c.description?.toLowerCase().includes('no cost')
-      );
-    }
-
-    return filtered;
-  };
-
-  const filteredClinics = getFilteredClinics();
-
-  // Get current day and check if clinic is open
+  // Get current day and check if clinic is open (defined before getFilteredClinics)
   const getCurrentDay = (): string => {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return days[new Date().getDay()];
@@ -237,6 +206,37 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     };
     return isSpanish ? dayNames[day]?.es : dayNames[day]?.en;
   };
+
+  // Filter clinics based on active filters
+  const getFilteredClinics = () => {
+    let filtered = clinics;
+
+    if (filterHasPhone) {
+      filtered = filtered.filter(c => c.phone);
+    }
+
+    if (filterOpenNow) {
+      filtered = filtered.filter(c => isClinicOpen(c));
+    }
+
+    if (filterWalkIn) {
+      filtered = filtered.filter(c => c.acceptsWalkIns === true);
+    }
+
+    if (filterFree) {
+      filtered = filtered.filter(c =>
+        c.name?.toLowerCase().includes('free') ||
+        c.description?.toLowerCase().includes('free') ||
+        c.description?.toLowerCase().includes('sliding') ||
+        c.description?.toLowerCase().includes('low-cost') ||
+        c.description?.toLowerCase().includes('no cost')
+      );
+    }
+
+    return filtered;
+  };
+
+  const filteredClinics = getFilteredClinics();
 
   const addToTodo = (title: string, resourceUrl?: string, resourcePhone?: string) => {
     dispatch({
