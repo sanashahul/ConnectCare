@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Modal,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,6 +31,38 @@ const AI_TOPICS = [
   { id: 'documents', label: 'Get ID/Docs', labelEs: 'Obtener ID', icon: '🪪', category: 'general' },
   { id: '211', label: 'Call 211', labelEs: 'Llamar 211', icon: '📞', category: 'general' },
 ];
+
+// Suggested to-do items for each topic
+const TOPIC_TODOS: Record<string, { en: string; es: string }[]> = {
+  shelter: [
+    { en: 'Call 211 for shelter info', es: 'Llamar al 211 para info de refugio' },
+    { en: 'Visit local shelter before 5pm', es: 'Visitar refugio local antes de las 5pm' },
+  ],
+  clinic: [
+    { en: 'Call 211 for free clinics nearby', es: 'Llamar al 211 para clínicas gratis' },
+    { en: 'Visit findahealthcenter.hrsa.gov', es: 'Visitar findahealthcenter.hrsa.gov' },
+    { en: 'Gather documents for clinic visit', es: 'Reunir documentos para visita a clínica' },
+  ],
+  job: [
+    { en: 'Update resume at library', es: 'Actualizar currículum en biblioteca' },
+    { en: 'Visit workforce development center', es: 'Visitar centro de desarrollo laboral' },
+    { en: 'Search jobs on Indeed.com', es: 'Buscar trabajos en Indeed.com' },
+  ],
+  food: [
+    { en: 'Call 211 for food banks', es: 'Llamar al 211 para bancos de comida' },
+    { en: 'Apply for SNAP benefits', es: 'Aplicar para beneficios SNAP' },
+    { en: 'Find local food pantry', es: 'Encontrar despensa de comida local' },
+  ],
+  documents: [
+    { en: 'Request birth certificate copy', es: 'Solicitar copia de acta de nacimiento' },
+    { en: 'Visit SSA office for Social Security card', es: 'Visitar oficina SSA para tarjeta SS' },
+    { en: 'Gather ID documents', es: 'Reunir documentos de identificación' },
+  ],
+  '211': [
+    { en: 'Call 211 for resources', es: 'Llamar al 211 para recursos' },
+    { en: 'Text ZIP code to 898-211', es: 'Enviar código postal al 898-211' },
+  ],
+};
 
 // AI responses based on topic
 const getAIResponse = (topicId: string, isSpanish: boolean, location?: string): string => {
@@ -67,6 +101,7 @@ interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
   content: string;
+  topicId?: string; // Track which topic this response is for
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
@@ -76,6 +111,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
+  const [currentTopic, setCurrentTopic] = useState<string | null>(null);
+  const [showAddTodo, setShowAddTodo] = useState(false);
+  const [newTodoText, setNewTodoText] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -93,6 +132,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     const topic = AI_TOPICS.find((t) => t.id === topicId);
     if (!topic) return;
 
+    setCurrentTopic(topicId);
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
@@ -103,9 +144,38 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       id: (Date.now() + 1).toString(),
       type: 'ai',
       content: getAIResponse(topicId, isSpanish, userProfile?.location?.city),
+      topicId: topicId,
     };
 
     setChatMessages([...chatMessages, userMessage, aiResponse]);
+
+    // Scroll to bottom after adding messages
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const handleAddTodo = (title: string) => {
+    if (!title.trim()) return;
+
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title: title.trim(),
+        completed: false,
+        category: currentTopic as any || 'general',
+      },
+    });
+
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleQuickAddTodo = (todo: { en: string; es: string }) => {
+    handleAddTodo(isSpanish ? todo.es : todo.en);
   };
 
   const handleSendMessage = () => {
@@ -132,14 +202,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       responseId = 'documents';
     }
 
+    setCurrentTopic(responseId);
+
     const aiResponse: ChatMessage = {
       id: (Date.now() + 1).toString(),
       type: 'ai',
       content: getAIResponse(responseId, isSpanish, userProfile?.location?.city),
+      topicId: responseId,
     };
 
     setChatMessages([...chatMessages, userMessage, aiResponse]);
     setUserInput('');
+
+    // Scroll to bottom
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
   const renderCategoryGrid = () => {
@@ -171,14 +249,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
         {/* AI Case Manager Block */}
         <TouchableOpacity
-          style={[styles.categoryCard, { backgroundColor: '#F0F9FF' }]}
+          style={[styles.categoryCard, styles.aiCategoryCard]}
           onPress={() => setShowAI(true)}
         >
           <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
             <Text style={styles.categoryIcon}>🤖</Text>
           </View>
           <Text style={styles.categoryLabel}>
-            {isSpanish ? 'AI Ayuda' : 'AI Help'}
+            {isSpanish ? 'AI Gestor' : 'AI Case Manager'}
+          </Text>
+          <Text style={styles.categorySubLabel}>
+            {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -188,52 +269,144 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const renderTodos = () => {
     const todos = userProfile?.todos || [];
     const pendingTodos = todos.filter((t) => !t.completed);
-
-    if (pendingTodos.length === 0) return null;
+    const completedCount = todos.filter((t) => t.completed).length;
 
     return (
       <View style={styles.todosSection}>
-        <Text style={styles.sectionHeader}>
-          {isSpanish ? 'Mis Tareas' : 'My To-Dos'}
-        </Text>
-        {pendingTodos.slice(0, 3).map((todo) => (
+        <View style={styles.todoHeader}>
+          <View>
+            <Text style={styles.todoHeaderTitle}>
+              {isSpanish ? 'Mi Lista de Tareas' : 'My To-Do List'}
+            </Text>
+            <Text style={styles.todoHeaderSubtitle}>
+              {pendingTodos.length > 0
+                ? (isSpanish ? `${pendingTodos.length} pendiente${pendingTodos.length > 1 ? 's' : ''}` : `${pendingTodos.length} pending`)
+                : (isSpanish ? '¡Todo hecho!' : 'All done!')}
+              {completedCount > 0 && ` • ${completedCount} ${isSpanish ? 'completado' : 'done'}`}
+            </Text>
+          </View>
           <TouchableOpacity
-            key={todo.id}
-            style={styles.todoItem}
-            onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+            style={styles.addTodoButton}
+            onPress={() => setShowAddTodo(true)}
           >
-            <View style={styles.todoCheckbox} />
-            <Text style={styles.todoText}>{todo.title}</Text>
+            <Text style={styles.addTodoButtonText}>+</Text>
           </TouchableOpacity>
-        ))}
-        {pendingTodos.length > 3 && (
-          <Text style={styles.moreText}>
-            +{pendingTodos.length - 3} {isSpanish ? 'más' : 'more'}
-          </Text>
+        </View>
+
+        {pendingTodos.length === 0 ? (
+          <View style={styles.emptyTodos}>
+            <Text style={styles.emptyTodosEmoji}>✨</Text>
+            <Text style={styles.emptyTodosText}>
+              {isSpanish
+                ? 'Usa el AI Case Manager para agregar tareas'
+                : 'Use AI Case Manager to add tasks'}
+            </Text>
+          </View>
+        ) : (
+          <>
+            {pendingTodos.slice(0, 4).map((todo) => (
+              <TouchableOpacity
+                key={todo.id}
+                style={styles.todoItem}
+                onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+              >
+                <View style={styles.todoCheckbox}>
+                  <Text style={styles.todoCheckmark}></Text>
+                </View>
+                <Text style={styles.todoText}>{todo.title}</Text>
+                <TouchableOpacity
+                  style={styles.todoDeleteButton}
+                  onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+                >
+                  <Text style={styles.todoDeleteText}>×</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+            {pendingTodos.length > 4 && (
+              <Text style={styles.moreText}>
+                +{pendingTodos.length - 4} {isSpanish ? 'más' : 'more'}
+              </Text>
+            )}
+          </>
         )}
       </View>
     );
   };
 
+  const renderAddTodoModal = () => (
+    <Modal visible={showAddTodo} animationType="slide" transparent>
+      <View style={styles.addTodoOverlay}>
+        <View style={styles.addTodoModal}>
+          <View style={styles.addTodoHeader}>
+            <Text style={styles.addTodoTitle}>
+              {isSpanish ? 'Nueva Tarea' : 'New Task'}
+            </Text>
+            <TouchableOpacity onPress={() => setShowAddTodo(false)}>
+              <Text style={styles.addTodoClose}>×</Text>
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.addTodoInput}
+            value={newTodoText}
+            onChangeText={setNewTodoText}
+            placeholder={isSpanish ? 'Escribe tu tarea...' : 'Enter your task...'}
+            placeholderTextColor="#94A3B8"
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[
+              styles.addTodoSubmit,
+              !newTodoText.trim() && styles.addTodoSubmitDisabled,
+            ]}
+            onPress={() => {
+              if (newTodoText.trim()) {
+                handleAddTodo(newTodoText);
+                setNewTodoText('');
+                setShowAddTodo(false);
+              }
+            }}
+            disabled={!newTodoText.trim()}
+          >
+            <Text style={styles.addTodoSubmitText}>
+              {isSpanish ? 'Agregar' : 'Add Task'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderAIModal = () => (
     <Modal visible={showAI} animationType="slide" presentationStyle="pageSheet">
       <SafeAreaView style={styles.aiContainer}>
         <View style={styles.aiHeader}>
-          <TouchableOpacity onPress={() => setShowAI(false)} style={styles.aiCloseButton}>
+          <TouchableOpacity onPress={() => {
+            setShowAI(false);
+            setChatMessages([]);
+            setCurrentTopic(null);
+          }} style={styles.aiCloseButton}>
             <Text style={styles.aiCloseText}>✕</Text>
           </TouchableOpacity>
-          <Text style={styles.aiTitle}>🤖 {isSpanish ? 'AI Asistente' : 'AI Assistant'}</Text>
+          <View style={styles.aiTitleContainer}>
+            <Text style={styles.aiTitle}>🤖 {isSpanish ? 'AI Gestor de Caso' : 'AI Case Manager'}</Text>
+            <Text style={styles.aiSubtitle}>{isSpanish ? 'Tu asistente personal' : 'Your personal assistant'}</Text>
+          </View>
           <View style={styles.aiSpacer} />
         </View>
 
-        <ScrollView style={styles.aiContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.aiContent}
+          showsVerticalScrollIndicator={false}
+        >
           {chatMessages.length === 0 ? (
             <View style={styles.aiWelcome}>
+              <Text style={styles.aiWelcomeEmoji}>👋</Text>
               <Text style={styles.aiWelcomeTitle}>
-                {isSpanish ? '¿Cómo puedo ayudarte?' : 'How can I help you?'}
+                {isSpanish ? '¿Cómo puedo ayudarte hoy?' : 'How can I help you today?'}
               </Text>
               <Text style={styles.aiWelcomeSubtitle}>
-                {isSpanish ? 'Toca un tema o escribe tu pregunta' : 'Tap a topic or type your question'}
+                {isSpanish ? 'Toca un tema para empezar' : 'Tap a topic to get started'}
               </Text>
 
               <View style={styles.aiTopicsGrid}>
@@ -253,28 +426,54 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             </View>
           ) : (
             <View style={styles.chatContainer}>
-              {chatMessages.map((message) => (
-                <View
-                  key={message.id}
-                  style={[
-                    styles.chatBubble,
-                    message.type === 'user' ? styles.userBubble : styles.aiBubble,
-                  ]}
-                >
-                  <Text
+              {chatMessages.map((message, index) => (
+                <View key={message.id}>
+                  <View
                     style={[
-                      styles.chatText,
-                      message.type === 'user' ? styles.userText : styles.aiText,
+                      styles.chatBubble,
+                      message.type === 'user' ? styles.userBubble : styles.aiBubble,
                     ]}
                   >
-                    {message.content}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.chatText,
+                        message.type === 'user' ? styles.userText : styles.aiText,
+                      ]}
+                    >
+                      {message.content}
+                    </Text>
+                  </View>
+
+                  {/* Show todo suggestions after AI responses */}
+                  {message.type === 'ai' && message.topicId && TOPIC_TODOS[message.topicId] && (
+                    <View style={styles.todoSuggestionsContainer}>
+                      <Text style={styles.todoSuggestionsTitle}>
+                        📝 {isSpanish ? 'Agregar a tu lista:' : 'Add to your to-do list:'}
+                      </Text>
+                      <View style={styles.todoSuggestions}>
+                        {TOPIC_TODOS[message.topicId].map((todo, todoIndex) => (
+                          <TouchableOpacity
+                            key={todoIndex}
+                            style={styles.todoSuggestionChip}
+                            onPress={() => handleQuickAddTodo(todo)}
+                          >
+                            <Text style={styles.todoSuggestionText}>
+                              + {isSpanish ? todo.es : todo.en}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
               ))}
 
               {/* Quick topics after conversation */}
+              <Text style={styles.moreTopicsLabel}>
+                {isSpanish ? '¿Más preguntas?' : 'More questions?'}
+              </Text>
               <View style={styles.quickTopicsRow}>
-                {AI_TOPICS.slice(0, 4).map((topic) => (
+                {AI_TOPICS.map((topic) => (
                   <TouchableOpacity
                     key={topic.id}
                     style={styles.quickTopicChip}
@@ -290,19 +489,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           )}
         </ScrollView>
 
-        <View style={styles.aiInputContainer}>
-          <TextInput
-            style={styles.aiInput}
-            value={userInput}
-            onChangeText={setUserInput}
-            placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
-            placeholderTextColor="#94A3B8"
-            multiline
-          />
-          <TouchableOpacity style={styles.aiSendButton} onPress={handleSendMessage}>
-            <Text style={styles.aiSendText}>→</Text>
-          </TouchableOpacity>
-        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
+        >
+          <View style={styles.aiInputContainer}>
+            <TextInput
+              style={styles.aiInput}
+              value={userInput}
+              onChangeText={setUserInput}
+              placeholder={isSpanish ? 'Escribe tu pregunta...' : 'Type your question...'}
+              placeholderTextColor="#94A3B8"
+              multiline
+              onSubmitEditing={handleSendMessage}
+            />
+            <TouchableOpacity style={styles.aiSendButton} onPress={handleSendMessage}>
+              <Text style={styles.aiSendText}>→</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
@@ -392,6 +597,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
       {/* AI Modal */}
       {renderAIModal()}
+
+      {/* Add Todo Modal */}
+      {renderAddTodoModal()}
     </SafeAreaView>
   );
 };
@@ -728,5 +936,179 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  // New styles for enhanced features
+  aiCategoryCard: {
+    backgroundColor: '#F0F9FF',
+    borderWidth: 2,
+    borderColor: '#DBEAFE',
+  },
+  categorySubLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  todoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  todoHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  todoHeaderSubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  addTodoButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#0D9488',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTodoButtonText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginTop: -2,
+  },
+  emptyTodos: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyTodosEmoji: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  emptyTodosText: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  todoCheckmark: {
+    color: '#0D9488',
+    fontSize: 14,
+  },
+  todoDeleteButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todoDeleteText: {
+    fontSize: 18,
+    color: '#DC2626',
+    fontWeight: '600',
+  },
+  // Add Todo Modal Styles
+  addTodoOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  addTodoModal: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  addTodoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  addTodoTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  addTodoClose: {
+    fontSize: 28,
+    color: '#64748B',
+  },
+  addTodoInput: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    color: '#0F172A',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
+  },
+  addTodoSubmit: {
+    backgroundColor: '#0D9488',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  addTodoSubmitDisabled: {
+    backgroundColor: '#CBD5E1',
+  },
+  addTodoSubmitText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Todo Suggestions in AI
+  todoSuggestionsContainer: {
+    marginLeft: 0,
+    marginBottom: 16,
+    paddingLeft: 8,
+  },
+  todoSuggestionsTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  todoSuggestions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  todoSuggestionChip: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  todoSuggestionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  // AI Modal enhancements
+  aiTitleContainer: {
+    alignItems: 'center',
+  },
+  aiSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  aiWelcomeEmoji: {
+    fontSize: 56,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  moreTopicsLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 24,
+    marginBottom: 8,
   },
 });

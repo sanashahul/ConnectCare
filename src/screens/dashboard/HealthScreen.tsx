@@ -9,6 +9,7 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -156,7 +157,7 @@ const URGENT_RESOURCES = [
 
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | null>(null);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -166,6 +167,22 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
+
+  const addToTodo = (title: string) => {
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title,
+        completed: false,
+        category: 'healthcare',
+      },
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
+      [{ text: 'OK' }]
+    );
+  };
 
   const loadClinics = async () => {
     if (!userProfile?.location) return;
@@ -468,11 +485,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         </View>
       ) : clinics.length > 0 ? (
         clinics.map((clinic) => (
-          <TouchableOpacity
-            key={clinic.id}
-            style={styles.clinicCard}
-            onPress={() => clinic.phone && handleCall(clinic.phone)}
-          >
+          <View key={clinic.id} style={styles.clinicCard}>
             <View style={styles.clinicHeader}>
               <Text style={styles.clinicIcon}>🏥</Text>
               <View style={styles.clinicInfo}>
@@ -487,12 +500,23 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
                 )}
               </View>
             </View>
-            {clinic.phone && (
-              <View style={styles.callButton}>
-                <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+            <View style={styles.clinicActions}>
+              {clinic.phone && (
+                <TouchableOpacity
+                  style={styles.callButton}
+                  onPress={() => handleCall(clinic.phone!)}
+                >
+                  <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.addTodoButton}
+                onPress={() => addToTodo(`${isSpanish ? 'Visitar' : 'Visit'} ${clinic.name}`)}
+              >
+                <Text style={styles.addTodoButtonText}>+ {isSpanish ? 'Tarea' : 'To-Do'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))
       ) : (
         <View style={styles.emptyContainer}>
@@ -948,12 +972,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   callButton: {
+    flex: 1,
     backgroundColor: '#F0FDFA',
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    marginTop: 14,
     borderWidth: 1,
     borderColor: '#CCFBF1',
   },
@@ -961,6 +985,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#0D9488',
+  },
+  clinicActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  addTodoButton: {
+    flex: 1,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  addTodoButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#059669',
   },
   emptyContainer: {
     padding: 40,
