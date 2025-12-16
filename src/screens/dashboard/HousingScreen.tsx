@@ -9,6 +9,7 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -152,7 +153,7 @@ const HOUSING_TRIAGE = [
 
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
   const [counselors, setCounselors] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -162,6 +163,22 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
+
+  const addToTodo = (title: string) => {
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title,
+        completed: false,
+        category: 'housing',
+      },
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
+      [{ text: 'OK' }]
+    );
+  };
 
   const loadCounselors = async () => {
     if (!userProfile?.location) return;
@@ -418,31 +435,43 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         </View>
       ) : counselors.length > 0 ? (
         counselors.map((counselor) => (
-          <TouchableOpacity
-            key={counselor.id}
-            style={styles.counselorCard}
-            onPress={() => counselor.phone && handleCall(counselor.phone)}
-          >
+          <View key={counselor.id} style={styles.counselorCard}>
             <View style={styles.counselorHeader}>
-              <Text style={styles.counselorIcon}>🏠</Text>
+              <Text style={styles.counselorIcon}>
+                {counselor.id.startsWith('osm-shelter') ? '🛏️' : '🏠'}
+              </Text>
               <View style={styles.counselorInfo}>
                 <Text style={styles.counselorName}>{counselor.name}</Text>
+                {counselor.description && (
+                  <Text style={styles.counselorDescription}>{counselor.description}</Text>
+                )}
                 {counselor.address && (
                   <Text style={styles.counselorAddress}>{counselor.address}</Text>
                 )}
-                {counselor.distance && (
+                {counselor.distance !== undefined && counselor.distance > 0 && (
                   <Text style={styles.counselorDistance}>
                     📍 {counselor.distance.toFixed(1)} {isSpanish ? 'millas' : 'miles'}
                   </Text>
                 )}
               </View>
             </View>
-            {counselor.phone && (
-              <View style={styles.callButton}>
-                <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+            <View style={styles.counselorActions}>
+              {counselor.phone && (
+                <TouchableOpacity
+                  style={styles.callButton}
+                  onPress={() => handleCall(counselor.phone!)}
+                >
+                  <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.addTodoButton}
+                onPress={() => addToTodo(`${isSpanish ? 'Contactar' : 'Contact'} ${counselor.name}`)}
+              >
+                <Text style={styles.addTodoButtonText}>+ {isSpanish ? 'Tarea' : 'To-Do'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))
       ) : (
         <View style={styles.emptyContainer}>
@@ -914,13 +943,24 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
     fontWeight: '600',
   },
+  counselorDescription: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 4,
+    fontStyle: 'italic',
+  },
+  counselorActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
   callButton: {
+    flex: 1,
     backgroundColor: '#F5F3FF',
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    marginTop: 14,
     borderWidth: 1,
     borderColor: '#EDE9FE',
   },
@@ -928,6 +968,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#7C3AED',
+  },
+  addTodoButton: {
+    flex: 1,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  addTodoButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#059669',
   },
   emptyContainer: {
     padding: 40,

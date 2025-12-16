@@ -1,73 +1,157 @@
 /**
  * Housing API Service
- * Uses HUD and other free APIs to find housing resources
+ * Uses HUD and OpenStreetMap APIs to find housing resources
+ *
+ * APIs used:
+ * - HUD Housing Counselor API (free, no key) - https://data.hud.gov
+ * - OpenStreetMap Overpass API (free, no key) - for shelter locations
  */
 
 import { Resource, Location } from '../types';
 import { calculateDistance } from '../utils/location';
 
-interface HUDShelter {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone?: string;
-  lat?: number;
-  lng?: number;
-  type?: string;
-}
-
 /**
- * Fetch homeless shelters from HUD Exchange API
- * https://www.hudexchange.info/resource/3031/coc-homeless-populations-and-subpopulations-reports/
+ * Fetch homeless shelters using OpenStreetMap Overpass API
+ * This finds actual shelter locations near the user
  */
 export const fetchHUDShelters = async (
   location: Location
 ): Promise<Resource[]> => {
   try {
-    // HUD's HMIS data API (Homeless Management Information System)
-    // Note: This requires registration but is free
-    // For now, we'll use a fallback approach with known shelter networks
+    // Use OpenStreetMap Overpass API to find real shelters nearby
+    const sheltersFromOSM = await fetchSheltersFromOSM(location);
 
-    // Try to get state-based shelter info
-    const state = location.state || '';
+    // Also include national networks as backup
+    const nationalNetworks = getNationalShelterNetworks(location);
 
-    // Known national shelter networks with location finders
-    const shelterNetworks: Resource[] = [
-      {
-        id: 'salvation-army',
-        name: 'Salvation Army Shelters',
-        category: 'housing',
-        address: `Find location near ${location.city || 'you'}`,
-        phone: '1-800-725-2769',
-        website: 'https://www.salvationarmyusa.org/usn/provide-shelter/',
-        description: 'Emergency shelter, transitional housing, and support services',
-        services: ['Emergency Shelter', 'Meals', 'Case Management'],
-        lat: location.latitude,
-        lng: location.longitude,
-        distance: 0,
-      },
-      {
-        id: 'catholic-charities',
-        name: 'Catholic Charities Housing',
-        category: 'housing',
-        address: `Search for location in ${location.state || 'your state'}`,
-        website: 'https://www.catholiccharitiesusa.org/',
-        description: 'Emergency shelter, affordable housing, and homeless prevention',
-        services: ['Shelter', 'Affordable Housing', 'Utility Assistance'],
-        lat: location.latitude,
-        lng: location.longitude,
-        distance: 0,
-      },
-    ];
+    // Combine results - real shelters first
+    const allShelters = [...sheltersFromOSM, ...nationalNetworks];
 
-    return shelterNetworks;
+    return allShelters;
   } catch (error) {
-    console.error('Error fetching HUD shelters:', error);
+    console.error('Error fetching shelters:', error);
+    return getNationalShelterNetworks(location);
+  }
+};
+
+/**
+ * OpenStreetMap Overpass API - finds real shelter locations
+ * Free, no key required
+ */
+const fetchSheltersFromOSM = async (location: Location): Promise<Resource[]> => {
+  try {
+    // Search within ~15 miles (0.25 degrees roughly)
+    const bbox = `${location.latitude - 0.25},${location.longitude - 0.25},${location.latitude + 0.25},${location.longitude + 0.25}`;
+
+    // Overpass query for homeless shelters, social facilities, and emergency lodging
+    const query = `
+      [out:json][timeout:10];
+      (
+        node["social_facility"="shelter"](${bbox});
+        node["social_facility"="homeless_shelter"](${bbox});
+        node["amenity"="shelter"](${bbox});
+        node["amenity"="social_facility"]["social_facility:for"="homeless"](${bbox});
+        node["emergency"="shelter"](${bbox});
+        way["social_facility"="shelter"](${bbox});
+        way["social_facility"="homeless_shelter"](${bbox});
+        way["amenity"="social_facility"]["social_facility:for"="homeless"](${bbox});
+      );
+      out center body;
+    `.trim();
+
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    if (!response.ok) {
+      console.log('Overpass API returned:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (!data.elements || data.elements.length === 0) {
+      return [];
+    }
+
+    return data.elements.slice(0, 10).map((element: any): Resource => {
+      const lat = element.lat || element.center?.lat || location.latitude;
+      const lng = element.lon || element.center?.lon || location.longitude;
+      const tags = element.tags || {};
+
+      return {
+        id: `osm-shelter-${element.id}`,
+        name: tags.name || tags['name:en'] || 'Homeless Shelter',
+        category: 'housing',
+        address: formatOSMAddress(tags) || `Near ${location.city || 'your location'}`,
+        phone: tags.phone || tags['contact:phone'],
+        website: tags.website || tags['contact:website'],
+        description: tags.description || 'Emergency shelter - call ahead to verify availability',
+        services: ['Emergency Shelter', 'Temporary Housing'],
+        lat,
+        lng,
+        distance: calculateDistance(location.latitude, location.longitude, lat, lng),
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching from OpenStreetMap:', error);
     return [];
   }
+};
+
+/**
+ * Format address from OpenStreetMap tags
+ */
+const formatOSMAddress = (tags: any): string => {
+  const parts = [];
+  if (tags['addr:housenumber']) parts.push(tags['addr:housenumber']);
+  if (tags['addr:street']) parts.push(tags['addr:street']);
+  if (tags['addr:city']) parts.push(tags['addr:city']);
+  if (tags['addr:state']) parts.push(tags['addr:state']);
+  if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
+
+  return parts.length > 0 ? parts.join(', ') : '';
+};
+
+/**
+ * National shelter networks as fallback/supplement
+ */
+const getNationalShelterNetworks = (location: Location): Resource[] => {
+  const city = location.city || 'your area';
+  const state = location.state || '';
+
+  return [
+    {
+      id: 'salvation-army',
+      name: 'Salvation Army Shelter',
+      category: 'housing',
+      address: `Call for location in ${city}, ${state}`,
+      phone: '1-800-725-2769',
+      website: 'https://www.salvationarmyusa.org/usn/provide-shelter/',
+      description: 'Emergency shelter, meals, and case management. Call for local shelter address.',
+      services: ['Emergency Shelter', 'Meals', 'Case Management'],
+      lat: location.latitude,
+      lng: location.longitude,
+      distance: 0,
+    },
+    {
+      id: 'catholic-charities',
+      name: 'Catholic Charities',
+      category: 'housing',
+      address: `Search for location in ${state || 'your state'}`,
+      phone: '703-549-1390',
+      website: 'https://www.catholiccharitiesusa.org/find-help/',
+      description: 'Emergency shelter, affordable housing, and homeless prevention services.',
+      services: ['Shelter', 'Housing Assistance', 'Food'],
+      lat: location.latitude,
+      lng: location.longitude,
+      distance: 0,
+    },
+  ];
 };
 
 /**
