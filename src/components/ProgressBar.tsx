@@ -32,23 +32,25 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 10,
     textAlign: 'center',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   track: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: '#2563EB',
-    borderRadius: 4,
+    backgroundColor: '#0D9488',
+    borderRadius: 3,
   },
 });
