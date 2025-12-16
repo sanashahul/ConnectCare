@@ -9,6 +9,7 @@ import {
   Linking,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
@@ -19,17 +20,237 @@ import * as Clipboard from 'expo-clipboard';
 
 type TabType = 'resources' | 'todos' | 'caseworker';
 
+// Educational content for each category
+const HEALTHCARE_GUIDES = [
+  {
+    id: 'hg1',
+    title: 'Understanding Medicaid',
+    titleEs: 'Entendiendo Medicaid',
+    description: 'Free or low-cost health coverage for eligible individuals',
+    descriptionEs: 'Cobertura de salud gratuita o de bajo costo para personas elegibles',
+    icon: '🏥',
+    content: [
+      'Medicaid is a government program providing free or low-cost health coverage',
+      'Eligibility is based on income, family size, and other factors',
+      'Coverage includes doctor visits, hospital stays, prescriptions, and more',
+      'Apply at your local Department of Social Services or healthcare.gov',
+    ],
+  },
+  {
+    id: 'hg2',
+    title: 'How to Use the Emergency Room',
+    titleEs: 'Cómo Usar la Sala de Emergencias',
+    description: 'When to go and what to expect',
+    descriptionEs: 'Cuándo ir y qué esperar',
+    icon: '🚑',
+    content: [
+      'ERs must treat you regardless of ability to pay (EMTALA law)',
+      'Go for life-threatening emergencies: chest pain, difficulty breathing, severe bleeding',
+      'For non-emergencies, urgent care or clinics are faster and cheaper',
+      'Bring ID and any medications you take if possible',
+    ],
+  },
+  {
+    id: 'hg3',
+    title: 'Getting Health Insurance',
+    titleEs: 'Obteniendo Seguro Médico',
+    description: 'Options for coverage in the US',
+    descriptionEs: 'Opciones de cobertura en EE.UU.',
+    icon: '📋',
+    content: [
+      'Marketplace plans available at healthcare.gov (open enrollment Nov-Jan)',
+      'Medicaid for low-income individuals (apply anytime)',
+      'Community health centers offer sliding-scale fees without insurance',
+      'Some states have additional programs - check with local social services',
+    ],
+  },
+  {
+    id: 'hg4',
+    title: 'Free & Low-Cost Clinics',
+    titleEs: 'Clínicas Gratuitas y de Bajo Costo',
+    description: 'Where to get care without insurance',
+    descriptionEs: 'Dónde obtener atención sin seguro',
+    icon: '💊',
+    content: [
+      'Federally Qualified Health Centers (FQHCs) serve everyone regardless of ability to pay',
+      'Free clinics are run by volunteers and nonprofits',
+      'Sliding scale fees mean you pay based on your income',
+      'Call 211 to find free clinics in your area',
+    ],
+  },
+];
+
+const EMPLOYMENT_GUIDES = [
+  {
+    id: 'eg1',
+    title: 'Building Your Resume',
+    titleEs: 'Creando Tu Currículum',
+    description: 'Tips for creating an effective resume',
+    descriptionEs: 'Consejos para crear un currículum efectivo',
+    icon: '📝',
+    content: [
+      'Keep it to one page with clear sections',
+      'Include contact info, work history, skills, and education',
+      'Use action words: managed, created, improved, led',
+      'Many libraries offer free resume help and printing',
+    ],
+  },
+  {
+    id: 'eg2',
+    title: 'Interview Preparation',
+    titleEs: 'Preparación para Entrevistas',
+    description: 'How to succeed in job interviews',
+    descriptionEs: 'Cómo tener éxito en entrevistas de trabajo',
+    icon: '🤝',
+    content: [
+      'Research the company before your interview',
+      'Practice common questions: "Tell me about yourself", "Why do you want this job?"',
+      'Dress professionally - clean, neat clothing',
+      'Arrive 10-15 minutes early',
+    ],
+  },
+  {
+    id: 'eg3',
+    title: 'Work Authorization',
+    titleEs: 'Autorización de Trabajo',
+    description: 'Understanding work permits and eligibility',
+    descriptionEs: 'Entendiendo permisos de trabajo y elegibilidad',
+    icon: '📄',
+    content: [
+      'US citizens and permanent residents can work without restrictions',
+      'Work permits (EAD) allow certain visa holders to work',
+      'Some employers sponsor work visas for qualified candidates',
+      'Day labor centers often have fewer documentation requirements',
+    ],
+  },
+  {
+    id: 'eg4',
+    title: 'Job Training Programs',
+    titleEs: 'Programas de Capacitación Laboral',
+    description: 'Free programs to build job skills',
+    descriptionEs: 'Programas gratuitos para desarrollar habilidades',
+    icon: '🎓',
+    content: [
+      'Workforce development centers offer free training',
+      'Community colleges have certificate programs',
+      'Many nonprofits offer job readiness programs',
+      'Look for programs in high-demand fields: healthcare, construction, tech',
+    ],
+  },
+];
+
+const HOUSING_GUIDES = [
+  {
+    id: 'hog1',
+    title: 'Understanding Section 8',
+    titleEs: 'Entendiendo la Sección 8',
+    description: 'Housing choice voucher program explained',
+    descriptionEs: 'Programa de vales de vivienda explicado',
+    icon: '🏠',
+    content: [
+      'Section 8 helps pay rent for low-income families',
+      'You pay about 30% of your income, voucher covers the rest',
+      'Apply through your local Public Housing Authority (PHA)',
+      'Waitlists can be long - apply to multiple PHAs',
+    ],
+  },
+  {
+    id: 'hog2',
+    title: 'Emergency Shelter Guide',
+    titleEs: 'Guía de Refugios de Emergencia',
+    description: 'Finding immediate shelter',
+    descriptionEs: 'Encontrando refugio inmediato',
+    icon: '🆘',
+    content: [
+      'Call 211 for local shelter information 24/7',
+      'Many shelters require check-in by certain times',
+      'Bring ID if you have it (not always required)',
+      'Ask about services: meals, showers, case management',
+    ],
+  },
+  {
+    id: 'hog3',
+    title: 'Rental Assistance Programs',
+    titleEs: 'Programas de Asistencia de Renta',
+    description: 'Help paying rent',
+    descriptionEs: 'Ayuda para pagar la renta',
+    icon: '💰',
+    content: [
+      'Emergency rental assistance available through local agencies',
+      'Utility assistance programs can help with bills',
+      'Many churches and nonprofits offer one-time assistance',
+      'Contact 211 or local Community Action Agency',
+    ],
+  },
+  {
+    id: 'hog4',
+    title: 'Tenant Rights',
+    titleEs: 'Derechos del Inquilino',
+    description: 'Know your rights as a renter',
+    descriptionEs: 'Conoce tus derechos como inquilino',
+    icon: '⚖️',
+    content: [
+      'Landlords must provide habitable housing',
+      'You cannot be evicted without proper legal process',
+      'Discrimination based on race, religion, disability is illegal',
+      'Keep copies of all rental agreements and communications',
+    ],
+  },
+];
+
+// Sample urgent care / emergency resources
+const URGENT_RESOURCES = {
+  healthcare: [
+    { id: 'u1', name: 'Emergency: 911', description: 'Life-threatening emergencies', phone: '911', icon: '🚨' },
+    { id: 'u2', name: 'Suicide & Crisis Lifeline', description: '24/7 mental health crisis support', phone: '988', icon: '💚' },
+    { id: 'u3', name: 'Poison Control', description: 'Poisoning emergencies', phone: '1-800-222-1222', icon: '☠️' },
+    { id: 'u4', name: 'SAMHSA Helpline', description: 'Substance abuse help 24/7', phone: '1-800-662-4357', icon: '🤝' },
+  ],
+  employment: [
+    { id: 'ue1', name: 'Unemployment Office', description: 'File for unemployment benefits', phone: '1-877-872-5627', icon: '📋' },
+    { id: 'ue2', name: 'Worker Rights Hotline', description: 'Report workplace violations', phone: '1-866-487-9243', icon: '⚖️' },
+  ],
+  housing: [
+    { id: 'uh1', name: 'National Homeless Hotline', description: '24/7 shelter referrals', phone: '1-800-231-6946', icon: '📞' },
+    { id: 'uh2', name: '211', description: 'Local resources & shelter info', phone: '211', icon: '🆘' },
+    { id: 'uh3', name: 'Domestic Violence Hotline', description: 'Safe shelter for DV survivors', phone: '1-800-799-7233', icon: '💜' },
+  ],
+};
+
+// Sample job listings
+const SAMPLE_JOBS = [
+  { id: 'j1', title: 'Warehouse Associate', company: 'Amazon Warehouse', pay: '$18-22/hr', type: 'Full-time', icon: '📦' },
+  { id: 'j2', title: 'Food Service Worker', company: 'Local Restaurant', pay: '$15-17/hr + tips', type: 'Part-time', icon: '🍽️' },
+  { id: 'j3', title: 'Retail Sales Associate', company: 'Target', pay: '$16-19/hr', type: 'Full-time', icon: '🛒' },
+  { id: 'j4', title: 'Cleaning Staff', company: 'CleanCo Services', pay: '$14-16/hr', type: 'Part-time', icon: '🧹' },
+  { id: 'j5', title: 'Delivery Driver', company: 'DoorDash', pay: '$15-25/hr', type: 'Flexible', icon: '🚗' },
+  { id: 'j6', title: 'Construction Helper', company: 'BuildRight Inc', pay: '$17-22/hr', type: 'Full-time', icon: '🔨' },
+];
+
+// Sample housing listings
+const SAMPLE_HOUSING = [
+  { id: 'h1', title: 'Emergency Shelter Bed', organization: 'City Mission', type: 'Emergency', availability: 'Tonight', icon: '🛏️' },
+  { id: 'h2', title: 'Transitional Housing', organization: 'Hope House', type: '6-month program', availability: 'Waitlist', icon: '🏠' },
+  { id: 'h3', title: 'Shared Room - Section 8', organization: 'Housing Authority', type: 'Voucher accepted', availability: 'Available', icon: '🔑' },
+  { id: 'h4', title: 'Family Shelter', organization: 'Family Promise', type: 'Families only', availability: '2 spots', icon: '👨‍👩‍👧' },
+  { id: 'h5', title: 'Veterans Housing', organization: 'VA Services', type: 'VASH Program', availability: 'Apply now', icon: '🎖️' },
+];
+
 export const DashboardScreen: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('resources');
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('recommended');
 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
+  const isSpanish = i18n.language === 'es';
 
   useEffect(() => {
     if (categories.length > 0 && !activeCategory) {
@@ -48,9 +269,7 @@ export const DashboardScreen: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Get sample resources for demo
       const rawResources = getSampleResources(userProfile.location, activeCategory);
-      // Filter based on user's answers
       const filtered = filterResourcesByAnswers(
         rawResources,
         userProfile.answers,
@@ -72,10 +291,6 @@ export const DashboardScreen: React.FC = () => {
     Linking.openURL(url);
   };
 
-  const handleWebsite = (url: string) => {
-    Linking.openURL(url);
-  };
-
   const handleCopyCode = async () => {
     if (userProfile?.shareCode) {
       await Clipboard.setStringAsync(userProfile.shareCode);
@@ -89,8 +304,6 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleAddTodo = () => {
-    // Note: For production, you'd want a modal with TextInput for cross-platform support
-    // Alert.prompt is iOS-only. Using Alert.alert for demo purposes.
     Alert.alert(
       'Add Task',
       'This would open a task input modal in the full app.',
@@ -114,110 +327,369 @@ export const DashboardScreen: React.FC = () => {
     );
   };
 
-  const getCategoryLabel = (category: ServiceCategory): string => {
-    return t(`dashboard.resources.${category}`);
+  const getGuides = () => {
+    switch (activeCategory) {
+      case 'healthcare': return HEALTHCARE_GUIDES;
+      case 'employment': return EMPLOYMENT_GUIDES;
+      case 'housing': return HOUSING_GUIDES;
+      default: return [];
+    }
   };
 
-  const getCategoryIcon = (category: ServiceCategory): string => {
-    const icons: Record<ServiceCategory, string> = {
-      healthcare: '🏥',
-      employment: '💼',
-      housing: '🏠',
-    };
-    return icons[category];
+  const getUrgentResources = () => {
+    return URGENT_RESOURCES[activeCategory || 'healthcare'] || [];
   };
 
-  const renderResourcesTab = () => (
-    <View style={styles.tabContent}>
-      {/* Category Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[styles.categoryTab, activeCategory === category && styles.categoryTabActive]}
-            onPress={() => setActiveCategory(category)}
-          >
-            <Text style={styles.categoryTabIcon}>{getCategoryIcon(category)}</Text>
-            <Text
-              style={[
-                styles.categoryTabText,
-                activeCategory === category && styles.categoryTabTextActive,
-              ]}
-            >
-              {getCategoryLabel(category)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+  const getSectionTabs = () => {
+    switch (activeCategory) {
+      case 'healthcare':
+        return [
+          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
+          { id: 'clinics', label: '🔍 Find Clinics', labelEs: '🔍 Buscar Clínicas' },
+          { id: 'learn', label: '📚 Learn', labelEs: '📚 Aprender' },
+          { id: 'urgent', label: '🚨 Urgent', labelEs: '🚨 Urgente' },
+        ];
+      case 'employment':
+        return [
+          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
+          { id: 'jobs', label: '💼 Jobs', labelEs: '💼 Empleos' },
+          { id: 'learn', label: '📚 Resources', labelEs: '📚 Recursos' },
+          { id: 'urgent', label: '📋 Help', labelEs: '📋 Ayuda' },
+        ];
+      case 'housing':
+        return [
+          { id: 'recommended', label: '⭐ For You', labelEs: '⭐ Para Ti' },
+          { id: 'housing', label: '🏠 Apply', labelEs: '🏠 Aplicar' },
+          { id: 'learn', label: '📚 Learn', labelEs: '📚 Aprender' },
+          { id: 'urgent', label: '🆘 Emergency', labelEs: '🆘 Emergencia' },
+        ];
+      default:
+        return [];
+    }
+  };
 
-      {/* Resources List */}
+  const renderSectionContent = () => {
+    switch (activeSection) {
+      case 'recommended':
+        return renderRecommendedSection();
+      case 'clinics':
+      case 'jobs':
+      case 'housing':
+        return renderSearchSection();
+      case 'learn':
+        return renderLearnSection();
+      case 'urgent':
+        return renderUrgentSection();
+      default:
+        return null;
+    }
+  };
+
+  const renderRecommendedSection = () => (
+    <View style={styles.sectionContent}>
+      <Text style={styles.sectionTitle}>
+        {isSpanish ? 'Recomendado Para Ti' : 'Recommended For You'}
+      </Text>
+      <Text style={styles.sectionSubtitle}>
+        {isSpanish
+          ? 'Basado en tus respuestas del cuestionario'
+          : 'Based on your questionnaire answers'}
+      </Text>
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={styles.loadingText}>{t('dashboard.resources.loading')}</Text>
         </View>
       ) : resources.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>{t('dashboard.resources.noResults')}</Text>
+          <Text style={styles.emptyText}>
+            {isSpanish ? 'No se encontraron recursos' : 'No resources found'}
+          </Text>
         </View>
       ) : (
-        <ScrollView style={styles.resourcesList}>
-          {resources.map((resource) => (
-            <View key={resource.id} style={styles.resourceCard}>
-              <View style={styles.resourceHeader}>
-                <Text style={styles.resourceName}>{resource.name}</Text>
-                {resource.distance && (
-                  <Text style={styles.resourceDistance}>
-                    {formatDistance(resource.distance)}
-                  </Text>
-                )}
+        resources.slice(0, 4).map((resource) => (
+          <View key={resource.id} style={styles.resourceCard}>
+            <View style={styles.resourceHeader}>
+              <Text style={styles.resourceName}>{resource.name}</Text>
+              {resource.distance && (
+                <Text style={styles.resourceDistance}>
+                  {formatDistance(resource.distance)}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.resourceAddress}>{resource.address}</Text>
+            {resource.description && (
+              <Text style={styles.resourceDescription}>{resource.description}</Text>
+            )}
+            {resource.services && resource.services.length > 0 && (
+              <View style={styles.servicesTags}>
+                {resource.services.slice(0, 3).map((service, idx) => (
+                  <View key={idx} style={styles.serviceTag}>
+                    <Text style={styles.serviceTagText}>{service}</Text>
+                  </View>
+                ))}
               </View>
-              <Text style={styles.resourceAddress}>{resource.address}</Text>
-              {resource.description && (
-                <Text style={styles.resourceDescription}>{resource.description}</Text>
-              )}
-              {resource.services && resource.services.length > 0 && (
-                <View style={styles.servicesTags}>
-                  {resource.services.slice(0, 3).map((service, idx) => (
-                    <View key={idx} style={styles.serviceTag}>
-                      <Text style={styles.serviceTagText}>{service}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              <View style={styles.resourceActions}>
-                {resource.phone && (
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleCall(resource.phone!)}
-                  >
-                    <Text style={styles.actionIcon}>📞</Text>
-                    <Text style={styles.actionText}>{t('dashboard.resources.call')}</Text>
-                  </TouchableOpacity>
-                )}
+            )}
+            <View style={styles.resourceActions}>
+              {resource.phone && (
                 <TouchableOpacity
                   style={styles.actionButton}
-                  onPress={() => handleDirections(resource)}
+                  onPress={() => handleCall(resource.phone!)}
                 >
-                  <Text style={styles.actionIcon}>🗺️</Text>
-                  <Text style={styles.actionText}>{t('dashboard.resources.directions')}</Text>
+                  <Text style={styles.actionButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
                 </TouchableOpacity>
-                {resource.website && (
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => handleWebsite(resource.website!)}
-                  >
-                    <Text style={styles.actionIcon}>🌐</Text>
-                    <Text style={styles.actionText}>{t('dashboard.resources.website')}</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+              )}
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleDirections(resource)}
+              >
+                <Text style={styles.actionButtonText}>🗺️ {isSpanish ? 'Ir' : 'Go'}</Text>
+              </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
+          </View>
+        ))
       )}
     </View>
   );
+
+  const renderSearchSection = () => (
+    <View style={styles.sectionContent}>
+      <Text style={styles.sectionTitle}>
+        {activeCategory === 'healthcare' && (isSpanish ? 'Buscar Clínicas' : 'Find Clinics')}
+        {activeCategory === 'employment' && (isSpanish ? 'Buscar Empleos' : 'Find Jobs')}
+        {activeCategory === 'housing' && (isSpanish ? 'Vivienda Disponible' : 'Housing Available')}
+      </Text>
+
+      <View style={styles.searchBox}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={isSpanish ? 'Buscar...' : 'Search...'}
+          placeholderTextColor="#9CA3AF"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {activeCategory === 'employment' && (
+        <View style={styles.listContainer}>
+          {SAMPLE_JOBS.map((job) => (
+            <TouchableOpacity key={job.id} style={styles.listCard}>
+              <Text style={styles.listIcon}>{job.icon}</Text>
+              <View style={styles.listContent}>
+                <Text style={styles.listTitle}>{job.title}</Text>
+                <Text style={styles.listSubtitle}>{job.company}</Text>
+                <View style={styles.listMeta}>
+                  <Text style={styles.listMetaText}>{job.pay}</Text>
+                  <Text style={styles.listMetaBadge}>{job.type}</Text>
+                </View>
+              </View>
+              <Text style={styles.listArrow}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {activeCategory === 'housing' && (
+        <View style={styles.listContainer}>
+          {SAMPLE_HOUSING.map((housing) => (
+            <TouchableOpacity key={housing.id} style={styles.listCard}>
+              <Text style={styles.listIcon}>{housing.icon}</Text>
+              <View style={styles.listContent}>
+                <Text style={styles.listTitle}>{housing.title}</Text>
+                <Text style={styles.listSubtitle}>{housing.organization}</Text>
+                <View style={styles.listMeta}>
+                  <Text style={styles.listMetaText}>{housing.type}</Text>
+                  <Text style={[
+                    styles.listMetaBadge,
+                    housing.availability === 'Tonight' || housing.availability === 'Available'
+                      ? styles.availableBadge : null
+                  ]}>
+                    {housing.availability}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.listArrow}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {activeCategory === 'healthcare' && (
+        <View style={styles.listContainer}>
+          {resources.map((resource) => (
+            <TouchableOpacity key={resource.id} style={styles.listCard}>
+              <Text style={styles.listIcon}>🏥</Text>
+              <View style={styles.listContent}>
+                <Text style={styles.listTitle}>{resource.name}</Text>
+                <Text style={styles.listSubtitle}>{resource.address}</Text>
+                {resource.distance && (
+                  <Text style={styles.listMetaText}>{formatDistance(resource.distance)}</Text>
+                )}
+              </View>
+              <Text style={styles.listArrow}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+
+  const renderLearnSection = () => {
+    const guides = getGuides();
+    return (
+      <View style={styles.sectionContent}>
+        <Text style={styles.sectionTitle}>
+          {activeCategory === 'healthcare' && (isSpanish ? 'Aprende Sobre Salud' : 'Learn About Healthcare')}
+          {activeCategory === 'employment' && (isSpanish ? 'Recursos de Empleo' : 'Employment Resources')}
+          {activeCategory === 'housing' && (isSpanish ? 'Guía de Vivienda' : 'Housing Guide')}
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          {isSpanish
+            ? 'Información importante para ayudarte'
+            : 'Important information to help you'}
+        </Text>
+
+        {guides.map((guide) => (
+          <TouchableOpacity
+            key={guide.id}
+            style={styles.guideCard}
+            onPress={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+          >
+            <View style={styles.guideHeader}>
+              <Text style={styles.guideIcon}>{guide.icon}</Text>
+              <View style={styles.guideInfo}>
+                <Text style={styles.guideTitle}>
+                  {isSpanish ? guide.titleEs : guide.title}
+                </Text>
+                <Text style={styles.guideDescription}>
+                  {isSpanish ? guide.descriptionEs : guide.description}
+                </Text>
+              </View>
+              <Text style={styles.guideArrow}>
+                {expandedGuide === guide.id ? '▼' : '▶'}
+              </Text>
+            </View>
+
+            {expandedGuide === guide.id && (
+              <View style={styles.guideContent}>
+                {guide.content.map((item, idx) => (
+                  <View key={idx} style={styles.guideContentItem}>
+                    <Text style={styles.guideContentBullet}>•</Text>
+                    <Text style={styles.guideContentText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  const renderUrgentSection = () => {
+    const urgentItems = getUrgentResources();
+    return (
+      <View style={styles.sectionContent}>
+        <Text style={styles.sectionTitle}>
+          {activeCategory === 'healthcare' && (isSpanish ? 'Ayuda de Emergencia' : 'Emergency Help')}
+          {activeCategory === 'employment' && (isSpanish ? 'Ayuda Urgente' : 'Urgent Help')}
+          {activeCategory === 'housing' && (isSpanish ? 'Refugio de Emergencia' : 'Emergency Shelter')}
+        </Text>
+        <Text style={styles.sectionSubtitle}>
+          {isSpanish ? 'Recursos disponibles 24/7' : '24/7 resources available'}
+        </Text>
+
+        <View style={styles.urgentWarning}>
+          <Text style={styles.urgentWarningIcon}>⚠️</Text>
+          <Text style={styles.urgentWarningText}>
+            {isSpanish
+              ? 'Si es una emergencia que pone en peligro tu vida, llama al 911'
+              : 'If this is a life-threatening emergency, call 911'}
+          </Text>
+        </View>
+
+        {urgentItems.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.urgentCard}
+            onPress={() => handleCall(item.phone)}
+          >
+            <Text style={styles.urgentIcon}>{item.icon}</Text>
+            <View style={styles.urgentInfo}>
+              <Text style={styles.urgentName}>{item.name}</Text>
+              <Text style={styles.urgentDescription}>{item.description}</Text>
+            </View>
+            <View style={styles.urgentPhone}>
+              <Text style={styles.urgentPhoneText}>{item.phone}</Text>
+              <Text style={styles.urgentPhoneLabel}>{isSpanish ? 'Llamar' : 'Call'}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  const renderResourcesTab = () => {
+    const sectionTabs = getSectionTabs();
+
+    return (
+      <View style={styles.tabContent}>
+        {/* Category Pills */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabs}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[styles.categoryTab, activeCategory === category && styles.categoryTabActive]}
+              onPress={() => {
+                setActiveCategory(category);
+                setActiveSection('recommended');
+              }}
+            >
+              <Text style={styles.categoryTabIcon}>
+                {category === 'healthcare' ? '🏥' : category === 'employment' ? '💼' : '🏠'}
+              </Text>
+              <Text
+                style={[
+                  styles.categoryTabText,
+                  activeCategory === category && styles.categoryTabTextActive,
+                ]}
+              >
+                {category === 'healthcare'
+                  ? (isSpanish ? 'Salud' : 'Health')
+                  : category === 'employment'
+                  ? (isSpanish ? 'Empleo' : 'Jobs')
+                  : (isSpanish ? 'Vivienda' : 'Housing')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Section Tabs */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sectionTabs}>
+          {sectionTabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[styles.sectionTab, activeSection === tab.id && styles.sectionTabActive]}
+              onPress={() => setActiveSection(tab.id)}
+            >
+              <Text style={[
+                styles.sectionTabText,
+                activeSection === tab.id && styles.sectionTabTextActive
+              ]}>
+                {isSpanish ? tab.labelEs : tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Section Content */}
+        <ScrollView style={styles.sectionScrollView}>
+          {renderSectionContent()}
+        </ScrollView>
+      </View>
+    );
+  };
 
   const renderTodosTab = () => {
     const todos = userProfile?.todos || [];
@@ -227,17 +699,25 @@ export const DashboardScreen: React.FC = () => {
     return (
       <View style={styles.tabContent}>
         <View style={styles.todosHeader}>
-          <Text style={styles.todosTitle}>{t('dashboard.todos.title')}</Text>
+          <Text style={styles.todosTitle}>
+            {isSpanish ? 'Tu Lista de Tareas' : 'Your To-Do List'}
+          </Text>
           <TouchableOpacity style={styles.addTodoButton} onPress={handleAddTodo}>
-            <Text style={styles.addTodoText}>+ {t('dashboard.todos.addNew')}</Text>
+            <Text style={styles.addTodoText}>+ {isSpanish ? 'Agregar' : 'Add'}</Text>
           </TouchableOpacity>
         </View>
 
         {todos.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyTitle}>{t('dashboard.todos.empty')}</Text>
-            <Text style={styles.emptySubtitle}>{t('dashboard.todos.emptyDesc')}</Text>
+            <Text style={styles.emptyTitle}>
+              {isSpanish ? 'No hay tareas aún' : 'No tasks yet'}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {isSpanish
+                ? 'Las tareas tuyas o de tu trabajador social aparecerán aquí'
+                : 'Tasks from you or your case worker will appear here'}
+            </Text>
           </View>
         ) : (
           <ScrollView style={styles.todosList}>
@@ -254,13 +734,10 @@ export const DashboardScreen: React.FC = () => {
                   <Text style={styles.todoTitle}>{todo.title}</Text>
                   {todo.priority === 'urgent' && (
                     <View style={styles.urgentBadge}>
-                      <Text style={styles.urgentText}>{t('dashboard.todos.urgent')}</Text>
+                      <Text style={styles.urgentBadgeText}>
+                        {isSpanish ? 'Urgente' : 'Urgent'}
+                      </Text>
                     </View>
-                  )}
-                  {todo.createdBy === 'caseworker' && (
-                    <Text style={styles.todoCreator}>
-                      {t('dashboard.todos.addedBy', { name: 'Case Worker' })}
-                    </Text>
                   )}
                 </View>
               </TouchableOpacity>
@@ -268,7 +745,9 @@ export const DashboardScreen: React.FC = () => {
 
             {completedTodos.length > 0 && (
               <>
-                <Text style={styles.completedHeader}>Completed</Text>
+                <Text style={styles.completedHeader}>
+                  {isSpanish ? 'Completadas' : 'Completed'}
+                </Text>
                 {completedTodos.map((todo) => (
                   <TouchableOpacity
                     key={todo.id}
@@ -298,37 +777,42 @@ export const DashboardScreen: React.FC = () => {
   const renderCaseworkerTab = () => (
     <View style={styles.tabContent}>
       <View style={styles.caseworkerSection}>
-        <Text style={styles.sectionTitle}>{t('dashboard.caseworker.title')}</Text>
+        <Text style={styles.sectionTitle}>
+          {isSpanish ? 'Trabajador Social' : 'Case Worker'}
+        </Text>
 
         {userProfile?.connectedCaseWorkerId ? (
           <View style={styles.connectedCard}>
             <View style={styles.connectedIcon}>
               <Text style={styles.connectedIconText}>👥</Text>
             </View>
-            <Text style={styles.connectedStatus}>{t('dashboard.caseworker.connected')}</Text>
-            <TouchableOpacity style={styles.disconnectButton}>
-              <Text style={styles.disconnectText}>{t('dashboard.caseworker.disconnect')}</Text>
-            </TouchableOpacity>
+            <Text style={styles.connectedStatus}>
+              {isSpanish ? 'Conectado' : 'Connected'}
+            </Text>
           </View>
         ) : (
           <View style={styles.notConnectedCard}>
             <Text style={styles.notConnectedTitle}>
-              {t('dashboard.caseworker.notConnected')}
+              {isSpanish ? 'Sin Trabajador Social Conectado' : 'No Case Worker Connected'}
             </Text>
             <Text style={styles.notConnectedDesc}>
-              {t('dashboard.caseworker.notConnectedDesc')}
+              {isSpanish
+                ? 'Comparte tu código con un trabajador social para conectarte'
+                : 'Share your code with a case worker to connect'}
             </Text>
 
             <View style={styles.shareCodeSection}>
-              <Text style={styles.shareCodeLabel}>{t('dashboard.caseworker.yourCode')}</Text>
+              <Text style={styles.shareCodeLabel}>
+                {isSpanish ? 'Tu Código' : 'Your Code'}
+              </Text>
               <TouchableOpacity style={styles.shareCodeBox} onPress={handleCopyCode}>
                 <Text style={styles.shareCode}>{userProfile?.shareCode || '---'}</Text>
                 <Text style={styles.copyIcon}>📋</Text>
               </TouchableOpacity>
               <Text style={styles.tapToCopy}>
                 {codeCopied
-                  ? t('dashboard.caseworker.codeCopied')
-                  : t('dashboard.caseworker.tapToCopy')}
+                  ? (isSpanish ? '¡Código copiado!' : 'Code copied!')
+                  : (isSpanish ? 'Toca para copiar' : 'Tap to copy')}
               </Text>
             </View>
           </View>
@@ -342,9 +826,11 @@ export const DashboardScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.greeting}>
-          {t('dashboard.greeting', { name: userProfile?.name || 'Friend' })}
+          {isSpanish ? 'Hola' : 'Hello'}, {userProfile?.name || 'Friend'}
         </Text>
-        <Text style={styles.headerTitle}>{t('dashboard.title')}</Text>
+        <Text style={styles.headerTitle}>
+          {isSpanish ? 'Tu Panel' : 'Your Dashboard'}
+        </Text>
       </View>
 
       {/* Tab Bar */}
@@ -354,7 +840,7 @@ export const DashboardScreen: React.FC = () => {
           onPress={() => setActiveTab('resources')}
         >
           <Text style={[styles.tabText, activeTab === 'resources' && styles.tabTextActive]}>
-            {t('dashboard.tabs.resources')}
+            {isSpanish ? 'Recursos' : 'Resources'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -362,7 +848,7 @@ export const DashboardScreen: React.FC = () => {
           onPress={() => setActiveTab('todos')}
         >
           <Text style={[styles.tabText, activeTab === 'todos' && styles.tabTextActive]}>
-            {t('dashboard.tabs.todos')}
+            {isSpanish ? 'Tareas' : 'To-Do'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -370,7 +856,7 @@ export const DashboardScreen: React.FC = () => {
           onPress={() => setActiveTab('caseworker')}
         >
           <Text style={[styles.tabText, activeTab === 'caseworker' && styles.tabTextActive]}>
-            {t('dashboard.tabs.caseworker')}
+            {isSpanish ? 'Ayuda' : 'Support'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -405,7 +891,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     paddingHorizontal: 24,
-    marginTop: 16,
+    marginTop: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
@@ -430,8 +916,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryTabs: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    maxHeight: 60,
   },
   categoryTab: {
     flexDirection: 'row',
@@ -440,40 +927,74 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    marginRight: 12,
+    marginRight: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   categoryTabActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#2563EB',
     borderColor: '#2563EB',
   },
   categoryTabIcon: {
     fontSize: 16,
-    marginRight: 8,
+    marginRight: 6,
   },
   categoryTabText: {
     fontSize: 14,
     color: '#6B7280',
+    fontWeight: '500',
   },
   categoryTabTextActive: {
+    color: '#FFFFFF',
+  },
+  sectionTabs: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    maxHeight: 50,
+  },
+  sectionTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+  },
+  sectionTabActive: {
+    backgroundColor: '#DBEAFE',
+  },
+  sectionTabText: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  sectionTabTextActive: {
     color: '#2563EB',
     fontWeight: '600',
   },
-  loadingContainer: {
+  sectionScrollView: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  loadingText: {
-    marginTop: 12,
+  sectionContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
     color: '#6B7280',
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
   },
   emptyContainer: {
-    flex: 1,
+    paddingVertical: 40,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 48,
   },
   emptyIcon: {
     fontSize: 48,
@@ -494,14 +1015,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
-  resourcesList: {
-    paddingHorizontal: 24,
-  },
   resourceCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -512,48 +1030,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   resourceName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
     flex: 1,
   },
   resourceDistance: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#2563EB',
     fontWeight: '500',
   },
   resourceAddress: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   resourceDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#4B5563',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   servicesTags: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
     marginBottom: 12,
   },
   serviceTag: {
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
   serviceTagText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#4B5563',
   },
   resourceActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     paddingTop: 12,
@@ -562,18 +1080,216 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 14,
+    backgroundColor: '#EFF6FF',
     borderRadius: 8,
   },
-  actionIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  actionText: {
-    fontSize: 14,
-    color: '#4B5563',
+  actionButtonText: {
+    fontSize: 13,
+    color: '#2563EB',
     fontWeight: '500',
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  searchIcon: {
+    fontSize: 16,
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1F2937',
+  },
+  listContainer: {
+    gap: 10,
+  },
+  listCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  listIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  listContent: {
+    flex: 1,
+  },
+  listTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  listSubtitle: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  listMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 8,
+  },
+  listMetaText: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  listMetaBadge: {
+    fontSize: 11,
+    color: '#6B7280',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  availableBadge: {
+    backgroundColor: '#D1FAE5',
+    color: '#059669',
+  },
+  listArrow: {
+    fontSize: 18,
+    color: '#9CA3AF',
+  },
+  guideCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 10,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  guideHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+  },
+  guideIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  guideInfo: {
+    flex: 1,
+  },
+  guideTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  guideDescription: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  guideArrow: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  guideContent: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    backgroundColor: '#F9FAFB',
+  },
+  guideContentItem: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  guideContentBullet: {
+    fontSize: 14,
+    color: '#2563EB',
+    marginRight: 8,
+    marginTop: 1,
+  },
+  guideContentText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+  urgentWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  urgentWarningIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  urgentWarningText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#991B1B',
+  },
+  urgentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  urgentIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  urgentInfo: {
+    flex: 1,
+  },
+  urgentName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  urgentDescription: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  urgentPhone: {
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  urgentPhoneText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  urgentPhoneLabel: {
+    fontSize: 10,
+    color: '#FECACA',
   },
   todosHeader: {
     flexDirection: 'row',
@@ -605,7 +1321,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -640,7 +1356,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   todoTitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#1F2937',
   },
   todoTitleCompleted: {
@@ -655,30 +1371,19 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 4,
   },
-  urgentText: {
-    fontSize: 12,
+  urgentBadgeText: {
+    fontSize: 11,
     color: '#DC2626',
     fontWeight: '600',
   },
-  todoCreator: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 4,
-  },
   completedHeader: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
     marginTop: 16,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   caseworkerSection: {
     padding: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 16,
   },
   connectedCard: {
     backgroundColor: '#D1FAE5',
@@ -702,15 +1407,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#065F46',
-    marginBottom: 16,
-  },
-  disconnectButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  disconnectText: {
-    color: '#DC2626',
-    fontWeight: '500',
   },
   notConnectedCard: {
     backgroundColor: '#FFFFFF',
@@ -724,7 +1420,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   notConnectedTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 8,
@@ -740,7 +1436,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   shareCodeLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
     marginBottom: 8,
   },
@@ -748,22 +1444,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F4F6',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#E5E7EB',
     borderStyle: 'dashed',
   },
   shareCode: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#1F2937',
     letterSpacing: 2,
     marginRight: 12,
   },
   copyIcon: {
-    fontSize: 20,
+    fontSize: 18,
   },
   tapToCopy: {
     fontSize: 12,

@@ -2,35 +2,57 @@ import * as ExpoLocation from 'expo-location';
 import { Location } from '../types';
 
 export const requestLocationPermission = async (): Promise<boolean> => {
-  const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
-  return status === 'granted';
+  try {
+    const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+    return status === 'granted';
+  } catch (error) {
+    console.error('Error requesting location permission:', error);
+    return false;
+  }
 };
 
 export const getCurrentLocation = async (): Promise<Location | null> => {
   try {
+    // First request permission
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
+      console.log('Location permission not granted');
       return null;
     }
 
+    // Get current position with timeout
     const location = await ExpoLocation.getCurrentPositionAsync({
       accuracy: ExpoLocation.Accuracy.Balanced,
     });
 
-    // Reverse geocode to get city/state
-    const reverseGeocode = await ExpoLocation.reverseGeocodeAsync({
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    });
+    // Try to reverse geocode
+    let city: string | undefined;
+    let state: string | undefined;
+    let zipCode: string | undefined;
 
-    const address = reverseGeocode[0];
+    try {
+      const reverseGeocode = await ExpoLocation.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (reverseGeocode && reverseGeocode.length > 0) {
+        const address = reverseGeocode[0];
+        city = address?.city || address?.subregion || undefined;
+        state = address?.region || undefined;
+        zipCode = address?.postalCode || undefined;
+      }
+    } catch (geoError) {
+      console.log('Reverse geocode failed, using coordinates only:', geoError);
+      // Still return the coordinates even if reverse geocode fails
+    }
 
     return {
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
-      city: address?.city || undefined,
-      state: address?.region || undefined,
-      zipCode: address?.postalCode || undefined,
+      city,
+      state,
+      zipCode,
     };
   } catch (error) {
     console.error('Error getting location:', error);
@@ -40,26 +62,40 @@ export const getCurrentLocation = async (): Promise<Location | null> => {
 
 export const getLocationFromZip = async (zipCode: string): Promise<Location | null> => {
   try {
-    const geocode = await ExpoLocation.geocodeAsync(zipCode + ', USA');
-    if (geocode.length === 0) {
+    // Use a simple geocoding approach
+    const geocode = await ExpoLocation.geocodeAsync(`${zipCode}, USA`);
+
+    if (!geocode || geocode.length === 0) {
+      console.log('No geocode results for zip:', zipCode);
       return null;
     }
 
     const { latitude, longitude } = geocode[0];
 
-    // Reverse geocode to get city/state
-    const reverseGeocode = await ExpoLocation.reverseGeocodeAsync({
-      latitude,
-      longitude,
-    });
+    // Try to reverse geocode to get city/state
+    let city: string | undefined;
+    let state: string | undefined;
 
-    const address = reverseGeocode[0];
+    try {
+      const reverseGeocode = await ExpoLocation.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      if (reverseGeocode && reverseGeocode.length > 0) {
+        const address = reverseGeocode[0];
+        city = address?.city || address?.subregion || undefined;
+        state = address?.region || undefined;
+      }
+    } catch (geoError) {
+      console.log('Reverse geocode for zip failed:', geoError);
+    }
 
     return {
       latitude,
       longitude,
-      city: address?.city || undefined,
-      state: address?.region || undefined,
+      city,
+      state,
       zipCode,
     };
   } catch (error) {
