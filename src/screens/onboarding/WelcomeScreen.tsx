@@ -6,9 +6,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { changeLanguage, loadStoredLanguage } from '../../i18n';
@@ -47,6 +49,25 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const handleCaseWorker = () => {
     dispatch({ type: 'SET_USER_ROLE', payload: 'caseworker' });
     navigation.navigate('CaseWorkerEntry');
+  };
+
+  const handleResetApp = () => {
+    Alert.alert(
+      'Reset App',
+      'This will clear all saved data and start fresh. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.clear();
+            dispatch({ type: 'RESET_STATE' });
+            Alert.alert('Done', 'App has been reset. Please restart the app.');
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -129,6 +150,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>ConnectCare</Text>
+        <TouchableOpacity onPress={handleResetApp} style={styles.resetButton}>
+          <Text style={styles.resetButtonText}>Reset App Data</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -281,5 +305,14 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontWeight: '600',
     letterSpacing: 1,
+  },
+  resetButton: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  resetButtonText: {
+    fontSize: 12,
+    color: '#CBD5E1',
   },
 });

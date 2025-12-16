@@ -48,8 +48,11 @@ export const AppNavigator: React.FC = () => {
     return null; // Or a loading screen
   }
 
+  // Use a key based on user state to force re-render when reset
+  const navKey = state.userProfile?.id || state.caseWorkerProfile?.id || 'fresh';
+
   return (
-    <NavigationContainer>
+    <NavigationContainer key={navKey}>
       <Stack.Navigator
         initialRouteName={getInitialRoute()}
         screenOptions={{
