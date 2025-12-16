@@ -3,11 +3,15 @@
  * Provides intelligent conversational AI for the Case Manager
  */
 
+import Constants from 'expo-constants';
+
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Get API key from environment variable
+// Get API key from Expo config
 const getApiKey = (): string => {
-  return process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
+  const key = Constants.expoConfig?.extra?.groqApiKey || process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
+  console.log('Groq API Key loaded:', key ? 'Yes' : 'No');
+  return key;
 };
 
 export interface AIMessage {
