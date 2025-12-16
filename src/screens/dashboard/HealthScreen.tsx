@@ -108,6 +108,44 @@ const HEALTH_FOR_YOU = [
   },
 ];
 
+// Health Triage Questions
+const HEALTH_TRIAGE = [
+  {
+    id: 'issue',
+    question: 'What type of health issue do you have?',
+    questionEs: '¿Qué tipo de problema de salud tienes?',
+    options: [
+      { id: 'physical', label: 'Physical illness or injury', labelEs: 'Enfermedad física o lesión', type: 'physical' },
+      { id: 'mental', label: 'Mental health or emotional crisis', labelEs: 'Salud mental o crisis emocional', type: 'mental' },
+      { id: 'medication', label: 'Need medication or prescriptions', labelEs: 'Necesito medicamentos o recetas', type: 'medication' },
+      { id: 'dental', label: 'Dental pain or problem', labelEs: 'Dolor o problema dental', type: 'dental' },
+      { id: 'checkup', label: 'Need a check-up or preventive care', labelEs: 'Necesito un chequeo o atención preventiva', type: 'checkup' },
+    ],
+  },
+  {
+    id: 'urgency',
+    question: 'How urgent is this?',
+    questionEs: '¿Qué tan urgente es esto?',
+    options: [
+      { id: 'emergency', label: 'Emergency - life-threatening', labelEs: 'Emergencia - pone en peligro la vida', level: 'emergency' },
+      { id: 'urgent', label: 'Urgent - need care within 24 hours', labelEs: 'Urgente - necesito atención en 24 horas', level: 'urgent' },
+      { id: 'soon', label: 'Can wait a few days', labelEs: 'Puede esperar unos días', level: 'soon' },
+      { id: 'routine', label: 'Routine - just need an appointment', labelEs: 'Rutina - solo necesito una cita', level: 'routine' },
+    ],
+  },
+  {
+    id: 'insurance',
+    question: 'Do you have health insurance?',
+    questionEs: '¿Tienes seguro de salud?',
+    options: [
+      { id: 'yes', label: 'Yes, I have insurance', labelEs: 'Sí, tengo seguro', status: 'insured' },
+      { id: 'medicaid', label: 'I have Medicaid/Medicare', labelEs: 'Tengo Medicaid/Medicare', status: 'public' },
+      { id: 'no', label: 'No, I don\'t have insurance', labelEs: 'No, no tengo seguro', status: 'uninsured' },
+      { id: 'unsure', label: 'I\'m not sure', labelEs: 'No estoy seguro', status: 'unsure' },
+    ],
+  },
+];
+
 // Emergency resources
 const URGENT_RESOURCES = [
   { id: 'u1', name: 'Emergency: 911', nameEs: 'Emergencia: 911', description: 'Life-threatening emergencies', descriptionEs: 'Emergencias que amenazan la vida', phone: '911', icon: '🚨' },
@@ -119,10 +157,12 @@ const URGENT_RESOURCES = [
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | null>(null);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [triageStep, setTriageStep] = useState(0);
+  const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -149,8 +189,149 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     Linking.openURL(`tel:${phone}`);
   };
 
+  const handleTriageAnswer = (questionId: string, answerId: string) => {
+    setTriageAnswers({ ...triageAnswers, [questionId]: answerId });
+    if (triageStep < HEALTH_TRIAGE.length - 1) {
+      setTriageStep(triageStep + 1);
+    } else {
+      setTriageStep(HEALTH_TRIAGE.length); // Show results
+    }
+  };
+
+  const resetTriage = () => {
+    setTriageStep(0);
+    setTriageAnswers({});
+  };
+
+  const getTriageRecommendation = () => {
+    const issue = triageAnswers.issue;
+    const urgency = triageAnswers.urgency;
+    const insurance = triageAnswers.insurance;
+
+    // Emergency case
+    if (urgency === 'emergency') {
+      return {
+        title: isSpanish ? '¡Llama al 911 Ahora!' : 'Call 911 Now!',
+        subtitle: isSpanish ? 'Si es una emergencia que pone en peligro tu vida' : 'If this is a life-threatening emergency',
+        color: '#DC2626',
+        icon: '🚨',
+        actions: [
+          { label: isSpanish ? 'Llamar al 911' : 'Call 911', phone: '911', primary: true },
+        ],
+        tips: isSpanish
+          ? ['Mantente en la línea con el operador', 'Proporciona tu ubicación exacta', 'Sigue las instrucciones del operador']
+          : ['Stay on the line with the operator', 'Provide your exact location', 'Follow the operator\'s instructions'],
+      };
+    }
+
+    // Mental health crisis
+    if (issue === 'mental') {
+      return {
+        title: isSpanish ? 'Apoyo de Salud Mental' : 'Mental Health Support',
+        subtitle: isSpanish ? 'Ayuda disponible 24/7' : 'Help available 24/7',
+        color: '#7C3AED',
+        icon: '💚',
+        actions: [
+          { label: isSpanish ? 'Línea de Crisis 988' : 'Crisis Line 988', phone: '988', primary: true },
+          { label: 'SAMHSA: 1-800-662-4357', phone: '1-800-662-4357', primary: false },
+        ],
+        tips: isSpanish
+          ? ['988 está disponible 24/7 en español e inglés', 'También puedes enviar un mensaje de texto al 988', 'Está bien pedir ayuda']
+          : ['988 is available 24/7 in English and Spanish', 'You can also text 988', 'It\'s okay to ask for help'],
+      };
+    }
+
+    // Urgent physical issue - uninsured
+    if (urgency === 'urgent' && (insurance === 'no' || insurance === 'unsure')) {
+      return {
+        title: isSpanish ? 'Atención Urgente Sin Seguro' : 'Urgent Care Without Insurance',
+        subtitle: isSpanish ? 'Opciones de bajo costo disponibles' : 'Low-cost options available',
+        color: '#EA580C',
+        icon: '🏥',
+        actions: [
+          { label: isSpanish ? 'Llamar al 211 para clínicas gratuitas' : 'Call 211 for free clinics', phone: '211', primary: true },
+        ],
+        tips: isSpanish
+          ? ['Los centros de salud comunitarios atienden a todos sin importar su capacidad de pago', 'Las salas de emergencia no pueden rechazarte', 'Pregunta sobre tarifas de escala móvil', 'Algunos hospitales ofrecen programas de caridad']
+          : ['Community health centers serve everyone regardless of ability to pay', 'Emergency rooms cannot turn you away', 'Ask about sliding scale fees', 'Some hospitals offer charity care programs'],
+      };
+    }
+
+    // Medication needs
+    if (issue === 'medication') {
+      return {
+        title: isSpanish ? 'Asistencia con Medicamentos' : 'Medication Assistance',
+        subtitle: isSpanish ? 'Formas de obtener medicamentos asequibles' : 'Ways to get affordable medications',
+        color: '#0D9488',
+        icon: '💊',
+        actions: [
+          { label: isSpanish ? 'Llamar al 211 para asistencia' : 'Call 211 for assistance', phone: '211', primary: true },
+        ],
+        tips: isSpanish
+          ? ['GoodRx ofrece cupones de descuento gratuitos', 'Walmart tiene programa de genéricos de $4', 'Pregunta a tu médico sobre muestras gratuitas', 'NeedyMeds.org tiene programas de asistencia']
+          : ['GoodRx offers free discount coupons', 'Walmart has $4 generics program', 'Ask your doctor about free samples', 'NeedyMeds.org has assistance programs'],
+      };
+    }
+
+    // Dental issue
+    if (issue === 'dental') {
+      return {
+        title: isSpanish ? 'Ayuda Dental' : 'Dental Help',
+        subtitle: isSpanish ? 'Opciones de atención dental' : 'Dental care options',
+        color: '#0891B2',
+        icon: '🦷',
+        actions: [
+          { label: isSpanish ? 'Llamar al 211 para clínicas dentales' : 'Call 211 for dental clinics', phone: '211', primary: true },
+        ],
+        tips: isSpanish
+          ? ['Las escuelas de odontología ofrecen atención de bajo costo', 'Los centros de salud comunitarios a menudo tienen servicios dentales', 'Para dolor severo, la sala de emergencias puede ayudar', 'Pregunta sobre días de clínica dental gratuita']
+          : ['Dental schools offer low-cost care', 'Community health centers often have dental services', 'For severe pain, the ER can help', 'Ask about free dental clinic days'],
+      };
+    }
+
+    // Default - routine care
+    return {
+      title: isSpanish ? 'Encuentra Atención' : 'Find Care',
+      subtitle: isSpanish ? 'Opciones basadas en tu situación' : 'Options based on your situation',
+      color: '#0D9488',
+      icon: '🏥',
+      actions: [
+        { label: isSpanish ? 'Llamar al 211 para recursos locales' : 'Call 211 for local resources', phone: '211', primary: true },
+      ],
+      tips: insurance === 'insured' || insurance === 'public'
+        ? (isSpanish
+          ? ['Llama a tu compañía de seguro para encontrar proveedores en tu red', 'Pregunta sobre clínicas de atención urgente', 'Verifica las tarifas de copago antes de tu visita']
+          : ['Call your insurance company to find in-network providers', 'Ask about urgent care clinics', 'Check copay rates before your visit'])
+        : (isSpanish
+          ? ['Los centros de salud comunitarios atienden a todos', 'Pregunta sobre tarifas de escala móvil', 'Consulta sobre elegibilidad para Medicaid']
+          : ['Community health centers serve everyone', 'Ask about sliding scale fees', 'Check Medicaid eligibility']),
+    };
+  };
+
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Need Health Help Now Banner */}
+      <TouchableOpacity
+        style={styles.needNowBanner}
+        onPress={() => {
+          resetTriage();
+          setActiveSection('needNow');
+        }}
+      >
+        <View style={styles.needNowContent}>
+          <Text style={styles.needNowIcon}>🏥</Text>
+          <View style={styles.needNowText}>
+            <Text style={styles.needNowTitle}>
+              {isSpanish ? '¿Necesitas Ayuda de Salud?' : 'Need Health Help?'}
+            </Text>
+            <Text style={styles.needNowSubtitle}>
+              {isSpanish ? 'Toca aquí para encontrar atención' : 'Tap here to find care'}
+            </Text>
+          </View>
+          <Text style={styles.needNowArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>
         {isSpanish ? 'Recursos de Salud' : 'Health Resources'}
       </Text>
@@ -373,6 +554,149 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     </View>
   );
 
+  const renderNeedNow = () => {
+    const currentQuestion = HEALTH_TRIAGE[triageStep];
+    const showResults = triageStep >= HEALTH_TRIAGE.length;
+
+    if (showResults) {
+      const recommendation = getTriageRecommendation();
+      return (
+        <View style={styles.detailContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              resetTriage();
+              setActiveSection(null);
+            }}
+          >
+            <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+          </TouchableOpacity>
+
+          {/* Results Card */}
+          <View style={[styles.resultCard, { borderColor: recommendation.color }]}>
+            <View style={[styles.resultHeader, { backgroundColor: recommendation.color }]}>
+              <Text style={styles.resultIcon}>{recommendation.icon}</Text>
+              <View>
+                <Text style={styles.resultTitle}>{recommendation.title}</Text>
+                <Text style={styles.resultSubtitle}>{recommendation.subtitle}</Text>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.resultActions}>
+              {recommendation.actions.map((action, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.resultActionButton,
+                    action.primary
+                      ? { backgroundColor: recommendation.color }
+                      : { backgroundColor: '#F1F5F9' },
+                  ]}
+                  onPress={() => handleCall(action.phone)}
+                >
+                  <Text
+                    style={[
+                      styles.resultActionText,
+                      action.primary ? { color: '#FFFFFF' } : { color: '#0F172A' },
+                    ]}
+                  >
+                    📞 {action.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Tips */}
+            <View style={styles.resultTips}>
+              <Text style={styles.resultTipsTitle}>
+                {isSpanish ? 'Consejos Importantes:' : 'Important Tips:'}
+              </Text>
+              {recommendation.tips.map((tip, index) => (
+                <View key={index} style={styles.tipRow}>
+                  <Text style={styles.tipBullet}>•</Text>
+                  <Text style={styles.tipText}>{tip}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Start Over Button */}
+          <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
+            <Text style={styles.startOverText}>
+              {isSpanish ? 'Responder Preguntas de Nuevo' : 'Answer Questions Again'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.detailContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => {
+            resetTriage();
+            setActiveSection(null);
+          }}
+        >
+          <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+        </TouchableOpacity>
+
+        {/* Progress Indicator */}
+        <View style={styles.progressContainer}>
+          {HEALTH_TRIAGE.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.progressDot,
+                index <= triageStep ? styles.progressDotActive : {},
+              ]}
+            />
+          ))}
+        </View>
+
+        <Text style={styles.triageTitle}>
+          {isSpanish ? currentQuestion.questionEs : currentQuestion.question}
+        </Text>
+        <Text style={styles.triageSubtitle}>
+          {isSpanish ? 'Selecciona una opción' : 'Select an option'}
+        </Text>
+
+        {/* Options */}
+        {currentQuestion.options.map((option) => (
+          <TouchableOpacity
+            key={option.id}
+            style={styles.triageOption}
+            onPress={() => handleTriageAnswer(currentQuestion.id, option.id)}
+          >
+            <Text style={styles.triageOptionText}>
+              {isSpanish ? option.labelEs : option.label}
+            </Text>
+            <Text style={styles.triageOptionArrow}>→</Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* Emergency Note */}
+        <View style={styles.triageEmergencyNote}>
+          <Text style={styles.triageEmergencyText}>
+            {isSpanish
+              ? '🚨 Si tienes una emergencia que pone en peligro tu vida, llama al 911 ahora.'
+              : '🚨 If you have a life-threatening emergency, call 911 now.'}
+          </Text>
+          <TouchableOpacity
+            style={styles.call911Button}
+            onPress={() => handleCall('911')}
+          >
+            <Text style={styles.call911Text}>
+              {isSpanish ? 'Llamar 911' : 'Call 911'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -391,6 +715,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {activeSection === 'foryou' && renderForYou()}
         {activeSection === 'clinics' && renderClinics()}
         {activeSection === 'urgent' && renderUrgent()}
+        {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -716,5 +1041,211 @@ const styles = StyleSheet.create({
     color: '#92400E',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  // Need Now Banner Styles
+  needNowBanner: {
+    backgroundColor: '#DC2626',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  needNowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  needNowIcon: {
+    fontSize: 36,
+    marginRight: 16,
+  },
+  needNowText: {
+    flex: 1,
+  },
+  needNowTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  needNowSubtitle: {
+    fontSize: 14,
+    color: '#FECACA',
+  },
+  needNowArrow: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  // Triage Styles
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 24,
+    gap: 8,
+  },
+  progressDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#E2E8F0',
+  },
+  progressDotActive: {
+    backgroundColor: '#0D9488',
+  },
+  triageTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  triageSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  triageOption: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  triageOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0F172A',
+    flex: 1,
+  },
+  triageOptionArrow: {
+    fontSize: 18,
+    color: '#0D9488',
+    fontWeight: '700',
+  },
+  triageEmergencyNote: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  triageEmergencyText: {
+    fontSize: 14,
+    color: '#991B1B',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  call911Button: {
+    backgroundColor: '#DC2626',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  call911Text: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Result Styles
+  resultCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 2,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  resultHeader: {
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resultIcon: {
+    fontSize: 48,
+    marginRight: 16,
+  },
+  resultTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  resultSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+  },
+  resultActions: {
+    padding: 20,
+    gap: 12,
+  },
+  resultActionButton: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resultActionText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  resultTips: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  resultTipsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  tipRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  tipBullet: {
+    fontSize: 14,
+    color: '#0D9488',
+    marginRight: 8,
+    fontWeight: '700',
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#475569',
+    flex: 1,
+    lineHeight: 20,
+  },
+  startOverButton: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  startOverText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748B',
   },
 });
