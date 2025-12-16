@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import * as Clipboard from 'expo-clipboard';
+import { sendMessageToAI, AIMessage } from '../../services/aiService';
 
 type DashboardScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -1228,13 +1229,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     handleAddTodo(isSpanish ? todo.es : todo.en);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!userInput.trim()) return;
 
+    const messageText = userInput.trim();
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: userInput,
+      content: messageText,
     };
 
     // Add user message and show typing indicator
@@ -1247,17 +1249,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // Use intelligent intent detection
-    const { intent, confidence } = detectIntent(userInput);
+    // Use intelligent intent detection for follow-up suggestions
+    const { intent, confidence } = detectIntent(messageText);
     const detectedIntent = confidence > 15 ? intent : 'unknown';
 
-    // Calculate thinking time based on message complexity
-    const baseTime = 600;
-    const complexityBonus = Math.min(userInput.length * 5, 500);
-    const randomVariation = Math.random() * 400;
-    const thinkingTime = baseTime + complexityBonus + randomVariation;
+    try {
+      // Build conversation history for AI context
+      const aiHistory: AIMessage[] = chatMessages
+        .filter(msg => msg.type === 'user' || msg.type === 'ai')
+        .slice(-6) // Keep last 6 messages for context
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' as const : 'model' as const,
+          content: msg.content,
+        }));
 
-    setTimeout(() => {
+      // Call the real AI
+      const responseContent = await sendMessageToAI(
+        messageText,
+        aiHistory,
+        {
+          name: userProfile?.name,
+          city: userProfile?.location?.city,
+          state: userProfile?.location?.state,
+          language: isSpanish ? 'es' : 'en',
+        }
+      );
+
       setIsTyping(false);
       setCurrentTopic(detectedIntent !== 'unknown' ? detectedIntent : null);
 
@@ -1272,16 +1289,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         userLocation: userProfile?.location?.city,
       };
       setConversationContext(newContext);
-
-      // Generate intelligent response
-      const responseContent = generateAIResponse({
-        intent: detectedIntent,
-        isSpanish,
-        userName: userProfile?.name,
-        userLocation: userProfile?.location?.city,
-        messageCount: newContext.messageCount,
-        previousTopics: conversationContext.mentionedTopics,
-      });
 
       const followUps = getFollowUpSuggestions(detectedIntent, isSpanish);
 
@@ -1301,7 +1308,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    }, thinkingTime);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      setIsTyping(false);
+
+      // Fallback to local response on error
+      const fallbackResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: isSpanish
+          ? 'Lo siento, tuve un problema al procesar tu mensaje. Por favor intenta de nuevo o llama al 211 para ayuda inmediata.'
+          : 'Sorry, I had trouble processing your message. Please try again or call 211 for immediate help.',
+      };
+      setChatMessages(prev => [...prev, fallbackResponse]);
+    }
   };
 
   const renderCategoryGrid = () => {
