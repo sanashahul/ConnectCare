@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
@@ -241,6 +242,48 @@ const SAMPLE_HOUSING = [
   { id: 'h5', title: 'Veterans Housing', organization: 'VA Services', type: 'VASH Program', availability: 'Apply now', icon: '🎖️' },
 ];
 
+// Healthcare triage questions
+const TRIAGE_QUESTIONS = [
+  {
+    id: 'severity',
+    question: 'How would you describe your situation?',
+    questionEs: '¿Cómo describirías tu situación?',
+    options: [
+      { id: 'emergency', label: 'Life-threatening emergency', labelEs: 'Emergencia que pone en peligro la vida', score: 10 },
+      { id: 'urgent', label: 'Urgent - needs attention today', labelEs: 'Urgente - necesita atención hoy', score: 7 },
+      { id: 'soon', label: 'Need care soon (within a week)', labelEs: 'Necesito atención pronto (dentro de una semana)', score: 4 },
+      { id: 'routine', label: 'Routine check-up or non-urgent', labelEs: 'Chequeo de rutina o no urgente', score: 1 },
+    ],
+  },
+  {
+    id: 'symptoms',
+    question: 'Are you experiencing any of these symptoms?',
+    questionEs: '¿Estás experimentando alguno de estos síntomas?',
+    options: [
+      { id: 'chest', label: 'Chest pain or difficulty breathing', labelEs: 'Dolor en el pecho o dificultad para respirar', score: 10 },
+      { id: 'bleeding', label: 'Severe bleeding or injury', labelEs: 'Sangrado severo o lesión', score: 9 },
+      { id: 'mental', label: 'Thoughts of self-harm', labelEs: 'Pensamientos de hacerse daño', score: 10 },
+      { id: 'fever', label: 'High fever or severe pain', labelEs: 'Fiebre alta o dolor severo', score: 6 },
+      { id: 'mild', label: 'Mild symptoms (cold, minor pain)', labelEs: 'Síntomas leves (resfriado, dolor menor)', score: 2 },
+      { id: 'none', label: 'None of the above', labelEs: 'Ninguno de los anteriores', score: 0 },
+    ],
+  },
+  {
+    id: 'duration',
+    question: 'How long have you had this issue?',
+    questionEs: '¿Cuánto tiempo llevas con este problema?',
+    options: [
+      { id: 'just_now', label: 'Just started / very sudden', labelEs: 'Acaba de empezar / muy repentino', score: 5 },
+      { id: 'hours', label: 'A few hours', labelEs: 'Unas pocas horas', score: 4 },
+      { id: 'days', label: 'A few days', labelEs: 'Unos pocos días', score: 3 },
+      { id: 'weeks', label: 'A week or more', labelEs: 'Una semana o más', score: 2 },
+      { id: 'ongoing', label: 'Ongoing / chronic condition', labelEs: 'Continuo / condición crónica', score: 1 },
+    ],
+  },
+];
+
+type TriageResult = 'emergency' | 'urgent' | 'soon' | 'routine' | null;
+
 export const DashboardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
@@ -256,6 +299,10 @@ export const DashboardScreen: React.FC = () => {
   const [housingListings, setHousingListings] = useState<Resource[]>([]);
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['recommended']);
+  const [showTriageModal, setShowTriageModal] = useState(false);
+  const [triageStep, setTriageStep] = useState(0);
+  const [triageAnswers, setTriageAnswers] = useState<Record<string, number>>({});
+  const [triageResult, setTriageResult] = useState<TriageResult>(null);
 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
@@ -360,6 +407,93 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const isSectionExpanded = (sectionId: string) => expandedSections.includes(sectionId);
+
+  // Triage functions
+  const startTriage = () => {
+    setTriageStep(0);
+    setTriageAnswers({});
+    setTriageResult(null);
+    setShowTriageModal(true);
+  };
+
+  const handleTriageAnswer = (questionId: string, score: number) => {
+    const newAnswers = { ...triageAnswers, [questionId]: score };
+    setTriageAnswers(newAnswers);
+
+    if (triageStep < TRIAGE_QUESTIONS.length - 1) {
+      setTriageStep(triageStep + 1);
+    } else {
+      // Calculate result
+      const totalScore = Object.values(newAnswers).reduce((sum, s) => sum + s, 0);
+      let result: TriageResult;
+
+      if (totalScore >= 15) {
+        result = 'emergency';
+      } else if (totalScore >= 10) {
+        result = 'urgent';
+      } else if (totalScore >= 5) {
+        result = 'soon';
+      } else {
+        result = 'routine';
+      }
+
+      setTriageResult(result);
+    }
+  };
+
+  const closeTriage = () => {
+    setShowTriageModal(false);
+    setTriageStep(0);
+    setTriageAnswers({});
+    setTriageResult(null);
+  };
+
+  const getTriageRecommendation = () => {
+    switch (triageResult) {
+      case 'emergency':
+        return {
+          title: isSpanish ? '¡Llama al 911 ahora!' : 'Call 911 Now!',
+          description: isSpanish
+            ? 'Según tus respuestas, esto podría ser una emergencia médica. Por favor llama al 911 o ve a la sala de emergencias más cercana inmediatamente.'
+            : 'Based on your answers, this could be a medical emergency. Please call 911 or go to the nearest emergency room immediately.',
+          action: '911',
+          color: '#DC2626',
+          icon: '🚨',
+        };
+      case 'urgent':
+        return {
+          title: isSpanish ? 'Busca Atención Urgente Hoy' : 'Seek Urgent Care Today',
+          description: isSpanish
+            ? 'Tus síntomas necesitan atención hoy. Visita un centro de atención urgente o clínica sin cita previa.'
+            : 'Your symptoms need attention today. Visit an urgent care center or walk-in clinic.',
+          action: 'urgent',
+          color: '#F59E0B',
+          icon: '⚠️',
+        };
+      case 'soon':
+        return {
+          title: isSpanish ? 'Programa una Cita Pronto' : 'Schedule an Appointment Soon',
+          description: isSpanish
+            ? 'Deberías ver a un médico dentro de los próximos días. Contacta una clínica para programar una cita.'
+            : 'You should see a doctor within the next few days. Contact a clinic to schedule an appointment.',
+          action: 'schedule',
+          color: '#3B82F6',
+          icon: '📅',
+        };
+      case 'routine':
+        return {
+          title: isSpanish ? 'Atención de Rutina' : 'Routine Care',
+          description: isSpanish
+            ? 'Tus síntomas no parecen urgentes. Puedes programar una cita regular con un proveedor de atención primaria.'
+            : 'Your symptoms don\'t appear urgent. You can schedule a regular appointment with a primary care provider.',
+          action: 'routine',
+          color: '#10B981',
+          icon: '✅',
+        };
+      default:
+        return null;
+    }
+  };
 
   const handleDirections = (resource: Resource) => {
     const mapUrl = `https://maps.google.com/?q=${resource.lat},${resource.lng}`;
@@ -816,6 +950,24 @@ export const DashboardScreen: React.FC = () => {
         <ScrollView style={styles.sectionScrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.allSectionsContainer}>
 
+            {/* Need Healthcare Now Button - Only for healthcare */}
+            {activeCategory === 'healthcare' && (
+              <TouchableOpacity style={styles.healthcareNowButton} onPress={startTriage}>
+                <View style={styles.healthcareNowContent}>
+                  <Text style={styles.healthcareNowIcon}>🩺</Text>
+                  <View style={styles.healthcareNowText}>
+                    <Text style={styles.healthcareNowTitle}>
+                      {isSpanish ? '¿Necesitas Atención Ahora?' : 'Need Healthcare Now?'}
+                    </Text>
+                    <Text style={styles.healthcareNowSubtitle}>
+                      {isSpanish ? 'Responde unas preguntas para saber qué hacer' : 'Answer a few questions to find out what to do'}
+                    </Text>
+                  </View>
+                  <Text style={styles.healthcareNowArrow}>→</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
             {/* FOR YOU Section */}
             <TouchableOpacity
               style={styles.sectionCard}
@@ -1235,6 +1387,114 @@ export const DashboardScreen: React.FC = () => {
       {activeTab === 'resources' && renderResourcesTab()}
       {activeTab === 'todos' && renderTodosTab()}
       {activeTab === 'caseworker' && renderCaseworkerTab()}
+
+      {/* Triage Modal */}
+      <Modal
+        visible={showTriageModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeTriage}
+      >
+        <View style={styles.triageModalOverlay}>
+          <View style={styles.triageModalContent}>
+            {/* Close button */}
+            <TouchableOpacity style={styles.triageCloseButton} onPress={closeTriage}>
+              <Text style={styles.triageCloseText}>✕</Text>
+            </TouchableOpacity>
+
+            {!triageResult ? (
+              <>
+                {/* Question */}
+                <Text style={styles.triageTitle}>
+                  {isSpanish ? TRIAGE_QUESTIONS[triageStep].questionEs : TRIAGE_QUESTIONS[triageStep].question}
+                </Text>
+
+                <Text style={styles.triageProgress}>
+                  {triageStep + 1} / {TRIAGE_QUESTIONS.length}
+                </Text>
+
+                {/* Options */}
+                <ScrollView style={styles.triageOptions}>
+                  {TRIAGE_QUESTIONS[triageStep].options.map((option) => (
+                    <TouchableOpacity
+                      key={option.id}
+                      style={styles.triageOption}
+                      onPress={() => handleTriageAnswer(TRIAGE_QUESTIONS[triageStep].id, option.score)}
+                    >
+                      <Text style={styles.triageOptionText}>
+                        {isSpanish ? option.labelEs : option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            ) : (
+              <>
+                {/* Result */}
+                {(() => {
+                  const rec = getTriageRecommendation();
+                  if (!rec) return null;
+                  return (
+                    <View style={styles.triageResultContainer}>
+                      <Text style={[styles.triageResultIcon, { fontSize: 60 }]}>{rec.icon}</Text>
+                      <Text style={[styles.triageResultTitle, { color: rec.color }]}>{rec.title}</Text>
+                      <Text style={styles.triageResultDescription}>{rec.description}</Text>
+
+                      {rec.action === '911' && (
+                        <TouchableOpacity
+                          style={[styles.triageActionButton, { backgroundColor: '#DC2626' }]}
+                          onPress={() => {
+                            handleCall('911');
+                            closeTriage();
+                          }}
+                        >
+                          <Text style={styles.triageActionButtonText}>
+                            📞 {isSpanish ? 'Llamar al 911' : 'Call 911'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {rec.action === 'urgent' && (
+                        <TouchableOpacity
+                          style={[styles.triageActionButton, { backgroundColor: '#F59E0B' }]}
+                          onPress={() => {
+                            toggleSection('search');
+                            closeTriage();
+                          }}
+                        >
+                          <Text style={styles.triageActionButtonText}>
+                            🔍 {isSpanish ? 'Buscar Atención Urgente' : 'Find Urgent Care'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {(rec.action === 'schedule' || rec.action === 'routine') && (
+                        <TouchableOpacity
+                          style={[styles.triageActionButton, { backgroundColor: '#3B82F6' }]}
+                          onPress={() => {
+                            toggleSection('recommended');
+                            closeTriage();
+                          }}
+                        >
+                          <Text style={styles.triageActionButtonText}>
+                            🏥 {isSpanish ? 'Ver Clínicas' : 'View Clinics'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      <TouchableOpacity style={styles.triageDoneButton} onPress={closeTriage}>
+                        <Text style={styles.triageDoneButtonText}>
+                          {isSpanish ? 'Cerrar' : 'Close'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })()}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1918,5 +2178,146 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2563EB',
     fontWeight: '500',
+  },
+  // Healthcare Now Button styles
+  healthcareNowButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  healthcareNowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  healthcareNowIcon: {
+    fontSize: 32,
+    marginRight: 14,
+  },
+  healthcareNowText: {
+    flex: 1,
+  },
+  healthcareNowTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  healthcareNowSubtitle: {
+    fontSize: 13,
+    color: '#FECACA',
+    marginTop: 2,
+  },
+  healthcareNowArrow: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  // Triage Modal styles
+  triageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  triageModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    minHeight: '60%',
+    maxHeight: '85%',
+  },
+  triageCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  triageCloseText: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  triageTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginTop: 20,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  triageProgress: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  triageOptions: {
+    flex: 1,
+  },
+  triageOption: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  triageOptionText: {
+    fontSize: 16,
+    color: '#1F2937',
+    textAlign: 'center',
+  },
+  triageResultContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  triageResultIcon: {
+    marginBottom: 16,
+  },
+  triageResultTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  triageResultDescription: {
+    fontSize: 16,
+    color: '#4B5563',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+    paddingHorizontal: 16,
+  },
+  triageActionButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginBottom: 12,
+    width: '100%',
+  },
+  triageActionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  triageDoneButton: {
+    paddingVertical: 12,
+    marginTop: 8,
+  },
+  triageDoneButtonText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
   },
 });
