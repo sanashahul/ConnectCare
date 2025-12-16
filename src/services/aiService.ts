@@ -1,16 +1,13 @@
 /**
- * AI Service - Google Gemini Integration
+ * AI Service - Groq Integration
  * Provides intelligent conversational AI for the Case Manager
  */
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Get API key at runtime (not at module load time)
+// Get API key from environment variable
 const getApiKey = (): string => {
-  // Temporarily hardcoded for testing - will use env var after confirming it works
-  const key = 'AIzaSyBZIoQ1zly-0duFyrRBVPz-LQY85PrNeZg';
-  console.log('Gemini API Key loaded:', key ? 'Yes (length: ' + key.length + ')' : 'No');
-  return key;
+  return process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
 };
 
 export interface AIMessage {
@@ -80,99 +77,75 @@ Always respond in English. Be brief but helpful.`;
 };
 
 /**
- * Send a message to the Gemini AI and get a response
+ * Send a message to the Groq AI and get a response
  */
 export const sendMessageToAI = async (
   userMessage: string,
   conversationHistory: AIMessage[],
   userContext: UserContext
 ): Promise<string> => {
-  const GEMINI_API_KEY = getApiKey();
+  const GROQ_API_KEY = getApiKey();
 
-  if (!GEMINI_API_KEY) {
-    console.warn('Gemini API key not configured');
+  if (!GROQ_API_KEY) {
+    console.warn('Groq API key not configured');
     return getFallbackResponse(userMessage, userContext);
   }
 
   try {
-    // Build conversation contents for Gemini
-    const contents = [
-      // System instruction as first user message
+    // Build messages array for Groq (OpenAI-compatible format)
+    const messages = [
       {
-        role: 'user',
-        parts: [{ text: getSystemPrompt(userContext) }]
-      },
-      {
-        role: 'model',
-        parts: [{ text: userContext.language === 'es'
-          ? 'Entendido. Soy el Asistente ConnectCare y estoy aquí para ayudarte a encontrar recursos. ¿En qué puedo ayudarte hoy?'
-          : 'Understood. I am the ConnectCare Assistant and I\'m here to help you find resources. How can I help you today?' }]
+        role: 'system',
+        content: getSystemPrompt(userContext)
       },
       // Previous conversation history
       ...conversationHistory.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
       })),
       // Current user message
       {
         role: 'user',
-        parts: [{ text: userMessage }]
+        content: userMessage
       }
     ];
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    console.log('Calling Groq API...');
+
+    const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 500,
-        },
-        safetySettings: [
-          {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-          },
-          {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-          },
-          {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-          },
-          {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-          }
-        ]
+        model: 'llama-3.1-8b-instant',
+        messages,
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
+      console.error('Groq API error:', errorData);
       return getFallbackResponse(userMessage, userContext);
     }
 
     const data = await response.json();
+    console.log('Groq API success!');
 
     // Extract the response text
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const aiResponse = data.choices?.[0]?.message?.content;
 
     if (!aiResponse) {
-      console.error('No response from Gemini:', data);
+      console.error('No response from Groq:', data);
       return getFallbackResponse(userMessage, userContext);
     }
 
     return aiResponse;
   } catch (error) {
-    console.error('Error calling Gemini API:', error);
+    console.error('Error calling Groq API:', error);
     return getFallbackResponse(userMessage, userContext);
   }
 };
