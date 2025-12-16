@@ -17,6 +17,11 @@ import { Resource, ServiceCategory } from '../../types';
 import { getSampleResources, filterResourcesByAnswers } from '../../utils/resources';
 import { formatDistance } from '../../utils/location';
 import * as Clipboard from 'expo-clipboard';
+import {
+  getHealthcareResources,
+  getEmploymentResources,
+  getHousingResources,
+} from '../../services';
 
 type TabType = 'resources' | 'todos' | 'caseworker';
 
@@ -247,6 +252,9 @@ export const DashboardScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('recommended');
+  const [jobListings, setJobListings] = useState<Resource[]>([]);
+  const [housingListings, setHousingListings] = useState<Resource[]>([]);
+  const [isLoadingSearch, setIsLoadingSearch] = useState(false);
 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
@@ -264,11 +272,65 @@ export const DashboardScreen: React.FC = () => {
     }
   }, [activeCategory, userProfile?.location]);
 
+  // Load listings for search sections
+  useEffect(() => {
+    const loadSearchListings = async () => {
+      if (!userProfile?.location) return;
+
+      if (activeSection === 'jobs' && jobListings.length === 0) {
+        setIsLoadingSearch(true);
+        const jobs = await getEmploymentResources(userProfile.location);
+        setJobListings(jobs);
+        setIsLoadingSearch(false);
+      }
+
+      if (activeSection === 'housing' && housingListings.length === 0) {
+        setIsLoadingSearch(true);
+        const housing = await getHousingResources(userProfile.location);
+        setHousingListings(housing);
+        setIsLoadingSearch(false);
+      }
+    };
+
+    loadSearchListings();
+  }, [activeSection, userProfile?.location]);
+
   const loadResources = async () => {
     if (!activeCategory || !userProfile?.location) return;
 
     setIsLoading(true);
     try {
+      let apiResources: Resource[] = [];
+
+      // Fetch resources from real APIs based on category
+      switch (activeCategory) {
+        case 'healthcare':
+          apiResources = await getHealthcareResources(userProfile.location);
+          break;
+        case 'employment':
+          apiResources = await getEmploymentResources(userProfile.location);
+          break;
+        case 'housing':
+          apiResources = await getHousingResources(userProfile.location);
+          break;
+      }
+
+      // If API returns results, use them; otherwise fall back to sample data
+      if (apiResources.length > 0) {
+        setResources(apiResources);
+      } else {
+        // Fallback to sample data if APIs return nothing
+        const rawResources = getSampleResources(userProfile.location, activeCategory);
+        const filtered = filterResourcesByAnswers(
+          rawResources,
+          userProfile.answers,
+          activeCategory
+        );
+        setResources(filtered);
+      }
+    } catch (error) {
+      console.error('Error loading resources:', error);
+      // Fallback to sample data on error
       const rawResources = getSampleResources(userProfile.location, activeCategory);
       const filtered = filterResourcesByAnswers(
         rawResources,
@@ -276,8 +338,6 @@ export const DashboardScreen: React.FC = () => {
         activeCategory
       );
       setResources(filtered);
-    } catch (error) {
-      console.error('Error loading resources:', error);
     }
     setIsLoading(false);
   };
@@ -286,9 +346,13 @@ export const DashboardScreen: React.FC = () => {
     Linking.openURL(`tel:${phone}`);
   };
 
-  const handleDirections = (resource: Resource) => {
-    const url = `https://maps.google.com/?q=${resource.lat},${resource.lng}`;
+  const handleWebsite = (url: string) => {
     Linking.openURL(url);
+  };
+
+  const handleDirections = (resource: Resource) => {
+    const mapUrl = `https://maps.google.com/?q=${resource.lat},${resource.lng}`;
+    Linking.openURL(mapUrl);
   };
 
   const handleCopyCode = async () => {
@@ -439,6 +503,14 @@ export const DashboardScreen: React.FC = () => {
                   <Text style={styles.actionButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
                 </TouchableOpacity>
               )}
+              {resource.website && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleWebsite(resource.website!)}
+                >
+                  <Text style={styles.actionButtonText}>🌐 {isSpanish ? 'Web' : 'Web'}</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => handleDirections(resource)}
@@ -473,45 +545,107 @@ export const DashboardScreen: React.FC = () => {
 
       {activeCategory === 'employment' && (
         <View style={styles.listContainer}>
-          {SAMPLE_JOBS.map((job) => (
-            <TouchableOpacity key={job.id} style={styles.listCard}>
-              <Text style={styles.listIcon}>{job.icon}</Text>
-              <View style={styles.listContent}>
-                <Text style={styles.listTitle}>{job.title}</Text>
-                <Text style={styles.listSubtitle}>{job.company}</Text>
-                <View style={styles.listMeta}>
-                  <Text style={styles.listMetaText}>{job.pay}</Text>
-                  <Text style={styles.listMetaBadge}>{job.type}</Text>
+          {isLoadingSearch ? (
+            <ActivityIndicator size="large" color="#2563EB" style={{ padding: 40 }} />
+          ) : jobListings.length > 0 ? (
+            jobListings.filter(job =>
+              !searchQuery || job.name.toLowerCase().includes(searchQuery.toLowerCase())
+            ).map((job) => (
+              <TouchableOpacity
+                key={job.id}
+                style={styles.listCard}
+                onPress={() => job.website && handleWebsite(job.website)}
+              >
+                <Text style={styles.listIcon}>💼</Text>
+                <View style={styles.listContent}>
+                  <Text style={styles.listTitle}>{job.name}</Text>
+                  <Text style={styles.listSubtitle}>{job.description}</Text>
+                  <View style={styles.listMeta}>
+                    {job.services && job.services[0] && (
+                      <Text style={styles.listMetaText}>{job.services[0]}</Text>
+                    )}
+                    {job.services && job.services[1] && (
+                      <Text style={styles.listMetaBadge}>{job.services[1]}</Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.listArrow}>→</Text>
-            </TouchableOpacity>
-          ))}
+                <Text style={styles.listArrow}>→</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            SAMPLE_JOBS.map((job) => (
+              <TouchableOpacity key={job.id} style={styles.listCard}>
+                <Text style={styles.listIcon}>{job.icon}</Text>
+                <View style={styles.listContent}>
+                  <Text style={styles.listTitle}>{job.title}</Text>
+                  <Text style={styles.listSubtitle}>{job.company}</Text>
+                  <View style={styles.listMeta}>
+                    <Text style={styles.listMetaText}>{job.pay}</Text>
+                    <Text style={styles.listMetaBadge}>{job.type}</Text>
+                  </View>
+                </View>
+                <Text style={styles.listArrow}>→</Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       )}
 
       {activeCategory === 'housing' && (
         <View style={styles.listContainer}>
-          {SAMPLE_HOUSING.map((housing) => (
-            <TouchableOpacity key={housing.id} style={styles.listCard}>
-              <Text style={styles.listIcon}>{housing.icon}</Text>
-              <View style={styles.listContent}>
-                <Text style={styles.listTitle}>{housing.title}</Text>
-                <Text style={styles.listSubtitle}>{housing.organization}</Text>
-                <View style={styles.listMeta}>
-                  <Text style={styles.listMetaText}>{housing.type}</Text>
-                  <Text style={[
-                    styles.listMetaBadge,
-                    housing.availability === 'Tonight' || housing.availability === 'Available'
-                      ? styles.availableBadge : null
-                  ]}>
-                    {housing.availability}
-                  </Text>
+          {isLoadingSearch ? (
+            <ActivityIndicator size="large" color="#2563EB" style={{ padding: 40 }} />
+          ) : housingListings.length > 0 ? (
+            housingListings.filter(housing =>
+              !searchQuery || housing.name.toLowerCase().includes(searchQuery.toLowerCase())
+            ).map((housing) => (
+              <TouchableOpacity
+                key={housing.id}
+                style={styles.listCard}
+                onPress={() => housing.website && handleWebsite(housing.website)}
+              >
+                <Text style={styles.listIcon}>🏠</Text>
+                <View style={styles.listContent}>
+                  <Text style={styles.listTitle}>{housing.name}</Text>
+                  <Text style={styles.listSubtitle}>{housing.description}</Text>
+                  <View style={styles.listMeta}>
+                    {housing.services && housing.services[0] && (
+                      <Text style={styles.listMetaText}>{housing.services[0]}</Text>
+                    )}
+                    {housing.phone && (
+                      <TouchableOpacity onPress={() => handleCall(housing.phone!)}>
+                        <Text style={[styles.listMetaBadge, styles.availableBadge]}>
+                          📞 {housing.phone}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.listArrow}>→</Text>
-            </TouchableOpacity>
-          ))}
+                <Text style={styles.listArrow}>→</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            SAMPLE_HOUSING.map((housing) => (
+              <TouchableOpacity key={housing.id} style={styles.listCard}>
+                <Text style={styles.listIcon}>{housing.icon}</Text>
+                <View style={styles.listContent}>
+                  <Text style={styles.listTitle}>{housing.title}</Text>
+                  <Text style={styles.listSubtitle}>{housing.organization}</Text>
+                  <View style={styles.listMeta}>
+                    <Text style={styles.listMetaText}>{housing.type}</Text>
+                    <Text style={[
+                      styles.listMetaBadge,
+                      housing.availability === 'Tonight' || housing.availability === 'Available'
+                        ? styles.availableBadge : null
+                    ]}>
+                      {housing.availability}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.listArrow}>→</Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       )}
 
