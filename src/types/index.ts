@@ -85,4 +85,16 @@ export interface Resource {
   services?: string[];
   lat: number;
   lng: number;
+  hours?: {
+    monday?: string;
+    tuesday?: string;
+    wednesday?: string;
+    thursday?: string;
+    friday?: string;
+    saturday?: string;
+    sunday?: string;
+  };
+  isOpen?: boolean;
+  acceptsWalkIns?: boolean;
+  languages?: string[];
 }

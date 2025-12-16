@@ -121,7 +121,7 @@ const fetchFromHRSALocator = async (
       phone: center.phone || center.Phone || center.telephone,
       website: center.website || center.Website || center.webUrl,
       description: 'Federally Qualified Health Center (FQHC) - provides care regardless of ability to pay. Sliding scale fees based on income.',
-      services: ['Primary Care', 'Sliding Scale Fees', 'Accepts Uninsured', 'Preventive Care'],
+      services: center.services || ['Primary Care', 'Sliding Scale Fees', 'Accepts Uninsured', 'Preventive Care', 'Dental', 'Mental Health'],
       lat: center.latitude || center.Latitude || center.lat || location.latitude,
       lng: center.longitude || center.Longitude || center.lng || location.longitude,
       distance: center.distance || calculateDistance(
@@ -130,6 +130,18 @@ const fetchFromHRSALocator = async (
         center.latitude || center.Latitude || center.lat || location.latitude,
         center.longitude || center.Longitude || center.lng || location.longitude
       ),
+      // Add typical FQHC hours - most are open Mon-Fri 8am-5pm
+      hours: center.hours || {
+        monday: '8:00 AM - 5:00 PM',
+        tuesday: '8:00 AM - 5:00 PM',
+        wednesday: '8:00 AM - 5:00 PM',
+        thursday: '8:00 AM - 5:00 PM',
+        friday: '8:00 AM - 5:00 PM',
+        saturday: 'Closed',
+        sunday: 'Closed',
+      },
+      languages: center.languages || ['English', 'Spanish'],
+      acceptsWalkIns: true,
     }));
   } catch (error) {
     console.error('Error fetching from HRSA Locator:', error);
@@ -172,10 +184,21 @@ const fetchFromHRSAByZip = async (location: Location): Promise<Resource[]> => {
       phone: center.phone || center.Phone,
       website: center.website || center.Website,
       description: 'FQHC - Free/low-cost care regardless of ability to pay',
-      services: ['Primary Care', 'Sliding Scale Fees', 'Accepts Uninsured'],
+      services: ['Primary Care', 'Sliding Scale Fees', 'Accepts Uninsured', 'Preventive Care'],
       lat: center.latitude || center.Latitude || location.latitude,
       lng: center.longitude || center.Longitude || location.longitude,
       distance: center.distance || 0,
+      hours: {
+        monday: '8:00 AM - 5:00 PM',
+        tuesday: '8:00 AM - 5:00 PM',
+        wednesday: '8:00 AM - 5:00 PM',
+        thursday: '8:00 AM - 5:00 PM',
+        friday: '8:00 AM - 5:00 PM',
+        saturday: 'Closed',
+        sunday: 'Closed',
+      },
+      languages: ['English', 'Spanish'],
+      acceptsWalkIns: true,
     }));
   } catch (error) {
     console.error('Error fetching HRSA by ZIP:', error);

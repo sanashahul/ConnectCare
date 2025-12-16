@@ -25,10 +25,10 @@ type DashboardScreenProps = {
 // AI Case Manager quick topics
 const AI_TOPICS = [
   { id: 'shelter', label: 'Find Shelter', labelEs: 'Buscar Refugio', icon: '🏠', category: 'housing' },
+  { id: 'section8', label: 'Apply Section 8', labelEs: 'Aplicar Sección 8', icon: '🏢', category: 'housing' },
   { id: 'clinic', label: 'Free Clinic', labelEs: 'Clínica Gratis', icon: '🏥', category: 'healthcare' },
   { id: 'job', label: 'Find Jobs', labelEs: 'Buscar Trabajo', icon: '💼', category: 'employment' },
   { id: 'food', label: 'Food Help', labelEs: 'Ayuda Comida', icon: '🍽️', category: 'general' },
-  { id: 'documents', label: 'Get ID/Docs', labelEs: 'Obtener ID', icon: '🪪', category: 'general' },
   { id: '211', label: 'Call 211', labelEs: 'Llamar 211', icon: '📞', category: 'general' },
 ];
 
@@ -37,6 +37,14 @@ const TOPIC_TODOS: Record<string, { en: string; es: string }[]> = {
   shelter: [
     { en: 'Call 211 for shelter info', es: 'Llamar al 211 para info de refugio' },
     { en: 'Visit local shelter before 5pm', es: 'Visitar refugio local antes de las 5pm' },
+    { en: 'Call National Homeless Hotline: 1-800-231-6946', es: 'Llamar Línea Nacional: 1-800-231-6946' },
+  ],
+  section8: [
+    { en: 'Find your local PHA (Public Housing Authority)', es: 'Encontrar tu PHA local (Autoridad de Vivienda Pública)' },
+    { en: 'Call 211 to check if waitlist is open', es: 'Llamar al 211 para verificar si la lista de espera está abierta' },
+    { en: 'Gather documents: ID, Social Security, proof of income', es: 'Reunir documentos: ID, Seguro Social, prueba de ingresos' },
+    { en: 'Submit application when waitlist opens', es: 'Enviar solicitud cuando la lista abra' },
+    { en: 'Apply to multiple PHAs to increase chances', es: 'Aplicar a múltiples PHAs para aumentar oportunidades' },
   ],
   clinic: [
     { en: 'Call 211 for free clinics nearby', es: 'Llamar al 211 para clínicas gratis' },
@@ -53,11 +61,6 @@ const TOPIC_TODOS: Record<string, { en: string; es: string }[]> = {
     { en: 'Apply for SNAP benefits', es: 'Aplicar para beneficios SNAP' },
     { en: 'Find local food pantry', es: 'Encontrar despensa de comida local' },
   ],
-  documents: [
-    { en: 'Request birth certificate copy', es: 'Solicitar copia de acta de nacimiento' },
-    { en: 'Visit SSA office for Social Security card', es: 'Visitar oficina SSA para tarjeta SS' },
-    { en: 'Gather ID documents', es: 'Reunir documentos de identificación' },
-  ],
   '211': [
     { en: 'Call 211 for resources', es: 'Llamar al 211 para recursos' },
     { en: 'Text ZIP code to 898-211', es: 'Enviar código postal al 898-211' },
@@ -68,8 +71,12 @@ const TOPIC_TODOS: Record<string, { en: string; es: string }[]> = {
 const getAIResponse = (topicId: string, isSpanish: boolean, location?: string): string => {
   const responses: Record<string, { en: string; es: string }> = {
     shelter: {
-      en: `I can help you find shelter. Here are your options:\n\n📞 Call 211 - They have real-time info on available beds${location ? ` in ${location}` : ''}.\n\n📞 National Homeless Hotline: 1-800-231-6946 (24/7)\n\n💡 Tip: Many shelters have specific check-in times (usually 5-8pm). Call ahead to reserve a bed.`,
-      es: `Puedo ayudarte a encontrar refugio. Aquí están tus opciones:\n\n📞 Llama al 211 - Tienen información en tiempo real sobre camas disponibles${location ? ` en ${location}` : ''}.\n\n📞 Línea Nacional: 1-800-231-6946 (24/7)\n\n💡 Consejo: Muchos refugios tienen horarios específicos de entrada (usualmente 5-8pm). Llama con anticipación.`,
+      en: `I can help you find shelter. Here are your options:\n\n📞 Call 211 - They have real-time info on available beds${location ? ` in ${location}` : ''}.\n\n📞 National Homeless Hotline: 1-800-231-6946 (24/7)\n\n🏠 Go to the Housing tab and tap "Find Housing" to see shelters near you.\n\n💡 Tip: Many shelters have specific check-in times (usually 5-8pm). Call ahead to reserve a bed.`,
+      es: `Puedo ayudarte a encontrar refugio. Aquí están tus opciones:\n\n📞 Llama al 211 - Tienen información en tiempo real sobre camas disponibles${location ? ` en ${location}` : ''}.\n\n📞 Línea Nacional: 1-800-231-6946 (24/7)\n\n🏠 Ve a la pestaña Vivienda y toca "Buscar Vivienda" para ver refugios cercanos.\n\n💡 Consejo: Muchos refugios tienen horarios específicos de entrada (usualmente 5-8pm). Llama con anticipación.`,
+    },
+    section8: {
+      en: `Here's how to apply for Section 8 (Housing Choice Voucher):\n\n📋 STEP 1: Find your local Public Housing Authority (PHA)\n• Visit hud.gov and search "PHA contact" or call 211\n\n📋 STEP 2: Check if the waitlist is open\n• Waitlists open periodically - call your PHA to check\n\n📋 STEP 3: Gather documents\n• Photo ID for all adults\n• Social Security cards\n• Birth certificates\n• Proof of income (pay stubs, benefit letters)\n• Bank statements\n\n📋 STEP 4: Submit your application\n• Apply online, in person, or by mail\n\n💡 Tip: Apply to MULTIPLE PHAs - this increases your chances! The Housing tab has detailed step-by-step guides.`,
+      es: `Así puedes aplicar para la Sección 8 (Vale de Vivienda):\n\n📋 PASO 1: Encuentra tu Autoridad de Vivienda Pública (PHA) local\n• Visita hud.gov y busca "contacto PHA" o llama al 211\n\n📋 PASO 2: Verifica si la lista de espera está abierta\n• Las listas abren periódicamente - llama a tu PHA para verificar\n\n📋 PASO 3: Reúne documentos\n• Identificación con foto para todos los adultos\n• Tarjetas de Seguro Social\n• Actas de nacimiento\n• Prueba de ingresos (talones de pago, cartas de beneficios)\n• Estados de cuenta bancarios\n\n📋 PASO 4: Envía tu solicitud\n• Aplica en línea, en persona o por correo\n\n💡 Consejo: ¡Aplica a MÚLTIPLES PHAs - esto aumenta tus posibilidades! La pestaña Vivienda tiene guías detalladas paso a paso.`,
     },
     clinic: {
       en: `Here's how to find free healthcare:\n\n🏥 Federally Qualified Health Centers serve everyone regardless of ability to pay.\n\n📱 Visit findahealthcenter.hrsa.gov to find one near you.\n\n📞 Call 211 for local free clinics.\n\n💡 Many centers offer sliding-scale fees based on your income.`,

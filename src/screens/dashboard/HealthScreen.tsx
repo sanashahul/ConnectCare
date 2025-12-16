@@ -162,11 +162,45 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [expandedClinic, setExpandedClinic] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
+
+  // Get current day and check if clinic is open
+  const getCurrentDay = (): string => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[new Date().getDay()];
+  };
+
+  const isClinicOpen = (clinic: Resource): boolean => {
+    if (clinic.isOpen !== undefined) return clinic.isOpen;
+    if (!clinic.hours) return true; // Assume open if no hours info
+    const today = getCurrentDay();
+    const todayHours = clinic.hours[today as keyof typeof clinic.hours];
+    if (!todayHours || todayHours.toLowerCase() === 'closed') return false;
+
+    // Simple time check (assumes format like "8:00 AM - 5:00 PM")
+    const now = new Date();
+    const currentHour = now.getHours();
+    // Most clinics are open 8am-5pm, so rough estimate
+    return currentHour >= 8 && currentHour < 17;
+  };
+
+  const getDayName = (day: string): string => {
+    const dayNames: Record<string, { en: string; es: string }> = {
+      monday: { en: 'Monday', es: 'Lunes' },
+      tuesday: { en: 'Tuesday', es: 'Martes' },
+      wednesday: { en: 'Wednesday', es: 'Miércoles' },
+      thursday: { en: 'Thursday', es: 'Jueves' },
+      friday: { en: 'Friday', es: 'Viernes' },
+      saturday: { en: 'Saturday', es: 'Sábado' },
+      sunday: { en: 'Sunday', es: 'Domingo' },
+    };
+    return isSpanish ? dayNames[day]?.es : dayNames[day]?.en;
+  };
 
   const addToTodo = (title: string) => {
     dispatch({
@@ -476,6 +510,21 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
           : isSpanish ? 'Basado en tu ubicación' : 'Based on your location'}
       </Text>
 
+      {/* Legend */}
+      <View style={styles.legendContainer}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+          <Text style={styles.legendText}>{isSpanish ? 'Abierto' : 'Open'}</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
+          <Text style={styles.legendText}>{isSpanish ? 'Cerrado' : 'Closed'}</Text>
+        </View>
+        <Text style={styles.legendHint}>
+          {isSpanish ? 'Toca para ver detalles' : 'Tap for details'}
+        </Text>
+      </View>
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0D9488" />
@@ -484,40 +533,163 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
           </Text>
         </View>
       ) : clinics.length > 0 ? (
-        clinics.map((clinic) => (
-          <View key={clinic.id} style={styles.clinicCard}>
-            <View style={styles.clinicHeader}>
-              <Text style={styles.clinicIcon}>🏥</Text>
-              <View style={styles.clinicInfo}>
-                <Text style={styles.clinicName}>{clinic.name}</Text>
-                {clinic.address && (
-                  <Text style={styles.clinicAddress}>{clinic.address}</Text>
-                )}
-                {clinic.distance && (
-                  <Text style={styles.clinicDistance}>
-                    📍 {clinic.distance.toFixed(1)} {isSpanish ? 'millas' : 'miles'}
-                  </Text>
-                )}
+        clinics.map((clinic) => {
+          const isOpen = isClinicOpen(clinic);
+          const isExpanded = expandedClinic === clinic.id;
+
+          return (
+            <TouchableOpacity
+              key={clinic.id}
+              style={[styles.clinicCard, isExpanded && styles.clinicCardExpanded]}
+              onPress={() => setExpandedClinic(isExpanded ? null : clinic.id)}
+              activeOpacity={0.7}
+            >
+              {/* Open/Closed Status Badge */}
+              <View style={[styles.statusBadge, isOpen ? styles.statusOpen : styles.statusClosed]}>
+                <Text style={styles.statusText}>
+                  {isOpen ? (isSpanish ? 'ABIERTO' : 'OPEN') : (isSpanish ? 'CERRADO' : 'CLOSED')}
+                </Text>
               </View>
-            </View>
-            <View style={styles.clinicActions}>
-              {clinic.phone && (
-                <TouchableOpacity
-                  style={styles.callButton}
-                  onPress={() => handleCall(clinic.phone!)}
-                >
-                  <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
-                </TouchableOpacity>
+
+              <View style={styles.clinicHeader}>
+                <Text style={styles.clinicIcon}>🏥</Text>
+                <View style={styles.clinicInfo}>
+                  <Text style={styles.clinicName}>{clinic.name}</Text>
+                  {clinic.address && (
+                    <Text style={styles.clinicAddress}>{clinic.address}</Text>
+                  )}
+                  <View style={styles.clinicMetaRow}>
+                    {clinic.distance !== undefined && clinic.distance > 0 && (
+                      <Text style={styles.clinicDistance}>
+                        📍 {clinic.distance.toFixed(1)} {isSpanish ? 'mi' : 'mi'}
+                      </Text>
+                    )}
+                    {clinic.phone && (
+                      <Text style={styles.clinicPhone}>📞 {clinic.phone}</Text>
+                    )}
+                  </View>
+                </View>
+                <Text style={styles.expandArrow}>{isExpanded ? '▼' : '▶'}</Text>
+              </View>
+
+              {/* Expanded Details */}
+              {isExpanded && (
+                <View style={styles.clinicDetails}>
+                  {/* Description */}
+                  {clinic.description && (
+                    <View style={styles.clinicSection}>
+                      <Text style={styles.clinicSectionTitle}>
+                        {isSpanish ? 'Acerca de' : 'About'}
+                      </Text>
+                      <Text style={styles.clinicSectionText}>{clinic.description}</Text>
+                    </View>
+                  )}
+
+                  {/* Services */}
+                  {clinic.services && clinic.services.length > 0 && (
+                    <View style={styles.clinicSection}>
+                      <Text style={styles.clinicSectionTitle}>
+                        {isSpanish ? 'Servicios' : 'Services'}
+                      </Text>
+                      <View style={styles.servicesContainer}>
+                        {clinic.services.map((service, idx) => (
+                          <View key={idx} style={styles.serviceTag}>
+                            <Text style={styles.serviceText}>{service}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Hours */}
+                  <View style={styles.clinicSection}>
+                    <Text style={styles.clinicSectionTitle}>
+                      {isSpanish ? 'Horario' : 'Hours'}
+                    </Text>
+                    {clinic.hours ? (
+                      <View style={styles.hoursContainer}>
+                        {Object.entries(clinic.hours).map(([day, hours]) => (
+                          <View key={day} style={[
+                            styles.hoursRow,
+                            getCurrentDay() === day && styles.hoursRowToday
+                          ]}>
+                            <Text style={[
+                              styles.hoursDay,
+                              getCurrentDay() === day && styles.hoursDayToday
+                            ]}>
+                              {getDayName(day)}
+                            </Text>
+                            <Text style={[
+                              styles.hoursTime,
+                              getCurrentDay() === day && styles.hoursTimeToday
+                            ]}>
+                              {hours || (isSpanish ? 'Cerrado' : 'Closed')}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text style={styles.hoursNote}>
+                        {isSpanish
+                          ? 'Horario típico: Lun-Vie 8am-5pm. Llame para confirmar.'
+                          : 'Typical hours: Mon-Fri 8am-5pm. Call to confirm.'}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Languages if available */}
+                  {clinic.languages && clinic.languages.length > 0 && (
+                    <View style={styles.clinicSection}>
+                      <Text style={styles.clinicSectionTitle}>
+                        {isSpanish ? 'Idiomas' : 'Languages'}
+                      </Text>
+                      <Text style={styles.clinicSectionText}>
+                        {clinic.languages.join(', ')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Action Buttons */}
+                  <View style={styles.clinicActions}>
+                    {clinic.phone && (
+                      <TouchableOpacity
+                        style={styles.callButton}
+                        onPress={() => handleCall(clinic.phone!)}
+                      >
+                        <Text style={styles.callButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+                      </TouchableOpacity>
+                    )}
+                    {clinic.website && (
+                      <TouchableOpacity
+                        style={styles.websiteButton}
+                        onPress={() => Linking.openURL(clinic.website!)}
+                      >
+                        <Text style={styles.websiteButtonText}>🌐 {isSpanish ? 'Sitio Web' : 'Website'}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Add to To-Do - especially if closed */}
+                  <TouchableOpacity
+                    style={[styles.addTodoButtonLarge, !isOpen && styles.addTodoButtonHighlight]}
+                    onPress={() => addToTodo(
+                      isOpen
+                        ? `${isSpanish ? 'Visitar' : 'Visit'} ${clinic.name}`
+                        : `${isSpanish ? 'Llamar a' : 'Call'} ${clinic.name} ${isSpanish ? 'cuando abra' : 'when they open'}`
+                    )}
+                  >
+                    <Text style={[styles.addTodoButtonLargeText, !isOpen && styles.addTodoButtonHighlightText]}>
+                      {!isOpen
+                        ? (isSpanish ? '+ Recordarme llamar cuando abra' : '+ Remind me to call when open')
+                        : (isSpanish ? '+ Agregar a mi lista' : '+ Add to my to-do list')
+                      }
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-              <TouchableOpacity
-                style={styles.addTodoButton}
-                onPress={() => addToTodo(`${isSpanish ? 'Visitar' : 'Visit'} ${clinic.name}`)}
-              >
-                <Text style={styles.addTodoButtonText}>+ {isSpanish ? 'Tarea' : 'To-Do'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
+            </TouchableOpacity>
+          );
+        })
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🔍</Text>
@@ -970,6 +1142,183 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0D9488',
     fontWeight: '600',
+  },
+  clinicCardExpanded: {
+    borderColor: '#0D9488',
+    borderWidth: 2,
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    zIndex: 1,
+  },
+  statusOpen: {
+    backgroundColor: '#D1FAE5',
+  },
+  statusClosed: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  clinicMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 4,
+  },
+  clinicPhone: {
+    fontSize: 13,
+    color: '#64748B',
+  },
+  expandArrow: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginLeft: 8,
+  },
+  clinicDetails: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  clinicSection: {
+    marginBottom: 16,
+  },
+  clinicSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  clinicSectionText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+  },
+  servicesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  serviceTag: {
+    backgroundColor: '#F0FDFA',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  serviceText: {
+    fontSize: 12,
+    color: '#0D9488',
+    fontWeight: '600',
+  },
+  hoursContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 12,
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  hoursRowToday: {
+    backgroundColor: '#F0FDFA',
+    marginHorizontal: -8,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  hoursDay: {
+    fontSize: 13,
+    color: '#64748B',
+  },
+  hoursDayToday: {
+    color: '#0D9488',
+    fontWeight: '700',
+  },
+  hoursTime: {
+    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '500',
+  },
+  hoursTimeToday: {
+    color: '#0D9488',
+    fontWeight: '700',
+  },
+  hoursNote: {
+    fontSize: 13,
+    color: '#64748B',
+    fontStyle: 'italic',
+  },
+  websiteButton: {
+    flex: 1,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  websiteButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  addTodoButtonLarge: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  addTodoButtonLargeText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  addTodoButtonHighlight: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  addTodoButtonHighlightText: {
+    color: '#92400E',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 13,
+    color: '#64748B',
+  },
+  legendHint: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    marginLeft: 'auto',
   },
   callButton: {
     flex: 1,

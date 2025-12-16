@@ -109,13 +109,78 @@ const HOUSING_FOR_YOU = [
   },
 ];
 
-// Housing options
-const HOUSING_OPTIONS = [
-  { id: 'ho1', title: 'Emergency Shelter', titleEs: 'Refugio de Emergencia', type: 'Emergency', typeEs: 'Emergencia', availability: 'Tonight', availabilityEs: 'Esta noche', icon: '🛏️' },
-  { id: 'ho2', title: 'Transitional Housing', titleEs: 'Vivienda de Transición', type: '6-month program', typeEs: 'Programa de 6 meses', availability: 'Waitlist', availabilityEs: 'Lista de espera', icon: '🏠' },
-  { id: 'ho3', title: 'Shared Room - Section 8', titleEs: 'Cuarto Compartido - Sección 8', type: 'Voucher accepted', typeEs: 'Vale aceptado', availability: 'Available', availabilityEs: 'Disponible', icon: '🔑' },
-  { id: 'ho4', title: 'Family Shelter', titleEs: 'Refugio Familiar', type: 'Families only', typeEs: 'Solo familias', availability: '2 spots', availabilityEs: '2 lugares', icon: '👨‍👩‍👧' },
-  { id: 'ho5', title: 'Veterans Housing', titleEs: 'Vivienda para Veteranos', type: 'VASH Program', typeEs: 'Programa VASH', availability: 'Apply now', availabilityEs: 'Aplica ahora', icon: '🎖️' },
+// Housing programs with step-by-step application guides
+const HOUSING_PROGRAMS = [
+  {
+    id: 'section8',
+    title: 'Section 8 / Housing Choice Voucher',
+    titleEs: 'Sección 8 / Vale de Vivienda',
+    icon: '🏠',
+    color: '#7C3AED',
+    description: 'Government rental assistance program',
+    descriptionEs: 'Programa gubernamental de asistencia de alquiler',
+    steps: [
+      { step: 1, title: 'Check Eligibility', titleEs: 'Verificar Elegibilidad', detail: 'Income must be below 50% of area median income. Check at your local PHA.', detailEs: 'Los ingresos deben estar por debajo del 50% del ingreso medio del área. Verifica en tu PHA local.' },
+      { step: 2, title: 'Find Your Local PHA', titleEs: 'Encontrar tu PHA Local', detail: 'Visit hud.gov/program_offices/public_indian_housing/pha/contacts to find your Public Housing Authority.', detailEs: 'Visita hud.gov/program_offices/public_indian_housing/pha/contacts para encontrar tu Autoridad de Vivienda Pública.' },
+      { step: 3, title: 'Apply When Waitlist Opens', titleEs: 'Aplicar Cuando la Lista Abra', detail: 'Waitlists open periodically. Call your PHA to check status or sign up for notifications.', detailEs: 'Las listas de espera abren periódicamente. Llama a tu PHA para verificar el estado o inscribirte para notificaciones.' },
+      { step: 4, title: 'Gather Documents', titleEs: 'Reunir Documentos', detail: 'ID, Social Security cards, birth certificates, proof of income, bank statements.', detailEs: 'Identificación, tarjetas de Seguro Social, actas de nacimiento, prueba de ingresos, estados de cuenta bancarios.' },
+      { step: 5, title: 'Attend Interview', titleEs: 'Asistir a la Entrevista', detail: 'Bring all documents. Be honest about your situation.', detailEs: 'Lleva todos los documentos. Sé honesto sobre tu situación.' },
+      { step: 6, title: 'Find Housing', titleEs: 'Encontrar Vivienda', detail: 'Once approved, you have 60-120 days to find a landlord who accepts vouchers.', detailEs: 'Una vez aprobado, tienes 60-120 días para encontrar un propietario que acepte vales.' },
+    ],
+    phone: '211',
+    website: 'https://www.hud.gov/topics/housing_choice_voucher_program_section_8',
+  },
+  {
+    id: 'publichousing',
+    title: 'Public Housing',
+    titleEs: 'Vivienda Pública',
+    icon: '🏢',
+    color: '#0D9488',
+    description: 'Government-owned affordable housing',
+    descriptionEs: 'Vivienda asequible propiedad del gobierno',
+    steps: [
+      { step: 1, title: 'Find Local Housing Authority', titleEs: 'Encontrar Autoridad de Vivienda Local', detail: 'Search for your local PHA at hud.gov or call 211.', detailEs: 'Busca tu PHA local en hud.gov o llama al 211.' },
+      { step: 2, title: 'Check Eligibility', titleEs: 'Verificar Elegibilidad', detail: 'Based on income, family size, and citizenship/immigration status.', detailEs: 'Basado en ingresos, tamaño de familia y estado de ciudadanía/inmigración.' },
+      { step: 3, title: 'Submit Application', titleEs: 'Enviar Solicitud', detail: 'Apply online, in person, or by mail. Include all required documents.', detailEs: 'Aplica en línea, en persona o por correo. Incluye todos los documentos requeridos.' },
+      { step: 4, title: 'Wait for Placement', titleEs: 'Esperar Colocación', detail: 'Waitlists can be long. Stay in contact and update your info if it changes.', detailEs: 'Las listas de espera pueden ser largas. Mantente en contacto y actualiza tu información si cambia.' },
+    ],
+    phone: '211',
+    website: 'https://www.hud.gov/topics/rental_assistance/phprog',
+  },
+  {
+    id: 'rapidrehousing',
+    title: 'Rapid Re-Housing',
+    titleEs: 'Realojamiento Rápido',
+    icon: '⚡',
+    color: '#EA580C',
+    description: 'Short-term rental assistance for homeless individuals',
+    descriptionEs: 'Asistencia de alquiler a corto plazo para personas sin hogar',
+    steps: [
+      { step: 1, title: 'Contact Local Provider', titleEs: 'Contactar Proveedor Local', detail: 'Call 211 or visit a homeless services center to get connected.', detailEs: 'Llama al 211 o visita un centro de servicios para personas sin hogar.' },
+      { step: 2, title: 'Complete Assessment', titleEs: 'Completar Evaluación', detail: 'A case manager will assess your situation and needs.', detailEs: 'Un gestor de casos evaluará tu situación y necesidades.' },
+      { step: 3, title: 'Work with Case Manager', titleEs: 'Trabajar con Gestor de Casos', detail: 'They help you find housing, apply, and provide rental assistance.', detailEs: 'Te ayudan a encontrar vivienda, aplicar y proporcionar asistencia de alquiler.' },
+      { step: 4, title: 'Transition to Independence', titleEs: 'Transición a Independencia', detail: 'Support typically lasts 3-24 months as you stabilize.', detailEs: 'El apoyo típicamente dura 3-24 meses mientras te estabilizas.' },
+    ],
+    phone: '211',
+    website: 'https://www.hudexchange.info/programs/rapid-re-housing/',
+  },
+  {
+    id: 'veterans',
+    title: 'HUD-VASH (Veterans)',
+    titleEs: 'HUD-VASH (Veteranos)',
+    icon: '🎖️',
+    color: '#DC2626',
+    description: 'Housing vouchers for homeless veterans',
+    descriptionEs: 'Vales de vivienda para veteranos sin hogar',
+    steps: [
+      { step: 1, title: 'Contact VA', titleEs: 'Contactar VA', detail: 'Call the National Call Center for Homeless Veterans: 1-877-424-3838.', detailEs: 'Llama al Centro Nacional para Veteranos Sin Hogar: 1-877-424-3838.' },
+      { step: 2, title: 'Get Referred', titleEs: 'Obtener Referencia', detail: 'VA staff will assess eligibility and refer you to HUD-VASH.', detailEs: 'El personal de VA evaluará la elegibilidad y te referirá a HUD-VASH.' },
+      { step: 3, title: 'Work with VA Case Manager', titleEs: 'Trabajar con Gestor de VA', detail: 'Receive ongoing support services while in housing.', detailEs: 'Recibe servicios de apoyo continuo mientras estás en vivienda.' },
+      { step: 4, title: 'Find Housing', titleEs: 'Encontrar Vivienda', detail: 'Use your voucher to find approved housing.', detailEs: 'Usa tu vale para encontrar vivienda aprobada.' },
+    ],
+    phone: '1-877-424-3838',
+    website: 'https://www.va.gov/homeless/hud-vash.asp',
+  },
 ];
 
 // Emergency resources
@@ -493,43 +558,122 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.detailTitle}>
-        {isSpanish ? 'Opciones de Vivienda' : 'Housing Options'}
+        {isSpanish ? 'Programas de Vivienda' : 'Housing Programs'}
       </Text>
       <Text style={styles.detailSubtitle}>
-        {isSpanish ? 'Tipos de vivienda disponibles' : 'Available housing types'}
+        {isSpanish ? 'Toca para ver cómo aplicar paso a paso' : 'Tap to see how to apply step by step'}
       </Text>
 
-      {HOUSING_OPTIONS.map((option) => (
-        <View key={option.id} style={styles.optionCard}>
-          <View style={styles.optionHeader}>
-            <View style={styles.optionIconContainer}>
-              <Text style={styles.optionIcon}>{option.icon}</Text>
+      {HOUSING_PROGRAMS.map((program) => {
+        const isExpanded = expandedItem === program.id;
+
+        return (
+          <TouchableOpacity
+            key={program.id}
+            style={[styles.programCard, { borderLeftColor: program.color }]}
+            onPress={() => setExpandedItem(isExpanded ? null : program.id)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.programHeader}>
+              <View style={[styles.programIconContainer, { backgroundColor: `${program.color}20` }]}>
+                <Text style={styles.programIcon}>{program.icon}</Text>
+              </View>
+              <View style={styles.programInfo}>
+                <Text style={styles.programTitle}>
+                  {isSpanish ? program.titleEs : program.title}
+                </Text>
+                <Text style={styles.programDescription}>
+                  {isSpanish ? program.descriptionEs : program.description}
+                </Text>
+              </View>
+              <Text style={styles.programExpandIcon}>{isExpanded ? '▼' : '▶'}</Text>
             </View>
-            <View style={styles.optionInfo}>
-              <Text style={styles.optionTitle}>
-                {isSpanish ? option.titleEs : option.title}
-              </Text>
-              <Text style={styles.optionType}>
-                {isSpanish ? option.typeEs : option.type}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.optionFooter}>
-            <View style={styles.availabilityTag}>
-              <Text style={styles.availabilityText}>
-                {isSpanish ? option.availabilityEs : option.availability}
-              </Text>
-            </View>
-          </View>
-        </View>
-      ))}
+
+            {isExpanded && (
+              <View style={styles.programDetails}>
+                {/* Step by step guide */}
+                <Text style={styles.stepsTitle}>
+                  {isSpanish ? 'Cómo Aplicar:' : 'How to Apply:'}
+                </Text>
+
+                {program.steps.map((step, index) => (
+                  <View key={index} style={styles.stepContainer}>
+                    <View style={[styles.stepNumber, { backgroundColor: program.color }]}>
+                      <Text style={styles.stepNumberText}>{step.step}</Text>
+                    </View>
+                    <View style={styles.stepContent}>
+                      <Text style={styles.stepTitle}>
+                        {isSpanish ? step.titleEs : step.title}
+                      </Text>
+                      <Text style={styles.stepDetail}>
+                        {isSpanish ? step.detailEs : step.detail}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+
+                {/* Action buttons */}
+                <View style={styles.programActions}>
+                  <TouchableOpacity
+                    style={[styles.programCallButton, { backgroundColor: program.color }]}
+                    onPress={() => handleCall(program.phone)}
+                  >
+                    <Text style={styles.programCallButtonText}>
+                      📞 {isSpanish ? 'Llamar' : 'Call'} {program.phone}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {program.website && (
+                    <TouchableOpacity
+                      style={styles.programWebButton}
+                      onPress={() => Linking.openURL(program.website)}
+                    >
+                      <Text style={styles.programWebButtonText}>
+                        🌐 {isSpanish ? 'Más Info' : 'More Info'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Add steps to to-do */}
+                <TouchableOpacity
+                  style={styles.addAllStepsButton}
+                  onPress={() => {
+                    program.steps.forEach((step) => {
+                      dispatch({
+                        type: 'ADD_TODO',
+                        payload: {
+                          title: `${isSpanish ? step.titleEs : step.title} - ${isSpanish ? program.titleEs : program.title}`,
+                          completed: false,
+                          category: 'housing',
+                        },
+                      });
+                    });
+                    Alert.alert(
+                      isSpanish ? '¡Agregado!' : 'Added!',
+                      isSpanish
+                        ? `${program.steps.length} pasos agregados a tu lista`
+                        : `${program.steps.length} steps added to your to-do list`,
+                      [{ text: 'OK' }]
+                    );
+                  }}
+                >
+                  <Text style={styles.addAllStepsText}>
+                    + {isSpanish ? 'Agregar todos los pasos a mi lista' : 'Add all steps to my to-do list'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </TouchableOpacity>
+        );
+      })}
 
       <View style={styles.tipCard}>
         <Text style={styles.tipIcon}>💡</Text>
         <Text style={styles.tipText}>
           {isSpanish
-            ? 'Consejo: Llama al 211 para encontrar refugios con disponibilidad actual en tu área.'
-            : 'Tip: Call 211 to find shelters with current availability in your area.'}
+            ? 'Consejo: Aplica a múltiples programas para aumentar tus opciones. Las listas de espera pueden ser largas.'
+            : 'Tip: Apply to multiple programs to increase your options. Waitlists can be long.'}
         </Text>
       </View>
     </View>
@@ -1076,6 +1220,139 @@ const styles = StyleSheet.create({
     color: '#92400E',
     flex: 1,
     lineHeight: 20,
+  },
+  // Program card styles for housing programs
+  programCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    borderLeftWidth: 4,
+  },
+  programHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  programIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  programIcon: {
+    fontSize: 26,
+  },
+  programInfo: {
+    flex: 1,
+  },
+  programTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  programDescription: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  programExpandIcon: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginLeft: 8,
+  },
+  programDetails: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  stepsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  stepContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  stepNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  stepNumberText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  stepDetail: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+  programActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  programCallButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  programCallButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  programWebButton: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  programWebButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  addAllStepsButton: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  addAllStepsText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#059669',
   },
   urgentCard: {
     backgroundColor: '#FEF2F2',
