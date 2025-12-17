@@ -26,6 +26,67 @@ const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: string }[] = [
   { id: 'other', label: 'Other', icon: '📌' },
 ];
 
+// Demo client data - in a real app this would come from an API
+const DEMO_CLIENTS: Record<string, UserProfile> = {
+  'ABC-123-XYZ': {
+    id: 'demo1',
+    name: 'John D.',
+    immigrationStatus: 'citizen',
+    location: { latitude: 40.7128, longitude: -74.006, city: 'New York', state: 'NY' },
+    selectedCategories: ['healthcare', 'housing'],
+    answers: [
+      { questionId: 'health_1', answer: 'no' },
+      { questionId: 'health_5', answer: 'yes' },
+      { questionId: 'housing_1', answer: 'shelter' },
+      { questionId: 'housing_3', answer: 'yes' },
+    ],
+    shareCode: 'ABC-123-XYZ',
+    todos: [
+      {
+        id: '1',
+        title: 'Apply for Medicaid',
+        priority: 'urgent',
+        completed: false,
+        createdBy: 'caseworker',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        title: 'Visit VA office for housing voucher',
+        priority: 'normal',
+        completed: false,
+        createdBy: 'caseworker',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+  'DEF-456-UVW': {
+    id: 'demo2',
+    name: 'Maria S.',
+    immigrationStatus: 'permanent_resident',
+    location: { latitude: 34.0522, longitude: -118.2437, city: 'Los Angeles', state: 'CA' },
+    selectedCategories: ['employment', 'housing'],
+    answers: [
+      { questionId: 'employ_1', answer: 'unemployed' },
+      { questionId: 'employ_3', answer: 'yes' },
+      { questionId: 'housing_1', answer: 'temp' },
+    ],
+    shareCode: 'DEF-456-UVW',
+    todos: [
+      {
+        id: '3',
+        title: 'Attend job fair on Friday',
+        priority: 'urgent',
+        completed: false,
+        createdBy: 'caseworker',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+};
+
 export const CaseWorkerDashboardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
@@ -38,6 +99,8 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const [newTaskCategory, setNewTaskCategory] = useState<TaskCategory>('other');
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientCode, setNewClientCode] = useState('');
+  const [addClientError, setAddClientError] = useState('');
+  const [addClientLoading, setAddClientLoading] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [newNote, setNewNote] = useState('');
   const [showAddNote, setShowAddNote] = useState(false);
@@ -101,10 +164,74 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     });
   };
 
+  const formatShareCode = (text: string): string => {
+    // Remove non-alphanumeric characters and uppercase
+    const cleaned = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    // Add dashes
+    let formatted = '';
+    for (let i = 0; i < cleaned.length && i < 9; i++) {
+      if (i > 0 && i % 3 === 0) {
+        formatted += '-';
+      }
+      formatted += cleaned[i];
+    }
+    return formatted;
+  };
+
   const handleAddClient = () => {
-    // This would typically validate and fetch client data
-    Alert.alert('Info', 'Enter the share code on the previous screen to add clients');
-    setShowAddClient(false);
+    const formattedCode = newClientCode.toUpperCase().trim();
+
+    if (formattedCode.length < 11) {
+      setAddClientError('Please enter a valid share code (e.g., ABC-123-XYZ)');
+      return;
+    }
+
+    // Check if client already added
+    const alreadyAdded = clients.some(c => c.shareCode === formattedCode);
+    if (alreadyAdded) {
+      setAddClientError('This client is already in your list');
+      return;
+    }
+
+    setAddClientLoading(true);
+    setAddClientError('');
+
+    // Simulate API call to find client
+    setTimeout(() => {
+      const client = DEMO_CLIENTS[formattedCode];
+
+      if (client) {
+        dispatch({ type: 'ADD_CLIENT', payload: client });
+        setShowAddClient(false);
+        setNewClientCode('');
+        setAddClientError('');
+        Alert.alert('Success', `${client.name} has been added to your clients!`);
+      } else {
+        // For demo, also accept any properly formatted code
+        if (/^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z0-9]{3}$/.test(formattedCode)) {
+          // Create a demo client with the entered code
+          const newClient: UserProfile = {
+            id: Date.now().toString(36),
+            name: 'New Client',
+            immigrationStatus: 'prefer_not_to_say',
+            location: { latitude: 0, longitude: 0 },
+            selectedCategories: ['healthcare'],
+            answers: [],
+            shareCode: formattedCode,
+            todos: [],
+            createdAt: new Date().toISOString(),
+          };
+          dispatch({ type: 'ADD_CLIENT', payload: newClient });
+          setShowAddClient(false);
+          setNewClientCode('');
+          setAddClientError('');
+          Alert.alert('Success', 'Client has been added to your list!');
+        } else {
+          setAddClientError('Invalid code format. Please try again.');
+        }
+      }
+      setAddClientLoading(false);
+    }, 1000);
   };
 
   const handleSendMessage = () => {
@@ -536,6 +663,67 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
 
       {/* Content */}
       {selectedClient ? renderClientDetail() : renderClientsList()}
+
+      {/* Add Client Modal */}
+      <Modal visible={showAddClient} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add New Client</Text>
+            <Text style={styles.addClientDescription}>
+              Enter the client's share code to connect with them
+            </Text>
+
+            <TextInput
+              style={styles.codeInput}
+              placeholder="ABC-123-XYZ"
+              value={newClientCode}
+              onChangeText={(text) => {
+                setNewClientCode(formatShareCode(text));
+                setAddClientError('');
+              }}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={11}
+              autoFocus
+            />
+
+            {addClientError ? (
+              <Text style={styles.addClientError}>{addClientError}</Text>
+            ) : null}
+
+            <View style={styles.demoHint}>
+              <Text style={styles.demoHintTitle}>Demo codes to try:</Text>
+              <Text style={styles.demoCode}>ABC-123-XYZ</Text>
+              <Text style={styles.demoCode}>DEF-456-UVW</Text>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setShowAddClient(false);
+                  setNewClientCode('');
+                  setAddClientError('');
+                }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalSaveButton,
+                  (newClientCode.length < 11 || addClientLoading) && styles.modalSaveButtonDisabled,
+                ]}
+                onPress={handleAddClient}
+                disabled={newClientCode.length < 11 || addClientLoading}
+              >
+                <Text style={styles.modalSaveText}>
+                  {addClientLoading ? 'Connecting...' : 'Connect'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1101,5 +1289,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
+  },
+  // Add Client Modal Styles
+  addClientDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  codeInput: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  addClientError: {
+    color: '#EF4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  demoHint: {
+    marginTop: 24,
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  demoHintTitle: {
+    fontSize: 14,
+    color: '#92400E',
+    marginBottom: 8,
+  },
+  demoCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#78350F',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
