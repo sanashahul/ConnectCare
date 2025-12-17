@@ -174,6 +174,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
         clientId: selectedClient.shareCode || selectedClient.id,
         todo: {
           title: newTaskTitle.trim(),
+          description: newTaskDescription.trim() || undefined,
           priority: newTaskPriority,
           category: newTaskCategory,
           completed: false,
@@ -183,6 +184,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     });
 
     setNewTaskTitle('');
+    setNewTaskDescription('');
     setNewTaskPriority('normal');
     setNewTaskCategory('other');
     setShowAddTask(false);
@@ -809,6 +811,16 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                 autoFocus
               />
 
+              <TextInput
+                style={styles.modalTextArea}
+                placeholder="Add a note for your client (optional)"
+                value={newTaskDescription}
+                onChangeText={setNewTaskDescription}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+
               <Text style={styles.modalLabel}>Category</Text>
               <View style={styles.categoryGrid}>
                 {TASK_CATEGORIES.map((cat) => (
@@ -876,6 +888,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                   onPress={() => {
                     setShowAddTask(false);
                     setNewTaskTitle('');
+                    setNewTaskDescription('');
                     setNewTaskCategory('other');
                   }}
                 >
@@ -1573,6 +1586,14 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     marginBottom: 16,
+  },
+  modalTextArea: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    marginBottom: 16,
+    minHeight: 80,
   },
   modalLabel: {
     fontSize: 14,

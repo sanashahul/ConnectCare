@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -46,6 +47,7 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
   const [messageInput, setMessageInput] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
+  const [selectedTask, setSelectedTask] = useState<CaseManagerTask | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const isSpanish = i18n.language === 'es';
@@ -469,11 +471,14 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
                   <TouchableOpacity
                     key={task.id}
                     style={styles.taskCard}
-                    onPress={() => handleToggleTaskStatus(task.id, task.status)}
+                    onPress={() => setSelectedTask(task)}
                   >
-                    <View style={styles.taskCheckbox}>
+                    <TouchableOpacity
+                      style={styles.taskCheckbox}
+                      onPress={() => handleToggleTaskStatus(task.id, task.status)}
+                    >
                       <Text style={styles.taskCheckboxIcon}>○</Text>
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.taskContent}>
                       <View style={styles.taskHeader}>
                         <Text style={styles.taskCategoryIcon}>
@@ -492,10 +497,13 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
                       </View>
                       <Text style={styles.taskTitle}>{task.title}</Text>
                       {task.description && (
-                        <Text style={styles.taskDescription}>{task.description}</Text>
+                        <Text style={styles.taskDescriptionPreview} numberOfLines={1}>
+                          {task.description}
+                        </Text>
                       )}
                       <Text style={styles.taskAssignedBy}>
                         {isSpanish ? 'Asignado por' : 'Assigned by'} {task.assignedByName}
+                        {task.description ? ' • Tap for details' : ''}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -587,6 +595,82 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
       {activeTab === 'messages' && renderMessagesTab()}
       {activeTab === 'tasks' && renderTasksTab()}
       {activeTab === 'notes' && renderNotesTab()}
+
+      {/* Task Detail Modal */}
+      <Modal visible={!!selectedTask} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {selectedTask && (
+              <>
+                <View style={styles.modalHeader}>
+                  <View style={styles.modalCategoryBadge}>
+                    <Text style={styles.modalCategoryIcon}>
+                      {TASK_CATEGORIES.find((c) => c.id === selectedTask.category)?.icon}
+                    </Text>
+                    <Text style={styles.modalCategoryText}>
+                      {isSpanish
+                        ? TASK_CATEGORIES.find((c) => c.id === selectedTask.category)?.labelEs
+                        : TASK_CATEGORIES.find((c) => c.id === selectedTask.category)?.label}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setSelectedTask(null)}>
+                    <Text style={styles.modalCloseButton}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.modalTaskTitle}>{selectedTask.title}</Text>
+
+                {selectedTask.description && (
+                  <View style={styles.modalNoteSection}>
+                    <Text style={styles.modalNoteLabel}>
+                      {isSpanish ? 'Nota de tu gestor:' : 'Note from your case manager:'}
+                    </Text>
+                    <View style={styles.modalNoteCard}>
+                      <Text style={styles.modalNoteText}>{selectedTask.description}</Text>
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.modalMeta}>
+                  <Text style={styles.modalMetaText}>
+                    {isSpanish ? 'Asignado por' : 'Assigned by'}: {selectedTask.assignedByName}
+                  </Text>
+                  <Text style={styles.modalMetaText}>
+                    {isSpanish ? 'Prioridad' : 'Priority'}: {selectedTask.priority === 'high' ? (isSpanish ? 'Alta' : 'High') : selectedTask.priority === 'medium' ? (isSpanish ? 'Media' : 'Medium') : (isSpanish ? 'Baja' : 'Low')}
+                  </Text>
+                </View>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.modalSecondaryButton}
+                    onPress={() => setSelectedTask(null)}
+                  >
+                    <Text style={styles.modalSecondaryButtonText}>
+                      {isSpanish ? 'Cerrar' : 'Close'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modalPrimaryButton,
+                      selectedTask.status === 'completed' && styles.modalUncompleteButton,
+                    ]}
+                    onPress={() => {
+                      handleToggleTaskStatus(selectedTask.id, selectedTask.status);
+                      setSelectedTask(null);
+                    }}
+                  >
+                    <Text style={styles.modalPrimaryButtonText}>
+                      {selectedTask.status === 'completed'
+                        ? (isSpanish ? 'Marcar Pendiente' : 'Mark as To Do')
+                        : (isSpanish ? 'Marcar Completada' : 'Mark Complete')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1079,6 +1163,121 @@ const styles = StyleSheet.create({
   noteAuthor: {
     fontSize: 12,
     color: '#94A3B8',
+    fontStyle: 'italic',
+  },
+  // Task Detail Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalCategoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDFA',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  modalCategoryIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  modalCategoryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0D9488',
+  },
+  modalCloseButton: {
+    fontSize: 24,
+    color: '#9CA3AF',
+    padding: 4,
+  },
+  modalTaskTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  modalNoteSection: {
+    marginBottom: 20,
+  },
+  modalNoteLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  modalNoteCard: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+  },
+  modalNoteText: {
+    fontSize: 15,
+    color: '#78350F',
+    lineHeight: 22,
+  },
+  modalMeta: {
+    marginBottom: 24,
+  },
+  modalMetaText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  modalSecondaryButtonText: {
+    fontSize: 16,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  modalPrimaryButton: {
+    flex: 2,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#0D9488',
+    alignItems: 'center',
+  },
+  modalUncompleteButton: {
+    backgroundColor: '#F59E0B',
+  },
+  modalPrimaryButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  taskDescriptionPreview: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
     fontStyle: 'italic',
   },
 });
