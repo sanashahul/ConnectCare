@@ -87,9 +87,21 @@ const DEMO_CLIENTS: Record<string, UserProfile> = {
   },
 };
 
+// Personal to-do type for case manager
+interface PersonalTodo {
+  id: string;
+  title: string;
+  clientId?: string; // Optional - link to a specific client
+  clientName?: string;
+  priority: 'urgent' | 'normal';
+  completed: boolean;
+  createdAt: string;
+}
+
 export const CaseWorkerDashboardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
+  const [mainView, setMainView] = useState<'clients' | 'mytasks'>('clients');
   const [selectedClient, setSelectedClient] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<'todos' | 'messages' | 'notes' | 'profile'>('todos');
   const [showAddTask, setShowAddTask] = useState(false);
@@ -106,6 +118,28 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const [showAddNote, setShowAddNote] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TodoItem | null>(null);
   const messagesScrollRef = useRef<ScrollView>(null);
+
+  // Personal to-dos state
+  const [personalTodos, setPersonalTodos] = useState<PersonalTodo[]>([
+    {
+      id: 'p1',
+      title: 'Review housing applications',
+      priority: 'urgent',
+      completed: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'p2',
+      title: 'Call county benefits office',
+      priority: 'normal',
+      completed: false,
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+  const [showAddPersonalTodo, setShowAddPersonalTodo] = useState(false);
+  const [newPersonalTodoTitle, setNewPersonalTodoTitle] = useState('');
+  const [newPersonalTodoPriority, setNewPersonalTodoPriority] = useState<'normal' | 'urgent'>('normal');
+  const [newPersonalTodoClient, setNewPersonalTodoClient] = useState<string | null>(null);
 
   const clients = state.connectedClients;
   const caseWorkerName = state.caseWorkerProfile?.name || 'Case Worker';
@@ -264,6 +298,183 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const handleAddPersonalTodo = () => {
+    if (!newPersonalTodoTitle.trim()) return;
+
+    const selectedClientData = newPersonalTodoClient
+      ? clients.find(c => c.id === newPersonalTodoClient || c.shareCode === newPersonalTodoClient)
+      : null;
+
+    const newTodo: PersonalTodo = {
+      id: Date.now().toString(36),
+      title: newPersonalTodoTitle.trim(),
+      clientId: newPersonalTodoClient || undefined,
+      clientName: selectedClientData?.name,
+      priority: newPersonalTodoPriority,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    setPersonalTodos([newTodo, ...personalTodos]);
+    setNewPersonalTodoTitle('');
+    setNewPersonalTodoPriority('normal');
+    setNewPersonalTodoClient(null);
+    setShowAddPersonalTodo(false);
+  };
+
+  const handleTogglePersonalTodo = (todoId: string) => {
+    setPersonalTodos(personalTodos.map(todo =>
+      todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+    ));
+  };
+
+  const handleDeletePersonalTodo = (todoId: string) => {
+    Alert.alert(
+      'Delete Task',
+      'Are you sure you want to delete this task?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setPersonalTodos(personalTodos.filter(t => t.id !== todoId)),
+        },
+      ]
+    );
+  };
+
+  const renderMyTasks = () => {
+    const pendingTodos = personalTodos.filter(t => !t.completed);
+    const completedTodos = personalTodos.filter(t => t.completed);
+
+    // Group by client
+    const todosByClient: Record<string, PersonalTodo[]> = { 'general': [] };
+    pendingTodos.forEach(todo => {
+      if (todo.clientId && todo.clientName) {
+        if (!todosByClient[todo.clientId]) {
+          todosByClient[todo.clientId] = [];
+        }
+        todosByClient[todo.clientId].push(todo);
+      } else {
+        todosByClient['general'].push(todo);
+      }
+    });
+
+    return (
+      <ScrollView style={styles.myTasksContainer}>
+        <TouchableOpacity
+          style={styles.addPersonalTodoButton}
+          onPress={() => setShowAddPersonalTodo(true)}
+        >
+          <Text style={styles.addPersonalTodoText}>+ Add Personal Task</Text>
+        </TouchableOpacity>
+
+        {/* General tasks (not linked to a client) */}
+        {todosByClient['general'].length > 0 && (
+          <View style={styles.taskSection}>
+            <Text style={styles.taskSectionTitle}>📋 General Tasks</Text>
+            {todosByClient['general'].map(todo => (
+              <TouchableOpacity
+                key={todo.id}
+                style={styles.personalTodoItem}
+                onPress={() => handleTogglePersonalTodo(todo.id)}
+                onLongPress={() => handleDeletePersonalTodo(todo.id)}
+              >
+                <View style={styles.todoCheckbox}>
+                  <View style={styles.checkbox} />
+                </View>
+                <View style={styles.todoContent}>
+                  <Text style={styles.todoTitle}>{todo.title}</Text>
+                  {todo.priority === 'urgent' && (
+                    <View style={styles.urgentBadge}>
+                      <Text style={styles.urgentText}>Urgent</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Tasks grouped by client */}
+        {Object.entries(todosByClient)
+          .filter(([key]) => key !== 'general')
+          .map(([clientId, todos]) => {
+            const client = clients.find(c => c.id === clientId || c.shareCode === clientId);
+            return (
+              <View key={clientId} style={styles.taskSection}>
+                <View style={styles.clientTaskHeader}>
+                  <View style={styles.clientTaskAvatar}>
+                    <Text style={styles.clientTaskAvatarText}>
+                      {client?.name.charAt(0).toUpperCase() || '?'}
+                    </Text>
+                  </View>
+                  <Text style={styles.taskSectionTitle}>{client?.name || 'Client'}</Text>
+                </View>
+                {todos.map(todo => (
+                  <TouchableOpacity
+                    key={todo.id}
+                    style={styles.personalTodoItem}
+                    onPress={() => handleTogglePersonalTodo(todo.id)}
+                    onLongPress={() => handleDeletePersonalTodo(todo.id)}
+                  >
+                    <View style={styles.todoCheckbox}>
+                      <View style={styles.checkbox} />
+                    </View>
+                    <View style={styles.todoContent}>
+                      <Text style={styles.todoTitle}>{todo.title}</Text>
+                      {todo.priority === 'urgent' && (
+                        <View style={styles.urgentBadge}>
+                          <Text style={styles.urgentText}>Urgent</Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            );
+          })}
+
+        {/* Completed tasks */}
+        {completedTodos.length > 0 && (
+          <View style={styles.taskSection}>
+            <Text style={styles.completedHeader}>Completed ({completedTodos.length})</Text>
+            {completedTodos.map(todo => (
+              <TouchableOpacity
+                key={todo.id}
+                style={[styles.personalTodoItem, styles.todoItemCompleted]}
+                onPress={() => handleTogglePersonalTodo(todo.id)}
+                onLongPress={() => handleDeletePersonalTodo(todo.id)}
+              >
+                <View style={styles.todoCheckbox}>
+                  <View style={[styles.checkbox, styles.checkboxChecked]}>
+                    <Text style={styles.checkmark}>✓</Text>
+                  </View>
+                </View>
+                <View style={styles.todoContent}>
+                  <Text style={[styles.todoTitle, styles.todoTitleCompleted]}>{todo.title}</Text>
+                  {todo.clientName && (
+                    <Text style={styles.todoClientName}>For: {todo.clientName}</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {pendingTodos.length === 0 && completedTodos.length === 0 && (
+          <View style={styles.emptyTasks}>
+            <Text style={styles.emptyIcon}>✅</Text>
+            <Text style={styles.emptyTitle}>No personal tasks</Text>
+            <Text style={styles.emptySubtitle}>Add tasks to track your work for clients</Text>
+          </View>
+        )}
+
+        <Text style={styles.taskHint}>Long press to delete a task</Text>
+      </ScrollView>
+    );
   };
 
   const renderClientsList = () => (
@@ -696,8 +907,34 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
         <Text style={styles.title}>{t('caseworker.dashboard.title')}</Text>
       </View>
 
+      {/* Main Tab Bar */}
+      {!selectedClient && (
+        <View style={styles.mainTabBar}>
+          <TouchableOpacity
+            style={[styles.mainTab, mainView === 'clients' && styles.mainTabActive]}
+            onPress={() => setMainView('clients')}
+          >
+            <Text style={[styles.mainTabText, mainView === 'clients' && styles.mainTabTextActive]}>
+              👥 My Clients
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.mainTab, mainView === 'mytasks' && styles.mainTabActive]}
+            onPress={() => setMainView('mytasks')}
+          >
+            <Text style={[styles.mainTabText, mainView === 'mytasks' && styles.mainTabTextActive]}>
+              ✓ My Tasks
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Content */}
-      {selectedClient ? renderClientDetail() : renderClientsList()}
+      {selectedClient
+        ? renderClientDetail()
+        : mainView === 'clients'
+          ? renderClientsList()
+          : renderMyTasks()}
 
       {/* Add Client Modal */}
       <Modal visible={showAddClient} animationType="slide" transparent>
@@ -759,6 +996,118 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Add Personal Todo Modal */}
+      <Modal visible={showAddPersonalTodo} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Personal Task</Text>
+            <Text style={styles.addClientDescription}>
+              Track your own to-dos for client support
+            </Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="What do you need to do?"
+              value={newPersonalTodoTitle}
+              onChangeText={setNewPersonalTodoTitle}
+              autoFocus
+            />
+
+            <Text style={styles.modalLabel}>Link to Client (Optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.clientSelector}>
+              <TouchableOpacity
+                style={[
+                  styles.clientSelectorItem,
+                  !newPersonalTodoClient && styles.clientSelectorItemActive,
+                ]}
+                onPress={() => setNewPersonalTodoClient(null)}
+              >
+                <Text style={[
+                  styles.clientSelectorText,
+                  !newPersonalTodoClient && styles.clientSelectorTextActive,
+                ]}>
+                  None
+                </Text>
+              </TouchableOpacity>
+              {clients.map(client => (
+                <TouchableOpacity
+                  key={client.id}
+                  style={[
+                    styles.clientSelectorItem,
+                    newPersonalTodoClient === client.id && styles.clientSelectorItemActive,
+                  ]}
+                  onPress={() => setNewPersonalTodoClient(client.id)}
+                >
+                  <Text style={[
+                    styles.clientSelectorText,
+                    newPersonalTodoClient === client.id && styles.clientSelectorTextActive,
+                  ]}>
+                    {client.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.modalLabel}>Priority</Text>
+            <View style={styles.priorityButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  newPersonalTodoPriority === 'normal' && styles.priorityButtonActive,
+                ]}
+                onPress={() => setNewPersonalTodoPriority('normal')}
+              >
+                <Text style={[
+                  styles.priorityButtonText,
+                  newPersonalTodoPriority === 'normal' && styles.priorityButtonTextActive,
+                ]}>
+                  Normal
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.priorityButton,
+                  styles.priorityButtonUrgent,
+                  newPersonalTodoPriority === 'urgent' && styles.priorityButtonUrgentActive,
+                ]}
+                onPress={() => setNewPersonalTodoPriority('urgent')}
+              >
+                <Text style={[
+                  styles.priorityButtonText,
+                  newPersonalTodoPriority === 'urgent' && styles.priorityButtonTextUrgentActive,
+                ]}>
+                  Urgent
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => {
+                  setShowAddPersonalTodo(false);
+                  setNewPersonalTodoTitle('');
+                  setNewPersonalTodoClient(null);
+                  setNewPersonalTodoPriority('normal');
+                }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalSaveButton,
+                  !newPersonalTodoTitle.trim() && styles.modalSaveButtonDisabled,
+                ]}
+                onPress={handleAddPersonalTodo}
+                disabled={!newPersonalTodoTitle.trim()}
+              >
+                <Text style={styles.modalSaveText}>Add Task</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -781,6 +1130,131 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
+  },
+  // Main Tab Bar Styles
+  mainTabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  mainTab: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  mainTabActive: {
+    backgroundColor: '#0D9488',
+  },
+  mainTabText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  mainTabTextActive: {
+    color: '#FFFFFF',
+  },
+  // My Tasks Styles
+  myTasksContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  addPersonalTodoButton: {
+    backgroundColor: '#0D9488',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  addPersonalTodoText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  taskSection: {
+    marginBottom: 20,
+  },
+  taskSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  clientTaskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  clientTaskAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  clientTaskAvatarText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2563EB',
+  },
+  personalTodoItem: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  todoClientName: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  emptyTasks: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  taskHint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+    fontStyle: 'italic',
+  },
+  // Client Selector Styles
+  clientSelector: {
+    marginBottom: 16,
+  },
+  clientSelectorItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    marginRight: 8,
+  },
+  clientSelectorItemActive: {
+    borderColor: '#0D9488',
+    backgroundColor: '#F0FDFA',
+  },
+  clientSelectorText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  clientSelectorTextActive: {
+    color: '#0D9488',
+    fontWeight: '600',
   },
   clientsList: {
     flex: 1,
