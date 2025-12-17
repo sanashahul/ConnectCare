@@ -107,3 +107,65 @@ export interface Resource {
   acceptsWalkIns?: boolean;
   languages?: string[];
 }
+
+// ============================================
+// CASE MANAGER COLLABORATION TYPES
+// ============================================
+
+export type TaskCategory = 'housing' | 'employment' | 'healthcare' | 'documents' | 'benefits' | 'education' | 'other';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type TaskPriority = 'high' | 'medium' | 'low';
+
+export interface CaseManagerMessage {
+  id: string;
+  senderId: string;
+  senderType: 'user' | 'caseManager';
+  senderName: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}
+
+export interface CaseManagerTask {
+  id: string;
+  title: string;
+  description?: string;
+  category: TaskCategory;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate?: string;
+  assignedBy: 'user' | 'caseManager';
+  assignedByName: string;
+  createdAt: string;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface CaseManagerNote {
+  id: string;
+  title: string;
+  content: string;
+  createdBy: 'caseManager';
+  createdByName: string;
+  createdAt: string;
+  updatedAt?: string;
+  isPrivate: boolean; // If true, only case manager can see
+}
+
+export interface CaseManagerConnection {
+  id: string;
+  caseManagerId: string;
+  caseManagerName: string;
+  caseManagerEmail?: string;
+  connectedAt: string;
+  status: 'pending' | 'active' | 'disconnected';
+}
+
+export interface CaseManagerData {
+  connection: CaseManagerConnection | null;
+  messages: CaseManagerMessage[];
+  tasks: CaseManagerTask[];
+  notes: CaseManagerNote[];
+  unreadMessages: number;
+  pendingTasks: number;
+}

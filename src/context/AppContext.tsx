@@ -10,12 +10,21 @@ import {
   TodoItem,
   UserRole,
   AgeGroup,
+  CaseManagerData,
+  CaseManagerMessage,
+  CaseManagerTask,
+  CaseManagerNote,
+  CaseManagerConnection,
+  TaskCategory,
+  TaskStatus,
+  TaskPriority,
 } from '../types';
 
 // Storage keys
 const USER_PROFILE_KEY = '@connectcare_user_profile';
 const CASEWORKER_PROFILE_KEY = '@connectcare_caseworker_profile';
 const CLIENTS_KEY = '@connectcare_clients';
+const CASE_MANAGER_DATA_KEY = '@connectcare_case_manager_data';
 
 // Generate a share code
 export const generateShareCode = (): string => {
@@ -35,6 +44,16 @@ const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+// Empty case manager data
+const createEmptyCaseManagerData = (): CaseManagerData => ({
+  connection: null,
+  messages: [],
+  tasks: [],
+  notes: [],
+  unreadMessages: 0,
+  pendingTasks: 0,
+});
+
 interface AppState {
   userRole: UserRole | null;
   userProfile: UserProfile | null;
@@ -43,6 +62,7 @@ interface AppState {
   currentClientId: string | null;
   isLoading: boolean;
   onboardingStep: number;
+  caseManagerData: CaseManagerData;
 }
 
 type AppAction =
@@ -65,7 +85,16 @@ type AppAction =
   | { type: 'ADD_CLIENT_TODO'; payload: { clientId: string; todo: Omit<TodoItem, 'id' | 'createdAt'> } }
   | { type: 'TOGGLE_CLIENT_TODO'; payload: { clientId: string; todoId: string } }
   | { type: 'LOAD_STATE'; payload: Partial<AppState> }
-  | { type: 'RESET_STATE' };
+  | { type: 'RESET_STATE' }
+  // Case Manager Collaboration Actions
+  | { type: 'SET_CM_CONNECTION'; payload: CaseManagerConnection | null }
+  | { type: 'ADD_CM_MESSAGE'; payload: Omit<CaseManagerMessage, 'id' | 'timestamp'> }
+  | { type: 'MARK_CM_MESSAGES_READ' }
+  | { type: 'ADD_CM_TASK'; payload: Omit<CaseManagerTask, 'id' | 'createdAt'> }
+  | { type: 'UPDATE_CM_TASK_STATUS'; payload: { taskId: string; status: TaskStatus } }
+  | { type: 'DELETE_CM_TASK'; payload: string }
+  | { type: 'ADD_CM_NOTE'; payload: Omit<CaseManagerNote, 'id' | 'createdAt'> }
+  | { type: 'LOAD_CM_DATA'; payload: CaseManagerData };
 
 const initialState: AppState = {
   userRole: null,
@@ -75,6 +104,7 @@ const initialState: AppState = {
   currentClientId: null,
   isLoading: true,
   onboardingStep: 0,
+  caseManagerData: createEmptyCaseManagerData(),
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -254,6 +284,119 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'RESET_STATE':
       return { ...initialState, isLoading: false };
 
+    // Case Manager Collaboration Reducers
+    case 'SET_CM_CONNECTION':
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          connection: action.payload,
+        },
+      };
+
+    case 'ADD_CM_MESSAGE': {
+      const newMessage: CaseManagerMessage = {
+        ...action.payload,
+        id: generateId(),
+        timestamp: new Date().toISOString(),
+      };
+      const isFromCaseManager = action.payload.senderType === 'caseManager';
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          messages: [...state.caseManagerData.messages, newMessage],
+          unreadMessages: isFromCaseManager
+            ? state.caseManagerData.unreadMessages + 1
+            : state.caseManagerData.unreadMessages,
+        },
+      };
+    }
+
+    case 'MARK_CM_MESSAGES_READ':
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          messages: state.caseManagerData.messages.map((msg) => ({ ...msg, read: true })),
+          unreadMessages: 0,
+        },
+      };
+
+    case 'ADD_CM_TASK': {
+      const newTask: CaseManagerTask = {
+        ...action.payload,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      const pendingCount = action.payload.status === 'pending' || action.payload.status === 'in_progress'
+        ? state.caseManagerData.pendingTasks + 1
+        : state.caseManagerData.pendingTasks;
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          tasks: [...state.caseManagerData.tasks, newTask],
+          pendingTasks: pendingCount,
+        },
+      };
+    }
+
+    case 'UPDATE_CM_TASK_STATUS': {
+      const tasks = state.caseManagerData.tasks.map((task) =>
+        task.id === action.payload.taskId
+          ? {
+              ...task,
+              status: action.payload.status,
+              completedAt: action.payload.status === 'completed' ? new Date().toISOString() : undefined,
+            }
+          : task
+      );
+      const pendingTasks = tasks.filter((t) => t.status !== 'completed').length;
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          tasks,
+          pendingTasks,
+        },
+      };
+    }
+
+    case 'DELETE_CM_TASK': {
+      const tasks = state.caseManagerData.tasks.filter((t) => t.id !== action.payload);
+      const pendingTasks = tasks.filter((t) => t.status !== 'completed').length;
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          tasks,
+          pendingTasks,
+        },
+      };
+    }
+
+    case 'ADD_CM_NOTE': {
+      const newNote: CaseManagerNote = {
+        ...action.payload,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      return {
+        ...state,
+        caseManagerData: {
+          ...state.caseManagerData,
+          notes: [...state.caseManagerData.notes, newNote],
+        },
+      };
+    }
+
+    case 'LOAD_CM_DATA':
+      return {
+        ...state,
+        caseManagerData: action.payload,
+      };
+
     default:
       return state;
   }
@@ -291,14 +434,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (!state.isLoading) {
       saveState();
     }
-  }, [state.userProfile, state.caseWorkerProfile, state.connectedClients]);
+  }, [state.userProfile, state.caseWorkerProfile, state.connectedClients, state.caseManagerData]);
 
   const loadSavedState = async () => {
     try {
-      const [userProfileStr, caseWorkerStr, clientsStr] = await Promise.all([
+      const [userProfileStr, caseWorkerStr, clientsStr, cmDataStr] = await Promise.all([
         AsyncStorage.getItem(USER_PROFILE_KEY),
         AsyncStorage.getItem(CASEWORKER_PROFILE_KEY),
         AsyncStorage.getItem(CLIENTS_KEY),
+        AsyncStorage.getItem(CASE_MANAGER_DATA_KEY),
       ]);
 
       const loadedState: Partial<AppState> = {};
@@ -317,6 +461,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       if (clientsStr) {
         loadedState.connectedClients = JSON.parse(clientsStr);
+      }
+
+      if (cmDataStr) {
+        loadedState.caseManagerData = JSON.parse(cmDataStr);
       }
 
       dispatch({ type: 'LOAD_STATE', payload: loadedState });
@@ -347,6 +495,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           AsyncStorage.setItem(CLIENTS_KEY, JSON.stringify(state.connectedClients))
         );
       }
+
+      // Always save case manager data (even if empty, to ensure clean state)
+      promises.push(
+        AsyncStorage.setItem(CASE_MANAGER_DATA_KEY, JSON.stringify(state.caseManagerData))
+      );
 
       await Promise.all(promises);
     } catch (error) {

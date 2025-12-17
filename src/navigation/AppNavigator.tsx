@@ -14,6 +14,7 @@ import {
   HealthScreen,
   JobsScreen,
   HousingScreen,
+  CaseManagerScreen,
   CaseWorkerEntryScreen,
   CaseWorkerDashboardScreen,
 } from '../screens';
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Health: undefined;
   Jobs: undefined;
   Housing: undefined;
+  CaseManager: undefined;
   CaseWorkerEntry: undefined;
   CaseWorkerDashboard: undefined;
 };
@@ -93,6 +95,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Health" component={HealthScreen} />
         <Stack.Screen name="Jobs" component={JobsScreen} />
         <Stack.Screen name="Housing" component={HousingScreen} />
+        <Stack.Screen name="CaseManager" component={CaseManagerScreen} />
 
         {/* Case Worker */}
         <Stack.Screen name="CaseWorkerEntry" component={CaseWorkerEntryScreen} />

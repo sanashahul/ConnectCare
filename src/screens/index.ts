@@ -14,6 +14,7 @@ export { DashboardScreen } from './dashboard/DashboardScreen';
 export { HealthScreen } from './dashboard/HealthScreen';
 export { JobsScreen } from './dashboard/JobsScreen';
 export { HousingScreen } from './dashboard/HousingScreen';
+export { CaseManagerScreen } from './dashboard/CaseManagerScreen';
 
 // Case Worker
 export { CaseWorkerEntryScreen } from './caseworker/CaseWorkerEntryScreen';

@@ -19,7 +19,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
-import * as Clipboard from 'expo-clipboard';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
@@ -1118,7 +1117,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [showAI, setShowAI] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
-  const [codeCopied, setCodeCopied] = useState(false);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
@@ -1134,14 +1132,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
-
-  const handleCopyCode = async () => {
-    if (userProfile?.shareCode) {
-      await Clipboard.setStringAsync(userProfile.shareCode);
-      setCodeCopied(true);
-      setTimeout(() => setCodeCopied(false), 2000);
-    }
-  };
 
   const handleAITopic = async (topicId: string) => {
     const topic = AI_TOPICS.find((t) => t.id === topicId);
@@ -1424,6 +1414,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </Text>
           <Text style={styles.categorySubLabel}>
             {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Connect with Case Manager */}
+        <TouchableOpacity
+          style={[styles.categoryCard, styles.caseManagerCard]}
+          onPress={() => navigation.navigate('CaseManager')}
+        >
+          <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
+            <Text style={styles.categoryIcon}>👤</Text>
+          </View>
+          <Text style={styles.categoryLabel}>
+            {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
+          </Text>
+          <Text style={styles.categorySubLabel}>
+            {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -1803,23 +1809,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         </View>
 
-        {/* Share Code Card */}
-        {userProfile?.shareCode && (
-          <TouchableOpacity style={styles.shareCodeCard} onPress={handleCopyCode}>
-            <View style={styles.shareCodeContent}>
-              <Text style={styles.shareCodeLabel}>
-                {isSpanish ? 'Tu Código de Compartir' : 'Your Share Code'}
-              </Text>
-              <Text style={styles.shareCode}>{userProfile.shareCode}</Text>
-            </View>
-            <View style={styles.copyButton}>
-              <Text style={styles.copyButtonText}>
-                {codeCopied ? '✓' : isSpanish ? 'Copiar' : 'Copy'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-
         {/* Youth Support Banner - for users under 18 */}
         {userProfile?.ageGroup === 'under18' && (() => {
           const stateCode = userProfile?.location?.state || '';
@@ -2160,46 +2149,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
   },
-  shareCodeCard: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    backgroundColor: '#F0FDFA',
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 2,
-    borderColor: '#CCFBF1',
-  },
-  shareCodeContent: {
-    flex: 1,
-  },
-  shareCodeLabel: {
-    fontSize: 13,
-    color: '#0D9488',
-    fontWeight: '600',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  shareCode: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: 2,
-  },
-  copyButton: {
-    backgroundColor: '#0D9488',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  copyButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 14,
-  },
   sectionHeader: {
     fontSize: 20,
     fontWeight: '700',
@@ -2523,6 +2472,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F9FF',
     borderWidth: 2,
     borderColor: '#DBEAFE',
+  },
+  caseManagerCard: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 2,
+    borderColor: '#CCFBF1',
   },
   categorySubLabel: {
     fontSize: 12,
