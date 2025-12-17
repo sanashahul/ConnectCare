@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,21 +9,40 @@ import {
   TextInput,
   Modal,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
-import { UserProfile, ServiceCategory, TodoItem } from '../../types';
+import { UserProfile, ServiceCategory, TodoItem, TaskCategory } from '../../types';
+
+const TASK_CATEGORIES: { id: TaskCategory; label: string; icon: string }[] = [
+  { id: 'housing', label: 'Housing', icon: '🏠' },
+  { id: 'employment', label: 'Jobs', icon: '💼' },
+  { id: 'healthcare', label: 'Health', icon: '🏥' },
+  { id: 'documents', label: 'Docs', icon: '📄' },
+  { id: 'benefits', label: 'Benefits', icon: '💳' },
+  { id: 'education', label: 'Education', icon: '📚' },
+  { id: 'other', label: 'Other', icon: '📌' },
+];
 
 export const CaseWorkerDashboardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [selectedClient, setSelectedClient] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'todos' | 'resources'>('todos');
+  const [activeTab, setActiveTab] = useState<'todos' | 'messages' | 'notes' | 'profile'>('todos');
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'normal' | 'urgent'>('normal');
+  const [newTaskCategory, setNewTaskCategory] = useState<TaskCategory>('other');
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientCode, setNewClientCode] = useState('');
+  const [messageInput, setMessageInput] = useState('');
+  const [newNote, setNewNote] = useState('');
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TodoItem | null>(null);
+  const messagesScrollRef = useRef<ScrollView>(null);
 
   const clients = state.connectedClients;
   const caseWorkerName = state.caseWorkerProfile?.name || 'Case Worker';
@@ -86,6 +105,36 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     // This would typically validate and fetch client data
     Alert.alert('Info', 'Enter the share code on the previous screen to add clients');
     setShowAddClient(false);
+  };
+
+  const handleSendMessage = () => {
+    if (!selectedClient || !messageInput.trim()) return;
+
+    // In a real app, this would send to the user's CaseManagerData
+    // For now, we'll show an alert since we need backend sync
+    Alert.alert(
+      'Message Sent',
+      `Your message to ${selectedClient.name} has been sent.`,
+      [{ text: 'OK' }]
+    );
+    setMessageInput('');
+  };
+
+  const handleAddNote = () => {
+    if (!selectedClient || !newNote.trim()) return;
+
+    Alert.alert(
+      'Note Added',
+      'Your note has been saved.',
+      [{ text: 'OK' }]
+    );
+    setNewNote('');
+    setShowAddNote(false);
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const renderClientsList = () => (
@@ -178,26 +227,32 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
             style={[styles.detailTab, activeTab === 'todos' && styles.detailTabActive]}
             onPress={() => setActiveTab('todos')}
           >
-            <Text
-              style={[
-                styles.detailTabText,
-                activeTab === 'todos' && styles.detailTabTextActive,
-              ]}
-            >
-              {t('caseworker.clientDetail.todos')}
+            <Text style={[styles.detailTabText, activeTab === 'todos' && styles.detailTabTextActive]}>
+              📋 Tasks
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.detailTab, activeTab === 'messages' && styles.detailTabActive]}
+            onPress={() => setActiveTab('messages')}
+          >
+            <Text style={[styles.detailTabText, activeTab === 'messages' && styles.detailTabTextActive]}>
+              💬 Chat
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.detailTab, activeTab === 'notes' && styles.detailTabActive]}
+            onPress={() => setActiveTab('notes')}
+          >
+            <Text style={[styles.detailTabText, activeTab === 'notes' && styles.detailTabTextActive]}>
+              📝 Notes
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.detailTab, activeTab === 'profile' && styles.detailTabActive]}
             onPress={() => setActiveTab('profile')}
           >
-            <Text
-              style={[
-                styles.detailTabText,
-                activeTab === 'profile' && styles.detailTabTextActive,
-              ]}
-            >
-              {t('caseworker.clientDetail.profile')}
+            <Text style={[styles.detailTabText, activeTab === 'profile' && styles.detailTabTextActive]}>
+              👤 Profile
             </Text>
           </TouchableOpacity>
         </View>
@@ -261,6 +316,89 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                   ))}
                 </>
               )}
+            </View>
+          )}
+
+          {activeTab === 'messages' && (
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.messagesContainer}
+            >
+              <ScrollView
+                ref={messagesScrollRef}
+                style={styles.messagesList}
+                contentContainerStyle={styles.messagesContent}
+              >
+                {/* Demo messages */}
+                <View style={styles.messageDate}>
+                  <Text style={styles.messageDateText}>Today</Text>
+                </View>
+                <View style={[styles.messageBubble, styles.messageBubbleClient]}>
+                  <Text style={styles.messageText}>Hi, I have a question about my housing application.</Text>
+                  <Text style={styles.messageTime}>9:30 AM</Text>
+                </View>
+                <View style={[styles.messageBubble, styles.messageBubbleCM]}>
+                  <Text style={[styles.messageText, styles.messageTextCM]}>Of course! What would you like to know?</Text>
+                  <Text style={[styles.messageTime, styles.messageTimeCM]}>9:32 AM</Text>
+                </View>
+                <View style={styles.emptyMessages}>
+                  <Text style={styles.emptyMessagesText}>
+                    Messages sync with the client's app in real-time
+                  </Text>
+                </View>
+              </ScrollView>
+              <View style={styles.messageInputContainer}>
+                <TextInput
+                  style={styles.messageInput}
+                  placeholder="Type a message..."
+                  value={messageInput}
+                  onChangeText={setMessageInput}
+                  multiline
+                />
+                <TouchableOpacity
+                  style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
+                  onPress={handleSendMessage}
+                  disabled={!messageInput.trim()}
+                >
+                  <Text style={styles.sendButtonText}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          )}
+
+          {activeTab === 'notes' && (
+            <View style={styles.notesContainer}>
+              <TouchableOpacity
+                style={styles.addNoteButton}
+                onPress={() => setShowAddNote(true)}
+              >
+                <Text style={styles.addNoteText}>+ Add Note</Text>
+              </TouchableOpacity>
+
+              {/* Demo notes */}
+              <View style={styles.noteCard}>
+                <View style={styles.noteHeader}>
+                  <Text style={styles.noteTitle}>Initial Assessment</Text>
+                  <Text style={styles.noteDate}>Dec 15</Text>
+                </View>
+                <Text style={styles.noteContent}>
+                  Client is stable but needs assistance with housing voucher application.
+                  Follow up next week on document collection.
+                </Text>
+              </View>
+              <View style={styles.noteCard}>
+                <View style={styles.noteHeader}>
+                  <Text style={styles.noteTitle}>Housing Progress</Text>
+                  <Text style={styles.noteDate}>Dec 10</Text>
+                </View>
+                <Text style={styles.noteContent}>
+                  Submitted Section 8 application. Waiting list estimated 3-6 months.
+                </Text>
+              </View>
+
+              <Text style={styles.notesInfo}>
+                Notes are visible to the client in their app
+              </Text>
             </View>
           )}
 
@@ -811,5 +949,157 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  // Messages Tab Styles
+  messagesContainer: {
+    flex: 1,
+  },
+  messagesList: {
+    flex: 1,
+  },
+  messagesContent: {
+    padding: 16,
+  },
+  messageDate: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  messageDateText: {
+    fontSize: 12,
+    color: '#6B7280',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  messageBubbleClient: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F3F4F6',
+    borderBottomLeftRadius: 4,
+  },
+  messageBubbleCM: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#0D9488',
+    borderBottomRightRadius: 4,
+  },
+  messageText: {
+    fontSize: 15,
+    color: '#1F2937',
+    lineHeight: 20,
+  },
+  messageTextCM: {
+    color: '#FFFFFF',
+  },
+  messageTime: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  messageTimeCM: {
+    color: 'rgba(255,255,255,0.7)',
+  },
+  emptyMessages: {
+    alignItems: 'center',
+    marginTop: 32,
+    padding: 20,
+  },
+  emptyMessagesText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  messageInputContainer: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    alignItems: 'flex-end',
+  },
+  messageInput: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 15,
+    maxHeight: 100,
+    marginRight: 8,
+  },
+  sendButton: {
+    backgroundColor: '#0D9488',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  sendButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  // Notes Tab Styles
+  notesContainer: {
+    flex: 1,
+  },
+  addNoteButton: {
+    backgroundColor: '#0D9488',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addNoteText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  noteCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#0D9488',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  noteTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  noteDate: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  noteContent: {
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+  notesInfo: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 16,
+    fontStyle: 'italic',
   },
 });
