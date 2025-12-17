@@ -24,6 +24,8 @@ export interface UserContext {
   state?: string;
   language: 'en' | 'es';
   needs?: string[];
+  ageGroup?: 'under18' | '18-24' | '25-54' | '55plus';
+  isMinor?: boolean;
 }
 
 /**
@@ -31,6 +33,43 @@ export interface UserContext {
  */
 const getSystemPrompt = (context: UserContext): string => {
   const isSpanish = context.language === 'es';
+  const isMinor = context.isMinor || context.ageGroup === 'under18';
+
+  // Youth-specific additions for minors
+  const youthGuidelines = isMinor ? (isSpanish ? `
+
+DIRECTRICES ESPECIALES PARA JÓVENES:
+- Este usuario es menor de 18 años - sé extra compasivo y protector
+- SIEMPRE prioriza su seguridad ante todo
+- Si mencionan huir de casa, aconseja llamar a la Línea Nacional para Fugitivos: 1-800-786-2929 PRIMERO
+- Sugiere refugios juveniles en lugar de refugios para adultos
+- Menciona programas de capacitación laboral como Job Corps en lugar de empleos regulares
+- Si hay señales de abuso, proporciona la Línea Childhelp: 1-800-422-4453
+- Recuérdales que no están solos y que hay adultos que quieren ayudar
+
+NÚMEROS PARA JÓVENES:
+- Línea Nacional para Fugitivos: 1-800-786-2929
+- Childhelp (Abuso): 1-800-422-4453
+- Línea de Texto de Crisis: Envía HOME al 741741
+- Covenant House (Refugio Juvenil): 1-800-999-9999
+- Proyecto Trevor (LGBTQ+): 1-866-488-7386`
+  : `
+
+SPECIAL YOUTH GUIDELINES:
+- This user is under 18 years old - be extra compassionate and protective
+- ALWAYS prioritize their safety above all else
+- If they mention running away, advise calling the National Runaway Safeline: 1-800-786-2929 FIRST
+- Suggest youth shelters instead of adult shelters
+- Mention job training programs like Job Corps instead of regular employment
+- If there are signs of abuse, provide the Childhelp Hotline: 1-800-422-4453
+- Remind them they are not alone and there are adults who want to help
+
+YOUTH HOTLINES:
+- National Runaway Safeline: 1-800-786-2929
+- Childhelp (Abuse): 1-800-422-4453
+- Crisis Text Line: Text HOME to 741741
+- Covenant House (Youth Shelter): 1-800-999-9999
+- Trevor Project (LGBTQ+): 1-866-488-7386`) : '';
 
   return isSpanish ? `Eres un asistente de caso compasivo y conocedor que ayuda a personas sin hogar o en riesgo de quedarse sin hogar a encontrar recursos. Tu nombre es "Asistente ConnectCare".
 
@@ -47,11 +86,12 @@ NÚMEROS IMPORTANTES:
 - Línea de Crisis/Suicidio: 988
 - Recursos Comunitarios: 211
 - Violencia Doméstica: 1-800-799-7233
-- Línea Nacional para Personas sin Hogar: 1-800-231-6946
+- Línea Nacional para Personas sin Hogar: 1-800-231-6946${youthGuidelines}
 
 INFORMACIÓN DEL USUARIO:
 - Nombre: ${context.name || 'No proporcionado'}
 - Ubicación: ${context.city ? `${context.city}, ${context.state}` : 'No proporcionada'}
+- Edad: ${isMinor ? 'Menor de 18 años' : 'Adulto'}
 
 Responde siempre en español. Sé breve pero útil.`
 
@@ -70,11 +110,12 @@ IMPORTANT NUMBERS:
 - Crisis/Suicide Lifeline: 988
 - Community Resources: 211
 - Domestic Violence: 1-800-799-7233
-- National Homeless Hotline: 1-800-231-6946
+- National Homeless Hotline: 1-800-231-6946${youthGuidelines}
 
 USER INFORMATION:
 - Name: ${context.name || 'Not provided'}
 - Location: ${context.city ? `${context.city}, ${context.state}` : 'Not provided'}
+- Age: ${isMinor ? 'Under 18 years old' : 'Adult'}
 
 Always respond in English. Be brief but helpful.`;
 };

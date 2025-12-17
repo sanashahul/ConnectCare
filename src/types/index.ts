@@ -56,9 +56,13 @@ export interface TodoItem {
   category?: ServiceCategory;
 }
 
+export type AgeGroup = 'under18' | '18-24' | '25-54' | '55plus';
+
 export interface UserProfile {
   id: string;
   name: string;
+  age?: number;
+  ageGroup?: AgeGroup;
   immigrationStatus: ImmigrationStatus;
   location: Location;
   selectedCategories: ServiceCategory[];

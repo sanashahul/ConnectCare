@@ -15,7 +15,7 @@ import { useApp } from '../../context/AppContext';
 
 type RootStackParamList = {
   NameInput: undefined;
-  ImmigrationStatus: undefined;
+  AgeInput: undefined;
   Welcome: undefined;
 };
 
@@ -33,7 +33,7 @@ export const NameInputScreen: React.FC<NameInputScreenProps> = ({ navigation }) 
     const displayName = isAnonymous ? 'Friend' : name.trim() || 'Friend';
     dispatch({ type: 'SET_USER_NAME', payload: displayName });
     dispatch({ type: 'SET_ONBOARDING_STEP', payload: 1 });
-    navigation.navigate('ImmigrationStatus');
+    navigation.navigate('AgeInput');
   };
 
   const handleAnonymous = () => {
@@ -53,7 +53,7 @@ export const NameInputScreen: React.FC<NameInputScreenProps> = ({ navigation }) 
       >
         {/* Progress */}
         <View style={styles.progressContainer}>
-          <ProgressBar current={1} total={4} label="1 / 4" />
+          <ProgressBar current={1} total={5} label="1 / 5" />
         </View>
 
         {/* Content */}

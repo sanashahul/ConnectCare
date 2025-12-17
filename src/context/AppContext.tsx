@@ -9,6 +9,7 @@ import {
   QuestionAnswer,
   TodoItem,
   UserRole,
+  AgeGroup,
 } from '../types';
 
 // Storage keys
@@ -49,6 +50,7 @@ type AppAction =
   | { type: 'SET_USER_ROLE'; payload: UserRole }
   | { type: 'SET_ONBOARDING_STEP'; payload: number }
   | { type: 'SET_USER_NAME'; payload: string }
+  | { type: 'SET_USER_AGE'; payload: { age: number; ageGroup: AgeGroup } }
   | { type: 'SET_IMMIGRATION_STATUS'; payload: ImmigrationStatus }
   | { type: 'SET_LOCATION'; payload: Location }
   | { type: 'SET_CATEGORIES'; payload: ServiceCategory[] }
@@ -92,6 +94,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           name: action.payload,
+        },
+      };
+
+    case 'SET_USER_AGE':
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          age: action.payload.age,
+          ageGroup: action.payload.ageGroup,
         },
       };
 

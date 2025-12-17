@@ -21,6 +21,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import * as Clipboard from 'expo-clipboard';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
+import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 
 type DashboardScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -1272,6 +1273,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           city: userProfile?.location?.city,
           state: userProfile?.location?.state,
           language: isSpanish ? 'es' : 'en',
+          ageGroup: userProfile?.ageGroup,
+          isMinor: userProfile?.ageGroup === 'under18',
         }
       );
 
@@ -1758,6 +1761,54 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               </Text>
             </View>
           </TouchableOpacity>
+        )}
+
+        {/* Youth Support Banner - for users under 18 */}
+        {userProfile?.ageGroup === 'under18' && (
+          <View style={styles.youthBanner}>
+            <View style={styles.youthBannerHeader}>
+              <Text style={styles.youthBannerEmoji}>💚</Text>
+              <Text style={styles.youthBannerTitle}>
+                {isSpanish ? 'Apoyo para Jóvenes' : 'Youth Support'}
+              </Text>
+            </View>
+            <Text style={styles.youthBannerText}>
+              {isSpanish
+                ? 'No estás solo/a. Tenemos recursos especiales para ti.'
+                : "You're not alone. We have special resources for you."}
+            </Text>
+            <View style={styles.youthHotlines}>
+              <TouchableOpacity
+                style={styles.youthHotlineCard}
+                onPress={() => Linking.openURL('tel:18007862929')}
+              >
+                <Text style={styles.youthHotlineIcon}>🏃</Text>
+                <View style={styles.youthHotlineInfo}>
+                  <Text style={styles.youthHotlineName}>
+                    {isSpanish ? 'Línea para Fugitivos' : 'Runaway Safeline'}
+                  </Text>
+                  <Text style={styles.youthHotlinePhone}>1-800-786-2929</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.youthHotlineCard}
+                onPress={() => Linking.openURL('tel:18004224453')}
+              >
+                <Text style={styles.youthHotlineIcon}>🆘</Text>
+                <View style={styles.youthHotlineInfo}>
+                  <Text style={styles.youthHotlineName}>
+                    {isSpanish ? 'Ayuda contra Abuso' : 'Child Abuse Hotline'}
+                  </Text>
+                  <Text style={styles.youthHotlinePhone}>1-800-422-4453</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.youthBannerNote}>
+              {isSpanish
+                ? '📞 Toca para llamar. Las llamadas son confidenciales.'
+                : '📞 Tap to call. All calls are confidential.'}
+            </Text>
+          </View>
         )}
 
         {/* Category Grid */}
@@ -2418,5 +2469,72 @@ const styles = StyleSheet.create({
   },
   aiSendButtonDisabled: {
     backgroundColor: '#CBD5E1',
+  },
+  // Youth Support Banner styles
+  youthBanner: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#A7F3D0',
+  },
+  youthBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  youthBannerEmoji: {
+    fontSize: 28,
+    marginRight: 10,
+  },
+  youthBannerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#065F46',
+  },
+  youthBannerText: {
+    fontSize: 15,
+    color: '#047857',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  youthHotlines: {
+    gap: 10,
+  },
+  youthHotlineCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  youthHotlineIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  youthHotlineInfo: {
+    flex: 1,
+  },
+  youthHotlineName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#065F46',
+    marginBottom: 2,
+  },
+  youthHotlinePhone: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0D9488',
+  },
+  youthBannerNote: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

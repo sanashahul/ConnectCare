@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import {
   WelcomeScreen,
   NameInputScreen,
+  AgeInputScreen,
   ImmigrationStatusScreen,
   LocationInputScreen,
   CategorySelectionScreen,
@@ -20,6 +21,7 @@ import {
 export type RootStackParamList = {
   Welcome: undefined;
   NameInput: undefined;
+  AgeInput: undefined;
   ImmigrationStatus: undefined;
   LocationInput: undefined;
   CategorySelection: undefined;
@@ -72,6 +74,7 @@ export const AppNavigator: React.FC = () => {
 
         {/* Individual Onboarding */}
         <Stack.Screen name="NameInput" component={NameInputScreen} />
+        <Stack.Screen name="AgeInput" component={AgeInputScreen} />
         <Stack.Screen name="ImmigrationStatus" component={ImmigrationStatusScreen} />
         <Stack.Screen name="LocationInput" component={LocationInputScreen} />
         <Stack.Screen name="CategorySelection" component={CategorySelectionScreen} />
