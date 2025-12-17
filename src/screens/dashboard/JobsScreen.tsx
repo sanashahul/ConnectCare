@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
+import { YOUTH_JOB_RESOURCES } from '../../data/youthResources';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -747,6 +748,46 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Youth Job Training Banner for Minors */}
+        {userProfile?.ageGroup === 'under18' && activeSection === null && (
+          <View style={styles.youthTrainingBanner}>
+            <View style={styles.youthTrainingHeader}>
+              <Text style={styles.youthTrainingEmoji}>🎓</Text>
+              <Text style={styles.youthTrainingTitle}>
+                {isSpanish ? 'Programas para Jóvenes' : 'Youth Training Programs'}
+              </Text>
+            </View>
+            <Text style={styles.youthTrainingText}>
+              {isSpanish
+                ? 'Estos programas están diseñados especialmente para jóvenes. Ofrecen capacitación, educación, y a veces hasta vivienda y comidas.'
+                : 'These programs are specially designed for young people. They offer training, education, and sometimes even housing and meals.'}
+            </Text>
+            {YOUTH_JOB_RESOURCES.programs.map((program) => (
+              <TouchableOpacity
+                key={program.id}
+                style={styles.youthProgramCard}
+                onPress={() => program.website && Linking.openURL(program.website)}
+              >
+                <View style={styles.youthProgramInfo}>
+                  <Text style={styles.youthProgramName}>
+                    {isSpanish ? program.nameEs : program.name}
+                  </Text>
+                  <Text style={styles.youthProgramDesc}>
+                    {isSpanish ? program.descriptionEs : program.description}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.youthProgramCall}
+                  onPress={() => Linking.openURL(`tel:${program.phone.replace(/-/g, '')}`)}
+                >
+                  <Text style={styles.youthProgramCallIcon}>📞</Text>
+                  <Text style={styles.youthProgramPhone}>{program.phone}</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         {activeSection === null && renderMainGrid()}
         {activeSection === 'foryou' && renderForYou()}
         {activeSection === 'search' && renderSearch()}
@@ -1365,5 +1406,72 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginBottom: 16,
+  },
+  // Youth Training Styles
+  youthTrainingBanner: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 20,
+    padding: 20,
+    margin: 20,
+    borderWidth: 2,
+    borderColor: '#FCD34D',
+  },
+  youthTrainingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  youthTrainingEmoji: {
+    fontSize: 28,
+    marginRight: 10,
+  },
+  youthTrainingTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  youthTrainingText: {
+    fontSize: 14,
+    color: '#B45309',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  youthProgramCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  youthProgramInfo: {
+    marginBottom: 12,
+  },
+  youthProgramName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  youthProgramDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  youthProgramCall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 10,
+    padding: 12,
+  },
+  youthProgramCallIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  youthProgramPhone: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0D9488',
   },
 });

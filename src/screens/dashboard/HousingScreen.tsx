@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
+import { YOUTH_SHELTER_RESOURCES, YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -448,6 +449,70 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Youth Shelter Banner - Only for minors */}
+      {userProfile?.ageGroup === 'under18' && (
+        <View style={styles.youthShelterBanner}>
+          <View style={styles.youthShelterHeader}>
+            <Text style={styles.youthShelterEmoji}>🏠</Text>
+            <Text style={styles.youthShelterTitle}>
+              {isSpanish ? 'Refugios Juveniles' : 'Youth Shelters'}
+            </Text>
+          </View>
+          <Text style={styles.youthShelterMessage}>
+            {isSpanish
+              ? 'Los refugios juveniles son más seguros que los refugios para adultos y tienen personal que entiende tu situación.'
+              : 'Youth shelters are safer than adult shelters and have staff who understand your situation.'}
+          </Text>
+
+          {/* Youth Shelter Resources */}
+          {YOUTH_SHELTER_RESOURCES.shelters.map((shelter) => (
+            <TouchableOpacity
+              key={shelter.id}
+              style={styles.youthShelterCard}
+              onPress={() => handleCall(shelter.phone)}
+            >
+              <View style={styles.youthShelterCardContent}>
+                <View style={styles.youthShelterInfo}>
+                  <Text style={styles.youthShelterName}>
+                    {isSpanish ? shelter.nameEs : shelter.name}
+                  </Text>
+                  <Text style={styles.youthShelterDesc}>
+                    {isSpanish ? shelter.descriptionEs : shelter.description}
+                  </Text>
+                  <Text style={styles.youthShelterPhone}>{shelter.phone}</Text>
+                </View>
+                <View style={styles.youthCallIcon}>
+                  <Text style={styles.youthCallIconText}>📞</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {/* Runaway Safeline - Important for youth */}
+          <View style={styles.youthSafelineCard}>
+            <Text style={styles.youthSafelineEmoji}>🌟</Text>
+            <View style={styles.youthSafelineInfo}>
+              <Text style={styles.youthSafelineName}>
+                {isSpanish ? 'Línea Nacional para Fugitivos' : 'National Runaway Safeline'}
+              </Text>
+              <Text style={styles.youthSafelineDesc}>
+                {isSpanish
+                  ? 'Si estás pensando en huir, llama primero. Pueden ayudarte a encontrar opciones más seguras.'
+                  : "If you're thinking about running away, call first. They can help you find safer options."}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.youthSafelineButton}
+              onPress={() => handleCall('1-800-786-2929')}
+            >
+              <Text style={styles.youthSafelineButtonText}>
+                {isSpanish ? 'Llamar' : 'Call'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Need Housing Now Banner */}
       <TouchableOpacity
         style={styles.needNowBanner}
@@ -2153,5 +2218,118 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginBottom: 16,
+  },
+  // Youth Shelter Banner styles
+  youthShelterBanner: {
+    backgroundColor: '#EDE9FE',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#C4B5FD',
+  },
+  youthShelterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  youthShelterEmoji: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  youthShelterTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#5B21B6',
+  },
+  youthShelterMessage: {
+    fontSize: 15,
+    color: '#6B21A8',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  youthShelterCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#5B21B6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  youthShelterCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  youthShelterInfo: {
+    flex: 1,
+  },
+  youthShelterName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  youthShelterDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+    marginBottom: 6,
+  },
+  youthShelterPhone: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
+  youthCallIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#7C3AED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  youthCallIconText: {
+    fontSize: 20,
+  },
+  youthSafelineCard: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 2,
+    borderColor: '#FDE68A',
+  },
+  youthSafelineEmoji: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  youthSafelineInfo: {
+    marginBottom: 12,
+  },
+  youthSafelineName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 4,
+  },
+  youthSafelineDesc: {
+    fontSize: 14,
+    color: '#B45309',
+    lineHeight: 20,
+  },
+  youthSafelineButton: {
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  youthSafelineButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

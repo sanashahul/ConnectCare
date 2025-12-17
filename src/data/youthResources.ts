@@ -185,6 +185,56 @@ export const YOUTH_JOB_RESOURCES = {
   ],
 };
 
+export const YOUTH_SHELTER_RESOURCES = {
+  title: 'Youth Shelters',
+  titleEs: 'Refugios para Jóvenes',
+  description: 'Special shelters just for young people - safer than adult shelters with staff who understand your situation.',
+  descriptionEs: 'Refugios especiales solo para jóvenes - más seguros que los refugios para adultos con personal que entiende tu situación.',
+  shelters: [
+    {
+      id: 'covenant-house',
+      name: 'Covenant House',
+      nameEs: 'Covenant House',
+      description: 'Safe shelter for homeless youth ages 18-24. Also helps younger teens in some locations.',
+      descriptionEs: 'Refugio seguro para jóvenes sin hogar de 18-24 años. También ayuda a adolescentes más jóvenes en algunas ubicaciones.',
+      phone: '1-800-999-9999',
+      website: 'https://www.covenanthouse.org',
+    },
+    {
+      id: 'standupforkids',
+      name: 'StandUp for Kids',
+      nameEs: 'StandUp for Kids',
+      description: 'Street outreach program helping homeless and at-risk youth nationwide.',
+      descriptionEs: 'Programa de alcance callejero que ayuda a jóvenes sin hogar y en riesgo en todo el país.',
+      phone: '1-800-365-4543',
+      website: 'https://www.standupforkids.org',
+    },
+    {
+      id: 'national-safe-place',
+      name: 'National Safe Place',
+      nameEs: 'Lugar Seguro Nacional',
+      description: 'Look for the yellow Safe Place sign at libraries, fire stations, and businesses. Staff will help you get to safety.',
+      descriptionEs: 'Busca el letrero amarillo de Lugar Seguro en bibliotecas, estaciones de bomberos y negocios. El personal te ayudará a llegar a un lugar seguro.',
+      phone: '1-888-290-7233',
+      website: 'https://www.nationalsafeplace.org',
+    },
+  ],
+  tips: [
+    {
+      title: 'Youth shelters are different',
+      titleEs: 'Los refugios juveniles son diferentes',
+      text: 'Staff at youth shelters are trained to help young people. They understand what you\'re going through.',
+      textEs: 'El personal de los refugios juveniles está capacitado para ayudar a jóvenes. Entienden lo que estás pasando.',
+    },
+    {
+      title: 'Call before you go',
+      titleEs: 'Llama antes de ir',
+      text: 'Youth shelters may have limited beds. Call ahead to check availability.',
+      textEs: 'Los refugios juveniles pueden tener camas limitadas. Llama con anticipación para verificar disponibilidad.',
+    },
+  ],
+};
+
 export const getYouthMessage = (isSpanish: boolean): string => {
   if (isSpanish) {
     return `🌟 Vemos que eres menor de 18 años. Queremos que sepas que no estás solo/a y hay personas que quieren ayudarte.
