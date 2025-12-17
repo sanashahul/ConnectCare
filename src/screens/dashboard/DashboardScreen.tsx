@@ -1141,16 +1141,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     }
   };
 
-  const handleAITopic = (topicId: string) => {
+  const handleAITopic = async (topicId: string) => {
     const topic = AI_TOPICS.find((t) => t.id === topicId);
     if (!topic) return;
 
     setCurrentTopic(topicId);
 
+    // Create a natural message for the topic
+    const topicMessages: Record<string, { en: string; es: string }> = {
+      shelter: { en: 'I need help finding a shelter', es: 'Necesito ayuda para encontrar un refugio' },
+      section8: { en: 'How do I apply for Section 8 housing?', es: '¿Cómo puedo aplicar para vivienda Sección 8?' },
+      clinic: { en: 'I need to find a free or low-cost clinic', es: 'Necesito encontrar una clínica gratis o de bajo costo' },
+      mentalhealth: { en: 'I need mental health support', es: 'Necesito apoyo de salud mental' },
+      job: { en: 'I need help finding a job', es: 'Necesito ayuda para encontrar trabajo' },
+      food: { en: 'I need help getting food', es: 'Necesito ayuda para conseguir comida' },
+      documents: { en: 'I need help getting ID or documents', es: 'Necesito ayuda para obtener identificación o documentos' },
+      '211': { en: 'What resources are available through 211?', es: '¿Qué recursos están disponibles a través del 211?' },
+    };
+
+    const messageText = topicMessages[topicId]
+      ? (isSpanish ? topicMessages[topicId].es : topicMessages[topicId].en)
+      : (isSpanish ? topic.labelEs : topic.label);
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: isSpanish ? topic.labelEs : topic.label,
+      content: messageText,
     };
 
     // Add user message and show typing indicator
@@ -1162,10 +1178,30 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // Simulate AI "thinking" time for natural feel (800-1500ms)
-    const thinkingTime = 800 + Math.random() * 700;
+    try {
+      // Build conversation history for AI context
+      const aiHistory: AIMessage[] = chatMessages
+        .filter(msg => msg.type === 'user' || msg.type === 'ai')
+        .slice(-6)
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' as const : 'model' as const,
+          content: msg.content,
+        }));
 
-    setTimeout(() => {
+      // Call the real Groq AI
+      const responseContent = await sendMessageToAI(
+        messageText,
+        aiHistory,
+        {
+          name: userProfile?.name,
+          city: userProfile?.location?.city,
+          state: userProfile?.location?.state,
+          language: isSpanish ? 'es' : 'en',
+          ageGroup: userProfile?.ageGroup,
+          isMinor: userProfile?.ageGroup === 'under18',
+        }
+      );
+
       setIsTyping(false);
 
       // Update conversation context
@@ -1177,16 +1213,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         userLocation: userProfile?.location?.city,
       };
       setConversationContext(newContext);
-
-      // Generate intelligent response
-      const responseContent = generateAIResponse({
-        intent: topicId,
-        isSpanish,
-        userName: userProfile?.name,
-        userLocation: userProfile?.location?.city,
-        messageCount: newContext.messageCount,
-        previousTopics: conversationContext.mentionedTopics,
-      });
 
       const followUps = getFollowUpSuggestions(topicId, isSpanish);
 
@@ -1204,7 +1230,36 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    }, thinkingTime);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      setIsTyping(false);
+
+      // Fallback to local response if Groq fails
+      const responseContent = generateAIResponse({
+        intent: topicId,
+        isSpanish,
+        userName: userProfile?.name,
+        userLocation: userProfile?.location?.city,
+        messageCount: conversationContext.messageCount + 1,
+        previousTopics: conversationContext.mentionedTopics,
+      });
+
+      const followUps = getFollowUpSuggestions(topicId, isSpanish);
+
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: responseContent,
+        topicId: topicId,
+        followUpSuggestions: followUps.length > 0 ? followUps : undefined,
+      };
+
+      setChatMessages(prev => [...prev, aiResponse]);
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
   };
 
   const handleAddTodo = (title: string) => {
