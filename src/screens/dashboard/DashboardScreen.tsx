@@ -1384,54 +1384,86 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     // Filter to show only selected categories, but always show AI
     const displayCategories = allCategories.filter((cat) => categories.includes(cat.id as any));
 
+    // Build grid items array with Case Manager in the middle
+    const gridItems: React.ReactNode[] = [];
+
+    // Add first 2 category cards
+    displayCategories.slice(0, 2).forEach((category) => {
+      gridItems.push(
+        <TouchableOpacity
+          key={category.id}
+          style={[styles.categoryCard, { backgroundColor: category.color }]}
+          onPress={() => navigation.navigate(category.screen)}
+        >
+          <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
+            <Text style={styles.categoryIcon}>{category.icon}</Text>
+          </View>
+          <Text style={styles.categoryLabel}>
+            {isSpanish ? category.labelEs : category.label}
+          </Text>
+        </TouchableOpacity>
+      );
+    });
+
+    // Add My Case Manager in the middle (position 3)
+    gridItems.push(
+      <TouchableOpacity
+        key="caseManager"
+        style={[styles.categoryCard, styles.caseManagerCard]}
+        onPress={() => navigation.navigate('CaseManager')}
+      >
+        <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
+          <Text style={styles.categoryIcon}>👤</Text>
+        </View>
+        <Text style={styles.categoryLabel}>
+          {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
+        </Text>
+        <Text style={styles.categorySubLabel}>
+          {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
+        </Text>
+      </TouchableOpacity>
+    );
+
+    // Add remaining category cards
+    displayCategories.slice(2).forEach((category) => {
+      gridItems.push(
+        <TouchableOpacity
+          key={category.id}
+          style={[styles.categoryCard, { backgroundColor: category.color }]}
+          onPress={() => navigation.navigate(category.screen)}
+        >
+          <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
+            <Text style={styles.categoryIcon}>{category.icon}</Text>
+          </View>
+          <Text style={styles.categoryLabel}>
+            {isSpanish ? category.labelEs : category.label}
+          </Text>
+        </TouchableOpacity>
+      );
+    });
+
+    // Add AI Case Manager at the end
+    gridItems.push(
+      <TouchableOpacity
+        key="aiCaseManager"
+        style={[styles.categoryCard, styles.aiCategoryCard]}
+        onPress={() => setShowAI(true)}
+      >
+        <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
+          <Text style={styles.categoryIcon}>🤖</Text>
+        </View>
+        <Text style={styles.categoryLabel}>
+          {isSpanish ? 'AI Gestor' : 'AI Case Manager'}
+        </Text>
+        <Text style={styles.categorySubLabel}>
+          {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
+        </Text>
+      </TouchableOpacity>
+    );
+
     return (
       <View style={styles.categoryGrid}>
-        {displayCategories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[styles.categoryCard, { backgroundColor: category.color }]}
-            onPress={() => navigation.navigate(category.screen)}
-          >
-            <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
-              <Text style={styles.categoryIcon}>{category.icon}</Text>
-            </View>
-            <Text style={styles.categoryLabel}>
-              {isSpanish ? category.labelEs : category.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        {/* AI Case Manager Block */}
-        <TouchableOpacity
-          style={[styles.categoryCard, styles.aiCategoryCard]}
-          onPress={() => setShowAI(true)}
-        >
-          <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
-            <Text style={styles.categoryIcon}>🤖</Text>
-          </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'AI Gestor' : 'AI Case Manager'}
-          </Text>
-          <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Connect with Case Manager */}
-        <TouchableOpacity
-          style={[styles.categoryCard, styles.caseManagerCard]}
-          onPress={() => navigation.navigate('CaseManager')}
-        >
-          <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
-            <Text style={styles.categoryIcon}>👤</Text>
-          </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
-          </Text>
-          <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
-          </Text>
-        </TouchableOpacity>
+        {gridItems}
       </View>
     );
   };

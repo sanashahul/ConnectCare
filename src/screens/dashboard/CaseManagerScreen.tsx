@@ -420,34 +420,30 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
 
     return (
       <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-        {/* Category Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryFilter}
-          contentContainerStyle={styles.categoryFilterContent}
-        >
+        {/* Category Filter - Square Grid */}
+        <View style={styles.categoryGrid}>
           <TouchableOpacity
-            style={[styles.categoryChip, selectedCategory === 'all' && styles.categoryChipActive]}
+            style={[styles.categorySquare, selectedCategory === 'all' && styles.categorySquareActive]}
             onPress={() => setSelectedCategory('all')}
           >
-            <Text style={[styles.categoryChipText, selectedCategory === 'all' && styles.categoryChipTextActive]}>
+            <Text style={styles.categorySquareIcon}>📋</Text>
+            <Text style={[styles.categorySquareText, selectedCategory === 'all' && styles.categorySquareTextActive]}>
               {isSpanish ? 'Todos' : 'All'}
             </Text>
           </TouchableOpacity>
           {TASK_CATEGORIES.map((cat) => (
             <TouchableOpacity
               key={cat.id}
-              style={[styles.categoryChip, selectedCategory === cat.id && styles.categoryChipActive]}
+              style={[styles.categorySquare, selectedCategory === cat.id && styles.categorySquareActive]}
               onPress={() => setSelectedCategory(cat.id)}
             >
-              <Text style={styles.categoryChipIcon}>{cat.icon}</Text>
-              <Text style={[styles.categoryChipText, selectedCategory === cat.id && styles.categoryChipTextActive]}>
+              <Text style={styles.categorySquareIcon}>{cat.icon}</Text>
+              <Text style={[styles.categorySquareText, selectedCategory === cat.id && styles.categorySquareTextActive]}>
                 {isSpanish ? cat.labelEs : cat.label}
               </Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
         {filteredTasks.length === 0 ? (
           <View style={styles.emptyState}>
@@ -578,7 +574,7 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {isSpanish ? 'Mi Gestor de Caso' : 'My Case Manager'}
+          {isSpanish ? 'Conectar con mi Gestor' : 'Connect with my Case Manager'}
         </Text>
         <View style={styles.headerRight} />
       </View>
@@ -913,41 +909,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 40,
   },
-  // Tasks Tab
-  categoryFilter: {
-    marginBottom: 16,
-    marginHorizontal: -20,
-  },
-  categoryFilterContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  categoryChip: {
+  // Tasks Tab - Square Category Grid
+  categoryGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginRight: 8,
+    flexWrap: 'wrap',
+    marginBottom: 20,
+    gap: 10,
   },
-  categoryChipActive: {
-    backgroundColor: '#0D9488',
+  categorySquare: {
+    width: '22%',
+    aspectRatio: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    padding: 8,
+  },
+  categorySquareActive: {
+    backgroundColor: '#F0FDFA',
     borderColor: '#0D9488',
   },
-  categoryChipIcon: {
-    fontSize: 14,
-    marginRight: 4,
+  categorySquareIcon: {
+    fontSize: 24,
+    marginBottom: 4,
   },
-  categoryChipText: {
-    fontSize: 13,
+  categorySquareText: {
+    fontSize: 10,
     fontWeight: '600',
     color: '#64748B',
+    textAlign: 'center',
   },
-  categoryChipTextActive: {
-    color: '#FFFFFF',
+  categorySquareTextActive: {
+    color: '#0D9488',
   },
   taskSection: {
     marginBottom: 24,
