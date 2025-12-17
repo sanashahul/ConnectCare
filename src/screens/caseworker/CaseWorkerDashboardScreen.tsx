@@ -91,8 +91,10 @@ const DEMO_CLIENTS: Record<string, UserProfile> = {
 interface PersonalTodo {
   id: string;
   title: string;
+  description?: string; // Note for the task
   clientId?: string; // Optional - link to a specific client
   clientName?: string;
+  category: TaskCategory;
   priority: 'urgent' | 'normal';
   completed: boolean;
   createdAt: string;
@@ -124,6 +126,8 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     {
       id: 'p1',
       title: 'Review housing applications',
+      description: 'Check Section 8 waitlist status for 3 clients',
+      category: 'housing',
       priority: 'urgent',
       completed: false,
       createdAt: new Date().toISOString(),
@@ -131,6 +135,8 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     {
       id: 'p2',
       title: 'Call county benefits office',
+      description: 'Ask about expedited SNAP applications',
+      category: 'benefits',
       priority: 'normal',
       completed: false,
       createdAt: new Date().toISOString(),
@@ -138,8 +144,17 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   ]);
   const [showAddPersonalTodo, setShowAddPersonalTodo] = useState(false);
   const [newPersonalTodoTitle, setNewPersonalTodoTitle] = useState('');
+  const [newPersonalTodoDescription, setNewPersonalTodoDescription] = useState('');
   const [newPersonalTodoPriority, setNewPersonalTodoPriority] = useState<'normal' | 'urgent'>('normal');
+  const [newPersonalTodoCategory, setNewPersonalTodoCategory] = useState<TaskCategory>('other');
   const [newPersonalTodoClient, setNewPersonalTodoClient] = useState<string | null>(null);
+  const [personalTaskFilter, setPersonalTaskFilter] = useState<TaskCategory | 'all'>('all');
+
+  // Task detail modal state (for viewing/editing)
+  const [viewingTask, setViewingTask] = useState<TodoItem | null>(null);
+  const [editingTaskDescription, setEditingTaskDescription] = useState('');
+  const [viewingPersonalTask, setViewingPersonalTask] = useState<PersonalTodo | null>(null);
+  const [editingPersonalTaskDescription, setEditingPersonalTaskDescription] = useState('');
 
   const clients = state.connectedClients;
   const caseWorkerName = state.caseWorkerProfile?.name || 'Case Worker';
@@ -312,8 +327,10 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
     const newTodo: PersonalTodo = {
       id: Date.now().toString(36),
       title: newPersonalTodoTitle.trim(),
+      description: newPersonalTodoDescription.trim() || undefined,
       clientId: newPersonalTodoClient || undefined,
       clientName: selectedClientData?.name,
+      category: newPersonalTodoCategory,
       priority: newPersonalTodoPriority,
       completed: false,
       createdAt: new Date().toISOString(),
@@ -321,9 +338,41 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
 
     setPersonalTodos([newTodo, ...personalTodos]);
     setNewPersonalTodoTitle('');
+    setNewPersonalTodoDescription('');
     setNewPersonalTodoPriority('normal');
+    setNewPersonalTodoCategory('other');
     setNewPersonalTodoClient(null);
     setShowAddPersonalTodo(false);
+  };
+
+  const handleSaveTaskDescription = () => {
+    if (!viewingTask || !selectedClient) return;
+
+    // Update the task description in the client's todos
+    dispatch({
+      type: 'UPDATE_CLIENT_TODO_DESCRIPTION',
+      payload: {
+        clientId: selectedClient.shareCode || selectedClient.id,
+        todoId: viewingTask.id,
+        description: editingTaskDescription.trim(),
+      },
+    });
+
+    setViewingTask(null);
+    setEditingTaskDescription('');
+  };
+
+  const handleSavePersonalTaskDescription = () => {
+    if (!viewingPersonalTask) return;
+
+    setPersonalTodos(personalTodos.map(todo =>
+      todo.id === viewingPersonalTask.id
+        ? { ...todo, description: editingPersonalTaskDescription.trim() || undefined }
+        : todo
+    ));
+
+    setViewingPersonalTask(null);
+    setEditingPersonalTaskDescription('');
   };
 
   const handleTogglePersonalTodo = (todoId: string) => {
@@ -348,21 +397,13 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   };
 
   const renderMyTasks = () => {
-    const pendingTodos = personalTodos.filter(t => !t.completed);
-    const completedTodos = personalTodos.filter(t => t.completed);
+    // Filter by category
+    const filteredTodos = personalTaskFilter === 'all'
+      ? personalTodos
+      : personalTodos.filter(t => t.category === personalTaskFilter);
 
-    // Group by client
-    const todosByClient: Record<string, PersonalTodo[]> = { 'general': [] };
-    pendingTodos.forEach(todo => {
-      if (todo.clientId && todo.clientName) {
-        if (!todosByClient[todo.clientId]) {
-          todosByClient[todo.clientId] = [];
-        }
-        todosByClient[todo.clientId].push(todo);
-      } else {
-        todosByClient['general'].push(todo);
-      }
-    });
+    const pendingTodos = filteredTodos.filter(t => !t.completed);
+    const completedTodos = filteredTodos.filter(t => t.completed);
 
     return (
       <ScrollView style={styles.myTasksContainer}>
@@ -373,71 +414,77 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
           <Text style={styles.addPersonalTodoText}>+ Add Personal Task</Text>
         </TouchableOpacity>
 
-        {/* General tasks (not linked to a client) */}
-        {todosByClient['general'].length > 0 && (
+        {/* Category Filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.personalCategoryFilter}>
+          <TouchableOpacity
+            style={[styles.personalCategoryChip, personalTaskFilter === 'all' && styles.personalCategoryChipActive]}
+            onPress={() => setPersonalTaskFilter('all')}
+          >
+            <Text style={[styles.personalCategoryChipText, personalTaskFilter === 'all' && styles.personalCategoryChipTextActive]}>
+              All
+            </Text>
+          </TouchableOpacity>
+          {TASK_CATEGORIES.map(cat => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[styles.personalCategoryChip, personalTaskFilter === cat.id && styles.personalCategoryChipActive]}
+              onPress={() => setPersonalTaskFilter(cat.id)}
+            >
+              <Text style={styles.personalCategoryChipIcon}>{cat.icon}</Text>
+              <Text style={[styles.personalCategoryChipText, personalTaskFilter === cat.id && styles.personalCategoryChipTextActive]}>
+                {cat.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Pending Tasks */}
+        {pendingTodos.length > 0 && (
           <View style={styles.taskSection}>
-            <Text style={styles.taskSectionTitle}>📋 General Tasks</Text>
-            {todosByClient['general'].map(todo => (
+            <Text style={styles.taskSectionTitle}>To Do ({pendingTodos.length})</Text>
+            {pendingTodos.map(todo => (
               <TouchableOpacity
                 key={todo.id}
                 style={styles.personalTodoItem}
-                onPress={() => handleTogglePersonalTodo(todo.id)}
-                onLongPress={() => handleDeletePersonalTodo(todo.id)}
+                onPress={() => {
+                  setViewingPersonalTask(todo);
+                  setEditingPersonalTaskDescription(todo.description || '');
+                }}
               >
-                <View style={styles.todoCheckbox}>
+                <TouchableOpacity
+                  style={styles.todoCheckbox}
+                  onPress={() => handleTogglePersonalTodo(todo.id)}
+                >
                   <View style={styles.checkbox} />
-                </View>
+                </TouchableOpacity>
                 <View style={styles.todoContent}>
                   <Text style={styles.todoTitle}>{todo.title}</Text>
-                  {todo.priority === 'urgent' && (
-                    <View style={styles.urgentBadge}>
-                      <Text style={styles.urgentText}>Urgent</Text>
+                  <View style={styles.todoMeta}>
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryBadgeText}>
+                        {TASK_CATEGORIES.find(c => c.id === todo.category)?.icon}{' '}
+                        {TASK_CATEGORIES.find(c => c.id === todo.category)?.label}
+                      </Text>
                     </View>
+                    {todo.priority === 'urgent' && (
+                      <View style={styles.urgentBadge}>
+                        <Text style={styles.urgentText}>Urgent</Text>
+                      </View>
+                    )}
+                  </View>
+                  {todo.description && (
+                    <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
+                      {todo.description}
+                    </Text>
+                  )}
+                  {todo.clientName && (
+                    <Text style={styles.todoClientName}>For: {todo.clientName}</Text>
                   )}
                 </View>
               </TouchableOpacity>
             ))}
           </View>
         )}
-
-        {/* Tasks grouped by client */}
-        {Object.entries(todosByClient)
-          .filter(([key]) => key !== 'general')
-          .map(([clientId, todos]) => {
-            const client = clients.find(c => c.id === clientId || c.shareCode === clientId);
-            return (
-              <View key={clientId} style={styles.taskSection}>
-                <View style={styles.clientTaskHeader}>
-                  <View style={styles.clientTaskAvatar}>
-                    <Text style={styles.clientTaskAvatarText}>
-                      {client?.name.charAt(0).toUpperCase() || '?'}
-                    </Text>
-                  </View>
-                  <Text style={styles.taskSectionTitle}>{client?.name || 'Client'}</Text>
-                </View>
-                {todos.map(todo => (
-                  <TouchableOpacity
-                    key={todo.id}
-                    style={styles.personalTodoItem}
-                    onPress={() => handleTogglePersonalTodo(todo.id)}
-                    onLongPress={() => handleDeletePersonalTodo(todo.id)}
-                  >
-                    <View style={styles.todoCheckbox}>
-                      <View style={styles.checkbox} />
-                    </View>
-                    <View style={styles.todoContent}>
-                      <Text style={styles.todoTitle}>{todo.title}</Text>
-                      {todo.priority === 'urgent' && (
-                        <View style={styles.urgentBadge}>
-                          <Text style={styles.urgentText}>Urgent</Text>
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            );
-          })}
 
         {/* Completed tasks */}
         {completedTodos.length > 0 && (
@@ -447,14 +494,19 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
               <TouchableOpacity
                 key={todo.id}
                 style={[styles.personalTodoItem, styles.todoItemCompleted]}
-                onPress={() => handleTogglePersonalTodo(todo.id)}
-                onLongPress={() => handleDeletePersonalTodo(todo.id)}
+                onPress={() => {
+                  setViewingPersonalTask(todo);
+                  setEditingPersonalTaskDescription(todo.description || '');
+                }}
               >
-                <View style={styles.todoCheckbox}>
+                <TouchableOpacity
+                  style={styles.todoCheckbox}
+                  onPress={() => handleTogglePersonalTodo(todo.id)}
+                >
                   <View style={[styles.checkbox, styles.checkboxChecked]}>
                     <Text style={styles.checkmark}>✓</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.todoContent}>
                   <Text style={[styles.todoTitle, styles.todoTitleCompleted]}>{todo.title}</Text>
                   {todo.clientName && (
@@ -469,12 +521,12 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
         {pendingTodos.length === 0 && completedTodos.length === 0 && (
           <View style={styles.emptyTasks}>
             <Text style={styles.emptyIcon}>✅</Text>
-            <Text style={styles.emptyTitle}>No personal tasks</Text>
-            <Text style={styles.emptySubtitle}>Add tasks to track your work for clients</Text>
+            <Text style={styles.emptyTitle}>No tasks in this category</Text>
+            <Text style={styles.emptySubtitle}>Add tasks to track your work</Text>
           </View>
         )}
 
-        <Text style={styles.taskHint}>Long press to delete a task</Text>
+        <Text style={styles.taskHint}>Tap task to view/edit note • Tap checkbox to complete</Text>
       </ScrollView>
     );
   };
@@ -614,11 +666,17 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                 <TouchableOpacity
                   key={todo.id}
                   style={styles.todoItem}
-                  onPress={() => handleToggleTodo(todo.id)}
+                  onPress={() => {
+                    setViewingTask(todo);
+                    setEditingTaskDescription(todo.description || '');
+                  }}
                 >
-                  <View style={styles.todoCheckbox}>
+                  <TouchableOpacity
+                    style={styles.todoCheckbox}
+                    onPress={() => handleToggleTodo(todo.id)}
+                  >
                     <View style={styles.checkbox} />
-                  </View>
+                  </TouchableOpacity>
                   <View style={styles.todoContent}>
                     <Text style={styles.todoTitle}>{todo.title}</Text>
                     <View style={styles.todoMeta}>
@@ -639,6 +697,11 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                         Added by {todo.createdBy === 'caseworker' ? 'you' : 'client'}
                       </Text>
                     </View>
+                    {todo.description && (
+                      <Text style={styles.todoDescriptionPreview} numberOfLines={2}>
+                        📝 {todo.description}
+                      </Text>
+                    )}
                   </View>
                 </TouchableOpacity>
               ))}
@@ -1013,111 +1076,258 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
       {/* Add Personal Todo Modal */}
       <Modal visible={showAddPersonalTodo} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Personal Task</Text>
-            <Text style={styles.addClientDescription}>
-              Track your own to-dos for client support
-            </Text>
+          <ScrollView>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add Personal Task</Text>
 
-            <TextInput
-              style={styles.modalInput}
-              placeholder="What do you need to do?"
-              value={newPersonalTodoTitle}
-              onChangeText={setNewPersonalTodoTitle}
-              autoFocus
-            />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Task title"
+                value={newPersonalTodoTitle}
+                onChangeText={setNewPersonalTodoTitle}
+                autoFocus
+              />
 
-            <Text style={styles.modalLabel}>Link to Client (Optional)</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.clientSelector}>
-              <TouchableOpacity
-                style={[
-                  styles.clientSelectorItem,
-                  !newPersonalTodoClient && styles.clientSelectorItemActive,
-                ]}
-                onPress={() => setNewPersonalTodoClient(null)}
-              >
-                <Text style={[
-                  styles.clientSelectorText,
-                  !newPersonalTodoClient && styles.clientSelectorTextActive,
-                ]}>
-                  None
-                </Text>
-              </TouchableOpacity>
-              {clients.map(client => (
+              <TextInput
+                style={styles.modalTextArea}
+                placeholder="Add notes (optional)"
+                value={newPersonalTodoDescription}
+                onChangeText={setNewPersonalTodoDescription}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+
+              <Text style={styles.modalLabel}>Category</Text>
+              <View style={styles.categoryGrid}>
+                {TASK_CATEGORIES.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.categoryOption,
+                      newPersonalTodoCategory === cat.id && styles.categoryOptionActive,
+                    ]}
+                    onPress={() => setNewPersonalTodoCategory(cat.id)}
+                  >
+                    <Text style={styles.categoryOptionIcon}>{cat.icon}</Text>
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        newPersonalTodoCategory === cat.id && styles.categoryOptionTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Link to Client (Optional)</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.clientSelector}>
                 <TouchableOpacity
-                  key={client.id}
                   style={[
                     styles.clientSelectorItem,
-                    newPersonalTodoClient === client.id && styles.clientSelectorItemActive,
+                    !newPersonalTodoClient && styles.clientSelectorItemActive,
                   ]}
-                  onPress={() => setNewPersonalTodoClient(client.id)}
+                  onPress={() => setNewPersonalTodoClient(null)}
                 >
                   <Text style={[
                     styles.clientSelectorText,
-                    newPersonalTodoClient === client.id && styles.clientSelectorTextActive,
+                    !newPersonalTodoClient && styles.clientSelectorTextActive,
                   ]}>
-                    {client.name}
+                    None
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+                {clients.map(client => (
+                  <TouchableOpacity
+                    key={client.id}
+                    style={[
+                      styles.clientSelectorItem,
+                      newPersonalTodoClient === client.id && styles.clientSelectorItemActive,
+                    ]}
+                    onPress={() => setNewPersonalTodoClient(client.id)}
+                  >
+                    <Text style={[
+                      styles.clientSelectorText,
+                      newPersonalTodoClient === client.id && styles.clientSelectorTextActive,
+                    ]}>
+                      {client.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
-            <Text style={styles.modalLabel}>Priority</Text>
-            <View style={styles.priorityButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.priorityButton,
-                  newPersonalTodoPriority === 'normal' && styles.priorityButtonActive,
-                ]}
-                onPress={() => setNewPersonalTodoPriority('normal')}
-              >
-                <Text style={[
-                  styles.priorityButtonText,
-                  newPersonalTodoPriority === 'normal' && styles.priorityButtonTextActive,
-                ]}>
-                  Normal
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.priorityButton,
-                  styles.priorityButtonUrgent,
-                  newPersonalTodoPriority === 'urgent' && styles.priorityButtonUrgentActive,
-                ]}
-                onPress={() => setNewPersonalTodoPriority('urgent')}
-              >
-                <Text style={[
-                  styles.priorityButtonText,
-                  newPersonalTodoPriority === 'urgent' && styles.priorityButtonTextUrgentActive,
-                ]}>
-                  Urgent
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <Text style={styles.modalLabel}>Priority</Text>
+              <View style={styles.priorityButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.priorityButton,
+                    newPersonalTodoPriority === 'normal' && styles.priorityButtonActive,
+                  ]}
+                  onPress={() => setNewPersonalTodoPriority('normal')}
+                >
+                  <Text style={[
+                    styles.priorityButtonText,
+                    newPersonalTodoPriority === 'normal' && styles.priorityButtonTextActive,
+                  ]}>
+                    Normal
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.priorityButton,
+                    styles.priorityButtonUrgent,
+                    newPersonalTodoPriority === 'urgent' && styles.priorityButtonUrgentActive,
+                  ]}
+                  onPress={() => setNewPersonalTodoPriority('urgent')}
+                >
+                  <Text style={[
+                    styles.priorityButtonText,
+                    newPersonalTodoPriority === 'urgent' && styles.priorityButtonTextUrgentActive,
+                  ]}>
+                    Urgent
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => {
-                  setShowAddPersonalTodo(false);
-                  setNewPersonalTodoTitle('');
-                  setNewPersonalTodoClient(null);
-                  setNewPersonalTodoPriority('normal');
-                }}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalSaveButton,
-                  !newPersonalTodoTitle.trim() && styles.modalSaveButtonDisabled,
-                ]}
-                onPress={handleAddPersonalTodo}
-                disabled={!newPersonalTodoTitle.trim()}
-              >
-                <Text style={styles.modalSaveText}>Add Task</Text>
-              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => {
+                    setShowAddPersonalTodo(false);
+                    setNewPersonalTodoTitle('');
+                    setNewPersonalTodoDescription('');
+                    setNewPersonalTodoCategory('other');
+                    setNewPersonalTodoClient(null);
+                    setNewPersonalTodoPriority('normal');
+                  }}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalSaveButton,
+                    !newPersonalTodoTitle.trim() && styles.modalSaveButtonDisabled,
+                  ]}
+                  onPress={handleAddPersonalTodo}
+                  disabled={!newPersonalTodoTitle.trim()}
+                >
+                  <Text style={styles.modalSaveText}>Add Task</Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* View/Edit Client Task Modal */}
+      <Modal visible={!!viewingTask} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {viewingTask && (
+              <>
+                <View style={styles.taskDetailHeader}>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryBadgeText}>
+                      {TASK_CATEGORIES.find(c => c.id === viewingTask.category)?.icon}{' '}
+                      {TASK_CATEGORIES.find(c => c.id === viewingTask.category)?.label}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setViewingTask(null)}>
+                    <Text style={styles.modalCloseButton}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.taskDetailTitle}>{viewingTask.title}</Text>
+
+                <Text style={styles.modalLabel}>Note for client:</Text>
+                <TextInput
+                  style={styles.taskDetailTextArea}
+                  placeholder="Add a note for your client..."
+                  value={editingTaskDescription}
+                  onChangeText={setEditingTaskDescription}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.modalCancelButton}
+                    onPress={() => {
+                      setViewingTask(null);
+                      setEditingTaskDescription('');
+                    }}
+                  >
+                    <Text style={styles.modalCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.modalSaveButton}
+                    onPress={handleSaveTaskDescription}
+                  >
+                    <Text style={styles.modalSaveText}>Save Note</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* View/Edit Personal Task Modal */}
+      <Modal visible={!!viewingPersonalTask} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {viewingPersonalTask && (
+              <>
+                <View style={styles.taskDetailHeader}>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryBadgeText}>
+                      {TASK_CATEGORIES.find(c => c.id === viewingPersonalTask.category)?.icon}{' '}
+                      {TASK_CATEGORIES.find(c => c.id === viewingPersonalTask.category)?.label}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setViewingPersonalTask(null)}>
+                    <Text style={styles.modalCloseButton}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.taskDetailTitle}>{viewingPersonalTask.title}</Text>
+
+                {viewingPersonalTask.clientName && (
+                  <Text style={styles.taskDetailClient}>For: {viewingPersonalTask.clientName}</Text>
+                )}
+
+                <Text style={styles.modalLabel}>Notes:</Text>
+                <TextInput
+                  style={styles.taskDetailTextArea}
+                  placeholder="Add notes for yourself..."
+                  value={editingPersonalTaskDescription}
+                  onChangeText={setEditingPersonalTaskDescription}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalCancelButton, styles.deleteButton]}
+                    onPress={() => {
+                      handleDeletePersonalTodo(viewingPersonalTask.id);
+                      setViewingPersonalTask(null);
+                    }}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.modalSaveButton}
+                    onPress={handleSavePersonalTaskDescription}
+                  >
+                    <Text style={styles.modalSaveText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -1893,5 +2103,81 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#78350F',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  // Personal Task Category Filter
+  personalCategoryFilter: {
+    marginBottom: 16,
+  },
+  personalCategoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    marginRight: 8,
+  },
+  personalCategoryChipActive: {
+    backgroundColor: '#0D9488',
+  },
+  personalCategoryChipIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  personalCategoryChipText: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  personalCategoryChipTextActive: {
+    color: '#FFFFFF',
+  },
+  todoDescriptionPreview: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  // Task Detail Modal
+  taskDetailHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalCloseButton: {
+    fontSize: 24,
+    color: '#9CA3AF',
+    padding: 4,
+  },
+  taskDetailTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  taskDetailClient: {
+    fontSize: 14,
+    color: '#0D9488',
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  taskDetailTextArea: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    minHeight: 120,
+    marginBottom: 20,
+    textAlignVertical: 'top',
+  },
+  deleteButton: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    color: '#EF4444',
+    fontWeight: '600',
   },
 });

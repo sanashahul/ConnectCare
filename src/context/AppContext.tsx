@@ -84,6 +84,7 @@ type AppAction =
   | { type: 'SET_CURRENT_CLIENT'; payload: string | null }
   | { type: 'ADD_CLIENT_TODO'; payload: { clientId: string; todo: Omit<TodoItem, 'id' | 'createdAt'> } }
   | { type: 'TOGGLE_CLIENT_TODO'; payload: { clientId: string; todoId: string } }
+  | { type: 'UPDATE_CLIENT_TODO_DESCRIPTION'; payload: { clientId: string; todoId: string; description: string } }
   | { type: 'LOAD_STATE'; payload: Partial<AppState> }
   | { type: 'RESET_STATE' }
   // Case Manager Collaboration Actions
@@ -269,6 +270,21 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
           const updatedTodos = client.todos.map((todo) =>
             todo.id === action.payload.todoId
               ? { ...todo, completed: !todo.completed }
+              : todo
+          );
+          return { ...client, todos: updatedTodos };
+        }
+        return client;
+      });
+      return { ...state, connectedClients: clients };
+    }
+
+    case 'UPDATE_CLIENT_TODO_DESCRIPTION': {
+      const clients = state.connectedClients.map((client) => {
+        if (client.shareCode === action.payload.clientId || client.id === action.payload.clientId) {
+          const updatedTodos = client.todos.map((todo) =>
+            todo.id === action.payload.todoId
+              ? { ...todo, description: action.payload.description }
               : todo
           );
           return { ...client, todos: updatedTodos };
