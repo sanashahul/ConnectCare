@@ -4,6 +4,8 @@ export type UserRole = 'individual' | 'caseworker';
 
 export type ServiceCategory = 'healthcare' | 'employment' | 'housing';
 
+export type TaskCategory = 'housing' | 'employment' | 'healthcare' | 'documents' | 'benefits' | 'education' | 'other';
+
 export type ImmigrationStatus =
   | 'citizen'
   | 'permanent_resident'
@@ -53,7 +55,7 @@ export interface TodoItem {
   resourceType?: 'job' | 'housing' | 'clinic';
   resourceUrl?: string;
   resourcePhone?: string;
-  category?: ServiceCategory;
+  category?: TaskCategory;
 }
 
 export type AgeGroup = 'under18' | '18-24' | '25-54' | '55plus';
@@ -112,7 +114,6 @@ export interface Resource {
 // CASE MANAGER COLLABORATION TYPES
 // ============================================
 
-export type TaskCategory = 'housing' | 'employment' | 'healthcare' | 'documents' | 'benefits' | 'education' | 'other';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type TaskPriority = 'high' | 'medium' | 'low';
 

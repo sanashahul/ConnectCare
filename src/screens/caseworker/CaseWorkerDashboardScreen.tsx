@@ -141,6 +141,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
         todo: {
           title: newTaskTitle.trim(),
           priority: newTaskPriority,
+          category: newTaskCategory,
           completed: false,
           createdBy: 'caseworker',
         },
@@ -149,6 +150,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
 
     setNewTaskTitle('');
     setNewTaskPriority('normal');
+    setNewTaskCategory('other');
     setShowAddTask(false);
   };
 
@@ -407,6 +409,14 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                   <View style={styles.todoContent}>
                     <Text style={styles.todoTitle}>{todo.title}</Text>
                     <View style={styles.todoMeta}>
+                      {todo.category && (
+                        <View style={styles.categoryBadge}>
+                          <Text style={styles.categoryBadgeText}>
+                            {TASK_CATEGORIES.find(c => c.id === todo.category)?.icon}{' '}
+                            {TASK_CATEGORIES.find(c => c.id === todo.category)?.label}
+                          </Text>
+                        </View>
+                      )}
                       {todo.priority === 'urgent' && (
                         <View style={styles.urgentBadge}>
                           <Text style={styles.urgentText}>Urgent</Text>
@@ -588,6 +598,30 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                 autoFocus
               />
 
+              <Text style={styles.modalLabel}>Category</Text>
+              <View style={styles.categoryGrid}>
+                {TASK_CATEGORIES.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.categoryOption,
+                      newTaskCategory === cat.id && styles.categoryOptionActive,
+                    ]}
+                    onPress={() => setNewTaskCategory(cat.id)}
+                  >
+                    <Text style={styles.categoryOptionIcon}>{cat.icon}</Text>
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        newTaskCategory === cat.id && styles.categoryOptionTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
               <Text style={styles.modalLabel}>{t('caseworker.clientDetail.taskPriority')}</Text>
               <View style={styles.priorityButtons}>
                 <TouchableOpacity
@@ -631,6 +665,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                   onPress={() => {
                     setShowAddTask(false);
                     setNewTaskTitle('');
+                    setNewTaskCategory('other');
                   }}
                 >
                   <Text style={styles.modalCancelText}>{t('caseworker.clientDetail.cancel')}</Text>
@@ -1136,6 +1171,38 @@ const styles = StyleSheet.create({
   modalSaveText: {
     fontSize: 16,
     color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  // Category Selection Styles
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  categoryOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  categoryOptionActive: {
+    borderColor: '#0D9488',
+    backgroundColor: '#F0FDFA',
+  },
+  categoryOptionIcon: {
+    fontSize: 16,
+  },
+  categoryOptionText: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  categoryOptionTextActive: {
+    color: '#0D9488',
     fontWeight: '600',
   },
   // Messages Tab Styles
