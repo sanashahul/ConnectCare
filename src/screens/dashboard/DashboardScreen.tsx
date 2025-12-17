@@ -22,6 +22,7 @@ import { useApp } from '../../context/AppContext';
 import * as Clipboard from 'expo-clipboard';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
+import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 
 type DashboardScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -1122,6 +1123,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
     messageCount: 0,
@@ -1819,52 +1821,264 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         )}
 
         {/* Youth Support Banner - for users under 18 */}
-        {userProfile?.ageGroup === 'under18' && (
-          <View style={styles.youthBanner}>
-            <View style={styles.youthBannerHeader}>
-              <Text style={styles.youthBannerEmoji}>💚</Text>
-              <Text style={styles.youthBannerTitle}>
-                {isSpanish ? 'Apoyo para Jóvenes' : 'Youth Support'}
+        {userProfile?.ageGroup === 'under18' && (() => {
+          const stateCode = userProfile?.location?.state || '';
+          const stateLaws = getStateYouthLaws(stateCode);
+
+          return (
+            <View style={styles.youthBanner}>
+              <View style={styles.youthBannerHeader}>
+                <Text style={styles.youthBannerEmoji}>💚</Text>
+                <Text style={styles.youthBannerTitle}>
+                  {isSpanish ? 'Apoyo para Jóvenes' : 'Youth Support'}
+                </Text>
+              </View>
+              <Text style={styles.youthBannerText}>
+                {isSpanish
+                  ? 'No estás solo/a. Tenemos recursos especiales para ti.'
+                  : "You're not alone. We have special resources for you."}
               </Text>
-            </View>
-            <Text style={styles.youthBannerText}>
-              {isSpanish
-                ? 'No estás solo/a. Tenemos recursos especiales para ti.'
-                : "You're not alone. We have special resources for you."}
-            </Text>
-            <View style={styles.youthHotlines}>
-              <TouchableOpacity
-                style={styles.youthHotlineCard}
-                onPress={() => Linking.openURL('tel:18007862929')}
-              >
-                <Text style={styles.youthHotlineIcon}>🏃</Text>
-                <View style={styles.youthHotlineInfo}>
-                  <Text style={styles.youthHotlineName}>
-                    {isSpanish ? 'Línea para Fugitivos' : 'Runaway Safeline'}
+
+              {/* Tab Selector */}
+              <View style={styles.youthTabSelector}>
+                <TouchableOpacity
+                  style={[styles.youthTab, youthTab === 'hotlines' && styles.youthTabActive]}
+                  onPress={() => setYouthTab('hotlines')}
+                >
+                  <Text style={[styles.youthTabText, youthTab === 'hotlines' && styles.youthTabTextActive]}>
+                    📞 {isSpanish ? 'Líneas' : 'Hotlines'}
                   </Text>
-                  <Text style={styles.youthHotlinePhone}>1-800-786-2929</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.youthHotlineCard}
-                onPress={() => Linking.openURL('tel:18004224453')}
-              >
-                <Text style={styles.youthHotlineIcon}>🆘</Text>
-                <View style={styles.youthHotlineInfo}>
-                  <Text style={styles.youthHotlineName}>
-                    {isSpanish ? 'Ayuda contra Abuso' : 'Child Abuse Hotline'}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.youthTab, youthTab === 'laws' && styles.youthTabActive]}
+                  onPress={() => setYouthTab('laws')}
+                >
+                  <Text style={[styles.youthTabText, youthTab === 'laws' && styles.youthTabTextActive]}>
+                    ⚖️ {isSpanish ? 'Leyes' : 'Laws'}
                   </Text>
-                  <Text style={styles.youthHotlinePhone}>1-800-422-4453</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.youthTab, youthTab === 'abuse' && styles.youthTabActive]}
+                  onPress={() => setYouthTab('abuse')}
+                >
+                  <Text style={[styles.youthTabText, youthTab === 'abuse' && styles.youthTabTextActive]}>
+                    🛡️ {isSpanish ? 'Reportar' : 'Report'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Hotlines Tab */}
+              {youthTab === 'hotlines' && (
+                <View style={styles.youthTabContent}>
+                  <View style={styles.youthHotlines}>
+                    <TouchableOpacity
+                      style={styles.youthHotlineCard}
+                      onPress={() => Linking.openURL('tel:18007862929')}
+                    >
+                      <Text style={styles.youthHotlineIcon}>🏃</Text>
+                      <View style={styles.youthHotlineInfo}>
+                        <Text style={styles.youthHotlineName}>
+                          {isSpanish ? 'Línea para Fugitivos' : 'Runaway Safeline'}
+                        </Text>
+                        <Text style={styles.youthHotlinePhone}>1-800-786-2929</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.youthHotlineCard}
+                      onPress={() => Linking.openURL('tel:18004224453')}
+                    >
+                      <Text style={styles.youthHotlineIcon}>🆘</Text>
+                      <View style={styles.youthHotlineInfo}>
+                        <Text style={styles.youthHotlineName}>
+                          {isSpanish ? 'Ayuda contra Abuso' : 'Child Abuse Hotline'}
+                        </Text>
+                        <Text style={styles.youthHotlinePhone}>1-800-422-4453</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.youthHotlineCard}
+                      onPress={() => Linking.openURL('tel:18669997386')}
+                    >
+                      <Text style={styles.youthHotlineIcon}>🌈</Text>
+                      <View style={styles.youthHotlineInfo}>
+                        <Text style={styles.youthHotlineName}>
+                          {isSpanish ? 'Proyecto Trevor (LGBTQ+)' : 'Trevor Project (LGBTQ+)'}
+                        </Text>
+                        <Text style={styles.youthHotlinePhone}>1-866-488-7386</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.youthHotlineCard}
+                      onPress={() => Linking.openURL('sms:741741?body=HOME')}
+                    >
+                      <Text style={styles.youthHotlineIcon}>💬</Text>
+                      <View style={styles.youthHotlineInfo}>
+                        <Text style={styles.youthHotlineName}>
+                          {isSpanish ? 'Línea de Texto de Crisis' : 'Crisis Text Line'}
+                        </Text>
+                        <Text style={styles.youthHotlinePhone}>{isSpanish ? 'Envía HOME al 741741' : 'Text HOME to 741741'}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.youthBannerNote}>
+                    {isSpanish
+                      ? '📞 Toca para llamar. Las llamadas son confidenciales.'
+                      : '📞 Tap to call. All calls are confidential.'}
+                  </Text>
                 </View>
-              </TouchableOpacity>
+              )}
+
+              {/* State Laws Tab */}
+              {youthTab === 'laws' && (
+                <View style={styles.youthTabContent}>
+                  <View style={styles.lawsHeader}>
+                    <Text style={styles.lawsStateLabel}>
+                      {stateCode ? (
+                        isSpanish ? `Leyes en ${stateLaws.state}` : `Laws in ${stateLaws.state}`
+                      ) : (
+                        isSpanish ? 'Leyes Generales' : 'General Laws'
+                      )}
+                    </Text>
+                  </View>
+
+                  <View style={styles.lawsSummaryCard}>
+                    <Text style={styles.lawsSummaryText}>
+                      {isSpanish ? stateLaws.runawayLaws.summaryEs : stateLaws.runawayLaws.summary}
+                    </Text>
+                  </View>
+
+                  <View style={styles.lawsKeyPoints}>
+                    <Text style={styles.lawsKeyPointsTitle}>
+                      {isSpanish ? 'Puntos Importantes:' : 'Key Points:'}
+                    </Text>
+                    {(isSpanish ? stateLaws.runawayLaws.keyPointsEs : stateLaws.runawayLaws.keyPoints).map((point, index) => (
+                      <View key={index} style={styles.lawsKeyPoint}>
+                        <Text style={styles.lawsBullet}>•</Text>
+                        <Text style={styles.lawsKeyPointText}>{point}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={styles.lawsInfoRow}>
+                    <View style={styles.lawsInfoItem}>
+                      <Text style={styles.lawsInfoLabel}>{isSpanish ? 'Mayoría de edad' : 'Age of Majority'}</Text>
+                      <Text style={styles.lawsInfoValue}>{stateLaws.runawayLaws.ageOfMajority}</Text>
+                    </View>
+                    {stateLaws.runawayLaws.emancipationAge && (
+                      <View style={styles.lawsInfoItem}>
+                        <Text style={styles.lawsInfoLabel}>{isSpanish ? 'Emancipación' : 'Emancipation'}</Text>
+                        <Text style={styles.lawsInfoValue}>{stateLaws.runawayLaws.emancipationAge}+</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.lawsStatusRow}>
+                    <View style={[styles.lawsStatusBadge, stateLaws.runawayLaws.isStatusOffense ? styles.lawsStatusWarning : styles.lawsStatusSafe]}>
+                      <Text style={styles.lawsStatusText}>
+                        {stateLaws.runawayLaws.isStatusOffense
+                          ? (isSpanish ? '⚠️ Huir es ofensa de estatus' : '⚠️ Running away is a status offense')
+                          : (isSpanish ? '✓ Huir NO es un crimen' : '✓ Running away is NOT a crime')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.lawsCallButton}
+                    onPress={() => Linking.openURL('tel:18007862929')}
+                  >
+                    <Text style={styles.lawsCallButtonText}>
+                      {isSpanish ? '📞 Preguntas? Llama a la Línea para Fugitivos' : '📞 Questions? Call Runaway Safeline'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Report Abuse Tab */}
+              {youthTab === 'abuse' && (
+                <View style={styles.youthTabContent}>
+                  <View style={styles.abuseIntroCard}>
+                    <Text style={styles.abuseIntroText}>
+                      {isSpanish ? ABUSE_REPORTING_INFO.introEs : ABUSE_REPORTING_INFO.intro}
+                    </Text>
+                  </View>
+
+                  {/* State-specific reporting */}
+                  <View style={styles.abuseStateCard}>
+                    <Text style={styles.abuseStateTitle}>
+                      {stateCode
+                        ? (isSpanish ? `Reportar en ${stateLaws.state}` : `Report in ${stateLaws.state}`)
+                        : (isSpanish ? 'Línea Nacional' : 'National Hotline')}
+                    </Text>
+                    <Text style={styles.abuseAgency}>
+                      {isSpanish ? stateLaws.abuseReporting.agencyEs : stateLaws.abuseReporting.agency}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.abuseCallButton}
+                      onPress={() => Linking.openURL(`tel:${stateLaws.abuseReporting.hotline.replace(/-/g, '')}`)}
+                    >
+                      <Text style={styles.abuseCallButtonText}>
+                        📞 {stateLaws.abuseReporting.hotline}
+                      </Text>
+                    </TouchableOpacity>
+                    <View style={styles.abuseFeatures}>
+                      {stateLaws.abuseReporting.canReportAnonymously && (
+                        <View style={styles.abuseFeatureBadge}>
+                          <Text style={styles.abuseFeatureText}>
+                            {isSpanish ? '🔒 Anónimo' : '🔒 Anonymous'}
+                          </Text>
+                        </View>
+                      )}
+                      {stateLaws.abuseReporting.onlineReporting && (
+                        <TouchableOpacity
+                          style={styles.abuseFeatureBadge}
+                          onPress={() => Linking.openURL(stateLaws.abuseReporting.website)}
+                        >
+                          <Text style={styles.abuseFeatureText}>
+                            {isSpanish ? '🌐 En línea' : '🌐 Online'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Types of abuse */}
+                  <Text style={styles.abuseTypesTitle}>
+                    {isSpanish ? '¿Qué es abuso?' : 'What is abuse?'}
+                  </Text>
+                  <View style={styles.abuseTypesGrid}>
+                    {ABUSE_REPORTING_INFO.types.map((type, index) => (
+                      <View key={index} style={styles.abuseTypeCard}>
+                        <Text style={styles.abuseTypeIcon}>{type.icon}</Text>
+                        <Text style={styles.abuseTypeName}>
+                          {isSpanish ? type.typeEs : type.type}
+                        </Text>
+                        <Text style={styles.abuseTypeExamples}>
+                          {isSpanish ? type.examplesEs : type.examples}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Emergency notice */}
+                  <View style={styles.abuseEmergency}>
+                    <Text style={styles.abuseEmergencyTitle}>
+                      {isSpanish ? ABUSE_REPORTING_INFO.emergency.titleEs : ABUSE_REPORTING_INFO.emergency.title}
+                    </Text>
+                    <Text style={styles.abuseEmergencyText}>
+                      {isSpanish ? ABUSE_REPORTING_INFO.emergency.messageEs : ABUSE_REPORTING_INFO.emergency.message}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.abuseEmergencyButton}
+                      onPress={() => Linking.openURL('tel:911')}
+                    >
+                      <Text style={styles.abuseEmergencyButtonText}>🚨 {isSpanish ? 'Llamar 911' : 'Call 911'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
-            <Text style={styles.youthBannerNote}>
-              {isSpanish
-                ? '📞 Toca para llamar. Las llamadas son confidenciales.'
-                : '📞 Tap to call. All calls are confidential.'}
-            </Text>
-          </View>
-        )}
+          );
+        })()}
 
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
@@ -2591,5 +2805,274 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  // Youth Tab Selector styles
+  youthTabSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#D1FAE5',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  youthTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  youthTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  youthTabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#047857',
+  },
+  youthTabTextActive: {
+    color: '#065F46',
+    fontWeight: '700',
+  },
+  youthTabContent: {
+    marginTop: 4,
+  },
+  // State Laws Tab styles
+  lawsHeader: {
+    marginBottom: 12,
+  },
+  lawsStateLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#065F46',
+    textAlign: 'center',
+  },
+  lawsSummaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  lawsSummaryText: {
+    fontSize: 14,
+    color: '#047857',
+    lineHeight: 20,
+  },
+  lawsKeyPoints: {
+    marginBottom: 16,
+  },
+  lawsKeyPointsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#065F46',
+    marginBottom: 8,
+  },
+  lawsKeyPoint: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  lawsBullet: {
+    fontSize: 14,
+    color: '#059669',
+    marginRight: 8,
+    fontWeight: '700',
+  },
+  lawsKeyPointText: {
+    fontSize: 13,
+    color: '#047857',
+    flex: 1,
+    lineHeight: 18,
+  },
+  lawsInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 16,
+  },
+  lawsInfoItem: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    minWidth: 100,
+  },
+  lawsInfoLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  lawsInfoValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  lawsStatusRow: {
+    marginBottom: 16,
+  },
+  lawsStatusBadge: {
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  lawsStatusWarning: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  lawsStatusSafe: {
+    backgroundColor: '#D1FAE5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  lawsStatusText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  lawsCallButton: {
+    backgroundColor: '#059669',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  lawsCallButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // Abuse Reporting Tab styles
+  abuseIntroCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  abuseIntroText: {
+    fontSize: 14,
+    color: '#991B1B',
+    lineHeight: 20,
+  },
+  abuseStateCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    alignItems: 'center',
+  },
+  abuseStateTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#991B1B',
+    marginBottom: 4,
+  },
+  abuseAgency: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  abuseCallButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    marginBottom: 12,
+  },
+  abuseCallButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  abuseFeatures: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  abuseFeatureBadge: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  abuseFeatureText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669',
+  },
+  abuseTypesTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#065F46',
+    marginBottom: 12,
+  },
+  abuseTypesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  abuseTypeCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  abuseTypeIcon: {
+    fontSize: 24,
+    marginBottom: 6,
+  },
+  abuseTypeName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  abuseTypeExamples: {
+    fontSize: 11,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  abuseEmergency: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FCA5A5',
+  },
+  abuseEmergencyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#991B1B',
+    marginBottom: 6,
+  },
+  abuseEmergencyText: {
+    fontSize: 14,
+    color: '#B91C1C',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  abuseEmergencyButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
+  abuseEmergencyButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
