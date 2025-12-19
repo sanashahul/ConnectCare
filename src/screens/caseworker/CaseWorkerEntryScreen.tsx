@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TextInput,
+  TouchableOpacity,
+  Animated,
+  Vibration,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -94,7 +98,14 @@ export const CaseWorkerEntryScreen: React.FC<CaseWorkerEntryScreenProps> = ({
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [step, setStep] = useState<'name' | 'code'>('name');
+  const [step, setStep] = useState<'name' | 'pin' | 'code'>('name');
+
+  // PIN setup state
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinStep, setPinStep] = useState<'create' | 'confirm'>('create');
+  const pinInputRef = useRef<TextInput>(null);
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
 
   const handleNameSubmit = () => {
     if (name.trim().length < 2) {
@@ -110,8 +121,71 @@ export const CaseWorkerEntryScreen: React.FC<CaseWorkerEntryScreenProps> = ({
       createdAt: new Date().toISOString(),
     };
     dispatch({ type: 'SET_CASEWORKER_PROFILE', payload: caseWorkerProfile });
-    setStep('code');
+    setStep('pin');
     setError('');
+  };
+
+  const shake = () => {
+    Vibration.vibrate(100);
+    Animated.sequence([
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const handlePinDigit = (digit: string) => {
+    if (pinStep === 'create') {
+      if (pin.length < 4) {
+        const newPin = pin + digit;
+        setPin(newPin);
+        if (newPin.length === 4) {
+          setTimeout(() => {
+            setPinStep('confirm');
+          }, 200);
+        }
+      }
+    } else {
+      if (confirmPin.length < 4) {
+        const newConfirm = confirmPin + digit;
+        setConfirmPin(newConfirm);
+        if (newConfirm.length === 4) {
+          setTimeout(() => {
+            if (newConfirm === pin) {
+              dispatch({ type: 'SET_CASEWORKER_PIN', payload: pin });
+              setStep('code');
+              setError('');
+            } else {
+              shake();
+              setConfirmPin('');
+              setError('PINs do not match. Try again.');
+            }
+          }, 200);
+        }
+      }
+    }
+  };
+
+  const handlePinBackspace = () => {
+    if (pinStep === 'create') {
+      setPin(pin.slice(0, -1));
+    } else {
+      setConfirmPin(confirmPin.slice(0, -1));
+    }
+    setError('');
+  };
+
+  const handlePinBack = () => {
+    if (pinStep === 'confirm') {
+      setPinStep('create');
+      setPin('');
+      setConfirmPin('');
+      setError('');
+    } else {
+      setStep('name');
+    }
   };
 
   const handleConnect = () => {
@@ -223,6 +297,77 @@ export const CaseWorkerEntryScreen: React.FC<CaseWorkerEntryScreenProps> = ({
             />
           </View>
         </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === 'pin') {
+    const currentPin = pinStep === 'create' ? pin : confirmPin;
+
+    return (
+      <SafeAreaView style={styles.pinContainer}>
+        <View style={styles.pinContent}>
+          <View style={styles.pinHeader}>
+            <Text style={styles.pinTitle}>
+              {pinStep === 'create' ? 'Create Your PIN' : 'Confirm Your PIN'}
+            </Text>
+            <Text style={styles.pinSubtitle}>
+              {pinStep === 'create'
+                ? 'Enter a 4-digit PIN to secure your account'
+                : 'Enter your PIN again to confirm'}
+            </Text>
+          </View>
+
+          <Animated.View
+            style={[styles.pinDotsContainer, { transform: [{ translateX: shakeAnimation }] }]}
+          >
+            {[0, 1, 2, 3].map((index) => (
+              <View
+                key={index}
+                style={[
+                  styles.pinDot,
+                  index < currentPin.length && styles.pinDotFilled,
+                ]}
+              />
+            ))}
+          </Animated.View>
+
+          {error ? <Text style={styles.pinError}>{error}</Text> : null}
+
+          <View style={styles.keypad}>
+            {[
+              ['1', '2', '3'],
+              ['4', '5', '6'],
+              ['7', '8', '9'],
+              ['', '0', '⌫'],
+            ].map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.keypadRow}>
+                {row.map((digit, digitIndex) => (
+                  <TouchableOpacity
+                    key={digitIndex}
+                    style={[styles.keypadButton, digit === '' && styles.keypadButtonEmpty]}
+                    onPress={() => {
+                      if (digit === '⌫') {
+                        handlePinBackspace();
+                      } else if (digit !== '') {
+                        handlePinDigit(digit);
+                      }
+                    }}
+                    disabled={digit === ''}
+                  >
+                    <Text style={styles.keypadText}>{digit}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.pinBackButton} onPress={handlePinBack}>
+            <Text style={styles.pinBackText}>
+              {pinStep === 'confirm' ? '← Start Over' : '← Back'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -368,5 +513,86 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flex: 2,
+  },
+  // PIN setup styles
+  pinContainer: {
+    flex: 1,
+    backgroundColor: '#0D9488',
+  },
+  pinContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  pinHeader: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  pinTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  pinSubtitle: {
+    fontSize: 16,
+    color: '#99F6E4',
+    textAlign: 'center',
+  },
+  pinDotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 48,
+  },
+  pinDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    backgroundColor: 'transparent',
+  },
+  pinDotFilled: {
+    backgroundColor: '#FFFFFF',
+  },
+  pinError: {
+    color: '#FEE2E2',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  keypad: {
+    gap: 16,
+  },
+  keypadRow: {
+    flexDirection: 'row',
+    gap: 24,
+  },
+  keypadButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keypadButtonEmpty: {
+    backgroundColor: 'transparent',
+  },
+  keypadText: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  pinBackButton: {
+    marginTop: 32,
+    padding: 12,
+  },
+  pinBackText: {
+    fontSize: 16,
+    color: '#99F6E4',
   },
 });

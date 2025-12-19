@@ -45,8 +45,10 @@ export const AppNavigator: React.FC = () => {
   const { state, dispatch } = useApp();
 
   // Check if user has completed onboarding
+  // For caseworkers: onboarding complete when they have connected to at least one client
+  // For users: onboarding complete when shareCode is set
   const hasCompletedOnboarding = state.userRole === 'caseworker'
-    ? !!state.caseWorkerProfile
+    ? !!state.caseWorkerProfile && state.connectedClients.length > 0
     : !!state.userProfile?.shareCode;
 
   // Check if user has a PIN set and app should be locked
