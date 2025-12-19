@@ -44,12 +44,18 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const AppNavigator: React.FC = () => {
   const { state, dispatch } = useApp();
 
+  // Check if user has completed onboarding
+  const hasCompletedOnboarding = state.userRole === 'caseworker'
+    ? !!state.caseWorkerProfile
+    : !!state.userProfile?.shareCode;
+
   // Check if user has a PIN set and app should be locked
   const hasPinSet = state.userRole === 'caseworker'
     ? !!state.caseWorkerProfile?.pin
     : !!state.userProfile?.pin;
 
-  const shouldShowPinLock = hasPinSet && state.isLocked;
+  // Only show PIN lock if onboarding is complete, PIN is set, and app is locked
+  const shouldShowPinLock = hasCompletedOnboarding && hasPinSet && state.isLocked;
 
   // Determine initial route based on saved state
   const getInitialRoute = (): keyof RootStackParamList => {
