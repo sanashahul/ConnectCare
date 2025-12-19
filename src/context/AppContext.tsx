@@ -61,6 +61,7 @@ interface AppState {
   connectedClients: UserProfile[];
   currentClientId: string | null;
   isLoading: boolean;
+  isLocked: boolean; // PIN lock state
   onboardingStep: number;
   caseManagerData: CaseManagerData;
 }
@@ -76,7 +77,12 @@ type AppAction =
   | { type: 'SET_CATEGORIES'; payload: ServiceCategory[] }
   | { type: 'SET_ANSWER'; payload: QuestionAnswer }
   | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'SET_USER_PIN'; payload: string }
+  | { type: 'SET_CASEWORKER_PIN'; payload: string }
+  | { type: 'UNLOCK_APP' }
+  | { type: 'LOCK_APP' }
   | { type: 'ADD_TODO'; payload: Omit<TodoItem, 'id' | 'createdAt'> }
+  | { type: 'UPDATE_TODO_DESCRIPTION'; payload: { todoId: string; description: string } }
   | { type: 'TOGGLE_TODO'; payload: string }
   | { type: 'DELETE_TODO'; payload: string }
   | { type: 'SET_CASEWORKER_PROFILE'; payload: CaseWorkerProfile }
@@ -104,6 +110,7 @@ const initialState: AppState = {
   connectedClients: [],
   currentClientId: null,
   isLoading: true,
+  isLocked: true, // Start locked, unlock after PIN verification
   onboardingStep: 0,
   caseManagerData: createEmptyCaseManagerData(),
 };
@@ -190,12 +197,36 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       const shareCode = generateShareCode();
       return {
         ...state,
+        isLocked: false, // Unlock after onboarding
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           shareCode,
         },
       };
     }
+
+    case 'SET_USER_PIN':
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          pin: action.payload,
+        },
+      };
+
+    case 'SET_CASEWORKER_PIN':
+      return {
+        ...state,
+        caseWorkerProfile: state.caseWorkerProfile
+          ? { ...state.caseWorkerProfile, pin: action.payload }
+          : null,
+      };
+
+    case 'UNLOCK_APP':
+      return { ...state, isLocked: false };
+
+    case 'LOCK_APP':
+      return { ...state, isLocked: true };
 
     case 'ADD_TODO': {
       const newTodo: TodoItem = {
@@ -208,6 +239,22 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           todos: [...(state.userProfile?.todos || []), newTodo],
+        },
+      };
+    }
+
+    case 'UPDATE_TODO_DESCRIPTION': {
+      const todos = state.userProfile?.todos || [];
+      const updatedTodos = todos.map((todo) =>
+        todo.id === action.payload.todoId
+          ? { ...todo, description: action.payload.description }
+          : todo
+      );
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          todos: updatedTodos,
         },
       };
     }

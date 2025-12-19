@@ -1120,6 +1120,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
+  const [newTodoDescription, setNewTodoDescription] = useState('');
+  const [selectedTodo, setSelectedTodo] = useState<any>(null);
+  const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
@@ -1254,23 +1257,38 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     }
   };
 
-  const handleAddTodo = (title: string) => {
+  const handleAddTodo = (title: string, description?: string) => {
     if (!title.trim()) return;
 
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title: title.trim(),
+        description: description?.trim() || undefined,
         completed: false,
         category: currentTopic as any || 'general',
       },
     });
 
+    setNewTodoDescription('');
     Alert.alert(
       isSpanish ? '¡Agregado!' : 'Added!',
       isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
       [{ text: 'OK' }]
     );
+  };
+
+  const handleSaveTodoDescription = () => {
+    if (!selectedTodo) return;
+    dispatch({
+      type: 'UPDATE_TODO_DESCRIPTION',
+      payload: {
+        todoId: selectedTodo.id,
+        description: editingTodoDescription.trim(),
+      },
+    });
+    setSelectedTodo(null);
+    setEditingTodoDescription('');
   };
 
   const handleQuickAddTodo = (todo: { en: string; es: string }) => {
@@ -1478,13 +1496,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               <View key={todo.id} style={styles.todoItemContainer}>
                 <TouchableOpacity
                   style={styles.todoItem}
-                  onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+                  onPress={() => {
+                    setSelectedTodo(todo);
+                    setEditingTodoDescription(todo.description || '');
+                  }}
                 >
-                  <View style={styles.todoCheckbox}>
+                  <TouchableOpacity
+                    style={styles.todoCheckbox}
+                    onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+                  >
                     <Text style={styles.todoCheckmark}></Text>
-                  </View>
+                  </TouchableOpacity>
                   <View style={styles.todoContent}>
                     <Text style={styles.todoText}>{todo.title}</Text>
+                    {todo.description && (
+                      <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
+                        📝 {todo.description}
+                      </Text>
+                    )}
                     {/* Resource type badge */}
                     {todo.resourceType && (
                       <View style={[
@@ -1564,7 +1593,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <Text style={styles.addTodoTitle}>
               {isSpanish ? 'Nueva Tarea' : 'New Task'}
             </Text>
-            <TouchableOpacity onPress={() => setShowAddTodo(false)}>
+            <TouchableOpacity onPress={() => {
+              setShowAddTodo(false);
+              setNewTodoText('');
+              setNewTodoDescription('');
+            }}>
               <Text style={styles.addTodoClose}>×</Text>
             </TouchableOpacity>
           </View>
@@ -1576,6 +1609,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             placeholderTextColor="#94A3B8"
             autoFocus
           />
+          <TextInput
+            style={styles.addTodoDescriptionInput}
+            value={newTodoDescription}
+            onChangeText={setNewTodoDescription}
+            placeholder={isSpanish ? 'Descripción (opcional)...' : 'Description (optional)...'}
+            placeholderTextColor="#94A3B8"
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
           <TouchableOpacity
             style={[
               styles.addTodoSubmit,
@@ -1583,8 +1626,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             ]}
             onPress={() => {
               if (newTodoText.trim()) {
-                handleAddTodo(newTodoText);
+                handleAddTodo(newTodoText, newTodoDescription);
                 setNewTodoText('');
+                setNewTodoDescription('');
                 setShowAddTodo(false);
               }
             }}
@@ -1594,6 +1638,70 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               {isSpanish ? 'Agregar' : 'Add Task'}
             </Text>
           </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  const renderTodoDetailModal = () => (
+    <Modal visible={!!selectedTodo} animationType="slide" transparent>
+      <View style={styles.addTodoOverlay}>
+        <View style={styles.addTodoModal}>
+          <View style={styles.addTodoHeader}>
+            <Text style={styles.addTodoTitle}>
+              {isSpanish ? 'Detalle de Tarea' : 'Task Detail'}
+            </Text>
+            <TouchableOpacity onPress={() => {
+              setSelectedTodo(null);
+              setEditingTodoDescription('');
+            }}>
+              <Text style={styles.addTodoClose}>×</Text>
+            </TouchableOpacity>
+          </View>
+
+          {selectedTodo && (
+            <>
+              <Text style={styles.todoDetailTitle}>{selectedTodo.title}</Text>
+
+              <Text style={styles.todoDetailLabel}>
+                {isSpanish ? 'Descripción / Notas' : 'Description / Notes'}
+              </Text>
+              <TextInput
+                style={styles.todoDetailDescriptionInput}
+                value={editingTodoDescription}
+                onChangeText={setEditingTodoDescription}
+                placeholder={isSpanish ? 'Agregar notas...' : 'Add notes...'}
+                placeholderTextColor="#94A3B8"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+
+              <View style={styles.todoDetailButtons}>
+                <TouchableOpacity
+                  style={styles.todoDetailSecondaryButton}
+                  onPress={() => {
+                    dispatch({ type: 'TOGGLE_TODO', payload: selectedTodo.id });
+                    setSelectedTodo(null);
+                  }}
+                >
+                  <Text style={styles.todoDetailSecondaryButtonText}>
+                    {selectedTodo.completed
+                      ? (isSpanish ? 'Marcar Pendiente' : 'Mark Pending')
+                      : (isSpanish ? 'Completar' : 'Complete')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.todoDetailPrimaryButton}
+                  onPress={handleSaveTodoDescription}
+                >
+                  <Text style={styles.todoDetailPrimaryButtonText}>
+                    {isSpanish ? 'Guardar' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </Modal>
@@ -2123,6 +2231,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
       {/* Add Todo Modal */}
       {renderAddTodoModal()}
+
+      {/* Todo Detail Modal */}
+      {renderTodoDetailModal()}
     </SafeAreaView>
   );
 };
@@ -3028,5 +3139,71 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Todo Description Styles
+  addTodoDescriptionInput: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    minHeight: 80,
+    marginBottom: 16,
+    color: '#0F172A',
+  },
+  todoDescriptionPreview: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  todoDetailTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  todoDetailLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  todoDetailDescriptionInput: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    minHeight: 100,
+    marginBottom: 20,
+    color: '#0F172A',
+  },
+  todoDetailButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  todoDetailSecondaryButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  todoDetailSecondaryButtonText: {
+    fontSize: 15,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  todoDetailPrimaryButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#0D9488',
+    alignItems: 'center',
+  },
+  todoDetailPrimaryButtonText: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

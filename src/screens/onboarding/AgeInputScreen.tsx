@@ -108,7 +108,7 @@ export const AgeInputScreen: React.FC<AgeInputScreenProps> = ({ navigation }) =>
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={2} total={5} label="2 / 5" />
+        <ProgressBar current={2} total={6} label="2 / 6" />
       </View>
 
       {/* Content */}

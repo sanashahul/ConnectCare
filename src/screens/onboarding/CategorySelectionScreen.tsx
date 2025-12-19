@@ -55,7 +55,7 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
   const handleNext = () => {
     if (selectedCategories.length > 0) {
       dispatch({ type: 'SET_CATEGORIES', payload: selectedCategories });
-      dispatch({ type: 'SET_ONBOARDING_STEP', payload: 5 });
+      dispatch({ type: 'SET_ONBOARDING_STEP', payload: 6 });
       navigation.navigate('Questionnaire');
     }
   };
@@ -72,7 +72,7 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={5} total={5} label="5 / 5" />
+        <ProgressBar current={6} total={6} label="6 / 6" />
       </View>
 
       {/* Content */}

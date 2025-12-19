@@ -48,6 +48,11 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
   const [codeCopied, setCodeCopied] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedTask, setSelectedTask] = useState<CaseManagerTask | null>(null);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [newTaskCategory, setNewTaskCategory] = useState<TaskCategory>('other');
+  const [newTaskPriority, setNewTaskPriority] = useState<'high' | 'medium' | 'low'>('medium');
   const scrollViewRef = useRef<ScrollView>(null);
 
   const isSpanish = i18n.language === 'es';
@@ -96,6 +101,29 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
       type: 'UPDATE_CM_TASK_STATUS',
       payload: { taskId, status: newStatus },
     });
+  };
+
+  const handleAddTask = () => {
+    if (!newTaskTitle.trim()) return;
+
+    dispatch({
+      type: 'ADD_CM_TASK',
+      payload: {
+        title: newTaskTitle.trim(),
+        description: newTaskDescription.trim() || undefined,
+        category: newTaskCategory,
+        status: 'pending',
+        priority: newTaskPriority,
+        assignedBy: 'user',
+        assignedByName: userProfile?.name || 'You',
+      },
+    });
+
+    setNewTaskTitle('');
+    setNewTaskDescription('');
+    setNewTaskCategory('other');
+    setNewTaskPriority('medium');
+    setShowAddTask(false);
   };
 
   const getFilteredTasks = () => {
@@ -422,6 +450,18 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
 
     return (
       <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+        {/* Add Task Button */}
+        {isConnected && (
+          <TouchableOpacity
+            style={styles.addTaskButton}
+            onPress={() => setShowAddTask(true)}
+          >
+            <Text style={styles.addTaskButtonText}>
+              + {isSpanish ? 'Agregar Tarea' : 'Add Task'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Category Filter - Square Grid */}
         <View style={styles.categoryGrid}>
           <TouchableOpacity
@@ -668,6 +708,116 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
                 </View>
               </>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Task Modal */}
+      <Modal visible={showAddTask} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.addTaskModalTitle}>
+                {isSpanish ? 'Agregar Nueva Tarea' : 'Add New Task'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowAddTask(false)}>
+                <Text style={styles.modalCloseButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.addTaskInput}
+              placeholder={isSpanish ? 'Título de la tarea' : 'Task title'}
+              placeholderTextColor="#94A3B8"
+              value={newTaskTitle}
+              onChangeText={setNewTaskTitle}
+              autoFocus
+            />
+
+            <TextInput
+              style={styles.addTaskTextArea}
+              placeholder={isSpanish ? 'Descripción (opcional)' : 'Description (optional)'}
+              placeholderTextColor="#94A3B8"
+              value={newTaskDescription}
+              onChangeText={setNewTaskDescription}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.addTaskLabel}>{isSpanish ? 'Categoría' : 'Category'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              {TASK_CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[
+                    styles.categoryChip,
+                    newTaskCategory === cat.id && styles.categoryChipActive,
+                  ]}
+                  onPress={() => setNewTaskCategory(cat.id)}
+                >
+                  <Text style={styles.categoryChipIcon}>{cat.icon}</Text>
+                  <Text style={[
+                    styles.categoryChipText,
+                    newTaskCategory === cat.id && styles.categoryChipTextActive,
+                  ]}>
+                    {isSpanish ? cat.labelEs : cat.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.addTaskLabel}>{isSpanish ? 'Prioridad' : 'Priority'}</Text>
+            <View style={styles.priorityRow}>
+              <TouchableOpacity
+                style={[styles.priorityChip, newTaskPriority === 'low' && styles.priorityChipLow]}
+                onPress={() => setNewTaskPriority('low')}
+              >
+                <Text style={[styles.priorityChipText, newTaskPriority === 'low' && styles.priorityChipTextActive]}>
+                  {isSpanish ? 'Baja' : 'Low'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.priorityChip, newTaskPriority === 'medium' && styles.priorityChipMedium]}
+                onPress={() => setNewTaskPriority('medium')}
+              >
+                <Text style={[styles.priorityChipText, newTaskPriority === 'medium' && styles.priorityChipTextActive]}>
+                  {isSpanish ? 'Media' : 'Medium'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.priorityChip, newTaskPriority === 'high' && styles.priorityChipHigh]}
+                onPress={() => setNewTaskPriority('high')}
+              >
+                <Text style={[styles.priorityChipText, newTaskPriority === 'high' && styles.priorityChipTextActive]}>
+                  {isSpanish ? 'Alta' : 'High'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalSecondaryButton}
+                onPress={() => {
+                  setShowAddTask(false);
+                  setNewTaskTitle('');
+                  setNewTaskDescription('');
+                }}
+              >
+                <Text style={styles.modalSecondaryButtonText}>
+                  {isSpanish ? 'Cancelar' : 'Cancel'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalPrimaryButton, !newTaskTitle.trim() && styles.modalButtonDisabled]}
+                onPress={handleAddTask}
+                disabled={!newTaskTitle.trim()}
+              >
+                <Text style={styles.modalPrimaryButtonText}>
+                  {isSpanish ? 'Agregar' : 'Add Task'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1279,6 +1429,115 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
     fontStyle: 'italic',
+  },
+  // Add Task Button
+  addTaskButton: {
+    backgroundColor: '#0D9488',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addTaskButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  // Add Task Modal Styles
+  addTaskModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  addTaskInput: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 12,
+    color: '#0F172A',
+  },
+  addTaskTextArea: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    marginBottom: 16,
+    minHeight: 80,
+    color: '#0F172A',
+  },
+  addTaskLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  categoryScroll: {
+    marginBottom: 16,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    marginRight: 8,
+  },
+  categoryChipActive: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 2,
+    borderColor: '#0D9488',
+  },
+  categoryChipIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  categoryChipText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  categoryChipTextActive: {
+    color: '#0D9488',
+    fontWeight: '600',
+  },
+  priorityRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 24,
+  },
+  priorityChip: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
+  },
+  priorityChipLow: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0EA5E9',
+  },
+  priorityChipMedium: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#F59E0B',
+  },
+  priorityChipHigh: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#EF4444',
+  },
+  priorityChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  priorityChipTextActive: {
+    color: '#1F2937',
+  },
+  modalButtonDisabled: {
+    backgroundColor: '#CBD5E1',
   },
 });
 

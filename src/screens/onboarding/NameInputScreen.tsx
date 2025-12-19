@@ -53,7 +53,7 @@ export const NameInputScreen: React.FC<NameInputScreenProps> = ({ navigation }) 
       >
         {/* Progress */}
         <View style={styles.progressContainer}>
-          <ProgressBar current={1} total={5} label="1 / 5" />
+          <ProgressBar current={1} total={6} label="1 / 6" />
         </View>
 
         {/* Content */}

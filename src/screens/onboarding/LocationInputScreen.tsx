@@ -77,7 +77,7 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
   const handleNext = () => {
     if (location) {
       dispatch({ type: 'SET_LOCATION', payload: location });
-      dispatch({ type: 'SET_ONBOARDING_STEP', payload: 4 });
+      dispatch({ type: 'SET_ONBOARDING_STEP', payload: 5 });
       navigation.navigate('CategorySelection');
     }
   };
@@ -90,7 +90,7 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
       >
         {/* Progress */}
         <View style={styles.progressContainer}>
-          <ProgressBar current={4} total={5} label="4 / 5" />
+          <ProgressBar current={5} total={6} label="5 / 6" />
         </View>
 
         {/* Content */}

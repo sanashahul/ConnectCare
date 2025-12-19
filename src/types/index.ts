@@ -63,6 +63,7 @@ export type AgeGroup = 'under18' | '18-24' | '25-54' | '55plus';
 export interface UserProfile {
   id: string;
   name: string;
+  pin?: string; // 4-digit PIN for app security
   age?: number;
   ageGroup?: AgeGroup;
   immigrationStatus: ImmigrationStatus;
@@ -78,6 +79,7 @@ export interface UserProfile {
 export interface CaseWorkerProfile {
   id: string;
   name: string;
+  pin?: string; // 4-digit PIN for app security
   email?: string;
   connectedClients: string[]; // Array of UserProfile IDs/share codes
   createdAt: string;

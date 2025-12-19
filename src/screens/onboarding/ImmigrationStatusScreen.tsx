@@ -14,7 +14,7 @@ import { ImmigrationStatus } from '../../types';
 
 type RootStackParamList = {
   ImmigrationStatus: undefined;
-  LocationInput: undefined;
+  PinSetup: undefined;
   NameInput: undefined;
 };
 
@@ -42,7 +42,7 @@ export const ImmigrationStatusScreen: React.FC<ImmigrationStatusScreenProps> = (
     if (selectedStatus) {
       dispatch({ type: 'SET_IMMIGRATION_STATUS', payload: selectedStatus });
       dispatch({ type: 'SET_ONBOARDING_STEP', payload: 3 });
-      navigation.navigate('LocationInput');
+      navigation.navigate('PinSetup');
     }
   };
 
@@ -62,7 +62,7 @@ export const ImmigrationStatusScreen: React.FC<ImmigrationStatusScreenProps> = (
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={3} total={5} label="3 / 5" />
+        <ProgressBar current={3} total={6} label="3 / 6" />
       </View>
 
       {/* Content */}

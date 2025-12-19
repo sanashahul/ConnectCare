@@ -17,13 +17,16 @@ import {
   CaseManagerScreen,
   CaseWorkerEntryScreen,
   CaseWorkerDashboardScreen,
+  PinSetupScreen,
 } from '../screens';
+import { PinLockScreen } from '../screens/PinLockScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
   NameInput: undefined;
   AgeInput: undefined;
   ImmigrationStatus: undefined;
+  PinSetup: undefined;
   LocationInput: undefined;
   CategorySelection: undefined;
   Questionnaire: undefined;
@@ -39,7 +42,14 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator: React.FC = () => {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+
+  // Check if user has a PIN set and app should be locked
+  const hasPinSet = state.userRole === 'caseworker'
+    ? !!state.caseWorkerProfile?.pin
+    : !!state.userProfile?.pin;
+
+  const shouldShowPinLock = hasPinSet && state.isLocked;
 
   // Determine initial route based on saved state
   const getInitialRoute = (): keyof RootStackParamList => {
@@ -56,6 +66,11 @@ export const AppNavigator: React.FC = () => {
 
   if (state.isLoading) {
     return null; // Or a loading screen
+  }
+
+  // Show PIN lock screen if app is locked and user has PIN
+  if (shouldShowPinLock) {
+    return <PinLockScreen onUnlock={() => dispatch({ type: 'UNLOCK_APP' })} />;
   }
 
   // Use a key based on user state to force re-render when reset
@@ -78,6 +93,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="NameInput" component={NameInputScreen} />
         <Stack.Screen name="AgeInput" component={AgeInputScreen} />
         <Stack.Screen name="ImmigrationStatus" component={ImmigrationStatusScreen} />
+        <Stack.Screen name="PinSetup" component={PinSetupScreen} />
         <Stack.Screen name="LocationInput" component={LocationInputScreen} />
         <Stack.Screen name="CategorySelection" component={CategorySelectionScreen} />
 
