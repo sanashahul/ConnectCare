@@ -73,8 +73,10 @@ export const AppNavigator: React.FC = () => {
     return <PinLockScreen onUnlock={() => dispatch({ type: 'UNLOCK_APP' })} />;
   }
 
-  // Use a key based on user state to force re-render when reset
-  const navKey = state.userProfile?.id || state.caseWorkerProfile?.id || 'fresh';
+  // Use a key based on completed user state to force re-render when reset
+  // Important: Use shareCode (set at onboarding completion) instead of id to avoid
+  // resetting navigation during onboarding when userProfile is first created
+  const navKey = state.userProfile?.shareCode || state.caseWorkerProfile?.id || 'onboarding';
 
   return (
     <NavigationContainer key={navKey}>
