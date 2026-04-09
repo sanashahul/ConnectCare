@@ -22,7 +22,6 @@ import { useApp } from '../../context/AppContext';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
-import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { useScrollToTop } from '../../components/ScrollToTopButton';
 import { LanguageToggle } from '../../components/LanguageToggle';
 
@@ -1957,12 +1956,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           <LanguageToggle />
         </View>
 
-        {/* Urgent Needs Banner - default collapsed (compact pill at top) */}
-        <UrgentNeedsBanner
-          profile={userProfile}
-          navigation={navigation}
-          defaultCollapsed
-        />
+        {/* Revisit the post-intake summary carousel */}
+        <TouchableOpacity
+          style={styles.revisitSummary}
+          onPress={() => navigation.navigate('IntakeSummary')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.revisitSummaryIcon}>✨</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.revisitSummaryTitle}>
+              {isSpanish ? 'Ver tu resumen' : 'See your summary'}
+            </Text>
+            <Text style={styles.revisitSummarySubtitle}>
+              {isSpanish
+                ? 'Repasa lo que nos dijiste y tus próximos pasos.'
+                : 'Review what you told us and your next steps.'}
+            </Text>
+          </View>
+          <Text style={styles.revisitSummaryArrow}>›</Text>
+        </TouchableOpacity>
 
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
@@ -2335,6 +2347,40 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  revisitSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 20,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  revisitSummaryIcon: {
+    fontSize: 26,
+    marginRight: 12,
+  },
+  revisitSummaryTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  revisitSummarySubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 17,
+  },
+  revisitSummaryArrow: {
+    fontSize: 24,
+    color: '#64748B',
+    fontWeight: '700',
+    marginLeft: 8,
   },
   intakeNudgeCompact: {
     flexDirection: 'row',

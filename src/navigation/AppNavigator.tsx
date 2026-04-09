@@ -10,6 +10,7 @@ import {
   LocationInputScreen,
   CategorySelectionScreen,
   QuestionnaireScreen,
+  IntakeSummaryScreen,
   DashboardScreen,
   HealthScreen,
   JobsScreen,
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   LocationInput: undefined;
   CategorySelection: undefined;
   Questionnaire: undefined;
+  IntakeSummary: undefined;
   Dashboard: undefined;
   Health: undefined;
   Jobs: undefined;
@@ -109,6 +111,13 @@ export const AppNavigator: React.FC = () => {
 
         {/* Questionnaire */}
         <Stack.Screen name="Questionnaire" component={QuestionnaireScreen} />
+
+        {/* Intake Summary - post-intake welcome carousel */}
+        <Stack.Screen
+          name="IntakeSummary"
+          component={IntakeSummaryScreen}
+          options={{ gestureEnabled: false }}
+        />
 
         {/* Dashboard */}
         <Stack.Screen

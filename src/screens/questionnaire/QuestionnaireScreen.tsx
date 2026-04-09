@@ -17,6 +17,7 @@ import { Question, ServiceCategory } from '../../types';
 
 type RootStackParamList = {
   Questionnaire: undefined;
+  IntakeSummary: undefined;
   Dashboard: undefined;
   CategorySelection: undefined;
 };
@@ -101,20 +102,21 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     }
 
     if (isLastQuestion) {
-      // Complete onboarding
+      // Complete onboarding and show the welcome summary carousel
       dispatch({ type: 'COMPLETE_ONBOARDING' });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Dashboard' }],
+        routes: [{ name: 'IntakeSummary' }],
       });
     } else {
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
-  // Skip the rest of the intake and go straight to the dashboard.
-  // Any answers already given are preserved; the user can finish later
-  // from Settings or see the "finish intake" nudge on the dashboard.
+  // Skip the rest of the intake. Any answers already given are preserved;
+  // we still route through the IntakeSummary carousel so the user sees
+  // a recap of what they did answer (the summary screen has its own skip
+  // button for going straight to the dashboard).
   const handleSkip = () => {
     // Save current answer first if the user has entered one
     const answer = answers[currentQuestion.id];
@@ -130,7 +132,7 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     dispatch({ type: 'COMPLETE_ONBOARDING' });
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Dashboard' }],
+      routes: [{ name: 'IntakeSummary' }],
     });
   };
 

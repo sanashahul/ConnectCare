@@ -128,42 +128,83 @@ export const UrgentNeedsBanner: React.FC<UrgentNeedsBannerProps> = ({
         <Text style={styles.chevron}>{isExpanded ? '▾' : '▸'}</Text>
       </TouchableOpacity>
 
-      {isExpanded && urgentNeeds.map((need) => (
-        <View key={need.id} style={styles.card}>
-          <Text style={styles.cardIcon}>{need.icon}</Text>
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardTitle}>
-              {isSpanish ? need.titleEs : need.title}
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              {isSpanish ? need.subtitleEs : need.subtitle}
-            </Text>
-            <View style={styles.cardActionsRow}>
-              <TouchableOpacity
-                style={styles.cardAction}
-                onPress={() => handleAction(need)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cardActionText}>
-                  {actionPrefix(need)}
-                  {isSpanish ? need.actionLabelEs : need.actionLabel}
+      {isExpanded && (() => {
+        // Group needs by category so the banner reads as
+        // Health / Housing / Jobs / General sections instead of one
+        // flat list of mixed priorities.
+        const groups: Record<string, UrgentNeed[]> = {};
+        urgentNeeds.forEach((n) => {
+          if (!groups[n.category]) groups[n.category] = [];
+          groups[n.category].push(n);
+        });
+        const groupOrder: Array<UrgentNeed['category']> = [
+          'healthcare',
+          'housing',
+          'employment',
+          'general',
+        ];
+        const groupMeta: Record<
+          UrgentNeed['category'],
+          { label: string; labelEs: string; icon: string }
+        > = {
+          healthcare: { label: 'Health', labelEs: 'Salud', icon: '🏥' },
+          housing: { label: 'Housing', labelEs: 'Vivienda', icon: '🏠' },
+          employment: { label: 'Employment', labelEs: 'Empleo', icon: '💼' },
+          general: { label: 'Youth & crisis', labelEs: 'Juventud y crisis', icon: '💚' },
+        };
+
+        return groupOrder.map((cat) => {
+          const items = groups[cat];
+          if (!items || items.length === 0) return null;
+          const meta = groupMeta[cat];
+          return (
+            <View key={cat}>
+              <View style={styles.groupHeader}>
+                <Text style={styles.groupIcon}>{meta.icon}</Text>
+                <Text style={styles.groupLabel}>
+                  {isSpanish ? meta.labelEs : meta.label}
                 </Text>
-              </TouchableOpacity>
-              {need.exploreScreen && navigation && (
-                <TouchableOpacity
-                  style={styles.cardExplore}
-                  onPress={() => handleExplore(need)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cardExploreText}>
-                    {exploreLabel(need.exploreScreen)} →
-                  </Text>
-                </TouchableOpacity>
-              )}
+              </View>
+              {items.map((need) => (
+                <View key={need.id} style={styles.card}>
+                  <Text style={styles.cardIcon}>{need.icon}</Text>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle}>
+                      {isSpanish ? need.titleEs : need.title}
+                    </Text>
+                    <Text style={styles.cardSubtitle}>
+                      {isSpanish ? need.subtitleEs : need.subtitle}
+                    </Text>
+                    <View style={styles.cardActionsRow}>
+                      <TouchableOpacity
+                        style={styles.cardAction}
+                        onPress={() => handleAction(need)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.cardActionText}>
+                          {actionPrefix(need)}
+                          {isSpanish ? need.actionLabelEs : need.actionLabel}
+                        </Text>
+                      </TouchableOpacity>
+                      {need.exploreScreen && navigation && (
+                        <TouchableOpacity
+                          style={styles.cardExplore}
+                          onPress={() => handleExplore(need)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.cardExploreText}>
+                            {exploreLabel(need.exploreScreen)} →
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              ))}
             </View>
-          </View>
-        </View>
-      ))}
+          );
+        });
+      })()}
     </View>
   );
 };
@@ -188,6 +229,23 @@ const styles = StyleSheet.create({
     color: '#991B1B',
     fontWeight: '700',
     marginLeft: 8,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    marginTop: 6,
+    gap: 6,
+  },
+  groupIcon: {
+    fontSize: 14,
+  },
+  groupLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#991B1B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   bannerEmoji: {
     fontSize: 28,

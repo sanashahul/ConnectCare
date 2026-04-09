@@ -5,10 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NavigationProp } from '@react-navigation/native';
 import { UserProfile } from '../types';
+import { useApp } from '../context/AppContext';
 import {
   getEmploymentRecommendations,
   getHealthcareRecommendations,
@@ -44,6 +46,8 @@ export const PersonalizedRecommendations: React.FC<
 > = ({ profile, category, navigation }) => {
   const { i18n } = useTranslation();
   const isSpanish = i18n.language === 'es';
+  const { state, dispatch } = useApp();
+  const existingTodos = state.userProfile?.todos || [];
 
   const recs = useMemo<PersonalizedRecommendation[]>(() => {
     if (!profile) return [];
@@ -73,6 +77,82 @@ export const PersonalizedRecommendations: React.FC<
     }
   };
 
+  // A recommendation counts as "already in plan" if a pending to-do
+  // has the same title. (Titles come from the rec itself, not user
+  // input, so exact-match is reliable.)
+  const isInPlan = (rec: PersonalizedRecommendation): boolean => {
+    const title = isSpanish ? rec.titleEs : rec.title;
+    return existingTodos.some(
+      (t) => !t.completed && t.title === title,
+    );
+  };
+
+  const addToPlan = (rec: PersonalizedRecommendation) => {
+    const title = isSpanish ? rec.titleEs : rec.title;
+    const description = isSpanish ? rec.descriptionEs : rec.description;
+    const resourcePhone =
+      rec.actionType === 'call' ? rec.actionPayload : undefined;
+    const resourceUrl =
+      rec.actionType === 'url' ? rec.actionPayload : undefined;
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title,
+        description,
+        completed: false,
+        category,
+        resourcePhone,
+        resourceUrl,
+      } as any, // priority/createdBy are optional-on-add per existing pattern
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish
+        ? 'Este paso se agregó a tu lista de tareas.'
+        : 'This step was added to your to-do list.',
+      [{ text: 'OK' }],
+    );
+  };
+
+  const addAllToPlan = () => {
+    const toAdd = recs.filter((r) => !isInPlan(r));
+    if (toAdd.length === 0) {
+      Alert.alert(
+        isSpanish ? 'Ya están en tu lista' : 'Already in your list',
+        isSpanish
+          ? 'Todos estos pasos ya están en tu lista de tareas.'
+          : 'All of these steps are already in your to-do list.',
+      );
+      return;
+    }
+    toAdd.forEach((rec) => {
+      const title = isSpanish ? rec.titleEs : rec.title;
+      const description = isSpanish ? rec.descriptionEs : rec.description;
+      const resourcePhone =
+        rec.actionType === 'call' ? rec.actionPayload : undefined;
+      const resourceUrl =
+        rec.actionType === 'url' ? rec.actionPayload : undefined;
+      dispatch({
+        type: 'ADD_TODO',
+        payload: {
+          title,
+          description,
+          completed: false,
+          category,
+          resourcePhone,
+          resourceUrl,
+        } as any,
+      });
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish
+        ? `${toAdd.length} pasos se agregaron a tu lista.`
+        : `${toAdd.length} steps added to your list.`,
+      [{ text: 'OK' }],
+    );
+  };
+
   const actionIcon = (rec: PersonalizedRecommendation): string => {
     if (rec.actionType === 'call') return '📞 ';
     if (rec.actionType === 'navigate') return '→ ';
@@ -87,40 +167,70 @@ export const PersonalizedRecommendations: React.FC<
 
   return (
     <View style={[styles.container, { backgroundColor: color.bg, borderColor: color.border }]}>
-      {recs.map((rec, idx) => (
-        <TouchableOpacity
-          key={rec.id}
-          style={styles.card}
-          onPress={() => handleAction(rec)}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.stepBadge, { backgroundColor: color.actionBg }]}>
-            <Text style={[styles.stepBadgeText, { color: color.actionText }]}>
-              {idx + 1}
-            </Text>
-          </View>
-          <View style={styles.cardBody}>
-            <View style={styles.cardTitleRow}>
-              <Text style={styles.cardIcon}>{rec.icon}</Text>
-              <Text style={styles.cardTitle}>
-                {isSpanish ? rec.titleEs : rec.title}
+      <TouchableOpacity
+        style={[styles.addAllButton, { backgroundColor: color.actionBg }]}
+        onPress={addAllToPlan}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.addAllButtonText, { color: color.actionText }]}>
+          ＋ {isSpanish ? 'Agregar todo a mi plan' : 'Add all to my plan'}
+        </Text>
+      </TouchableOpacity>
+
+      {recs.map((rec, idx) => {
+        const inPlan = isInPlan(rec);
+        return (
+          <View key={rec.id} style={styles.card}>
+            <View style={[styles.stepBadge, { backgroundColor: color.actionBg }]}>
+              <Text style={[styles.stepBadgeText, { color: color.actionText }]}>
+                {idx + 1}
               </Text>
             </View>
-            <Text style={styles.cardDescription}>
-              {isSpanish ? rec.descriptionEs : rec.description}
-            </Text>
-            <Text style={[styles.cardReason, { color: color.reason }]}>
-              {isSpanish ? `↳ ${rec.reasonEs}` : `↳ ${rec.reason}`}
-            </Text>
-            <View style={[styles.cardAction, { backgroundColor: color.actionBg }]}>
-              <Text style={[styles.cardActionText, { color: color.actionText }]}>
-                {actionIcon(rec)}
-                {isSpanish ? rec.actionLabelEs : rec.actionLabel}
+            <View style={styles.cardBody}>
+              <View style={styles.cardTitleRow}>
+                <Text style={styles.cardIcon}>{rec.icon}</Text>
+                <Text style={styles.cardTitle}>
+                  {isSpanish ? rec.titleEs : rec.title}
+                </Text>
+              </View>
+              <Text style={styles.cardDescription}>
+                {isSpanish ? rec.descriptionEs : rec.description}
               </Text>
+              <Text style={[styles.cardReason, { color: color.reason }]}>
+                {isSpanish ? `↳ ${rec.reasonEs}` : `↳ ${rec.reason}`}
+              </Text>
+              <View style={styles.cardButtonRow}>
+                <TouchableOpacity
+                  style={[styles.cardAction, { backgroundColor: color.actionBg }]}
+                  onPress={() => handleAction(rec)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.cardActionText, { color: color.actionText }]}>
+                    {actionIcon(rec)}
+                    {isSpanish ? rec.actionLabelEs : rec.actionLabel}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.addButton, inPlan && styles.addButtonDone]}
+                  onPress={() => !inPlan && addToPlan(rec)}
+                  activeOpacity={inPlan ? 1 : 0.7}
+                  disabled={inPlan}
+                >
+                  <Text style={[styles.addButtonText, inPlan && styles.addButtonTextDone]}>
+                    {inPlan
+                      ? isSpanish
+                        ? '✓ En mi plan'
+                        : '✓ In my plan'
+                      : isSpanish
+                      ? '＋ Mi plan'
+                      : '＋ My plan'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </TouchableOpacity>
-      ))}
+        );
+      })}
     </View>
   );
 };
@@ -185,8 +295,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginBottom: 8,
   },
+  cardButtonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+  },
   cardAction: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -194,5 +309,36 @@ const styles = StyleSheet.create({
   cardActionText: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  addButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+  },
+  addButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  addButtonDone: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#86EFAC',
+  },
+  addButtonTextDone: {
+    color: '#166534',
+  },
+  addAllButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  addAllButtonText: {
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

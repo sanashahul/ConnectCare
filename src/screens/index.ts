@@ -10,6 +10,9 @@ export { CategorySelectionScreen } from './onboarding/CategorySelectionScreen';
 // Questionnaire
 export { QuestionnaireScreen } from './questionnaire/QuestionnaireScreen';
 
+// Intake Summary (post-intake welcome carousel)
+export { IntakeSummaryScreen } from './intake/IntakeSummaryScreen';
+
 // Dashboard
 export { DashboardScreen } from './dashboard/DashboardScreen';
 export { HealthScreen } from './dashboard/HealthScreen';
