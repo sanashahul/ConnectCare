@@ -24,6 +24,7 @@ import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
+  route?: { params?: { openSection?: string } };
 };
 
 // For You content - personalized employment resources
@@ -168,12 +169,24 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
   return { isOpen: true, status: 'See hours', statusEs: 'Ver horarios' };
 };
 
-export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
+export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const scrollRef = useRef<ScrollView | null>(null);
   const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'search' | 'quickhire' | 'help' | null>(null);
+
+  // If a recommendation navigated us here with an openSection param,
+  // jump straight to that sub-view (e.g. "Search these jobs" opens the
+  // search section inside this screen instead of a no-op navigation).
+  useEffect(() => {
+    const target = route?.params?.openSection;
+    if (target === 'foryou' || target === 'search' || target === 'quickhire' || target === 'help') {
+      setActiveSection(target);
+      navigation.setParams?.({ openSection: undefined } as never);
+    }
+  }, [route?.params?.openSection]);
+
   const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);

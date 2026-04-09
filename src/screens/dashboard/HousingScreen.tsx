@@ -23,6 +23,7 @@ import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
+  route?: { params?: { openSection?: string } };
 };
 
 // For You content - personalized housing resources
@@ -278,12 +279,23 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
   return { isOpen: true, status: 'Call to confirm', statusEs: 'Llame para confirmar' };
 };
 
-export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
+export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const scrollRef = useRef<ScrollView | null>(null);
   const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
+
+  // If a recommendation navigated us here with an openSection param,
+  // jump straight to that sub-view (e.g. "Find shelters near you"
+  // opens the find section inside this screen).
+  useEffect(() => {
+    const target = route?.params?.openSection;
+    if (target === 'foryou' || target === 'find' || target === 'options' || target === 'help' || target === 'needNow') {
+      setActiveSection(target);
+      navigation.setParams?.({ openSection: undefined } as never);
+    }
+  }, [route?.params?.openSection]);
   const [counselors, setCounselors] = useState<HousingResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);

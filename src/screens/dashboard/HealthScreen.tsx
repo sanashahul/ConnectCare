@@ -22,6 +22,7 @@ import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type HealthScreenProps = {
   navigation: NativeStackNavigationProp<any>;
+  route?: { params?: { openSection?: string } };
 };
 
 // For You content - personalized health resources
@@ -158,12 +159,23 @@ const URGENT_RESOURCES = [
   { id: 'u4', name: 'SAMHSA Helpline', nameEs: 'Línea de Ayuda SAMHSA', description: 'Substance abuse help 24/7', descriptionEs: 'Ayuda con abuso de sustancias 24/7', phone: '1-800-662-4357', icon: '🤝' },
 ];
 
-export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
+export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const scrollRef = useRef<ScrollView | null>(null);
   const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | null>(null);
+
+  // If a recommendation navigated us here with an openSection param,
+  // jump straight to that sub-view (e.g. "Find an FQHC" opens the
+  // clinics section inside this screen).
+  useEffect(() => {
+    const target = route?.params?.openSection;
+    if (target === 'foryou' || target === 'clinics' || target === 'urgent' || target === 'needNow') {
+      setActiveSection(target);
+      navigation.setParams?.({ openSection: undefined } as never);
+    }
+  }, [route?.params?.openSection]);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);

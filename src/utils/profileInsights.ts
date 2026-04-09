@@ -498,7 +498,7 @@ export const getUrgentNeeds = (
       actionLabel: 'Find counseling near you',
       actionLabelEs: 'Buscar consejería cerca',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
       exploreScreen: 'Health',
       priority: 72,
       sourceQuestionId: 'health_5',
@@ -537,7 +537,7 @@ export const getUrgentNeeds = (
       actionLabel: 'Find dental clinics near you',
       actionLabelEs: 'Buscar clínicas dentales',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
       exploreScreen: 'Health',
       priority: 42,
       sourceQuestionId: 'health_6',
@@ -607,7 +607,7 @@ export const getUrgentNeeds = (
       actionLabel: 'Find an FQHC near you',
       actionLabelEs: 'Buscar FQHC cercano',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
       exploreScreen: 'Health',
       priority: 63,
       sourceQuestionId: 'health_2',
@@ -670,7 +670,7 @@ export const getUrgentNeeds = (
       actionLabel: 'Find a free clinic near you',
       actionLabelEs: 'Buscar clínica cercana',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
       exploreScreen: 'Health',
       priority: 55,
       sourceQuestionId: 'health_1',
@@ -1185,7 +1185,7 @@ export const getEmploymentRecommendations = (
         actionLabel: 'Search these jobs',
         actionLabelEs: 'Buscar estos trabajos',
         actionType: 'navigate',
-        actionPayload: 'Jobs',
+        actionPayload: 'Jobs:search',
       });
     });
   }
@@ -1319,7 +1319,7 @@ export const getEmploymentRecommendations = (
       actionLabel: 'Browse bilingual jobs',
       actionLabelEs: 'Ver trabajos bilingües',
       actionType: 'navigate',
-      actionPayload: 'Jobs',
+      actionPayload: 'Jobs:search',
     });
   }
 
@@ -1338,7 +1338,7 @@ export const getEmploymentRecommendations = (
       actionLabel: 'Search local jobs',
       actionLabelEs: 'Buscar trabajos locales',
       actionType: 'navigate',
-      actionPayload: 'Jobs',
+      actionPayload: 'Jobs:search',
     });
   }
 
@@ -1384,7 +1384,7 @@ export const getHealthcareRecommendations = (
       actionLabel: 'Find FQHCs near you',
       actionLabelEs: 'Buscar FQHCs cerca',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
     });
   }
 
@@ -1456,7 +1456,7 @@ export const getHealthcareRecommendations = (
       actionLabel: 'Find dental clinics',
       actionLabelEs: 'Buscar clínicas dentales',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
     });
   }
 
@@ -1539,7 +1539,7 @@ export const getHealthcareRecommendations = (
       actionLabel: 'Find an FQHC',
       actionLabelEs: 'Buscar FQHC',
       actionType: 'navigate',
-      actionPayload: 'Health',
+      actionPayload: 'Health:clinics',
     });
   }
 

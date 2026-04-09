@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { sendMessageToAI, AIMessage, UserContext } from '../../services/aiService';
+import { getQuestionsByCategory } from '../../data/questions';
 import {
   getSituationSummary,
   getTopUrgentActions,
@@ -1134,6 +1135,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const [isTyping, setIsTyping] = useState(false);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [youthBannerExpanded, setYouthBannerExpanded] = useState(false);
+  const [todoView, setTodoView] = useState<'pending' | 'completed'>('pending');
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
     messageCount: 0,
@@ -1299,14 +1301,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const handleAddTodo = (title: string, description?: string) => {
     if (!title.trim()) return;
 
+    // Map AI-chat intents and unknown topics to real TaskCategory values
+    // so the todo lands in a visible group in the rendered list. Anything
+    // outside the known set falls back to 'other'.
+    const intentToCategory: Record<string, 'healthcare' | 'housing' | 'employment' | 'documents' | 'benefits' | 'education' | 'other'> = {
+      healthcare: 'healthcare',
+      clinic: 'healthcare',
+      mentalhealth: 'healthcare',
+      housing: 'housing',
+      shelter: 'housing',
+      section8: 'housing',
+      employment: 'employment',
+      job: 'employment',
+      documents: 'documents',
+      food: 'other',
+      '211': 'other',
+      emergency: 'other',
+    };
+    const category = (currentTopic && intentToCategory[currentTopic]) || 'other';
+
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title: title.trim(),
         description: description?.trim() || undefined,
         completed: false,
-        category: currentTopic as any || 'general',
-      },
+        category,
+      } as any,
     });
 
     setNewTodoDescription('');
@@ -1479,12 +1500,31 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const renderTodos = () => {
     const todos = userProfile?.todos || [];
     const pendingTodos = todos.filter((t) => !t.completed);
-    const completedCount = todos.filter((t) => t.completed).length;
+    const completedTodos = todos.filter((t) => t.completed);
+    const pendingCount = pendingTodos.length;
+    const completedCount = completedTodos.length;
 
-    // Group pending todos by category so long lists are scannable
-    const groups: Record<string, typeof pendingTodos> = {};
-    pendingTodos.forEach((t) => {
-      const key = t.category || 'other';
+    // The list being displayed depends on the active tab. Both views use
+    // the same group-by-category rendering.
+    const shownTodos = todoView === 'pending' ? pendingTodos : completedTodos;
+
+    // Group todos by category so long lists are scannable. Any category
+    // we don't know about (including legacy/AI-intent values like
+    // 'shelter' or 'general') gets bucketed under 'other' so the todo
+    // is still visible.
+    const knownCategories = new Set([
+      'healthcare',
+      'housing',
+      'employment',
+      'documents',
+      'benefits',
+      'education',
+      'other',
+    ]);
+    const groups: Record<string, typeof shownTodos> = {};
+    shownTodos.forEach((t) => {
+      const key =
+        t.category && knownCategories.has(t.category) ? t.category : 'other';
       if (!groups[key]) groups[key] = [];
       groups[key].push(t);
     });
@@ -1502,15 +1542,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
     return (
       <View style={styles.todosSection}>
         <View style={styles.todoHeader}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.todoHeaderTitle}>
               {isSpanish ? 'Mi Lista de Tareas' : 'My To-Do List'}
-            </Text>
-            <Text style={styles.todoHeaderSubtitle}>
-              {pendingTodos.length > 0
-                ? (isSpanish ? `${pendingTodos.length} pendiente${pendingTodos.length > 1 ? 's' : ''}` : `${pendingTodos.length} pending`)
-                : (isSpanish ? '¡Todo hecho!' : 'All done!')}
-              {completedCount > 0 && ` • ${completedCount} ${isSpanish ? 'completado' : 'done'}`}
             </Text>
           </View>
           <TouchableOpacity
@@ -1521,13 +1555,57 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           </TouchableOpacity>
         </View>
 
-        {pendingTodos.length === 0 ? (
+        {/* To-Do / Completed tab toggle */}
+        <View style={styles.todoTabRow}>
+          <TouchableOpacity
+            style={[
+              styles.todoTab,
+              todoView === 'pending' && styles.todoTabActive,
+            ]}
+            onPress={() => setTodoView('pending')}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.todoTabText,
+                todoView === 'pending' && styles.todoTabTextActive,
+              ]}
+            >
+              {isSpanish ? 'Pendientes' : 'To-Do'} · {pendingCount}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.todoTab,
+              todoView === 'completed' && styles.todoTabActive,
+            ]}
+            onPress={() => setTodoView('completed')}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.todoTabText,
+                todoView === 'completed' && styles.todoTabTextActive,
+              ]}
+            >
+              {isSpanish ? 'Completadas' : 'Completed'} · {completedCount}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {shownTodos.length === 0 ? (
           <View style={styles.emptyTodos}>
-            <Text style={styles.emptyTodosEmoji}>✨</Text>
+            <Text style={styles.emptyTodosEmoji}>
+              {todoView === 'pending' ? '✨' : '🎯'}
+            </Text>
             <Text style={styles.emptyTodosText}>
-              {isSpanish
-                ? 'Usa el AI Case Manager para agregar tareas'
-                : 'Use AI Case Manager to add tasks'}
+              {todoView === 'pending'
+                ? isSpanish
+                  ? 'Usa el AI Case Manager para agregar tareas'
+                  : 'Use AI Case Manager to add tasks'
+                : isSpanish
+                ? 'Aún no has completado ninguna tarea'
+                : 'No completed tasks yet'}
             </Text>
           </View>
         ) : (
@@ -1554,13 +1632,25 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                   }}
                 >
                   <TouchableOpacity
-                    style={styles.todoCheckbox}
+                    style={[
+                      styles.todoCheckbox,
+                      todo.completed && styles.todoCheckboxChecked,
+                    ]}
                     onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
                   >
-                    <Text style={styles.todoCheckmark}></Text>
+                    <Text style={styles.todoCheckmark}>
+                      {todo.completed ? '✓' : ''}
+                    </Text>
                   </TouchableOpacity>
                   <View style={styles.todoContent}>
-                    <Text style={styles.todoText}>{todo.title}</Text>
+                    <Text
+                      style={[
+                        styles.todoText,
+                        todo.completed && styles.todoTextCompleted,
+                      ]}
+                    >
+                      {todo.title}
+                    </Text>
                     {todo.description && (
                       <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
                         📝 {todo.description}
@@ -2277,8 +2367,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
         {/* Intake progress nudge - small pill shown when intake is incomplete */}
         {(() => {
           const answered = userProfile?.answers?.length || 0;
-          const selectedCats = userProfile?.selectedCategories?.length || 0;
-          const expected = selectedCats * 10; // ~10 questions per category
+          const selectedCats = userProfile?.selectedCategories || [];
+          // Use the actual question count per category (handles trimmed questions correctly)
+          const expected = selectedCats.reduce(
+            (sum, cat) => sum + getQuestionsByCategory(cat).length,
+            0,
+          );
           if (expected === 0 || answered >= expected) return null;
           const remaining = expected - answered;
           return (
@@ -2546,11 +2640,26 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#CBD5E1',
     marginRight: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todoCheckboxChecked: {
+    backgroundColor: '#5E8B7E',
+    borderColor: '#5E8B7E',
+  },
+  todoCheckmark: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
   },
   todoText: {
     fontSize: 16,
     color: '#0F172A',
     flex: 1,
+  },
+  todoTextCompleted: {
+    color: '#7A7163',
+    textDecorationLine: 'line-through',
   },
   moreText: {
     fontSize: 14,
@@ -2816,6 +2925,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  todoTabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F1EEE8',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 14,
+  },
+  todoTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  todoTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  todoTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#7A7163',
+  },
+  todoTabTextActive: {
+    color: '#0F172A',
+  },
   todoHeaderTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -2852,10 +2990,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
     textAlign: 'center',
-  },
-  todoCheckmark: {
-    color: '#5E8B7E',
-    fontSize: 14,
   },
   todoDeleteButton: {
     width: 28,

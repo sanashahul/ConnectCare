@@ -112,7 +112,8 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
     return all.filter((p) => selected.includes(p.category));
   }, [userProfile?.selectedCategories]);
 
-  const totalPages = panels.length + 1; // + 1 for the final "Ready" panel
+  // 1 welcome panel + N category panels + 1 final "Ready" panel
+  const totalPages = panels.length + 2;
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const page = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
@@ -201,6 +202,111 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
         });
         break;
     }
+  };
+
+  const renderWelcomePanel = () => {
+    const categoryMeta: Record<
+      ServiceCategory,
+      { icon: string; label: string; labelEs: string; color: string; bgColor: string; description: string; descriptionEs: string }
+    > = {
+      healthcare: {
+        icon: '🏥',
+        label: 'Health',
+        labelEs: 'Salud',
+        color: '#5E8B7E',
+        bgColor: '#EAF2EE',
+        description: 'Clinics, mental health, prescriptions',
+        descriptionEs: 'Clínicas, salud mental, recetas',
+      },
+      housing: {
+        icon: '🏠',
+        label: 'Housing',
+        labelEs: 'Vivienda',
+        color: '#C68568',
+        bgColor: '#F8EBE2',
+        description: 'Shelter, rental help, housing programs',
+        descriptionEs: 'Refugio, ayuda de alquiler, programas',
+      },
+      employment: {
+        icon: '💼',
+        label: 'Employment',
+        labelEs: 'Empleo',
+        color: '#B8915A',
+        bgColor: '#F6EEDD',
+        description: 'Jobs, training, resume help',
+        descriptionEs: 'Trabajos, capacitación, CV',
+      },
+    };
+    const selected = userProfile?.selectedCategories || [];
+
+    return (
+      <ScrollView
+        key="welcome"
+        style={{ width: SCREEN_WIDTH }}
+        contentContainerStyle={styles.panelContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.hero, { backgroundColor: '#5C7C99' }]}>
+          <Text style={styles.heroEyebrow}>
+            {isSpanish ? 'BIENVENIDO/A' : 'WELCOME'}
+          </Text>
+          <Text style={styles.heroTitle}>
+            {isSpanish
+              ? `¡Hola, ${userProfile?.name || 'amigo'}! 👋`
+              : `Hi, ${userProfile?.name || 'friend'}! 👋`}
+          </Text>
+          <Text style={[styles.heroSubtitle, { color: '#D1DCE7' }]}>
+            {isSpanish
+              ? 'Basado en lo que nos dijiste, estas son tus áreas principales de apoyo. Desliza para ver cada una.'
+              : 'Based on what you told us, these are your main areas of support. Swipe to see each one.'}
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isSpanish ? 'Tus áreas de apoyo:' : 'Your areas of support:'}
+          </Text>
+          {selected.map((cat) => {
+            const meta = categoryMeta[cat];
+            if (!meta) return null;
+            return (
+              <View
+                key={cat}
+                style={[
+                  styles.welcomeCategoryCard,
+                  { backgroundColor: meta.bgColor, borderColor: meta.color },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.welcomeCategoryIcon,
+                    { backgroundColor: meta.color },
+                  ]}
+                >
+                  <Text style={styles.welcomeCategoryIconText}>{meta.icon}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.welcomeCategoryLabel}>
+                    {isSpanish ? meta.labelEs : meta.label}
+                  </Text>
+                  <Text style={styles.welcomeCategoryDescription}>
+                    {isSpanish ? meta.descriptionEs : meta.description}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={styles.welcomeHint}>
+          <Text style={styles.welcomeHintText}>
+            {isSpanish
+              ? '👉 Desliza hacia la derecha para empezar'
+              : '👉 Swipe right to start'}
+          </Text>
+        </View>
+      </ScrollView>
+    );
   };
 
   const renderPanel = (panel: Panel, index: number) => {
@@ -405,6 +511,7 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
         scrollEventThrottle={16}
         style={{ flex: 1 }}
       >
+        {renderWelcomePanel()}
         {panels.map((panel, idx) => renderPanel(panel, idx))}
         {renderFinalPanel()}
       </ScrollView>
@@ -654,6 +761,46 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '800',
+  },
+  welcomeCategoryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+  },
+  welcomeCategoryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  welcomeCategoryIconText: {
+    fontSize: 28,
+  },
+  welcomeCategoryLabel: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 2,
+  },
+  welcomeCategoryDescription: {
+    fontSize: 13,
+    color: '#4A4236',
+  },
+  welcomeHint: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+  welcomeHintText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7A7163',
+    fontStyle: 'italic',
   },
   bottomBar: {
     flexDirection: 'row',

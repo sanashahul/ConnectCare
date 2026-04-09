@@ -68,9 +68,22 @@ export const PersonalizedRecommendations: React.FC<
       case 'call':
         Linking.openURL(`tel:${rec.actionPayload.replace(/[^0-9]/g, '')}`);
         break;
-      case 'navigate':
-        navigation?.navigate(rec.actionPayload);
+      case 'navigate': {
+        // Payload format is either "Screen" or "Screen:section".
+        // When a section is provided we pass it as a route param so the
+        // target screen can jump straight to that sub-view (e.g. opening
+        // the Jobs screen directly on its search tab).
+        const [screen, section] = rec.actionPayload.split(':');
+        // React Navigation's generic types don't play nicely with dynamic
+        // screen names; `as any` keeps the call site readable.
+        const nav = navigation as any;
+        if (section) {
+          nav?.navigate(screen, { openSection: section });
+        } else {
+          nav?.navigate(screen);
+        }
         break;
+      }
       case 'url':
         Linking.openURL(rec.actionPayload);
         break;
