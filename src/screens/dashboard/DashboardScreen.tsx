@@ -19,7 +19,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
-import { sendMessageToAI, AIMessage } from '../../services/aiService';
+import { sendMessageToAI, AIMessage, UserContext } from '../../services/aiService';
+import {
+  getSituationSummary,
+  getTopUrgentActions,
+  getTopRecommendations,
+} from '../../utils/profileInsights';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 import { useScrollToTop } from '../../components/ScrollToTopButton';
@@ -1142,6 +1147,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
 
+  // Enriched AI context — rebuilt whenever the user's intake answers or
+  // age change. Giving the AI a natural-language summary plus the top
+  // urgent actions + recommendations we've already surfaced keeps it
+  // consistent with the rest of the app.
+  const aiContext = React.useMemo<UserContext>(
+    () => ({
+      name: userProfile?.name,
+      city: userProfile?.location?.city,
+      state: userProfile?.location?.state,
+      language: isSpanish ? 'es' : 'en',
+      ageGroup: userProfile?.ageGroup,
+      isMinor: userProfile?.ageGroup === 'under18',
+      situation: getSituationSummary(userProfile),
+      urgentActions: getTopUrgentActions(userProfile),
+      topRecommendations: getTopRecommendations(userProfile),
+    }),
+    [
+      userProfile?.name,
+      userProfile?.location?.city,
+      userProfile?.location?.state,
+      userProfile?.ageGroup,
+      userProfile?.answers,
+      isSpanish,
+    ],
+  );
+
   // Auto-open the AI modal when navigated to from a FloatingAIButton
   // on any screen (route params carry openAI=true).
   useEffect(() => {
@@ -1198,18 +1229,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           content: msg.content,
         }));
 
-      // Call the real Groq AI
+      // Call the real Groq AI with intake-enriched context
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        {
-          name: userProfile?.name,
-          city: userProfile?.location?.city,
-          state: userProfile?.location?.state,
-          language: isSpanish ? 'es' : 'en',
-          ageGroup: userProfile?.ageGroup,
-          isMinor: userProfile?.ageGroup === 'under18',
-        }
+        aiContext,
       );
 
       setIsTyping(false);
@@ -1344,18 +1368,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           content: msg.content,
         }));
 
-      // Call the real AI
+      // Call the real AI with intake-enriched context
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        {
-          name: userProfile?.name,
-          city: userProfile?.location?.city,
-          state: userProfile?.location?.state,
-          language: isSpanish ? 'es' : 'en',
-          ageGroup: userProfile?.ageGroup,
-          isMinor: userProfile?.ageGroup === 'under18',
-        }
+        aiContext,
       );
 
       setIsTyping(false);

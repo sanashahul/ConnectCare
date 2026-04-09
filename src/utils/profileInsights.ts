@@ -1738,3 +1738,118 @@ export const getHousingRecommendations = (
 
   return recs;
 };
+
+// ============================================
+// NATURAL-LANGUAGE SITUATION SUMMARY (for AI context)
+// ============================================
+
+/**
+ * Builds a short plain-text summary of the user's situation from their
+ * intake flags, for injection into the Groq AI system prompt. This lets
+ * the AI give context-aware responses that reinforce (rather than
+ * contradict) the recommendations we've already surfaced in the app.
+ *
+ * Example output:
+ *   "uninsured; currently unsheltered; a veteran; needs urgent mental
+ *    health support; wants substance use help; has a pet; looking for
+ *    warehouse or food service work; needs help getting a valid ID;
+ *    bilingual"
+ */
+export const getSituationSummary = (
+  profile: UserProfile | null,
+): string => {
+  if (!profile) return '';
+  const flags = getProfileFlags(profile);
+  const parts: string[] = [];
+
+  // Healthcare
+  if (flags.urgentMentalHealth) parts.push('needs URGENT mental health support');
+  else if (flags.needsMentalHealth) parts.push('wants mental health support');
+  if (flags.hasMentalHealthCondition) parts.push('has a mental health condition');
+  if (flags.uninsured) parts.push('uninsured');
+  if (flags.pregnant) parts.push('currently pregnant');
+  if (flags.hasChildrenNeedingCare) parts.push('has children needing healthcare');
+  if (flags.hasDisability) parts.push('has a disability');
+  if (flags.substanceUseHelpWanted) parts.push('wants substance use support');
+  if (flags.hasChronicCondition) parts.push('has a chronic health condition');
+  if (flags.urgentDental) parts.push('has URGENT dental pain');
+  if (flags.needsVision) parts.push('needs vision care');
+  if (flags.onMedications) parts.push('currently takes medications');
+
+  // Housing
+  if (flags.livingInVehicle) parts.push('currently living in a vehicle');
+  else if (flags.unsheltered) parts.push('currently unsheltered');
+  else if (flags.inShelter) parts.push('currently staying in a shelter');
+  if (flags.chronicallyHomeless) parts.push('without stable housing for over a year');
+  if (flags.veteran) parts.push('a veteran');
+  if (flags.hasChildrenInHousehold) parts.push('has children with them');
+  if (flags.hasPets) parts.push('has pets');
+  if (flags.hasVoucher) parts.push('has a housing voucher');
+  if (flags.recentlyEvicted) parts.push('recent eviction on record');
+  if (flags.needsADAHousing) parts.push('needs ADA-accessible housing');
+  if (flags.noIncome) parts.push('no income');
+
+  // Employment
+  if (flags.unemployed) parts.push('unemployed');
+  const jobTypes = findAnswer(profile.answers, 'employ_5');
+  if (Array.isArray(jobTypes) && jobTypes.length > 0) {
+    const jobLabels: Record<string, string> = {
+      food: 'food service',
+      retail: 'retail',
+      warehouse: 'warehouse',
+      construction: 'construction',
+      healthcare: 'healthcare',
+      office: 'office',
+      tech: 'tech',
+      any: 'anything',
+    };
+    const wanted = jobTypes
+      .map((t) => jobLabels[t])
+      .filter(Boolean)
+      .join('/');
+    if (wanted) parts.push(`looking for ${wanted} work`);
+  }
+  if (flags.hasNoID) parts.push('needs a valid ID');
+  if (flags.noReliableTransportation) parts.push('limited transportation');
+  if (flags.hasWorkAuthIssue) parts.push('work authorization issues');
+  if (flags.hasBackgroundIssue) parts.push('has a criminal record');
+  if (flags.needsResumeHelp) parts.push('needs resume help');
+  if (flags.needsJobTraining) parts.push('wants job training');
+  if (flags.needsEnglishClasses) parts.push('wants English classes');
+  if (flags.bilingual) parts.push('bilingual');
+
+  // Demographic
+  if (profile.ageGroup === 'under18') parts.push('under 18 years old');
+
+  return parts.join('; ');
+};
+
+/**
+ * Returns up to 5 top-priority urgent-action titles the app has already
+ * surfaced for this user. Used in the AI system prompt so the assistant
+ * can reference them by name instead of guessing at alternatives.
+ */
+export const getTopUrgentActions = (
+  profile: UserProfile | null,
+  limit: number = 5,
+): string[] => {
+  const needs = getUrgentNeeds(profile).slice(0, limit);
+  return needs.map((n) => `${n.title} — ${n.actionLabel}`);
+};
+
+/**
+ * Returns the titles of the top personalized recommendations across all
+ * categories, so the AI knows what concrete next steps we're suggesting.
+ */
+export const getTopRecommendations = (
+  profile: UserProfile | null,
+  limit: number = 8,
+): string[] => {
+  if (!profile) return [];
+  const all: PersonalizedRecommendation[] = [
+    ...getHealthcareRecommendations(profile),
+    ...getHousingRecommendations(profile),
+    ...getEmploymentRecommendations(profile),
+  ];
+  return all.slice(0, limit).map((r) => `${r.title} — ${r.actionLabel}`);
+};

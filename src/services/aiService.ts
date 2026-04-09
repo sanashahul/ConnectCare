@@ -36,6 +36,12 @@ export interface UserContext {
   needs?: string[];
   ageGroup?: 'under18' | '18-24' | '25-54' | '55plus';
   isMinor?: boolean;
+  /** Natural-language summary of the user's situation, derived from intake. */
+  situation?: string;
+  /** Already-surfaced urgent actions, so the AI reinforces rather than contradicts. */
+  urgentActions?: string[];
+  /** Top personalized recommendations the app is already showing this user. */
+  topRecommendations?: string[];
 }
 
 /**
@@ -44,6 +50,68 @@ export interface UserContext {
 const getSystemPrompt = (context: UserContext): string => {
   const isSpanish = context.language === 'es';
   const isMinor = context.isMinor || context.ageGroup === 'under18';
+
+  // Build the intake-derived context block. Only included when the user
+  // has actually answered some questions, so we don't send empty prompts
+  // for users who haven't done intake yet.
+  const hasSituation = !!context.situation && context.situation.length > 0;
+  const hasUrgent = !!context.urgentActions && context.urgentActions.length > 0;
+  const hasRecs =
+    !!context.topRecommendations && context.topRecommendations.length > 0;
+
+  const intakeContextEn = hasSituation || hasUrgent || hasRecs
+    ? `
+
+USER SITUATION (from their intake answers):
+${hasSituation ? context.situation : '(no intake answers yet)'}
+
+${
+  hasUrgent
+    ? `URGENT ACTIONS ALREADY SURFACED IN THE APP (reinforce these, don't contradict):
+${context.urgentActions!.map((a) => `- ${a}`).join('\n')}`
+    : ''
+}
+${
+  hasRecs
+    ? `
+PERSONALIZED RECOMMENDATIONS WE'RE ALREADY SHOWING THIS USER:
+${context.topRecommendations!.map((r) => `- ${r}`).join('\n')}`
+    : ''
+}
+
+HOW TO USE THIS CONTEXT:
+- Reference the user's situation naturally (e.g., "Since you mentioned you're a veteran...")
+- When the user asks about something already in the list above, REFERENCE that recommendation and reinforce it. Don't suggest a different path.
+- If the user asks about something NOT in the list, offer a new suggestion but stay consistent with their situation.
+- Never contradict the urgent actions or recommendations above.`
+    : '';
+
+  const intakeContextEs = hasSituation || hasUrgent || hasRecs
+    ? `
+
+SITUACIÓN DEL USUARIO (de sus respuestas del intake):
+${hasSituation ? context.situation : '(aún no hay respuestas del intake)'}
+
+${
+  hasUrgent
+    ? `ACCIONES URGENTES YA MOSTRADAS EN LA APP (refuérzalas, no las contradigas):
+${context.urgentActions!.map((a) => `- ${a}`).join('\n')}`
+    : ''
+}
+${
+  hasRecs
+    ? `
+RECOMENDACIONES PERSONALIZADAS QUE YA LE ESTAMOS MOSTRANDO:
+${context.topRecommendations!.map((r) => `- ${r}`).join('\n')}`
+    : ''
+}
+
+CÓMO USAR ESTE CONTEXTO:
+- Menciona la situación del usuario de manera natural (ej: "Como nos dijiste que eres veterano...")
+- Cuando el usuario pregunte por algo que ya está en la lista, REFERENCIA esa recomendación y refuérzala. No sugieras un camino diferente.
+- Si el usuario pregunta por algo que NO está en la lista, ofrece una nueva sugerencia pero mantente consistente con su situación.
+- Nunca contradigas las acciones urgentes o recomendaciones anteriores.`
+    : '';
 
   // Youth-specific additions for minors
   const youthGuidelines = isMinor ? (isSpanish ? `
@@ -105,7 +173,7 @@ NÚMEROS VERIFICADOS (usa SOLO estos):
 INFORMACIÓN DEL USUARIO:
 - Nombre: ${context.name || 'No proporcionado'}
 - Ubicación: ${context.city ? `${context.city}, ${context.state}` : 'No proporcionada'}
-- Edad: ${isMinor ? 'Menor de 18 años' : 'Adulto'}
+- Edad: ${isMinor ? 'Menor de 18 años' : 'Adulto'}${intakeContextEs}
 
 Responde siempre en español. Sé breve pero útil.`
 
@@ -133,7 +201,7 @@ VERIFIED PHONE NUMBERS (use ONLY these):
 USER INFORMATION:
 - Name: ${context.name || 'Not provided'}
 - Location: ${context.city ? `${context.city}, ${context.state}` : 'Not provided'}
-- Age: ${isMinor ? 'Under 18 years old' : 'Adult'}
+- Age: ${isMinor ? 'Under 18 years old' : 'Adult'}${intakeContextEn}
 
 Always respond in English. Be brief but helpful.`;
 };
