@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,9 +18,10 @@ import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
 import { YOUTH_SHELTER_RESOURCES, YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
-import { getHousingForYouOrder } from '../../utils/profileInsights';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
+import { FloatingAIButton } from '../../components/FloatingAIButton';
+import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -282,6 +283,8 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
+  const scrollRef = useRef<ScrollView | null>(null);
+  const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
   const [counselors, setCounselors] = useState<HousingResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -551,10 +554,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
             <Text style={styles.gridIcon}>⭐</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -564,10 +570,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
             <Text style={styles.gridIcon}>🔍</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Vivienda' : 'Find Housing'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Consejeros cerca de ti' : 'Counselors near you'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Vivienda' : 'Find Housing'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Consejeros cerca de ti' : 'Counselors near you'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -577,10 +586,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
             <Text style={styles.gridIcon}>🏠</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Opciones' : 'Options'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Tipos de vivienda' : 'Housing types'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Opciones' : 'Options'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Tipos de vivienda' : 'Housing types'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -590,10 +602,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
             <Text style={styles.gridIcon}>📞</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Líneas de Ayuda' : 'Helplines'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Números de emergencia' : 'Emergency numbers'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Líneas de Ayuda' : 'Helplines'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Números de emergencia' : 'Emergency numbers'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
       </View>
 
@@ -621,14 +636,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
     </View>
   );
 
-  const renderForYou = () => {
-    // Personalize based on intake answers
-    const order = getHousingForYouOrder(userProfile);
-    const orderedForYou = order
-      .map((id) => HOUSING_FOR_YOU.find((i) => i.id === id))
-      .filter((i): i is typeof HOUSING_FOR_YOU[number] => !!i);
-
-    return (
+  const renderForYou = () => (
     <View style={styles.detailContainer}>
       <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
         <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
@@ -647,43 +655,8 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         category="housing"
         navigation={navigation}
       />
-
-      {orderedForYou.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.resourceCard}
-          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-        >
-          <View style={styles.resourceHeader}>
-            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
-              <Text style={styles.resourceIcon}>{item.icon}</Text>
-            </View>
-            <View style={styles.resourceInfo}>
-              <Text style={styles.resourceTitle}>
-                {isSpanish ? item.titleEs : item.title}
-              </Text>
-              <Text style={styles.resourceDescription}>
-                {isSpanish ? item.descriptionEs : item.description}
-              </Text>
-            </View>
-            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
-          </View>
-
-          {expandedItem === item.id && (
-            <View style={styles.resourceDetails}>
-              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
-                <View key={index} style={styles.detailRow}>
-                  <Text style={styles.detailBullet}>•</Text>
-                  <Text style={styles.detailText}>{detail}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
     </View>
-    );
-  };
+  );
 
   const renderFind = () => (
     <View style={styles.detailContainer}>
@@ -1139,7 +1112,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {activeSection === null && renderMainGrid()}
         {activeSection === 'foryou' && renderForYou()}
         {activeSection === 'find' && renderFind()}
@@ -1147,6 +1126,8 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {activeSection === 'help' && renderHelp()}
         {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
+      {scrollToTopButton}
+      <FloatingAIButton navigation={navigation} />
     </SafeAreaView>
   );
 
@@ -1313,37 +1294,47 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+  },
+  gridTextContainer: {
+    flex: 1,
+  },
+  gridChevron: {
+    fontSize: 22,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   gridItem: {
-    width: '48%',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    marginBottom: 12,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   gridIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginRight: 14,
   },
   gridIcon: {
-    fontSize: 28,
+    fontSize: 26,
   },
   gridTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   gridDescription: {
     fontSize: 13,

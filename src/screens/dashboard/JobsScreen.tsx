@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,9 +18,10 @@ import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
 import { YOUTH_JOB_RESOURCES } from '../../data/youthResources';
-import { getJobsForYouOrder } from '../../utils/profileInsights';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
+import { FloatingAIButton } from '../../components/FloatingAIButton';
+import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -171,6 +172,8 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
+  const scrollRef = useRef<ScrollView | null>(null);
+  const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'search' | 'quickhire' | 'help' | null>(null);
   const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -311,10 +314,13 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
             <Text style={styles.gridIcon}>⭐</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -324,10 +330,13 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
             <Text style={styles.gridIcon}>🔍</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Trabajos' : 'Job Search'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Encuentra oportunidades' : 'Find opportunities'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Trabajos' : 'Job Search'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Encuentra oportunidades' : 'Find opportunities'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -337,10 +346,13 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
             <Text style={styles.gridIcon}>⚡</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Contratación Rápida' : 'Quick Hire'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Trabajos que contratan rápido' : 'Jobs hiring fast'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Contratación Rápida' : 'Quick Hire'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Trabajos que contratan rápido' : 'Jobs hiring fast'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -350,23 +362,19 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
           <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
             <Text style={styles.gridIcon}>📞</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Obtener Ayuda' : 'Get Help'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Líneas de ayuda' : 'Helplines'}
-          </Text>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Obtener Ayuda' : 'Get Help'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Líneas de ayuda' : 'Helplines'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const renderForYou = () => {
-    // Personalize based on intake answers
-    const order = getJobsForYouOrder(userProfile);
-    const orderedForYou = order
-      .map((id) => JOBS_FOR_YOU.find((i) => i.id === id))
-      .filter((i): i is typeof JOBS_FOR_YOU[number] => !!i);
-
-    return (
+  const renderForYou = () => (
     <View style={styles.detailContainer}>
       <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
         <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
@@ -385,43 +393,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         category="employment"
         navigation={navigation}
       />
-
-      {orderedForYou.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.resourceCard}
-          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-        >
-          <View style={styles.resourceHeader}>
-            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
-              <Text style={styles.resourceIcon}>{item.icon}</Text>
-            </View>
-            <View style={styles.resourceInfo}>
-              <Text style={styles.resourceTitle}>
-                {isSpanish ? item.titleEs : item.title}
-              </Text>
-              <Text style={styles.resourceDescription}>
-                {isSpanish ? item.descriptionEs : item.description}
-              </Text>
-            </View>
-            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
-          </View>
-
-          {expandedItem === item.id && (
-            <View style={styles.resourceDetails}>
-              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
-                <View key={index} style={styles.detailRow}>
-                  <Text style={styles.detailBullet}>•</Text>
-                  <Text style={styles.detailText}>{detail}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
     </View>
-    );
-  };
+  );
 
   const renderSearch = () => (
     <View style={styles.detailContainer}>
@@ -772,7 +745,13 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Youth Job Training Banner for Minors */}
         {userProfile?.ageGroup === 'under18' && activeSection === null && (
           <View style={styles.youthTrainingBanner}>
@@ -819,6 +798,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {activeSection === 'quickhire' && renderQuickHire()}
         {activeSection === 'help' && renderHelp()}
       </ScrollView>
+      {scrollToTopButton}
+      <FloatingAIButton navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -875,41 +856,51 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
   },
   gridItem: {
-    width: '48%',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 12,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   gridIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginRight: 14,
   },
   gridIcon: {
-    fontSize: 28,
+    fontSize: 26,
+  },
+  gridTextContainer: {
+    flex: 1,
   },
   gridTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   gridDescription: {
     fontSize: 13,
     color: '#64748B',
+  },
+  gridChevron: {
+    fontSize: 22,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   detailContainer: {
     padding: 20,

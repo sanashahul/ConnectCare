@@ -112,6 +112,28 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     }
   };
 
+  // Skip the rest of the intake and go straight to the dashboard.
+  // Any answers already given are preserved; the user can finish later
+  // from Settings or see the "finish intake" nudge on the dashboard.
+  const handleSkip = () => {
+    // Save current answer first if the user has entered one
+    const answer = answers[currentQuestion.id];
+    if (answer) {
+      dispatch({
+        type: 'SET_ANSWER',
+        payload: {
+          questionId: currentQuestion.id,
+          answer,
+        },
+      });
+    }
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
+    });
+  };
+
   const handlePrevious = () => {
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
@@ -229,14 +251,23 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar
-          current={currentIndex + 1}
-          total={totalQuestions}
-          label={t('questionnaire.progress', {
-            current: currentIndex + 1,
-            total: totalQuestions,
-          })}
-        />
+        <View style={styles.progressHeader}>
+          <View style={{ flex: 1 }}>
+            <ProgressBar
+              current={currentIndex + 1}
+              total={totalQuestions}
+              label={t('questionnaire.progress', {
+                current: currentIndex + 1,
+                total: totalQuestions,
+              })}
+            />
+          </View>
+          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+            <Text style={styles.skipButtonText}>
+              {i18n.language === 'es' ? 'Omitir por ahora' : 'Skip for now'}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.categoryBadge}>
           <Text style={styles.categoryBadgeText}>
             {getCurrentCategoryLabel(currentQuestion.category)}
@@ -277,6 +308,21 @@ const styles = StyleSheet.create({
   progressContainer: {
     paddingHorizontal: 24,
     paddingTop: 20,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  skipButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  skipButtonText: {
+    fontSize: 13,
+    color: '#2563EB',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   categoryBadge: {
     backgroundColor: '#F0FDFA',

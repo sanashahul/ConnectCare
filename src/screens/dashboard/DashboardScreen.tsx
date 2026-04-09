@@ -23,9 +23,12 @@ import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
+import { useScrollToTop } from '../../components/ScrollToTopButton';
+import { LanguageToggle } from '../../components/LanguageToggle';
 
 type DashboardScreenProps = {
   navigation: NativeStackNavigationProp<any>;
+  route?: { params?: { openAI?: boolean } };
 };
 
 // ============================================
@@ -1112,7 +1115,7 @@ const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#
   );
 };
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [showAI, setShowAI] = useState(false);
@@ -1133,10 +1136,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     mentionedTopics: [],
   });
   const scrollViewRef = useRef<ScrollView>(null);
+  const mainScrollRef = useRef<ScrollView | null>(null);
+  const { button: scrollToTopButton, handleScroll } = useScrollToTop(mainScrollRef);
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
+
+  // Auto-open the AI modal when navigated to from a FloatingAIButton
+  // on any screen (route params carry openAI=true).
+  useEffect(() => {
+    if (route?.params?.openAI) {
+      setShowAI(true);
+      navigation.setParams?.({ openAI: false } as never);
+    }
+  }, [route?.params?.openAI]);
 
   const handleAITopic = async (topicId: string) => {
     const topic = AI_TOPICS.find((t) => t.id === topicId);
@@ -1415,27 +1429,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
               <Text style={styles.categoryIcon}>{category.icon}</Text>
             </View>
-            <Text style={styles.categoryLabel}>
-              {isSpanish ? category.labelEs : category.label}
-            </Text>
+            <View style={styles.categoryTextContainer}>
+              <Text style={styles.categoryLabel}>
+                {isSpanish ? category.labelEs : category.label}
+              </Text>
+            </View>
+            <Text style={styles.categoryChevron}>›</Text>
           </TouchableOpacity>
         ))}
-
-        {/* AI Case Manager */}
-        <TouchableOpacity
-          style={[styles.categoryCard, styles.aiCategoryCard]}
-          onPress={() => setShowAI(true)}
-        >
-          <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
-            <Text style={styles.categoryIcon}>🤖</Text>
-          </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'AI Gestor' : 'AI Case Manager'}
-          </Text>
-          <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
-          </Text>
-        </TouchableOpacity>
 
         {/* My Case Manager - at end */}
         <TouchableOpacity
@@ -1445,12 +1446,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
             <Text style={styles.categoryIcon}>👤</Text>
           </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
-          </Text>
-          <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
-          </Text>
+          <View style={styles.categoryTextContainer}>
+            <Text style={styles.categoryLabel}>
+              {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
+            </Text>
+            <Text style={styles.categorySubLabel}>
+              {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
+            </Text>
+          </View>
+          <Text style={styles.categoryChevron}>›</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1460,6 +1464,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     const todos = userProfile?.todos || [];
     const pendingTodos = todos.filter((t) => !t.completed);
     const completedCount = todos.filter((t) => t.completed).length;
+
+    // Group pending todos by category so long lists are scannable
+    const groups: Record<string, typeof pendingTodos> = {};
+    pendingTodos.forEach((t) => {
+      const key = t.category || 'other';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
+    });
+    const groupMeta: Record<string, { label: string; labelEs: string; icon: string }> = {
+      healthcare: { label: 'Health', labelEs: 'Salud', icon: '🏥' },
+      housing: { label: 'Housing', labelEs: 'Vivienda', icon: '🏠' },
+      employment: { label: 'Jobs', labelEs: 'Empleo', icon: '💼' },
+      documents: { label: 'Documents', labelEs: 'Documentos', icon: '🪪' },
+      benefits: { label: 'Benefits', labelEs: 'Beneficios', icon: '💵' },
+      education: { label: 'Education', labelEs: 'Educación', icon: '🎓' },
+      other: { label: 'Other', labelEs: 'Otros', icon: '📋' },
+    };
+    const groupOrder = ['healthcare', 'housing', 'employment', 'documents', 'benefits', 'education', 'other'];
 
     return (
       <View style={styles.todosSection}>
@@ -1494,7 +1516,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         ) : (
           <>
-            {pendingTodos.slice(0, 4).map((todo) => (
+            {groupOrder.flatMap((groupKey) => {
+              const items = groups[groupKey];
+              if (!items || items.length === 0) return [];
+              const meta = groupMeta[groupKey] || groupMeta.other;
+              return [
+                <View key={`group-${groupKey}`} style={styles.todoGroupHeader}>
+                  <Text style={styles.todoGroupIcon}>{meta.icon}</Text>
+                  <Text style={styles.todoGroupLabel}>
+                    {isSpanish ? meta.labelEs : meta.label}
+                  </Text>
+                  <Text style={styles.todoGroupCount}>{items.length}</Text>
+                </View>,
+                ...items.map((todo) => (
               <View key={todo.id} style={styles.todoItemContainer}>
                 <TouchableOpacity
                   style={styles.todoItem}
@@ -1575,12 +1609,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
                 </View>
               )}
             </View>
-            ))}
-            {pendingTodos.length > 4 && (
-              <Text style={styles.moreText}>
-                +{pendingTodos.length - 4} {isSpanish ? 'más' : 'more'}
-              </Text>
-            )}
+                )),
+              ];
+            })}
           </>
         )}
       </View>
@@ -1906,10 +1937,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={mainScrollRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>
               {isSpanish ? '¡Hola' : 'Hello'}, {userProfile?.name || 'Friend'}! 👋
             </Text>
@@ -1917,6 +1954,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               {isSpanish ? 'Tus recursos personalizados' : 'Your personalized resources'}
             </Text>
           </View>
+          <LanguageToggle />
         </View>
 
         {/* Youth Support Banner - for users under 18 */}
@@ -2194,6 +2232,37 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {/* Urgent Needs Banner - surfaces what the user said on intake */}
         <UrgentNeedsBanner profile={userProfile} navigation={navigation} />
 
+        {/* Intake progress nudge - if the user skipped intake, let them finish later */}
+        {(() => {
+          const answered = userProfile?.answers?.length || 0;
+          const selectedCats = userProfile?.selectedCategories?.length || 0;
+          const expected = selectedCats * 10; // ~10 questions per category
+          if (expected === 0 || answered >= expected) return null;
+          const remaining = expected - answered;
+          return (
+            <TouchableOpacity
+              style={styles.intakeNudge}
+              onPress={() => navigation.navigate('Questionnaire')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.intakeNudgeIcon}>📋</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.intakeNudgeTitle}>
+                  {isSpanish
+                    ? `Te faltan ${remaining} preguntas`
+                    : `${remaining} intake questions left`}
+                </Text>
+                <Text style={styles.intakeNudgeSubtitle}>
+                  {isSpanish
+                    ? 'Completa tu intake para recibir más recomendaciones personalizadas.'
+                    : 'Finish your intake for more personalized recommendations.'}
+                </Text>
+              </View>
+              <Text style={styles.intakeNudgeArrow}>›</Text>
+            </TouchableOpacity>
+          );
+        })()}
+
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
           {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
@@ -2242,6 +2311,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         </View>
       </ScrollView>
+      {scrollToTopButton}
 
       {/* AI Modal */}
       {renderAIModal()}
@@ -2266,6 +2336,41 @@ const styles = StyleSheet.create({
   header: {
     padding: 24,
     paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  intakeNudge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  intakeNudgeIcon: {
+    fontSize: 26,
+    marginRight: 12,
+  },
+  intakeNudgeTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E3A8A',
+    marginBottom: 2,
+  },
+  intakeNudgeSubtitle: {
+    fontSize: 13,
+    color: '#2563EB',
+    lineHeight: 17,
+  },
+  intakeNudgeArrow: {
+    fontSize: 24,
+    color: '#2563EB',
+    fontWeight: '700',
+    marginLeft: 8,
   },
   greeting: {
     fontSize: 28,
@@ -2286,38 +2391,77 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    paddingHorizontal: 20,
   },
   categoryCard: {
-    width: '47%',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 12,
+    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginBottom: 12,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   categoryIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginRight: 14,
   },
   categoryIcon: {
-    fontSize: 32,
+    fontSize: 28,
+  },
+  categoryTextContainer: {
+    flex: 1,
   },
   categoryLabel: {
     fontSize: 17,
     fontWeight: '700',
     color: '#0F172A',
+  },
+  categoryChevron: {
+    fontSize: 22,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  todoGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 14,
+    paddingBottom: 6,
+    paddingHorizontal: 4,
+    gap: 8,
+  },
+  todoGroupIcon: {
+    fontSize: 18,
+  },
+  todoGroupLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  todoGroupCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94A3B8',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 22,
+    textAlign: 'center',
   },
   todosSection: {
     marginHorizontal: 20,

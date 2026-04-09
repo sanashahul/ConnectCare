@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
-import { getHealthcareForYouOrder } from '../../utils/profileInsights';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
+import { FloatingAIButton } from '../../components/FloatingAIButton';
+import { useScrollToTop } from '../../components/ScrollToTopButton';
 
 type HealthScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -161,6 +162,8 @@ const URGENT_RESOURCES = [
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
+  const scrollRef = useRef<ScrollView | null>(null);
+  const { button: scrollToTopButton, handleScroll } = useScrollToTop(scrollRef);
   const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | null>(null);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -468,7 +471,80 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         navigation={navigation}
       />
 
-      {/* Need Health Help Now Banner */}
+      <Text style={styles.sectionTitle}>
+        {isSpanish ? 'Recursos de Salud' : 'Health Resources'}
+      </Text>
+      <Text style={styles.sectionSubtitle}>
+        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
+      </Text>
+
+      <View style={styles.grid}>
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
+          onPress={() => setActiveSection('foryou')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
+            <Text style={styles.gridIcon}>⭐</Text>
+          </View>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Recursos personalizados' : 'Personalized resources'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
+          onPress={() => setActiveSection('clinics')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
+            <Text style={styles.gridIcon}>🔍</Text>
+          </View>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Clínicas' : 'Find Clinics'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Cerca de ti' : 'Near you'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
+          onPress={() => setActiveSection('urgent')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
+            <Text style={styles.gridIcon}>🚨</Text>
+          </View>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Necesito Ayuda Ahora' : 'Need Help Now'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Recursos de emergencia' : 'Emergency resources'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
+          onPress={() => navigation.navigate('Dashboard')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
+            <Text style={styles.gridIcon}>📋</Text>
+          </View>
+          <View style={styles.gridTextContainer}>
+            <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
+            <Text style={styles.gridDescription}>
+              {isSpanish ? 'Ver lista de tareas' : 'View task list'}
+            </Text>
+          </View>
+          <Text style={styles.gridChevron}>›</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Need Health Help Now Banner - moved below the grid */}
       <TouchableOpacity
         style={styles.needNowBanner}
         onPress={() => {
@@ -489,78 +565,10 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
           <Text style={styles.needNowArrow}>→</Text>
         </View>
       </TouchableOpacity>
-
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Salud' : 'Health Resources'}
-      </Text>
-      <Text style={styles.sectionSubtitle}>
-        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
-      </Text>
-
-      <View style={styles.grid}>
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('foryou')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Recursos personalizados' : 'Personalized resources'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('clinics')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>🔍</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Clínicas' : 'Find Clinics'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Cerca de ti' : 'Near you'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
-          onPress={() => setActiveSection('urgent')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
-            <Text style={styles.gridIcon}>🚨</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Necesito Ayuda Ahora' : 'Need Help Now'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Recursos de emergencia' : 'Emergency resources'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
-          onPress={() => navigation.navigate('Dashboard')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
-            <Text style={styles.gridIcon}>📋</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Ver lista de tareas' : 'View task list'}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 
-  const renderForYou = () => {
-    // Personalize based on intake answers
-    const order = getHealthcareForYouOrder(userProfile);
-    const orderedForYou = order
-      .map((id) => HEALTH_FOR_YOU.find((i) => i.id === id))
-      .filter((i): i is typeof HEALTH_FOR_YOU[number] => !!i);
-
-    return (
+  const renderForYou = () => (
     <View style={styles.detailContainer}>
       <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
         <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
@@ -579,43 +587,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         category="healthcare"
         navigation={navigation}
       />
-
-      {orderedForYou.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.resourceCard}
-          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-        >
-          <View style={styles.resourceHeader}>
-            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
-              <Text style={styles.resourceIcon}>{item.icon}</Text>
-            </View>
-            <View style={styles.resourceInfo}>
-              <Text style={styles.resourceTitle}>
-                {isSpanish ? item.titleEs : item.title}
-              </Text>
-              <Text style={styles.resourceDescription}>
-                {isSpanish ? item.descriptionEs : item.description}
-              </Text>
-            </View>
-            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
-          </View>
-
-          {expandedItem === item.id && (
-            <View style={styles.resourceDetails}>
-              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
-                <View key={index} style={styles.detailRow}>
-                  <Text style={styles.detailBullet}>•</Text>
-                  <Text style={styles.detailText}>{detail}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
     </View>
-    );
-  };
+  );
 
   const renderClinics = () => (
     <View style={styles.detailContainer}>
@@ -1085,13 +1058,21 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {activeSection === null && renderMainGrid()}
         {activeSection === 'foryou' && renderForYou()}
         {activeSection === 'clinics' && renderClinics()}
         {activeSection === 'urgent' && renderUrgent()}
         {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
+      {scrollToTopButton}
+      <FloatingAIButton navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -1148,41 +1129,51 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
   },
   gridItem: {
-    width: '48%',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 12,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   gridIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    marginRight: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
   },
   gridIcon: {
-    fontSize: 28,
+    fontSize: 26,
+  },
+  gridTextContainer: {
+    flex: 1,
   },
   gridTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   gridDescription: {
     fontSize: 13,
     color: '#64748B',
+  },
+  gridChevron: {
+    fontSize: 22,
+    color: '#94A3B8',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   detailContainer: {
     padding: 20,
