@@ -289,6 +289,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const [expandedCounselor, setExpandedCounselor] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
+  const [youthShelterExpanded, setYouthShelterExpanded] = useState(true);
   // Filter states
   const [filterOpenNow, setFilterOpenNow] = useState(false);
   const [filterHasPhone, setFilterHasPhone] = useState(false);
@@ -459,15 +460,25 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         navigation={navigation}
       />
 
-      {/* Youth Shelter Banner - Only for minors */}
+      {/* Youth Shelter Banner - Only for minors (collapsible) */}
       {userProfile?.ageGroup === 'under18' && (
         <View style={styles.youthShelterBanner}>
-          <View style={styles.youthShelterHeader}>
+          <TouchableOpacity
+            style={styles.youthShelterHeader}
+            onPress={() => setYouthShelterExpanded(!youthShelterExpanded)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.youthShelterEmoji}>🏠</Text>
-            <Text style={styles.youthShelterTitle}>
+            <Text style={[styles.youthShelterTitle, { flex: 1 }]}>
               {isSpanish ? 'Refugios Juveniles' : 'Youth Shelters'}
             </Text>
-          </View>
+            <Text style={styles.youthShelterChevron}>
+              {youthShelterExpanded ? '▾' : '▸'}
+            </Text>
+          </TouchableOpacity>
+
+          {youthShelterExpanded && (
+          <>
           <Text style={styles.youthShelterMessage}>
             {isSpanish
               ? 'Los refugios juveniles son más seguros que los refugios para adultos y tienen personal que entiende tu situación.'
@@ -520,30 +531,10 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
           </View>
+          </>
+          )}
         </View>
       )}
-
-      {/* Need Housing Now Banner */}
-      <TouchableOpacity
-        style={styles.needNowBanner}
-        onPress={() => {
-          resetTriage();
-          setActiveSection('needNow');
-        }}
-      >
-        <View style={styles.needNowContent}>
-          <Text style={styles.needNowIcon}>🏠</Text>
-          <View style={styles.needNowTextContainer}>
-            <Text style={styles.needNowTitle}>
-              {isSpanish ? '¿Necesitas Vivienda Ahora?' : 'Need Housing Now?'}
-            </Text>
-            <Text style={styles.needNowSubtitle}>
-              {isSpanish ? 'Toca aquí para ayuda inmediata' : 'Tap here for immediate help'}
-            </Text>
-          </View>
-          <Text style={styles.needNowArrow}>→</Text>
-        </View>
-      </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>
         {isSpanish ? 'Recursos de Vivienda' : 'Housing Resources'}
@@ -605,6 +596,28 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Need Housing Now Banner - moved below the grid */}
+      <TouchableOpacity
+        style={styles.needNowBanner}
+        onPress={() => {
+          resetTriage();
+          setActiveSection('needNow');
+        }}
+      >
+        <View style={styles.needNowContent}>
+          <Text style={styles.needNowIcon}>🏠</Text>
+          <View style={styles.needNowTextContainer}>
+            <Text style={styles.needNowTitle}>
+              {isSpanish ? '¿Necesitas Vivienda Ahora?' : 'Need Housing Now?'}
+            </Text>
+            <Text style={styles.needNowSubtitle}>
+              {isSpanish ? 'Toca aquí para ayuda inmediata' : 'Tap here for immediate help'}
+            </Text>
+          </View>
+          <Text style={styles.needNowArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 
@@ -2313,6 +2326,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#5B21B6',
+  },
+  youthShelterChevron: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#5B21B6',
+    marginLeft: 8,
   },
   youthShelterMessage: {
     fontSize: 15,
