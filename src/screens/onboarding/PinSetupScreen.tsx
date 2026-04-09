@@ -156,7 +156,7 @@ export const PinSetupScreen: React.FC<PinSetupScreenProps> = ({ navigation }) =>
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={4} total={6} label="4 / 6" />
+        <ProgressBar current={3} total={5} label="3 / 5" />
       </View>
 
       {/* Content */}
@@ -246,11 +246,11 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
     marginHorizontal: 10,
   },
   dotFilled: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   dotError: {
     borderColor: '#EF4444',

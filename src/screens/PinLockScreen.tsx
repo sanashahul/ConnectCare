@@ -152,7 +152,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onUnlock }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   content: {
     flex: 1,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
   },
   errorText: {
-    color: '#FEE2E2',
+    color: '#FBEAC6',
     fontSize: 14,
     marginBottom: 20,
   },

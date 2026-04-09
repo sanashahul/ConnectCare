@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   // PIN setup styles
   pinContainer: {
     flex: 1,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   pinContent: {
     flex: 1,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   },
   pinSubtitle: {
     fontSize: 16,
-    color: '#99F6E4',
+    color: '#B8D4C9',
     textAlign: 'center',
   },
   pinDotsContainer: {
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   pinError: {
-    color: '#FEE2E2',
+    color: '#FBEAC6',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,
@@ -593,6 +593,6 @@ const styles = StyleSheet.create({
   },
   pinBackText: {
     fontSize: 16,
-    color: '#99F6E4',
+    color: '#B8D4C9',
   },
 });

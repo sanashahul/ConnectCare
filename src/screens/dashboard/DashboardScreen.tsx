@@ -1033,7 +1033,7 @@ interface LinkableTextProps {
   linkColor?: string;
 }
 
-const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#7C3AED' }) => {
+const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#C68568' }) => {
   // Parse the text into segments with URLs and phone numbers
   const parseText = (input: string): Array<{ type: 'text' | 'url' | 'phone'; value: string }> => {
     const segments: Array<{ type: 'text' | 'url' | 'phone'; value: string }> = [];
@@ -1426,9 +1426,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
 
   const renderCategoryGrid = () => {
     const allCategories = [
-      { id: 'healthcare', icon: '🏥', label: 'Health', labelEs: 'Salud', color: '#F0FDFA', iconBg: '#CCFBF1', screen: 'Health' },
-      { id: 'employment', icon: '💼', label: 'Jobs', labelEs: 'Empleo', color: '#FFF7ED', iconBg: '#FFEDD5', screen: 'Jobs' },
-      { id: 'housing', icon: '🏠', label: 'Housing', labelEs: 'Vivienda', color: '#F5F3FF', iconBg: '#EDE9FE', screen: 'Housing' },
+      { id: 'healthcare', icon: '🏥', label: 'Health', labelEs: 'Salud', color: '#EAF2EE', iconBg: '#D4E5DD', screen: 'Health' },
+      { id: 'employment', icon: '💼', label: 'Jobs', labelEs: 'Empleo', color: '#F6EEDD', iconBg: '#EFE3C8', screen: 'Jobs' },
+      { id: 'housing', icon: '🏠', label: 'Housing', labelEs: 'Vivienda', color: '#F8EBE2', iconBg: '#F1DDD0', screen: 'Housing' },
     ];
 
     // Filter to show only selected categories, but always show AI
@@ -1570,15 +1570,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                     {todo.resourceType && (
                       <View style={[
                         styles.todoResourceBadge,
-                        todo.resourceType === 'job' && { backgroundColor: '#FFF7ED' },
-                        todo.resourceType === 'housing' && { backgroundColor: '#F5F3FF' },
-                        todo.resourceType === 'clinic' && { backgroundColor: '#F0FDFA' },
+                        todo.resourceType === 'job' && { backgroundColor: '#F6EEDD' },
+                        todo.resourceType === 'housing' && { backgroundColor: '#F8EBE2' },
+                        todo.resourceType === 'clinic' && { backgroundColor: '#EAF2EE' },
                       ]}>
                         <Text style={[
                           styles.todoResourceBadgeText,
-                          todo.resourceType === 'job' && { color: '#EA580C' },
-                          todo.resourceType === 'housing' && { color: '#7C3AED' },
-                          todo.resourceType === 'clinic' && { color: '#0D9488' },
+                          todo.resourceType === 'job' && { color: '#B8915A' },
+                          todo.resourceType === 'housing' && { color: '#C68568' },
+                          todo.resourceType === 'clinic' && { color: '#5E8B7E' },
                         ]}>
                           {todo.resourceType === 'job' ? '💼' : todo.resourceType === 'housing' ? '🏠' : '🏥'}
                           {' '}
@@ -1833,7 +1833,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                       <LinkableText
                         text={message.content}
                         style={[styles.chatText, styles.aiText]}
-                        linkColor="#7C3AED"
+                        linkColor="#C68568"
                       />
                     ) : (
                       <Text
@@ -2593,7 +2593,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   todoActionButtonPrimary: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   todoActionButtonText: {
     fontSize: 13,
@@ -2721,7 +2721,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   userBubble: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -2747,17 +2747,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   quickTopicChip: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   quickTopicText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   aiInputContainer: {
     flexDirection: 'row',
@@ -2784,7 +2784,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
@@ -2801,9 +2801,9 @@ const styles = StyleSheet.create({
     borderColor: '#DBEAFE',
   },
   caseManagerCard: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderWidth: 2,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   categorySubLabel: {
     fontSize: 12,
@@ -2830,7 +2830,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2854,14 +2854,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   todoCheckmark: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontSize: 14,
   },
   todoDeleteButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2909,7 +2909,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addTodoSubmit: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -3084,7 +3084,7 @@ const styles = StyleSheet.create({
   youthHotlinePhone: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   youthBannerNote: {
     fontSize: 12,
@@ -3234,16 +3234,16 @@ const styles = StyleSheet.create({
   },
   // Abuse Reporting Tab styles
   abuseIntroCard: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#F5E6C3',
   },
   abuseIntroText: {
     fontSize: 14,
-    color: '#991B1B',
+    color: '#7A4E1F',
     lineHeight: 20,
   },
   abuseStateCard: {
@@ -3258,7 +3258,7 @@ const styles = StyleSheet.create({
   abuseStateTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#991B1B',
+    color: '#7A4E1F',
     marginBottom: 4,
   },
   abuseAgency: {
@@ -3332,22 +3332,22 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   abuseEmergency: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FCA5A5',
+    borderColor: '#E4BE76',
   },
   abuseEmergencyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#991B1B',
+    color: '#7A4E1F',
     marginBottom: 6,
   },
   abuseEmergencyText: {
     fontSize: 14,
-    color: '#B91C1C',
+    color: '#92661F',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -3420,7 +3420,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
   },
   todoDetailPrimaryButtonText: {

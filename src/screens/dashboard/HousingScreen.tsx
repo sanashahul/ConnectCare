@@ -34,7 +34,7 @@ const HOUSING_FOR_YOU = [
     description: 'Housing choice voucher program explained',
     descriptionEs: 'Programa de vales de vivienda explicado',
     icon: '🏠',
-    color: '#7C3AED',
+    color: '#C68568',
     details: [
       'Section 8 helps pay rent for low-income families',
       'You pay about 30% of your income, voucher covers the rest',
@@ -76,7 +76,7 @@ const HOUSING_FOR_YOU = [
     description: 'Help paying rent',
     descriptionEs: 'Ayuda para pagar la renta',
     icon: '💰',
-    color: '#0D9488',
+    color: '#5E8B7E',
     details: [
       'Emergency rental assistance available through local agencies',
       'Utility assistance programs can help with bills',
@@ -97,7 +97,7 @@ const HOUSING_FOR_YOU = [
     description: 'Know your rights as a renter',
     descriptionEs: 'Conoce tus derechos como inquilino',
     icon: '⚖️',
-    color: '#EA580C',
+    color: '#B8915A',
     details: [
       'Landlords must provide habitable housing',
       'You cannot be evicted without proper legal process',
@@ -120,7 +120,7 @@ const HOUSING_PROGRAMS = [
     title: 'Section 8 / Housing Choice Voucher',
     titleEs: 'Sección 8 / Vale de Vivienda',
     icon: '🏠',
-    color: '#7C3AED',
+    color: '#C68568',
     description: 'Government rental assistance program',
     descriptionEs: 'Programa gubernamental de asistencia de alquiler',
     steps: [
@@ -139,7 +139,7 @@ const HOUSING_PROGRAMS = [
     title: 'Public Housing',
     titleEs: 'Vivienda Pública',
     icon: '🏢',
-    color: '#0D9488',
+    color: '#5E8B7E',
     description: 'Government-owned affordable housing',
     descriptionEs: 'Vivienda asequible propiedad del gobierno',
     steps: [
@@ -156,7 +156,7 @@ const HOUSING_PROGRAMS = [
     title: 'Rapid Re-Housing',
     titleEs: 'Realojamiento Rápido',
     icon: '⚡',
-    color: '#EA580C',
+    color: '#B8915A',
     description: 'Short-term rental assistance for homeless individuals',
     descriptionEs: 'Asistencia de alquiler a corto plazo para personas sin hogar',
     steps: [
@@ -486,10 +486,10 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
       <View style={styles.grid}>
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
+          style={[styles.gridItem, { backgroundColor: '#EAF2EE' }]}
           onPress={() => setActiveSection('find')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#D4E5DD' }]}>
             <Text style={styles.gridIcon}>🔍</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -502,10 +502,10 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
+          style={[styles.gridItem, { backgroundColor: '#F6EEDD' }]}
           onPress={() => setActiveSection('options')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#EFE3C8' }]}>
             <Text style={styles.gridIcon}>🏠</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -518,10 +518,10 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
+          style={[styles.gridItem, { backgroundColor: '#FDF4E3' }]}
           onPress={() => setActiveSection('help')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#F5E6C3' }]}>
             <Text style={styles.gridIcon}>📞</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -647,7 +647,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#7C3AED" />
+          <ActivityIndicator size="large" color="#C68568" />
           <Text style={styles.loadingText}>
             {isSpanish ? 'Buscando recursos...' : 'Finding resources...'}
           </Text>
@@ -684,7 +684,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
               <View style={styles.shelterHeader}>
                 <View style={[
                   styles.shelterIconContainer,
-                  { backgroundColor: openStatus.isOpen ? '#ECFDF5' : '#FEF2F2' }
+                  { backgroundColor: openStatus.isOpen ? '#ECFDF5' : '#FDF4E3' }
                 ]}>
                   <Text style={styles.shelterIcon}>{getIcon()}</Text>
                 </View>
@@ -1218,11 +1218,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   nextStepsHero: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#C68568',
     borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#7C3AED',
+    shadowColor: '#C68568',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -1260,7 +1260,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   nextStepsHeroSubtitle: {
-    color: '#EDE9FE',
+    color: '#F1DDD0',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -1319,7 +1319,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#C68568',
     fontWeight: '600',
   },
   detailTitle: {
@@ -1335,17 +1335,17 @@ const styles = StyleSheet.create({
   },
   // Intake summary card - reflects intake-form answers
   intakeSummaryCard: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#DDD6FE',
+    borderColor: '#E8CAB8',
   },
   intakeSummaryTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#5B21B6',
+    color: '#6B3E2A',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1363,7 +1363,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#EDE9FE',
+    borderColor: '#F1DDD0',
     gap: 8,
   },
   intakeSummaryChipIcon: {
@@ -1371,13 +1371,13 @@ const styles = StyleSheet.create({
   },
   intakeSummaryChipLabel: {
     fontSize: 11,
-    color: '#6D28D9',
+    color: '#8B4F35',
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   intakeSummaryChipValue: {
     fontSize: 13,
-    color: '#4C1D95',
+    color: '#4A2B1C',
     fontWeight: '700',
   },
   resourceCard: {
@@ -1437,7 +1437,7 @@ const styles = StyleSheet.create({
   },
   detailBullet: {
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#C68568',
     marginRight: 8,
     fontWeight: '700',
   },
@@ -1493,7 +1493,7 @@ const styles = StyleSheet.create({
   },
   counselorDistance: {
     fontSize: 13,
-    color: '#7C3AED',
+    color: '#C68568',
     fontWeight: '600',
   },
   counselorDescription: {
@@ -1509,18 +1509,18 @@ const styles = StyleSheet.create({
   },
   callButton: {
     flex: 1,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EDE9FE',
+    borderColor: '#F1DDD0',
   },
   callButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#C68568',
   },
   addTodoButton: {
     flex: 1,
@@ -1573,7 +1573,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -1598,17 +1598,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   availabilityTag: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   availabilityText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   tipCard: {
     backgroundColor: '#FEF3C7',
@@ -1764,14 +1764,14 @@ const styles = StyleSheet.create({
     color: '#059669',
   },
   urgentCard: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#F5E6C3',
   },
   urgentIconContainer: {
     width: 56,
@@ -1860,7 +1860,7 @@ const styles = StyleSheet.create({
   },
   needNowSubtitle: {
     fontSize: 14,
-    color: '#FECACA',
+    color: '#F5E6C3',
   },
   needNowArrow: {
     fontSize: 28,
@@ -1922,7 +1922,7 @@ const styles = StyleSheet.create({
   },
   triageOptionArrow: {
     fontSize: 20,
-    color: '#7C3AED',
+    color: '#C68568',
     fontWeight: '600',
   },
   // Result styles
@@ -1930,18 +1930,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultHeader: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     width: '100%',
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   resultHeaderUrgent: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
+    backgroundColor: '#FDF4E3',
+    borderColor: '#F5E6C3',
   },
   resultEmoji: {
     fontSize: 56,
@@ -2013,7 +2013,7 @@ const styles = StyleSheet.create({
   },
   startOverText: {
     fontSize: 16,
-    color: '#7C3AED',
+    color: '#C68568',
     fontWeight: '600',
   },
   // Expandable Shelter Card styles
@@ -2032,7 +2032,7 @@ const styles = StyleSheet.create({
   },
   shelterCardCurated: {
     borderLeftWidth: 4,
-    borderLeftColor: '#7C3AED',
+    borderLeftColor: '#C68568',
   },
   shelterHeader: {
     flexDirection: 'row',
@@ -2061,7 +2061,7 @@ const styles = StyleSheet.create({
   shelterPhone: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#C68568',
     marginBottom: 6,
   },
   statusRow: {
@@ -2078,7 +2078,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ECFDF5',
   },
   statusBadgeClosed: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
   },
   statusText: {
     fontSize: 12,
@@ -2091,7 +2091,7 @@ const styles = StyleSheet.create({
     color: '#DC2626',
   },
   verifiedBadge: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -2099,7 +2099,7 @@ const styles = StyleSheet.create({
   verifiedText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#C68568',
   },
   expandArrow: {
     fontSize: 14,
@@ -2148,7 +2148,7 @@ const styles = StyleSheet.create({
   },
   serviceBullet: {
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#C68568',
     marginRight: 8,
     fontWeight: '700',
   },
@@ -2166,7 +2166,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   serviceTag: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -2174,7 +2174,7 @@ const styles = StyleSheet.create({
   serviceTagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#C68568',
   },
   shelterActions: {
     flexDirection: 'row',
@@ -2183,7 +2183,7 @@ const styles = StyleSheet.create({
   },
   primaryCallButton: {
     flex: 1,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#C68568',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -2220,7 +2220,7 @@ const styles = StyleSheet.create({
     color: '#059669',
   },
   call211Button: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#C68568',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
@@ -2250,8 +2250,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   filterChipActive: {
-    backgroundColor: '#7C3AED',
-    borderColor: '#7C3AED',
+    backgroundColor: '#C68568',
+    borderColor: '#C68568',
   },
   filterChipText: {
     fontSize: 13,
@@ -2268,7 +2268,7 @@ const styles = StyleSheet.create({
   },
   // Youth Shelter Banner styles
   youthShelterBanner: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: '#F1DDD0',
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
@@ -2287,17 +2287,17 @@ const styles = StyleSheet.create({
   youthShelterTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#5B21B6',
+    color: '#6B3E2A',
   },
   youthShelterChevron: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#5B21B6',
+    color: '#6B3E2A',
     marginLeft: 8,
   },
   youthShelterMessage: {
     fontSize: 15,
-    color: '#6B21A8',
+    color: '#6B3E2A',
     lineHeight: 22,
     marginBottom: 16,
   },
@@ -2306,7 +2306,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#5B21B6',
+    shadowColor: '#6B3E2A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -2334,13 +2334,13 @@ const styles = StyleSheet.create({
   youthShelterPhone: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#7C3AED',
+    color: '#C68568',
   },
   youthCallIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#C68568',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,

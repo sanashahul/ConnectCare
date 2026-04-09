@@ -16,7 +16,7 @@ import { AgeGroup } from '../../types';
 type RootStackParamList = {
   NameInput: undefined;
   AgeInput: undefined;
-  ImmigrationStatus: undefined;
+  PinSetup: undefined;
 };
 
 type AgeInputScreenProps = {
@@ -101,14 +101,14 @@ export const AgeInputScreen: React.FC<AgeInputScreenProps> = ({ navigation }) =>
       }
     });
     dispatch({ type: 'SET_ONBOARDING_STEP', payload: 2 });
-    navigation.navigate('ImmigrationStatus');
+    navigation.navigate('PinSetup');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={2} total={6} label="2 / 6" />
+        <ProgressBar current={2} total={5} label="2 / 5" />
       </View>
 
       {/* Content */}
@@ -231,16 +231,16 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   optionCardSelected: {
-    backgroundColor: '#F0FDFA',
-    borderColor: '#0D9488',
+    backgroundColor: '#EAF2EE',
+    borderColor: '#5E8B7E',
   },
   youthCard: {
     backgroundColor: '#FFFBEB',
     borderColor: '#FCD34D',
   },
   youthCardSelected: {
-    backgroundColor: '#F0FDFA',
-    borderColor: '#0D9488',
+    backgroundColor: '#EAF2EE',
+    borderColor: '#5E8B7E',
   },
   optionContent: {
     flex: 1,
@@ -252,14 +252,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionLabelSelected: {
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   optionDescription: {
     fontSize: 14,
     color: '#64748B',
   },
   optionDescriptionSelected: {
-    color: '#0F766E',
+    color: '#456B5E',
   },
   radioOuter: {
     width: 26,
@@ -272,13 +272,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   radioOuterSelected: {
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
   },
   radioInner: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   youthMessage: {
     marginTop: 24,

@@ -31,9 +31,9 @@ interface CategoryOption {
 }
 
 const CATEGORIES: CategoryOption[] = [
-  { id: 'healthcare', icon: '🏥', color: '#0D9488', bgColor: '#CCFBF1' },
-  { id: 'employment', icon: '💼', color: '#EA580C', bgColor: '#FFEDD5' },
-  { id: 'housing', icon: '🏠', color: '#7C3AED', bgColor: '#EDE9FE' },
+  { id: 'healthcare', icon: '🏥', color: '#5E8B7E', bgColor: '#D4E5DD' },
+  { id: 'employment', icon: '💼', color: '#B8915A', bgColor: '#EFE3C8' },
+  { id: 'housing', icon: '🏠', color: '#C68568', bgColor: '#F1DDD0' },
 ];
 
 export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = ({
@@ -72,7 +72,7 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
-        <ProgressBar current={6} total={6} label="6 / 6" />
+        <ProgressBar current={5} total={5} label="5 / 5" />
       </View>
 
       {/* Content */}
@@ -243,16 +243,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedInfo: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 18,
     padding: 20,
     marginTop: 28,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#99F6E4',
+    borderColor: '#B8D4C9',
   },
   selectedText: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontSize: 15,
     fontWeight: '700',
   },

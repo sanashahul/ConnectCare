@@ -160,9 +160,9 @@ export const PersonalizedRecommendations: React.FC<
   };
 
   const color = {
-    healthcare: { bg: '#F0FDFA', border: '#99F6E4', title: '#115E59', reason: '#0F766E', actionBg: '#CCFBF1', actionText: '#115E59' },
-    housing: { bg: '#F5F3FF', border: '#DDD6FE', title: '#5B21B6', reason: '#6D28D9', actionBg: '#EDE9FE', actionText: '#5B21B6' },
-    employment: { bg: '#FFF7ED', border: '#FED7AA', title: '#9A3412', reason: '#C2410C', actionBg: '#FFEDD5', actionText: '#9A3412' },
+    healthcare: { bg: '#EAF2EE', border: '#B8D4C9', title: '#2F5548', reason: '#456B5E', actionBg: '#D4E5DD', actionText: '#2F5548' },
+    housing: { bg: '#F8EBE2', border: '#E8CAB8', title: '#6B3E2A', reason: '#8B4F35', actionBg: '#F1DDD0', actionText: '#6B3E2A' },
+    employment: { bg: '#F6EEDD', border: '#E4D1A2', title: '#5E4620', reason: '#7A5C28', actionBg: '#EFE3C8', actionText: '#5E4620' },
   }[category];
 
   return (

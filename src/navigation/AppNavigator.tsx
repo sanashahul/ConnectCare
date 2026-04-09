@@ -6,7 +6,6 @@ import {
   WelcomeScreen,
   NameInputScreen,
   AgeInputScreen,
-  ImmigrationStatusScreen,
   LocationInputScreen,
   CategorySelectionScreen,
   QuestionnaireScreen,
@@ -26,7 +25,6 @@ export type RootStackParamList = {
   Welcome: undefined;
   NameInput: undefined;
   AgeInput: undefined;
-  ImmigrationStatus: undefined;
   PinSetup: undefined;
   LocationInput: undefined;
   CategorySelection: undefined;
@@ -64,7 +62,13 @@ export const AppNavigator: React.FC = () => {
   // Determine initial route based on saved state
   const getInitialRoute = (): keyof RootStackParamList => {
     if (state.userRole === 'individual' && state.userProfile?.shareCode) {
-      // User has completed onboarding
+      // First-time completion of intake: show the welcome summary carousel
+      // before dropping the user on the dashboard. Once they've swiped
+      // through it once, hasSeenIntakeSummary flips and every subsequent
+      // app open goes straight to the dashboard.
+      if (!state.userProfile.hasSeenIntakeSummary) {
+        return 'IntakeSummary';
+      }
       return 'Dashboard';
     }
     if (state.userRole === 'caseworker' && state.caseWorkerProfile) {
@@ -104,7 +108,6 @@ export const AppNavigator: React.FC = () => {
         {/* Individual Onboarding */}
         <Stack.Screen name="NameInput" component={NameInputScreen} />
         <Stack.Screen name="AgeInput" component={AgeInputScreen} />
-        <Stack.Screen name="ImmigrationStatus" component={ImmigrationStatusScreen} />
         <Stack.Screen name="PinSetup" component={PinSetupScreen} />
         <Stack.Screen name="LocationInput" component={LocationInputScreen} />
         <Stack.Screen name="CategorySelection" component={CategorySelectionScreen} />

@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   tabActive: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   tabIcon: {
     fontSize: 16,
@@ -971,17 +971,17 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
     borderStyle: 'dashed',
   },
   shareCode: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#0D9488',
+    color: '#5E8B7E',
     letterSpacing: 2,
   },
   copyButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 10,
@@ -1006,7 +1006,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -1048,7 +1048,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   messageBubbleUser: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -1062,7 +1062,7 @@ const styles = StyleSheet.create({
   messageSender: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#0D9488',
+    color: '#5E8B7E',
     marginBottom: 4,
   },
   messageText: {
@@ -1108,7 +1108,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
@@ -1168,8 +1168,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   categorySquareActive: {
-    backgroundColor: '#F0FDFA',
-    borderColor: '#0D9488',
+    backgroundColor: '#EAF2EE',
+    borderColor: '#5E8B7E',
     borderWidth: 3,
   },
   categorySquareIcon: {
@@ -1183,7 +1183,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categorySquareTextActive: {
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   taskSection: {
     marginBottom: 24,
@@ -1218,8 +1218,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   taskCheckboxCompleted: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
+    borderColor: '#5E8B7E',
   },
   taskCheckboxIcon: {
     fontSize: 16,
@@ -1248,7 +1248,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   taskPriorityHigh: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
   },
   taskPriorityMedium: {
     backgroundColor: '#FEF3C7',
@@ -1338,7 +1338,7 @@ const styles = StyleSheet.create({
   modalCategoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
   modalCategoryText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   modalCloseButton: {
     fontSize: 24,
@@ -1413,7 +1413,7 @@ const styles = StyleSheet.create({
     flex: 2,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     alignItems: 'center',
   },
   modalUncompleteButton: {
@@ -1432,7 +1432,7 @@ const styles = StyleSheet.create({
   },
   // Add Task Button
   addTaskButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -1485,9 +1485,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   categoryChipActive: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderWidth: 2,
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
   },
   categoryChipIcon: {
     fontSize: 16,
@@ -1499,7 +1499,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   categoryChipTextActive: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   priorityRow: {
@@ -1525,7 +1525,7 @@ const styles = StyleSheet.create({
     borderColor: '#F59E0B',
   },
   priorityChipHigh: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
     borderColor: '#EF4444',
   },
   priorityChipText: {

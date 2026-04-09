@@ -77,6 +77,7 @@ type AppAction =
   | { type: 'SET_CATEGORIES'; payload: ServiceCategory[] }
   | { type: 'SET_ANSWER'; payload: QuestionAnswer }
   | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'MARK_INTAKE_SUMMARY_SEEN' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
   | { type: 'UNLOCK_APP' }
@@ -201,9 +202,20 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           shareCode,
+          // hasSeenIntakeSummary stays false until the user actually
+          // finishes swiping through the IntakeSummary carousel.
+          hasSeenIntakeSummary: false,
         },
       };
     }
+
+    case 'MARK_INTAKE_SUMMARY_SEEN':
+      return {
+        ...state,
+        userProfile: state.userProfile
+          ? { ...state.userProfile, hasSeenIntakeSummary: true }
+          : state.userProfile,
+      };
 
     case 'SET_USER_PIN':
       return {

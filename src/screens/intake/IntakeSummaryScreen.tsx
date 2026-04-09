@@ -77,8 +77,8 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
         category: 'healthcare',
         heroTitle: 'Your health plan',
         heroTitleEs: 'Tu plan de salud',
-        heroColor: '#0D9488',
-        heroAccent: '#CCFBF1',
+        heroColor: '#5E8B7E',
+        heroAccent: '#D4E5DD',
         heroChips: 'Here’s what you told us about your health',
         heroChipsEs: 'Esto es lo que nos dijiste sobre tu salud',
         getSummary: getHealthcareSummary,
@@ -89,8 +89,8 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
         category: 'housing',
         heroTitle: 'Your housing plan',
         heroTitleEs: 'Tu plan de vivienda',
-        heroColor: '#7C3AED',
-        heroAccent: '#EDE9FE',
+        heroColor: '#C68568',
+        heroAccent: '#F1DDD0',
         heroChips: 'Here’s what you told us about your housing',
         heroChipsEs: 'Esto es lo que nos dijiste sobre tu vivienda',
         getSummary: getHousingSummary,
@@ -101,8 +101,8 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
         category: 'employment',
         heroTitle: 'Your employment plan',
         heroTitleEs: 'Tu plan de empleo',
-        heroColor: '#EA580C',
-        heroAccent: '#FFEDD5',
+        heroColor: '#B8915A',
+        heroAccent: '#EFE3C8',
         heroChips: 'Here’s what you told us about work',
         heroChipsEs: 'Esto es lo que nos dijiste sobre el trabajo',
         getSummary: getEmploymentSummary,
@@ -123,16 +123,21 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
     scrollRef.current?.scrollTo({ x: page * SCREEN_WIDTH, animated: true });
   };
 
+  const finishAndGoToDashboard = () => {
+    dispatch({ type: 'MARK_INTAKE_SUMMARY_SEEN' });
+    navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+  };
+
   const goNext = () => {
     if (currentPage < totalPages - 1) {
       goToPage(currentPage + 1);
     } else {
-      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+      finishAndGoToDashboard();
     }
   };
 
   const goSkip = () => {
-    navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+    finishAndGoToDashboard();
   };
 
   const addAllFromPanel = (panel: Panel) => {
@@ -364,9 +369,7 @@ export const IntakeSummaryScreen: React.FC<IntakeSummaryScreenProps> = ({
 
       <TouchableOpacity
         style={styles.finalButton}
-        onPress={() =>
-          navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] })
-        }
+        onPress={finishAndGoToDashboard}
         activeOpacity={0.85}
       >
         <Text style={styles.finalButtonText}>

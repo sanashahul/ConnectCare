@@ -35,7 +35,7 @@ const JOBS_FOR_YOU = [
     description: 'Tips for creating an effective resume',
     descriptionEs: 'Consejos para crear un currículum efectivo',
     icon: '📝',
-    color: '#EA580C',
+    color: '#B8915A',
     details: [
       'Keep it to one page with clear sections',
       'Include contact info, work history, skills, and education',
@@ -56,7 +56,7 @@ const JOBS_FOR_YOU = [
     description: 'How to succeed in job interviews',
     descriptionEs: 'Cómo tener éxito en entrevistas de trabajo',
     icon: '🤝',
-    color: '#0D9488',
+    color: '#5E8B7E',
     details: [
       'Research the company before your interview',
       'Practice common questions: "Tell me about yourself"',
@@ -77,7 +77,7 @@ const JOBS_FOR_YOU = [
     description: 'Understanding work permits and eligibility',
     descriptionEs: 'Entendiendo permisos de trabajo y elegibilidad',
     icon: '📄',
-    color: '#7C3AED',
+    color: '#C68568',
     details: [
       'US citizens and permanent residents can work without restrictions',
       'Work permits (EAD) allow certain visa holders to work',
@@ -324,10 +324,10 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
       <View style={styles.grid}>
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
+          style={[styles.gridItem, { backgroundColor: '#EAF2EE' }]}
           onPress={() => setActiveSection('search')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#D4E5DD' }]}>
             <Text style={styles.gridIcon}>🔍</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -340,10 +340,10 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
+          style={[styles.gridItem, { backgroundColor: '#F8EBE2' }]}
           onPress={() => setActiveSection('quickhire')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#F1DDD0' }]}>
             <Text style={styles.gridIcon}>⚡</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -356,10 +356,10 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
+          style={[styles.gridItem, { backgroundColor: '#FDF4E3' }]}
           onPress={() => setActiveSection('help')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#F5E6C3' }]}>
             <Text style={styles.gridIcon}>📞</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -470,7 +470,7 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#EA580C" />
+          <ActivityIndicator size="large" color="#B8915A" />
           <Text style={styles.loadingText}>
             {isSpanish ? 'Cargando recursos...' : 'Loading resources...'}
           </Text>
@@ -508,11 +508,11 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
                   <View style={styles.jobResourceTags}>
                     <View style={[
                       styles.statusBadge,
-                      { backgroundColor: openStatus.isOpen ? '#DCFCE7' : '#FEE2E2' }
+                      { backgroundColor: openStatus.isOpen ? '#DCFCE7' : '#FBEAC6' }
                     ]}>
                       <Text style={[
                         styles.statusBadgeText,
-                        { color: openStatus.isOpen ? '#166534' : '#991B1B' }
+                        { color: openStatus.isOpen ? '#166534' : '#7A4E1F' }
                       ]}>
                         {isSpanish ? openStatus.statusEs : openStatus.status}
                       </Text>
@@ -666,8 +666,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
             <View style={styles.quickHireTag}>
               <Text style={styles.quickHireTagText}>{job.pay}</Text>
             </View>
-            <View style={[styles.quickHireTag, { backgroundColor: '#F0FDFA' }]}>
-              <Text style={[styles.quickHireTagText, { color: '#0D9488' }]}>{job.type}</Text>
+            <View style={[styles.quickHireTag, { backgroundColor: '#EAF2EE' }]}>
+              <Text style={[styles.quickHireTagText, { color: '#5E8B7E' }]}>{job.type}</Text>
             </View>
           </View>
         </View>
@@ -858,11 +858,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   nextStepsHero: {
-    backgroundColor: '#EA580C',
+    backgroundColor: '#B8915A',
     borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#EA580C',
+    shadowColor: '#B8915A',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   nextStepsHeroSubtitle: {
-    color: '#FFEDD5',
+    color: '#EFE3C8',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -959,7 +959,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#EA580C',
+    color: '#B8915A',
     fontWeight: '600',
   },
   detailTitle: {
@@ -975,17 +975,17 @@ const styles = StyleSheet.create({
   },
   // Intake summary card - reflects intake-form answers
   intakeSummaryCard: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: '#E4D1A2',
   },
   intakeSummaryTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#9A3412',
+    color: '#5E4620',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FFEDD5',
+    borderColor: '#EFE3C8',
     gap: 8,
   },
   intakeSummaryChipIcon: {
@@ -1011,13 +1011,13 @@ const styles = StyleSheet.create({
   },
   intakeSummaryChipLabel: {
     fontSize: 11,
-    color: '#C2410C',
+    color: '#7A5C28',
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   intakeSummaryChipValue: {
     fontSize: 13,
-    color: '#7C2D12',
+    color: '#3D2C12',
     fontWeight: '700',
   },
   resourceCard: {
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
   },
   detailBullet: {
     fontSize: 14,
-    color: '#EA580C',
+    color: '#B8915A',
     marginRight: 8,
     fontWeight: '700',
   },
@@ -1101,12 +1101,12 @@ const styles = StyleSheet.create({
   },
   jobSiteCard: {
     width: '31%',
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FFEDD5',
+    borderColor: '#EFE3C8',
   },
   jobSiteIcon: {
     fontSize: 28,
@@ -1161,19 +1161,19 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   viewButton: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignSelf: 'flex-start',
     marginTop: 12,
     borderWidth: 1,
-    borderColor: '#FFEDD5',
+    borderColor: '#EFE3C8',
   },
   viewButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#EA580C',
+    color: '#B8915A',
   },
   emptyContainer: {
     padding: 40,
@@ -1211,7 +1211,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -1237,7 +1237,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickHireTag: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: '#F8EBE2',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
   quickHireTagText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#C68568',
   },
   tipCard: {
     backgroundColor: '#FEF3C7',
@@ -1286,7 +1286,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 18,
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -1311,13 +1311,13 @@ const styles = StyleSheet.create({
   helpPhone: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#EA580C',
+    color: '#B8915A',
   },
   helpCallButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#EA580C',
+    backgroundColor: '#B8915A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1408,17 +1408,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   serviceTag: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F6EEDD',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#FFEDD5',
+    borderColor: '#EFE3C8',
   },
   serviceTagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#EA580C',
+    color: '#B8915A',
   },
   jobResourceExpanded: {
     marginTop: 16,
@@ -1445,7 +1445,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   callButton: {
-    backgroundColor: '#EA580C',
+    backgroundColor: '#B8915A',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
@@ -1457,18 +1457,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   websiteButton: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   websiteButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   addToTodoButton: {
     backgroundColor: '#ECFDF5',
@@ -1503,8 +1503,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   filterChipActive: {
-    backgroundColor: '#EA580C',
-    borderColor: '#EA580C',
+    backgroundColor: '#B8915A',
+    borderColor: '#B8915A',
   },
   filterChipText: {
     fontSize: 13,
@@ -1584,6 +1584,6 @@ const styles = StyleSheet.create({
   youthProgramPhone: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
 });

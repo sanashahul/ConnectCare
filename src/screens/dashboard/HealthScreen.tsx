@@ -33,7 +33,7 @@ const HEALTH_FOR_YOU = [
     description: 'Free or low-cost health coverage for eligible individuals',
     descriptionEs: 'Cobertura de salud gratuita o de bajo costo',
     icon: '🏥',
-    color: '#0D9488',
+    color: '#5E8B7E',
     details: [
       'Government program providing free or low-cost health coverage',
       'Eligibility based on income, family size, and other factors',
@@ -54,7 +54,7 @@ const HEALTH_FOR_YOU = [
     description: 'Where to get care without insurance',
     descriptionEs: 'Dónde obtener atención sin seguro',
     icon: '💊',
-    color: '#7C3AED',
+    color: '#C68568',
     details: [
       'Federally Qualified Health Centers (FQHCs) serve everyone',
       'Free clinics run by volunteers and nonprofits',
@@ -75,7 +75,7 @@ const HEALTH_FOR_YOU = [
     description: '24/7 crisis support and counseling options',
     descriptionEs: 'Apoyo de crisis 24/7 y opciones de consejería',
     icon: '🧠',
-    color: '#EA580C',
+    color: '#B8915A',
     details: [
       '988 - Suicide & Crisis Lifeline (24/7)',
       'Community Mental Health Centers offer sliding-scale services',
@@ -346,7 +346,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       return {
         title: isSpanish ? 'Apoyo de Salud Mental' : 'Mental Health Support',
         subtitle: isSpanish ? 'Ayuda disponible 24/7' : 'Help available 24/7',
-        color: '#7C3AED',
+        color: '#C68568',
         icon: '💚',
         actions: [
           { label: isSpanish ? 'Línea de Crisis 988' : 'Crisis Line 988', phone: '988', primary: true, type: 'call' },
@@ -364,7 +364,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       return {
         title: isSpanish ? 'Atención Urgente Sin Seguro' : 'Urgent Care Without Insurance',
         subtitle: isSpanish ? 'Opciones de bajo costo disponibles' : 'Low-cost options available',
-        color: '#EA580C',
+        color: '#B8915A',
         icon: '🏥',
         actions: [
           findClinicsAction(true),
@@ -381,7 +381,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       return {
         title: isSpanish ? 'Asistencia con Medicamentos' : 'Medication Assistance',
         subtitle: isSpanish ? 'Formas de obtener medicamentos asequibles' : 'Ways to get affordable medications',
-        color: '#0D9488',
+        color: '#5E8B7E',
         icon: '💊',
         actions: [
           findClinicsAction(true),
@@ -399,7 +399,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       return {
         title: isSpanish ? 'Ayuda Dental' : 'Dental Help',
         subtitle: isSpanish ? 'Opciones de atención dental' : 'Dental care options',
-        color: '#0891B2',
+        color: '#5E8B7E',
         icon: '🦷',
         actions: [
           findClinicsAction(true),
@@ -424,7 +424,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
             : isSpanish
             ? 'Atención de rutina — agenda una cita'
             : 'Routine care — schedule an appointment',
-        color: '#0D9488',
+        color: '#5E8B7E',
         icon: '🏥',
         actions: [
           findClinicsAction(true),
@@ -445,7 +445,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     return {
       title: isSpanish ? 'Encuentra Atención' : 'Find Care',
       subtitle: isSpanish ? 'Opciones basadas en tu situación' : 'Options based on your situation',
-      color: '#0D9488',
+      color: '#5E8B7E',
       icon: '🏥',
       actions: [
         findClinicsAction(true),
@@ -496,10 +496,10 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
       <View style={styles.grid}>
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
+          style={[styles.gridItem, { backgroundColor: '#F8EBE2' }]}
           onPress={() => setActiveSection('clinics')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#F1DDD0' }]}>
             <Text style={styles.gridIcon}>🔍</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -512,10 +512,10 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
+          style={[styles.gridItem, { backgroundColor: '#FDF4E3' }]}
           onPress={() => setActiveSection('urgent')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#F5E6C3' }]}>
             <Text style={styles.gridIcon}>🚨</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -528,10 +528,10 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
+          style={[styles.gridItem, { backgroundColor: '#F6EEDD' }]}
           onPress={() => navigation.navigate('Dashboard')}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
+          <View style={[styles.gridIconContainer, { backgroundColor: '#EFE3C8' }]}>
             <Text style={styles.gridIcon}>📋</Text>
           </View>
           <View style={styles.gridTextContainer}>
@@ -672,7 +672,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0D9488" />
+          <ActivityIndicator size="large" color="#5E8B7E" />
           <Text style={styles.loadingText}>
             {isSpanish ? 'Buscando clínicas...' : 'Finding clinics...'}
           </Text>
@@ -1131,11 +1131,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   nextStepsHero: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#0D9488',
+    shadowColor: '#5E8B7E',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
@@ -1173,7 +1173,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   nextStepsHeroSubtitle: {
-    color: '#CCFBF1',
+    color: '#D4E5DD',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -1232,7 +1232,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   detailTitle: {
@@ -1248,17 +1248,17 @@ const styles = StyleSheet.create({
   },
   // Intake summary card - reflects intake-form answers
   intakeSummaryCard: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#99F6E4',
+    borderColor: '#B8D4C9',
   },
   intakeSummaryTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#115E59',
+    color: '#2F5548',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1276,7 +1276,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
     gap: 8,
   },
   intakeSummaryChipIcon: {
@@ -1284,13 +1284,13 @@ const styles = StyleSheet.create({
   },
   intakeSummaryChipLabel: {
     fontSize: 11,
-    color: '#0F766E',
+    color: '#456B5E',
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   intakeSummaryChipValue: {
     fontSize: 13,
-    color: '#134E4A',
+    color: '#2F5548',
     fontWeight: '700',
   },
   resourceCard: {
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
   },
   detailBullet: {
     fontSize: 14,
-    color: '#0D9488',
+    color: '#5E8B7E',
     marginRight: 8,
     fontWeight: '700',
   },
@@ -1406,11 +1406,11 @@ const styles = StyleSheet.create({
   },
   clinicDistance: {
     fontSize: 13,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   clinicCardExpanded: {
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
     borderWidth: 2,
   },
   statusBadge: {
@@ -1426,7 +1426,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1FAE5',
   },
   statusClosed: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
   },
   statusText: {
     fontSize: 11,
@@ -1473,16 +1473,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   serviceTag: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   serviceText: {
     fontSize: 12,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   hoursContainer: {
@@ -1498,7 +1498,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E2E8F0',
   },
   hoursRowToday: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     marginHorizontal: -8,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -1508,7 +1508,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   hoursDayToday: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '700',
   },
   hoursTime: {
@@ -1517,7 +1517,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   hoursTimeToday: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '700',
   },
   hoursNote: {
@@ -1588,18 +1588,18 @@ const styles = StyleSheet.create({
   },
   callButton: {
     flex: 1,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   callButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   clinicActions: {
     flexDirection: 'row',
@@ -1636,14 +1636,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   urgentCard: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#F5E6C3',
   },
   urgentIconContainer: {
     width: 56,
@@ -1732,7 +1732,7 @@ const styles = StyleSheet.create({
   },
   needNowSubtitle: {
     fontSize: 14,
-    color: '#FECACA',
+    color: '#F5E6C3',
   },
   needNowArrow: {
     fontSize: 24,
@@ -1753,7 +1753,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
   },
   progressDotActive: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   triageTitle: {
     fontSize: 24,
@@ -1792,21 +1792,21 @@ const styles = StyleSheet.create({
   },
   triageOptionArrow: {
     fontSize: 18,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '700',
   },
   triageEmergencyNote: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
     borderRadius: 16,
     padding: 20,
     marginTop: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#F5E6C3',
   },
   triageEmergencyText: {
     fontSize: 14,
-    color: '#991B1B',
+    color: '#7A4E1F',
     textAlign: 'center',
     marginBottom: 16,
     lineHeight: 20,
@@ -1885,7 +1885,7 @@ const styles = StyleSheet.create({
   },
   tipBullet: {
     fontSize: 14,
-    color: '#0D9488',
+    color: '#5E8B7E',
     marginRight: 8,
     fontWeight: '700',
   },
@@ -1926,8 +1926,8 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   filterChipActive: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
+    borderColor: '#5E8B7E',
   },
   filterChipText: {
     fontSize: 13,

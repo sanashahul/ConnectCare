@@ -37,20 +37,6 @@ export const healthcareQuestions: Question[] = [
     type: 'yesno',
   },
   {
-    id: 'health_4',
-    category: 'healthcare',
-    question: 'When was your last visit to a doctor?',
-    questionEs: '¿Cuándo fue tu última visita al médico?',
-    type: 'single',
-    options: [
-      { id: 'month', label: 'Within the last month', labelEs: 'En el último mes' },
-      { id: 'six_months', label: 'Within the last 6 months', labelEs: 'En los últimos 6 meses' },
-      { id: 'year', label: 'Within the last year', labelEs: 'En el último año' },
-      { id: 'over_year', label: 'More than a year ago', labelEs: 'Hace más de un año' },
-      { id: 'never', label: 'Never / I don\'t remember', labelEs: 'Nunca / No recuerdo' },
-    ],
-  },
-  {
     id: 'health_5',
     category: 'healthcare',
     question: 'Do you need mental health support?',
@@ -250,21 +236,6 @@ export const employmentQuestions: Question[] = [
     ],
   },
   {
-    id: 'employ_9',
-    category: 'employment',
-    question: 'What hours/schedule can you work?',
-    questionEs: '¿Qué horario puedes trabajar?',
-    type: 'multiple',
-    options: [
-      { id: 'morning', label: 'Mornings (6am-12pm)', labelEs: 'Mañanas (6am-12pm)' },
-      { id: 'afternoon', label: 'Afternoons (12pm-6pm)', labelEs: 'Tardes (12pm-6pm)' },
-      { id: 'evening', label: 'Evenings (6pm-12am)', labelEs: 'Noches (6pm-12am)' },
-      { id: 'overnight', label: 'Overnight (12am-6am)', labelEs: 'Madrugada (12am-6am)' },
-      { id: 'weekends', label: 'Weekends', labelEs: 'Fines de semana' },
-      { id: 'flexible', label: 'Flexible/Any', labelEs: 'Flexible/Cualquiera' },
-    ],
-  },
-  {
     id: 'employ_10',
     category: 'employment',
     question: 'Do you need job training or resume help?',
@@ -385,13 +356,6 @@ export const housingQuestions: Question[] = [
       { id: 'waitlist', label: 'No, but I\'m on a waitlist', labelEs: 'No, pero estoy en lista de espera' },
       { id: 'no', label: 'No', labelEs: 'No' },
     ],
-  },
-  {
-    id: 'housing_9',
-    category: 'housing',
-    question: 'What area or neighborhood do you prefer to live in?',
-    questionEs: '¿En qué área o vecindario prefieres vivir?',
-    type: 'text',
   },
   {
     id: 'housing_10',

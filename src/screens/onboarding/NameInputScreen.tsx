@@ -53,7 +53,7 @@ export const NameInputScreen: React.FC<NameInputScreenProps> = ({ navigation }) 
       >
         {/* Progress */}
         <View style={styles.progressContainer}>
-          <ProgressBar current={1} total={6} label="1 / 6" />
+          <ProgressBar current={1} total={5} label="1 / 5" />
         </View>
 
         {/* Content */}
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   checkboxChecked: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
+    borderColor: '#5E8B7E',
   },
   checkmark: {
     color: '#FFFFFF',

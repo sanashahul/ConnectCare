@@ -177,11 +177,11 @@ const styles = StyleSheet.create({
   },
   languageButtons: {
     flexDirection: 'row',
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     borderRadius: 14,
     padding: 4,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   languageButton: {
     paddingVertical: 10,
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   languageButtonActive: {
-    backgroundColor: '#0D9488',
-    shadowColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
+    shadowColor: '#5E8B7E',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   languageButtonText: {
     fontSize: 14,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   languageButtonTextActive: {
@@ -214,12 +214,12 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 40,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
     borderWidth: 3,
-    borderColor: '#99F6E4',
+    borderColor: '#B8D4C9',
     shadowColor: '#14B8A6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
@@ -266,12 +266,12 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 18,
     borderWidth: 2,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   actionIcon: {
     fontSize: 32,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   actionArrow: {
     fontSize: 28,
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   footer: {

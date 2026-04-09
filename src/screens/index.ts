@@ -2,7 +2,6 @@
 export { WelcomeScreen } from './onboarding/WelcomeScreen';
 export { NameInputScreen } from './onboarding/NameInputScreen';
 export { AgeInputScreen } from './onboarding/AgeInputScreen';
-export { ImmigrationStatusScreen } from './onboarding/ImmigrationStatusScreen';
 export { PinSetupScreen } from './onboarding/PinSetupScreen';
 export { LocationInputScreen } from './onboarding/LocationInputScreen';
 export { CategorySelectionScreen } from './onboarding/CategorySelectionScreen';

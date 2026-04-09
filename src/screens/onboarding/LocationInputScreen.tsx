@@ -90,7 +90,7 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
       >
         {/* Progress */}
         <View style={styles.progressContainer}>
-          <ProgressBar current={5} total={6} label="5 / 6" />
+          <ProgressBar current={4} total={5} label="4 / 5" />
         </View>
 
         {/* Content */}
@@ -232,14 +232,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0D9488',
+    shadowColor: '#5E8B7E',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 6,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#CCFBF1',
+    borderColor: '#D4E5DD',
   },
   detectIcon: {
     fontSize: 28,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   detectText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   locationDetected: {
     backgroundColor: '#F0FDF4',
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   manualLink: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',

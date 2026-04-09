@@ -53,6 +53,11 @@ export interface ProfileFlags {
   needsJobTraining: boolean;
   needsEnglishClasses: boolean;
   bilingual: boolean;
+  /**
+   * User reported less than a high school diploma / GED.
+   * Drives the "Free GED programs" recommendation.
+   */
+  needsGED: boolean;
 }
 
 export type ActionType = 'call' | 'navigate' | 'url';
@@ -214,6 +219,9 @@ export const getProfileFlags = (profile: UserProfile | null): ProfileFlags => {
     needsJobTraining: arrIncludes(employ_10, 'training'),
     needsEnglishClasses: arrIncludes(employ_10, 'english'),
     bilingual: arrIncludes(employ_7, 'bilingual'),
+    needsGED:
+      eq(findAnswer(answers, 'employ_2'), 'none') ||
+      eq(findAnswer(answers, 'employ_2'), 'some_high'),
   };
 };
 
@@ -1239,6 +1247,25 @@ export const getEmploymentRecommendations = (
     });
   }
 
+  if (flags.needsGED) {
+    recs.push({
+      id: 'jobs-ged',
+      icon: '🎓',
+      title: 'Free GED / high school programs',
+      titleEs: 'Programas gratis de GED / preparatoria',
+      description:
+        'A GED opens access to most jobs and training programs. Public libraries, community colleges, and Job Corps all offer free GED prep.',
+      descriptionEs:
+        'Un GED abre acceso a la mayoría de trabajos y programas. Las bibliotecas, colegios comunitarios y Job Corps ofrecen preparación gratis.',
+      reason: 'You said you haven’t finished high school',
+      reasonEs: 'Dijiste que no has terminado la preparatoria',
+      actionLabel: 'Call Job Corps — 1-800-733-5627',
+      actionLabelEs: 'Llama a Job Corps',
+      actionType: 'call',
+      actionPayload: '1-800-733-5627',
+    });
+  }
+
   if (flags.needsJobTraining) {
     recs.push({
       id: 'jobs-training',
@@ -1539,18 +1566,86 @@ export const getHealthcareRecommendations = (
     recs.push({
       id: 'health-samhsa',
       icon: '🤝',
-      title: 'SAMHSA treatment referrals',
-      titleEs: 'Referencias de tratamiento SAMHSA',
+      title: 'SAMHSA 24/7 helpline',
+      titleEs: 'Línea SAMHSA 24/7',
       description:
-        'Free, confidential 24/7 helpline in English and Spanish for substance use treatment referrals.',
+        'Free, confidential 24/7 helpline in English and Spanish for substance use treatment referrals. They connect you to local treatment, housing, and support.',
       descriptionEs:
-        'Línea gratuita y confidencial 24/7 en inglés y español para tratamiento.',
+        'Línea gratuita y confidencial 24/7 en inglés y español. Conectan con tratamiento local, vivienda y apoyo.',
       reason: 'You said you want help with substance use',
       reasonEs: 'Dijiste que quieres ayuda con sustancias',
-      actionLabel: 'Call SAMHSA — 1-800-662-4357',
+      actionLabel: 'Call 1-800-662-4357',
+      actionLabelEs: 'Llama al 1-800-662-4357',
+      actionType: 'call',
+      actionPayload: '1-800-662-4357',
+    });
+
+    recs.push({
+      id: 'health-findtreatment',
+      icon: '🏥',
+      title: 'FindTreatment.gov locator',
+      titleEs: 'Localizador FindTreatment.gov',
+      description:
+        'Search SAMHSA\'s official directory of 14,000+ state-licensed treatment facilities. Filter by detox, inpatient, outpatient, and what they charge.',
+      descriptionEs:
+        'Busca el directorio oficial SAMHSA de más de 14,000 centros de tratamiento. Filtra por detox, interno, externo y costo.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Visit FindTreatment.gov',
+      actionLabelEs: 'Visita FindTreatment.gov',
+      actionType: 'url',
+      actionPayload: 'https://findtreatment.gov/',
+    });
+
+    recs.push({
+      id: 'health-mat',
+      icon: '💊',
+      title: 'Medication-Assisted Treatment (MAT)',
+      titleEs: 'Tratamiento asistido por medicamentos (MAT)',
+      description:
+        'MAT uses medications like buprenorphine, methadone, or naltrexone combined with counseling. Highly effective for opioid and alcohol use disorders.',
+      descriptionEs:
+        'MAT usa medicamentos como buprenorfina, metadona o naltrexona combinados con consejería. Muy efectivo para opioides y alcohol.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Call SAMHSA for MAT referrals',
       actionLabelEs: 'Llama a SAMHSA',
       actionType: 'call',
       actionPayload: '1-800-662-4357',
+    });
+
+    recs.push({
+      id: 'health-aa-na',
+      icon: '🤝',
+      title: 'Free AA / NA meetings',
+      titleEs: 'Reuniones gratuitas AA / NA',
+      description:
+        'Alcoholics Anonymous (AA) and Narcotics Anonymous (NA) hold free, anonymous peer-support meetings daily in most cities and online.',
+      descriptionEs:
+        'AA y NA tienen reuniones gratuitas y anónimas de apoyo entre pares todos los días en la mayoría de las ciudades y en línea.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Find meetings at aa.org',
+      actionLabelEs: 'Buscar reuniones en aa.org',
+      actionType: 'url',
+      actionPayload: 'https://www.aa.org/find-aa',
+    });
+
+    recs.push({
+      id: 'health-harm-reduction',
+      icon: '🛡️',
+      title: 'Harm reduction services',
+      titleEs: 'Servicios de reducción de daños',
+      description:
+        'Free naloxone (Narcan) to reverse opioid overdoses, clean supplies, and drug-checking are available through harm reduction programs in most states.',
+      descriptionEs:
+        'Naloxona (Narcan) gratis para revertir sobredosis de opioides, suministros limpios y pruebas de drogas en programas de reducción de daños.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Call 211 for local harm reduction',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
     });
   }
 
@@ -1714,6 +1809,25 @@ export const getHousingRecommendations = (
       actionLabelEs: 'Visita GoSection8.com',
       actionType: 'url',
       actionPayload: 'https://www.gosection8.com/',
+    });
+  }
+
+  if (flags.substanceUseHelpWanted) {
+    recs.push({
+      id: 'housing-oxford',
+      icon: '🏡',
+      title: 'Oxford House (recovery housing)',
+      titleEs: 'Oxford House (vivienda de recuperación)',
+      description:
+        'Oxford House runs 3,000+ self-supporting sober homes in 44 states. No time limits, affordable weekly rent, democratically run by residents.',
+      descriptionEs:
+        'Oxford House tiene más de 3,000 casas sobrias auto-sostenidas en 44 estados. Sin límite de tiempo, alquiler semanal asequible.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Call Oxford House — 1-800-689-6411',
+      actionLabelEs: 'Llama a Oxford House',
+      actionType: 'call',
+      actionPayload: '1-800-689-6411',
     });
   }
 

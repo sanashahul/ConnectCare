@@ -73,24 +73,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 16,
     gap: 8,
-    shadowColor: '#0D9488',
+    shadowColor: '#5E8B7E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   primary: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   secondary: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     shadowColor: '#000',
     shadowOpacity: 0.08,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -119,10 +119,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   secondaryText: {
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   outlineText: {
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   smallText: {
     fontSize: 14,

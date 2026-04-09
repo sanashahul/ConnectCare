@@ -102,21 +102,18 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     }
 
     if (isLastQuestion) {
-      // Complete onboarding and show the welcome summary carousel
+      // COMPLETE_ONBOARDING sets shareCode + hasSeenIntakeSummary=false,
+      // which triggers AppNavigator to remount with IntakeSummary as the
+      // initial route. No manual navigation.reset needed.
       dispatch({ type: 'COMPLETE_ONBOARDING' });
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'IntakeSummary' }],
-      });
     } else {
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
-  // Skip the rest of the intake. Any answers already given are preserved;
-  // we still route through the IntakeSummary carousel so the user sees
-  // a recap of what they did answer (the summary screen has its own skip
-  // button for going straight to the dashboard).
+  // Skip the rest of the intake. Same flow as finishing — saving any
+  // in-progress answer and dispatching COMPLETE_ONBOARDING, which routes
+  // through IntakeSummary via the navigator's remount-based logic.
   const handleSkip = () => {
     // Save current answer first if the user has entered one
     const answer = answers[currentQuestion.id];
@@ -130,10 +127,6 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
       });
     }
     dispatch({ type: 'COMPLETE_ONBOARDING' });
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'IntakeSummary' }],
-    });
   };
 
   const handlePrevious = () => {
@@ -327,17 +320,17 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   categoryBadge: {
-    backgroundColor: '#F0FDFA',
+    backgroundColor: '#EAF2EE',
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 24,
     alignSelf: 'flex-start',
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#99F6E4',
+    borderColor: '#B8D4C9',
   },
   categoryBadgeText: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -383,9 +376,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionSelected: {
-    borderColor: '#0D9488',
-    backgroundColor: '#F0FDFA',
-    shadowColor: '#0D9488',
+    borderColor: '#5E8B7E',
+    backgroundColor: '#EAF2EE',
+    shadowColor: '#5E8B7E',
     shadowOpacity: 0.1,
   },
   optionText: {
@@ -396,7 +389,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   optionTextSelected: {
-    color: '#0F766E',
+    color: '#456B5E',
     fontWeight: '600',
   },
   radio: {
@@ -409,13 +402,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioSelected: {
-    borderColor: '#0D9488',
+    borderColor: '#5E8B7E',
   },
   radioDot: {
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   checkbox: {
     width: 26,
@@ -427,8 +420,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxSelected: {
-    borderColor: '#0D9488',
-    backgroundColor: '#0D9488',
+    borderColor: '#5E8B7E',
+    backgroundColor: '#5E8B7E',
   },
   checkmark: {
     color: '#FFFFFF',
@@ -454,9 +447,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   yesNoButtonSelected: {
-    borderColor: '#0D9488',
-    backgroundColor: '#F0FDFA',
-    shadowColor: '#0D9488',
+    borderColor: '#5E8B7E',
+    backgroundColor: '#EAF2EE',
+    shadowColor: '#5E8B7E',
   },
   yesNoText: {
     fontSize: 22,
@@ -464,7 +457,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   yesNoTextSelected: {
-    color: '#0D9488',
+    color: '#5E8B7E',
   },
   textInputContainer: {
     marginTop: 8,

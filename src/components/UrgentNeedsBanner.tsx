@@ -211,13 +211,13 @@ export const UrgentNeedsBanner: React.FC<UrgentNeedsBannerProps> = ({
 
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
     borderRadius: 20,
     padding: 18,
     marginHorizontal: 20,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#FCA5A5',
+    borderColor: '#E4BE76',
   },
   bannerHeader: {
     flexDirection: 'row',
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 22,
-    color: '#991B1B',
+    color: '#7A4E1F',
     fontWeight: '700',
     marginLeft: 8,
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#991B1B',
+    color: '#7A4E1F',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -254,11 +254,11 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#991B1B',
+    color: '#7A4E1F',
   },
   bannerSubtitle: {
     fontSize: 13,
-    color: '#B91C1C',
+    color: '#92661F',
     marginTop: 2,
   },
   card: {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#FEE2E2',
+    borderColor: '#FBEAC6',
     marginBottom: 10,
   },
   cardIcon: {
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cardAction: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   cardActionText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#991B1B',
+    color: '#7A4E1F',
   },
   cardExplore: {
     paddingHorizontal: 4,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   cardExploreText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#7F1D1D',
+    color: '#5B3A14',
     textDecorationLine: 'underline',
   },
 });

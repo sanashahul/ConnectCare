@@ -1369,7 +1369,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
   },
   mainTabActive: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   mainTabText: {
     fontSize: 15,
@@ -1386,7 +1386,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   addPersonalTodoButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -1468,15 +1468,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   clientSelectorItemActive: {
-    borderColor: '#0D9488',
-    backgroundColor: '#F0FDFA',
+    borderColor: '#5E8B7E',
+    backgroundColor: '#EAF2EE',
   },
   clientSelectorText: {
     fontSize: 14,
     color: '#6B7280',
   },
   clientSelectorTextActive: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   clientsList: {
@@ -1721,7 +1721,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   urgentBadge: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -1832,7 +1832,7 @@ const styles = StyleSheet.create({
   },
   priorityButtonUrgentActive: {
     borderColor: '#DC2626',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FBEAC6',
   },
   priorityButtonText: {
     fontSize: 14,
@@ -1896,8 +1896,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   categoryOptionActive: {
-    borderColor: '#0D9488',
-    backgroundColor: '#F0FDFA',
+    borderColor: '#5E8B7E',
+    backgroundColor: '#EAF2EE',
   },
   categoryOptionIcon: {
     fontSize: 16,
@@ -1907,7 +1907,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   categoryOptionTextActive: {
-    color: '#0D9488',
+    color: '#5E8B7E',
     fontWeight: '600',
   },
   // Messages Tab Styles
@@ -1945,7 +1945,7 @@ const styles = StyleSheet.create({
   },
   messageBubbleCM: {
     alignSelf: 'flex-end',
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     borderBottomRightRadius: 4,
   },
   messageText: {
@@ -1993,7 +1993,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -2011,7 +2011,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addNoteButton: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -2028,7 +2028,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#0D9488',
+    borderLeftColor: '#5E8B7E',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -2118,7 +2118,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   personalCategoryChipActive: {
-    backgroundColor: '#0D9488',
+    backgroundColor: '#5E8B7E',
   },
   personalCategoryChipIcon: {
     fontSize: 14,
@@ -2158,7 +2158,7 @@ const styles = StyleSheet.create({
   },
   taskDetailClient: {
     fontSize: 14,
-    color: '#0D9488',
+    color: '#5E8B7E',
     marginBottom: 16,
     fontWeight: '500',
   },
@@ -2173,7 +2173,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FDF4E3',
   },
   deleteButtonText: {
     fontSize: 16,

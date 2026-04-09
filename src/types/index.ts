@@ -74,6 +74,13 @@ export interface UserProfile {
   connectedCaseWorkerId?: string;
   todos: TodoItem[];
   createdAt: string;
+  /**
+   * Set to true after the user has finished swiping through the post-intake
+   * IntakeSummary carousel. Used by AppNavigator to route users straight to
+   * the summary the first time they complete intake, then to the dashboard
+   * on every subsequent app open.
+   */
+  hasSeenIntakeSummary?: boolean;
 }
 
 export interface CaseWorkerProfile {
