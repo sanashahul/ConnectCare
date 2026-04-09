@@ -16,7 +16,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
-import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
 import { FloatingAIButton } from '../../components/FloatingAIButton';
 import { useScrollToTop } from '../../components/ScrollToTopButton';
@@ -464,37 +463,38 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      {/* Urgent Needs Banner - filtered to healthcare + general (youth) */}
-      <UrgentNeedsBanner
-        profile={userProfile}
-        category="healthcare"
-        navigation={navigation}
-      />
+      {/* Next Steps - hero card with personalized action plan */}
+      <TouchableOpacity
+        style={styles.nextStepsHero}
+        onPress={() => setActiveSection('foryou')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.nextStepsHeroTop}>
+          <View style={styles.nextStepsHeroBadge}>
+            <Text style={styles.nextStepsHeroBadgeText}>
+              {isSpanish ? '⭐ PARA TI' : '⭐ FOR YOU'}
+            </Text>
+          </View>
+          <Text style={styles.nextStepsHeroChevron}>›</Text>
+        </View>
+        <Text style={styles.nextStepsHeroTitle}>
+          {isSpanish ? 'Tus próximos pasos' : 'Your next steps'}
+        </Text>
+        <Text style={styles.nextStepsHeroSubtitle}>
+          {isSpanish
+            ? 'Un plan de salud personalizado basado en lo que nos dijiste.'
+            : 'A personalized health plan based on what you told us.'}
+        </Text>
+      </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Salud' : 'Health Resources'}
+        {isSpanish ? 'Más Recursos' : 'More Resources'}
       </Text>
       <Text style={styles.sectionSubtitle}>
         {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
       </Text>
 
       <View style={styles.grid}>
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('foryou')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
-          </View>
-          <View style={styles.gridTextContainer}>
-            <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-            <Text style={styles.gridDescription}>
-              {isSpanish ? 'Recursos personalizados' : 'Personalized resources'}
-            </Text>
-          </View>
-          <Text style={styles.gridChevron}>›</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
           onPress={() => setActiveSection('clinics')}
@@ -575,10 +575,12 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.detailTitle}>
-        {isSpanish ? 'Para Ti' : 'For You'}
+        {isSpanish ? 'Tus próximos pasos' : 'Your next steps'}
       </Text>
       <Text style={styles.detailSubtitle}>
-        {isSpanish ? 'Recursos de salud personalizados' : 'Personalized health resources'}
+        {isSpanish
+          ? 'Un plan personalizado basado en lo que nos dijiste en el intake.'
+          : 'A personalized plan based on what you said in intake.'}
       </Text>
 
       {/* Personalized recommendations — actionable cards tied to intake answers */}
@@ -1127,6 +1129,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  nextStepsHero: {
+    backgroundColor: '#0D9488',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  nextStepsHeroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  nextStepsHeroBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  nextStepsHeroBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  nextStepsHeroChevron: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '700',
+    opacity: 0.9,
+  },
+  nextStepsHeroTitle: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: -0.3,
+  },
+  nextStepsHeroSubtitle: {
+    color: '#CCFBF1',
+    fontSize: 15,
+    lineHeight: 22,
   },
   grid: {
     flexDirection: 'column',

@@ -17,8 +17,6 @@ import { useApp } from '../../context/AppContext';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
-import { YOUTH_SHELTER_RESOURCES, YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
-import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
 import { FloatingAIButton } from '../../components/FloatingAIButton';
 import { useScrollToTop } from '../../components/ScrollToTopButton';
@@ -292,7 +290,6 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const [expandedCounselor, setExpandedCounselor] = useState<string | null>(null);
   const [triageStep, setTriageStep] = useState(0);
   const [triageAnswers, setTriageAnswers] = useState<Record<string, string>>({});
-  const [youthShelterExpanded, setYouthShelterExpanded] = useState(true);
   // Filter states
   const [filterOpenNow, setFilterOpenNow] = useState(false);
   const [filterHasPhone, setFilterHasPhone] = useState(false);
@@ -456,113 +453,38 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      {/* Urgent Needs Banner - filtered to housing + general (youth) */}
-      <UrgentNeedsBanner
-        profile={userProfile}
-        category="housing"
-        navigation={navigation}
-      />
-
-      {/* Youth Shelter Banner - Only for minors (collapsible) */}
-      {userProfile?.ageGroup === 'under18' && (
-        <View style={styles.youthShelterBanner}>
-          <TouchableOpacity
-            style={styles.youthShelterHeader}
-            onPress={() => setYouthShelterExpanded(!youthShelterExpanded)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.youthShelterEmoji}>🏠</Text>
-            <Text style={[styles.youthShelterTitle, { flex: 1 }]}>
-              {isSpanish ? 'Refugios Juveniles' : 'Youth Shelters'}
+      {/* Next Steps - hero card with personalized action plan */}
+      <TouchableOpacity
+        style={styles.nextStepsHero}
+        onPress={() => setActiveSection('foryou')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.nextStepsHeroTop}>
+          <View style={styles.nextStepsHeroBadge}>
+            <Text style={styles.nextStepsHeroBadgeText}>
+              {isSpanish ? '⭐ PARA TI' : '⭐ FOR YOU'}
             </Text>
-            <Text style={styles.youthShelterChevron}>
-              {youthShelterExpanded ? '▾' : '▸'}
-            </Text>
-          </TouchableOpacity>
-
-          {youthShelterExpanded && (
-          <>
-          <Text style={styles.youthShelterMessage}>
-            {isSpanish
-              ? 'Los refugios juveniles son más seguros que los refugios para adultos y tienen personal que entiende tu situación.'
-              : 'Youth shelters are safer than adult shelters and have staff who understand your situation.'}
-          </Text>
-
-          {/* Youth Shelter Resources */}
-          {YOUTH_SHELTER_RESOURCES.shelters.map((shelter) => (
-            <TouchableOpacity
-              key={shelter.id}
-              style={styles.youthShelterCard}
-              onPress={() => handleCall(shelter.phone)}
-            >
-              <View style={styles.youthShelterCardContent}>
-                <View style={styles.youthShelterInfo}>
-                  <Text style={styles.youthShelterName}>
-                    {isSpanish ? shelter.nameEs : shelter.name}
-                  </Text>
-                  <Text style={styles.youthShelterDesc}>
-                    {isSpanish ? shelter.descriptionEs : shelter.description}
-                  </Text>
-                  <Text style={styles.youthShelterPhone}>{shelter.phone}</Text>
-                </View>
-                <View style={styles.youthCallIcon}>
-                  <Text style={styles.youthCallIconText}>📞</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          {/* Runaway Safeline - Important for youth */}
-          <View style={styles.youthSafelineCard}>
-            <Text style={styles.youthSafelineEmoji}>🌟</Text>
-            <View style={styles.youthSafelineInfo}>
-              <Text style={styles.youthSafelineName}>
-                {isSpanish ? 'Línea Nacional para Fugitivos' : 'National Runaway Safeline'}
-              </Text>
-              <Text style={styles.youthSafelineDesc}>
-                {isSpanish
-                  ? 'Si estás pensando en huir, llama primero. Pueden ayudarte a encontrar opciones más seguras.'
-                  : "If you're thinking about running away, call first. They can help you find safer options."}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.youthSafelineButton}
-              onPress={() => handleCall('1-800-786-2929')}
-            >
-              <Text style={styles.youthSafelineButtonText}>
-                {isSpanish ? 'Llamar' : 'Call'}
-              </Text>
-            </TouchableOpacity>
           </View>
-          </>
-          )}
+          <Text style={styles.nextStepsHeroChevron}>›</Text>
         </View>
-      )}
+        <Text style={styles.nextStepsHeroTitle}>
+          {isSpanish ? 'Tus próximos pasos' : 'Your next steps'}
+        </Text>
+        <Text style={styles.nextStepsHeroSubtitle}>
+          {isSpanish
+            ? 'Un plan de vivienda personalizado basado en lo que nos dijiste.'
+            : 'A personalized housing plan based on what you told us.'}
+        </Text>
+      </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Vivienda' : 'Housing Resources'}
+        {isSpanish ? 'Más Recursos' : 'More Resources'}
       </Text>
       <Text style={styles.sectionSubtitle}>
         {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
       </Text>
 
       <View style={styles.grid}>
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('foryou')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
-          </View>
-          <View style={styles.gridTextContainer}>
-            <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-            <Text style={styles.gridDescription}>
-              {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
-            </Text>
-          </View>
-          <Text style={styles.gridChevron}>›</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
           onPress={() => setActiveSection('find')}
@@ -643,10 +565,12 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       </TouchableOpacity>
 
       <Text style={styles.detailTitle}>
-        {isSpanish ? 'Para Ti' : 'For You'}
+        {isSpanish ? 'Tus próximos pasos' : 'Your next steps'}
       </Text>
       <Text style={styles.detailSubtitle}>
-        {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
+        {isSpanish
+          ? 'Un plan personalizado basado en lo que nos dijiste en el intake.'
+          : 'A personalized plan based on what you said in intake.'}
       </Text>
 
       {/* Personalized recommendations — actionable cards tied to intake answers */}
@@ -1292,6 +1216,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  nextStepsHero: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  nextStepsHeroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  nextStepsHeroBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  nextStepsHeroBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  nextStepsHeroChevron: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '700',
+    opacity: 0.9,
+  },
+  nextStepsHeroTitle: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: -0.3,
+  },
+  nextStepsHeroSubtitle: {
+    color: '#EDE9FE',
+    fontSize: 15,
+    lineHeight: 22,
   },
   grid: {
     flexDirection: 'column',

@@ -87,27 +87,25 @@ export const PersonalizedRecommendations: React.FC<
 
   return (
     <View style={[styles.container, { backgroundColor: color.bg, borderColor: color.border }]}>
-      <Text style={[styles.sectionTitle, { color: color.title }]}>
-        {isSpanish ? 'Recomendado para ti' : 'Recommended for you'}
-      </Text>
-      <Text style={[styles.sectionSubtitle, { color: color.reason }]}>
-        {isSpanish
-          ? 'Basado en lo que respondiste en el intake'
-          : 'Based on what you said in intake'}
-      </Text>
-
-      {recs.map((rec) => (
+      {recs.map((rec, idx) => (
         <TouchableOpacity
           key={rec.id}
           style={styles.card}
           onPress={() => handleAction(rec)}
           activeOpacity={0.7}
         >
-          <Text style={styles.cardIcon}>{rec.icon}</Text>
-          <View style={styles.cardBody}>
-            <Text style={styles.cardTitle}>
-              {isSpanish ? rec.titleEs : rec.title}
+          <View style={[styles.stepBadge, { backgroundColor: color.actionBg }]}>
+            <Text style={[styles.stepBadgeText, { color: color.actionText }]}>
+              {idx + 1}
             </Text>
+          </View>
+          <View style={styles.cardBody}>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardIcon}>{rec.icon}</Text>
+              <Text style={styles.cardTitle}>
+                {isSpanish ? rec.titleEs : rec.title}
+              </Text>
+            </View>
             <Text style={styles.cardDescription}>
               {isSpanish ? rec.descriptionEs : rec.description}
             </Text>
@@ -134,40 +132,46 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    marginBottom: 14,
-    fontStyle: 'italic',
-  },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
-  cardIcon: {
-    fontSize: 26,
-    marginRight: 12,
+  stepBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+    marginTop: 2,
+  },
+  stepBadgeText: {
+    fontSize: 15,
+    fontWeight: '800',
   },
   cardBody: {
     flex: 1,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  cardIcon: {
+    fontSize: 22,
+  },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '800',
     color: '#111827',
-    marginBottom: 3,
   },
   cardDescription: {
     fontSize: 13,
