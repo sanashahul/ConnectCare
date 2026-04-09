@@ -297,10 +297,32 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     setTriageAnswers({});
   };
 
-  const getTriageRecommendation = () => {
+  const getTriageRecommendation = (): {
+    title: string;
+    subtitle: string;
+    color: string;
+    icon: string;
+    actions: Array<{
+      label: string;
+      primary: boolean;
+      type: 'call' | 'navigate';
+      phone?: string;
+      navigateTo?: 'clinics';
+    }>;
+    tips: string[];
+  } => {
     const issue = triageAnswers.issue;
     const urgency = triageAnswers.urgency;
     const insurance = triageAnswers.insurance;
+
+    // Action shortcut: "Find clinics near me" — routes to the clinics
+    // section inside this screen instead of dialing 911/211.
+    const findClinicsAction = (primary: boolean) => ({
+      label: isSpanish ? 'Buscar clínicas cerca de ti' : 'Find clinics near you',
+      primary,
+      type: 'navigate' as const,
+      navigateTo: 'clinics' as const,
+    });
 
     // Emergency case
     if (urgency === 'emergency') {
@@ -310,7 +332,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         color: '#DC2626',
         icon: '🚨',
         actions: [
-          { label: isSpanish ? 'Llamar al 911' : 'Call 911', phone: '911', primary: true },
+          { label: isSpanish ? 'Llamar al 911' : 'Call 911', phone: '911', primary: true, type: 'call' },
         ],
         tips: isSpanish
           ? ['Mantente en la línea con el operador', 'Proporciona tu ubicación exacta', 'Sigue las instrucciones del operador']
@@ -326,8 +348,9 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         color: '#7C3AED',
         icon: '💚',
         actions: [
-          { label: isSpanish ? 'Línea de Crisis 988' : 'Crisis Line 988', phone: '988', primary: true },
-          { label: 'SAMHSA: 1-800-662-4357', phone: '1-800-662-4357', primary: false },
+          { label: isSpanish ? 'Línea de Crisis 988' : 'Crisis Line 988', phone: '988', primary: true, type: 'call' },
+          { label: 'SAMHSA: 1-800-662-4357', phone: '1-800-662-4357', primary: false, type: 'call' },
+          findClinicsAction(false),
         ],
         tips: isSpanish
           ? ['988 está disponible 24/7 en español e inglés', 'También puedes enviar un mensaje de texto al 988', 'Está bien pedir ayuda']
@@ -343,7 +366,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         color: '#EA580C',
         icon: '🏥',
         actions: [
-          { label: isSpanish ? 'Llamar al 211 para clínicas gratuitas' : 'Call 211 for free clinics', phone: '211', primary: true },
+          findClinicsAction(true),
+          { label: isSpanish ? 'Llamar al 211' : 'Call 211', phone: '211', primary: false, type: 'call' },
         ],
         tips: isSpanish
           ? ['Los centros de salud comunitarios atienden a todos sin importar su capacidad de pago', 'Las salas de emergencia no pueden rechazarte', 'Pregunta sobre tarifas de escala móvil', 'Algunos hospitales ofrecen programas de caridad']
@@ -359,7 +383,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         color: '#0D9488',
         icon: '💊',
         actions: [
-          { label: isSpanish ? 'Llamar al 211 para asistencia' : 'Call 211 for assistance', phone: '211', primary: true },
+          findClinicsAction(true),
+          { label: isSpanish ? 'Llamar al 211' : 'Call 211', phone: '211', primary: false, type: 'call' },
         ],
         tips: isSpanish
           ? ['GoodRx ofrece cupones de descuento gratuitos', 'Walmart tiene programa de genéricos de $4', 'Pregunta a tu médico sobre muestras gratuitas', 'NeedyMeds.org tiene programas de asistencia']
@@ -367,7 +392,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       };
     }
 
-    // Dental issue
+    // Dental issue (non-urgent — urgent dental still routes here but with
+    // find-clinics primary, since the ER is not ideal for dental work)
     if (issue === 'dental') {
       return {
         title: isSpanish ? 'Ayuda Dental' : 'Dental Help',
@@ -375,7 +401,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         color: '#0891B2',
         icon: '🦷',
         actions: [
-          { label: isSpanish ? 'Llamar al 211 para clínicas dentales' : 'Call 211 for dental clinics', phone: '211', primary: true },
+          findClinicsAction(true),
+          { label: isSpanish ? 'Llamar al 211' : 'Call 211', phone: '211', primary: false, type: 'call' },
         ],
         tips: isSpanish
           ? ['Las escuelas de odontología ofrecen atención de bajo costo', 'Los centros de salud comunitarios a menudo tienen servicios dentales', 'Para dolor severo, la sala de emergencias puede ayudar', 'Pregunta sobre días de clínica dental gratuita']
@@ -383,14 +410,45 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       };
     }
 
-    // Default - routine care
+    // Non-urgent care ("Can wait a few days" or "Routine") — send them
+    // straight to the clinics section. No need to dial 911/211 for this.
+    if (urgency === 'soon' || urgency === 'routine') {
+      return {
+        title: isSpanish ? 'Encuentra una Clínica' : 'Find a Clinic',
+        subtitle:
+          urgency === 'soon'
+            ? isSpanish
+              ? 'Puedes esperar unos días — busca una clínica'
+              : 'You can wait a few days — find a clinic'
+            : isSpanish
+            ? 'Atención de rutina — agenda una cita'
+            : 'Routine care — schedule an appointment',
+        color: '#0D9488',
+        icon: '🏥',
+        actions: [
+          findClinicsAction(true),
+          { label: isSpanish ? 'Llamar al 211' : 'Call 211', phone: '211', primary: false, type: 'call' },
+        ],
+        tips:
+          insurance === 'insured' || insurance === 'public'
+            ? isSpanish
+              ? ['Llama a tu compañía de seguro para encontrar proveedores en tu red', 'Muchas clínicas aceptan citas el mismo día', 'Verifica las tarifas de copago antes de tu visita']
+              : ['Call your insurance to find in-network providers', 'Many clinics accept same-day appointments', 'Check copay rates before your visit']
+            : isSpanish
+            ? ['Los centros de salud comunitarios atienden a todos', 'Pregunta sobre tarifas de escala móvil', 'Consulta sobre elegibilidad para Medicaid']
+            : ['Community health centers serve everyone', 'Ask about sliding scale fees', 'Check Medicaid eligibility'],
+      };
+    }
+
+    // Default - catch-all
     return {
       title: isSpanish ? 'Encuentra Atención' : 'Find Care',
       subtitle: isSpanish ? 'Opciones basadas en tu situación' : 'Options based on your situation',
       color: '#0D9488',
       icon: '🏥',
       actions: [
-        { label: isSpanish ? 'Llamar al 211 para recursos locales' : 'Call 211 for local resources', phone: '211', primary: true },
+        findClinicsAction(true),
+        { label: isSpanish ? 'Llamar al 211' : 'Call 211', phone: '211', primary: false, type: 'call' },
       ],
       tips: insurance === 'insured' || insurance === 'public'
         ? (isSpanish
@@ -915,7 +973,14 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
                       ? { backgroundColor: recommendation.color }
                       : { backgroundColor: '#F1F5F9' },
                   ]}
-                  onPress={() => handleCall(action.phone)}
+                  onPress={() => {
+                    if (action.type === 'navigate' && action.navigateTo === 'clinics') {
+                      resetTriage();
+                      setActiveSection('clinics');
+                    } else if (action.phone) {
+                      handleCall(action.phone);
+                    }
+                  }}
                 >
                   <Text
                     style={[
@@ -923,7 +988,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
                       action.primary ? { color: '#FFFFFF' } : { color: '#0F172A' },
                     ]}
                   >
-                    📞 {action.label}
+                    {action.type === 'navigate' ? '🔍 ' : '📞 '}{action.label}
                   </Text>
                 </TouchableOpacity>
               ))}

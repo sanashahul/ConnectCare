@@ -289,62 +289,21 @@ const removeDuplicateClinics = (clinics: Resource[]): Resource[] => {
 };
 
 /**
- * Search for mental health resources using SAMHSA treatment locator
- * SAMHSA API is free and provides mental health/substance abuse facilities
+ * Search for mental health resources.
+ *
+ * Note: `findtreatment.gov/locator/find` is a web page, not a JSON API,
+ * so we don't try to fetch it. Instead we return the curated national
+ * mental-health hotlines (988, SAMHSA, Crisis Text Line, NAMI) — these
+ * numbers are verified and work 24/7 nationwide.
  */
 export const fetchMentalHealthServices = async (
   location: Location,
-  radiusMiles: number = 25
+  _radiusMiles: number = 25,
 ): Promise<Resource[]> => {
-  try {
-    // SAMHSA Treatment Locator API
-    const url = `https://findtreatment.gov/locator/find?lat=${location.latitude}&lon=${location.longitude}&radius=${radiusMiles}&type=mental`;
-
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    });
-
-    if (!response.ok) {
-      return getMentalHealthHotlines(location);
-    }
-
-    const data = await response.json();
-
-    if (!data.results || data.results.length === 0) {
-      return getMentalHealthHotlines(location);
-    }
-
-    return data.results.slice(0, 10).map((facility: any): Resource => ({
-      id: `samhsa-${facility.name1?.replace(/\s+/g, '-').toLowerCase() || Math.random()}`,
-      name: facility.name1 || 'Mental Health Center',
-      category: 'healthcare',
-      address: `${facility.street1 || ''}, ${facility.city || ''}, ${facility.state || ''} ${facility.zip || ''}`,
-      phone: facility.phone,
-      website: facility.website || 'https://findtreatment.gov',
-      description: 'Mental health and substance abuse services',
-      services: ['Mental Health', 'Counseling', 'Crisis Services'],
-      lat: facility.latitude,
-      lng: facility.longitude,
-      distance: calculateDistance(
-        location.latitude,
-        location.longitude,
-        facility.latitude,
-        facility.longitude
-      ),
-      hours: {
-        monday: 'Call for hours',
-        tuesday: 'Call for hours',
-        wednesday: 'Call for hours',
-        thursday: 'Call for hours',
-        friday: 'Call for hours',
-        saturday: 'Call for hours',
-        sunday: 'Call for hours',
-      },
-    }));
-  } catch (error) {
-    console.error('Error fetching mental health services:', error);
-    return getMentalHealthHotlines(location);
-  }
+  // Always return the verified hotline list. These are the resources the
+  // dashboard's mental-health intake flags route to anyway, so no degraded
+  // experience vs. trying to scrape a non-JSON endpoint.
+  return getMentalHealthHotlines(location);
 };
 
 /**
