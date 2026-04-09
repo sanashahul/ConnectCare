@@ -1126,6 +1126,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
+  const [youthBannerExpanded, setYouthBannerExpanded] = useState(true);
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
     messageCount: 0,
@@ -1925,12 +1926,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
           return (
             <View style={styles.youthBanner}>
-              <View style={styles.youthBannerHeader}>
+              <TouchableOpacity
+                style={styles.youthBannerHeader}
+                onPress={() => setYouthBannerExpanded(!youthBannerExpanded)}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.youthBannerEmoji}>💚</Text>
-                <Text style={styles.youthBannerTitle}>
+                <Text style={[styles.youthBannerTitle, { flex: 1 }]}>
                   {isSpanish ? 'Apoyo para Jóvenes' : 'Youth Support'}
                 </Text>
-              </View>
+                <Text style={styles.youthBannerChevron}>
+                  {youthBannerExpanded ? '▾' : '▸'}
+                </Text>
+              </TouchableOpacity>
+
+              {youthBannerExpanded && (
+              <>
               <Text style={styles.youthBannerText}>
                 {isSpanish
                   ? 'No estás solo/a. Tenemos recursos especiales para ti.'
@@ -2173,6 +2184,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
                     </TouchableOpacity>
                   </View>
                 </View>
+              )}
+              </>
               )}
             </View>
           );
@@ -2831,6 +2844,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#065F46',
+  },
+  youthBannerChevron: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#065F46',
+    marginLeft: 8,
   },
   youthBannerText: {
     fontSize: 15,

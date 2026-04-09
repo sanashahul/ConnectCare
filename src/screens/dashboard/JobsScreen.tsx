@@ -18,11 +18,9 @@ import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
 import { YOUTH_JOB_RESOURCES } from '../../data/youthResources';
-import {
-  getJobsForYouOrder,
-  getEmploymentSummary,
-} from '../../utils/profileInsights';
+import { getJobsForYouOrder } from '../../utils/profileInsights';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
+import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -367,7 +365,6 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
     const orderedForYou = order
       .map((id) => JOBS_FOR_YOU.find((i) => i.id === id))
       .filter((i): i is typeof JOBS_FOR_YOU[number] => !!i);
-    const summary = getEmploymentSummary(userProfile);
 
     return (
     <View style={styles.detailContainer}>
@@ -382,29 +379,12 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de empleo' : 'Employment guides & resources'}
       </Text>
 
-      {/* Intake summary - reflects what the user said on the intake form */}
-      {summary.length > 0 && (
-        <View style={styles.intakeSummaryCard}>
-          <Text style={styles.intakeSummaryTitle}>
-            {isSpanish ? 'Basado en tu intake' : 'Based on your intake'}
-          </Text>
-          <View style={styles.intakeSummaryChips}>
-            {summary.map((item, idx) => (
-              <View key={idx} style={styles.intakeSummaryChip}>
-                <Text style={styles.intakeSummaryChipIcon}>{item.icon}</Text>
-                <View>
-                  <Text style={styles.intakeSummaryChipLabel}>
-                    {isSpanish ? item.labelEs : item.label}
-                  </Text>
-                  <Text style={styles.intakeSummaryChipValue}>
-                    {isSpanish ? item.valueEs : item.value}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
+      {/* Personalized recommendations — actual job types based on what the user said they want */}
+      <PersonalizedRecommendations
+        profile={userProfile}
+        category="employment"
+        navigation={navigation}
+      />
 
       {orderedForYou.map((item) => (
         <TouchableOpacity

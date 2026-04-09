@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -49,6 +49,7 @@ export const UrgentNeedsBanner: React.FC<UrgentNeedsBannerProps> = ({
 }) => {
   const { i18n } = useTranslation();
   const isSpanish = i18n.language === 'es';
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const urgentNeeds = useMemo(
     () => getUrgentNeeds(profile, category).slice(0, maxItems),
@@ -97,21 +98,30 @@ export const UrgentNeedsBanner: React.FC<UrgentNeedsBannerProps> = ({
 
   return (
     <View style={styles.banner}>
-      <View style={styles.bannerHeader}>
+      <TouchableOpacity
+        style={styles.bannerHeader}
+        onPress={() => setIsExpanded(!isExpanded)}
+        activeOpacity={0.7}
+      >
         <Text style={styles.bannerEmoji}>⚡</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.bannerTitle}>
             {isSpanish ? 'Basado en lo que nos dijiste' : 'Based on what you told us'}
           </Text>
           <Text style={styles.bannerSubtitle}>
-            {isSpanish
-              ? 'Estas acciones son para ti ahora mismo'
-              : 'These actions are for you right now'}
+            {isExpanded
+              ? isSpanish
+                ? 'Estas acciones son para ti ahora mismo'
+                : 'These actions are for you right now'
+              : isSpanish
+              ? `${urgentNeeds.length} ${urgentNeeds.length === 1 ? 'acción' : 'acciones'} — toca para ver`
+              : `${urgentNeeds.length} ${urgentNeeds.length === 1 ? 'action' : 'actions'} — tap to view`}
           </Text>
         </View>
-      </View>
+        <Text style={styles.chevron}>{isExpanded ? '▾' : '▸'}</Text>
+      </TouchableOpacity>
 
-      {urgentNeeds.map((need) => (
+      {isExpanded && urgentNeeds.map((need) => (
         <View key={need.id} style={styles.card}>
           <Text style={styles.cardIcon}>{need.icon}</Text>
           <View style={styles.cardInfo}>
@@ -165,6 +175,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 14,
+  },
+  chevron: {
+    fontSize: 22,
+    color: '#991B1B',
+    fontWeight: '700',
+    marginLeft: 8,
   },
   bannerEmoji: {
     fontSize: 28,

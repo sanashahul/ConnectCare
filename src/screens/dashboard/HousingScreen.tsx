@@ -18,11 +18,9 @@ import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
 import { YOUTH_SHELTER_RESOURCES, YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
-import {
-  getHousingForYouOrder,
-  getHousingSummary,
-} from '../../utils/profileInsights';
+import { getHousingForYouOrder } from '../../utils/profileInsights';
 import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
+import { PersonalizedRecommendations } from '../../components/PersonalizedRecommendations';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -616,7 +614,6 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
     const orderedForYou = order
       .map((id) => HOUSING_FOR_YOU.find((i) => i.id === id))
       .filter((i): i is typeof HOUSING_FOR_YOU[number] => !!i);
-    const summary = getHousingSummary(userProfile);
 
     return (
     <View style={styles.detailContainer}>
@@ -631,29 +628,12 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
       </Text>
 
-      {/* Intake summary - reflects what the user said on the intake form */}
-      {summary.length > 0 && (
-        <View style={styles.intakeSummaryCard}>
-          <Text style={styles.intakeSummaryTitle}>
-            {isSpanish ? 'Basado en tu intake' : 'Based on your intake'}
-          </Text>
-          <View style={styles.intakeSummaryChips}>
-            {summary.map((item, idx) => (
-              <View key={idx} style={styles.intakeSummaryChip}>
-                <Text style={styles.intakeSummaryChipIcon}>{item.icon}</Text>
-                <View>
-                  <Text style={styles.intakeSummaryChipLabel}>
-                    {isSpanish ? item.labelEs : item.label}
-                  </Text>
-                  <Text style={styles.intakeSummaryChipValue}>
-                    {isSpanish ? item.valueEs : item.value}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
+      {/* Personalized recommendations — actionable cards tied to intake answers */}
+      <PersonalizedRecommendations
+        profile={userProfile}
+        category="housing"
+        navigation={navigation}
+      />
 
       {orderedForYou.map((item) => (
         <TouchableOpacity

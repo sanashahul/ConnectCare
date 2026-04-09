@@ -86,6 +86,30 @@ export interface IntakeSummaryItem {
   valueEs: string;
 }
 
+/**
+ * A specific, actionable recommendation generated from the user's intake
+ * answers. Shown in the "Based on your intake" section of category screens
+ * (HealthScreen, HousingScreen, JobsScreen) — these are more specific than
+ * the urgent-needs banner: e.g. "Free dental clinics near you" for someone
+ * who said they need a dental checkup, or "Warehouse jobs — morning shifts"
+ * for someone who wants warehouse work and can do mornings.
+ */
+export interface PersonalizedRecommendation {
+  id: string;
+  icon: string;
+  title: string;
+  titleEs: string;
+  description: string;
+  descriptionEs: string;
+  /** Short explanation of why we're suggesting this — cites the intake answer. */
+  reason: string;
+  reasonEs: string;
+  actionLabel: string;
+  actionLabelEs: string;
+  actionType: ActionType;
+  actionPayload: string;
+}
+
 // ============================================
 // HELPERS
 // ============================================
@@ -489,6 +513,117 @@ export const getUrgentNeeds = (
       exploreScreen: 'Health',
       priority: 70,
       sourceQuestionId: 'health_6',
+    });
+  } else if (findAnswer(profile.answers, 'health_6') === 'yes') {
+    // Regular dental checkup needed (non-urgent)
+    needs.push({
+      id: 'dental-checkup',
+      category: 'healthcare',
+      icon: '🦷',
+      title: 'Dental checkup needed',
+      titleEs: 'Chequeo dental necesario',
+      subtitle:
+        'Community health centers often have free/sliding-scale dental clinics.',
+      subtitleEs:
+        'Los centros de salud comunitarios tienen clínicas dentales gratis o de bajo costo.',
+      actionLabel: 'Find dental clinics near you',
+      actionLabelEs: 'Buscar clínicas dentales',
+      actionType: 'navigate',
+      actionPayload: 'Health',
+      exploreScreen: 'Health',
+      priority: 42,
+      sourceQuestionId: 'health_6',
+    });
+  }
+
+  if (flags.needsVision) {
+    const visionAnswer = findAnswer(profile.answers, 'health_7');
+    needs.push({
+      id: 'vision-care',
+      category: 'healthcare',
+      icon: '👓',
+      title:
+        visionAnswer === 'yes_glasses'
+          ? 'Free glasses/contacts'
+          : 'Free eye exam',
+      titleEs:
+        visionAnswer === 'yes_glasses'
+          ? 'Lentes/contactos gratis'
+          : 'Examen de la vista gratis',
+      subtitle:
+        'Lions Club, VSP Eyes of Hope, and OneSight offer free vision care nationally.',
+      subtitleEs:
+        'Lions Club, VSP Eyes of Hope y OneSight ofrecen atención visual gratis a nivel nacional.',
+      actionLabel: 'Call 211 for vision care',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+      exploreScreen: 'Health',
+      priority: 52,
+      sourceQuestionId: 'health_7',
+    });
+  }
+
+  if (flags.onMedications && flags.uninsured) {
+    needs.push({
+      id: 'prescription-help',
+      category: 'healthcare',
+      icon: '💊',
+      title: 'Prescription assistance',
+      titleEs: 'Asistencia con recetas',
+      subtitle:
+        'You take medications but have no insurance — NeedyMeds, GoodRx, and Rx Outreach offer free/discount meds.',
+      subtitleEs:
+        'Tomas medicamentos pero no tienes seguro — NeedyMeds, GoodRx y Rx Outreach ofrecen descuentos.',
+      actionLabel: 'Call 211 for Rx help',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+      exploreScreen: 'Health',
+      priority: 65,
+      sourceQuestionId: 'health_3',
+    });
+  }
+
+  if (flags.hasChronicCondition && flags.uninsured) {
+    needs.push({
+      id: 'chronic-care',
+      category: 'healthcare',
+      icon: '🫀',
+      title: 'Chronic care without insurance',
+      titleEs: 'Atención crónica sin seguro',
+      subtitle:
+        'FQHCs offer ongoing care for diabetes, heart disease, and other chronic conditions.',
+      subtitleEs:
+        'Los FQHCs ofrecen atención continua para diabetes, enfermedad cardíaca y otras condiciones crónicas.',
+      actionLabel: 'Find an FQHC near you',
+      actionLabelEs: 'Buscar FQHC cercano',
+      actionType: 'navigate',
+      actionPayload: 'Health',
+      exploreScreen: 'Health',
+      priority: 63,
+      sourceQuestionId: 'health_2',
+    });
+  }
+
+  if (flags.hasChildrenNeedingCare) {
+    needs.push({
+      id: 'childrens-healthcare',
+      category: 'healthcare',
+      icon: '👶',
+      title: 'Children’s healthcare (CHIP)',
+      titleEs: 'Salud infantil (CHIP)',
+      subtitle:
+        'Children’s Health Insurance Program (CHIP) covers kids even if parents don’t qualify for Medicaid.',
+      subtitleEs:
+        'CHIP cubre a niños aunque los padres no califiquen para Medicaid.',
+      actionLabel: 'Call CHIP — 1-877-543-7669',
+      actionLabelEs: 'Llama a CHIP',
+      actionType: 'call',
+      actionPayload: '1-877-543-7669',
+      exploreScreen: 'Health',
+      priority: 58,
+      sourceQuestionId: 'health_8',
     });
   }
 
@@ -941,4 +1076,665 @@ export const getEmploymentSummary = (
     });
   }
   return items;
+};
+
+// ============================================
+// PERSONALIZED RECOMMENDATIONS (per category)
+// ============================================
+
+const EMPLOY_5_JOB_TYPES: Record<
+  string,
+  { en: string; es: string; icon: string; description: string; descriptionEs: string }
+> = {
+  food: {
+    icon: '🍽️',
+    en: 'Food service & restaurant jobs',
+    es: 'Trabajos de servicio de alimentos',
+    description:
+      'Restaurants and cafeterias hire entry-level with quick turnaround.',
+    descriptionEs:
+      'Restaurantes y cafeterías contratan nivel de entrada rápidamente.',
+  },
+  retail: {
+    icon: '🛒',
+    en: 'Retail & customer service',
+    es: 'Ventas y servicio al cliente',
+    description:
+      'Retail stores hire year-round with flexible schedules.',
+    descriptionEs:
+      'Tiendas minoristas contratan todo el año con horarios flexibles.',
+  },
+  warehouse: {
+    icon: '📦',
+    en: 'Warehouse & manual labor',
+    es: 'Almacén y trabajo manual',
+    description:
+      'Warehouses often pay $18-22/hr and hire with no experience.',
+    descriptionEs:
+      'Los almacenes pagan $18-22/hora y contratan sin experiencia.',
+  },
+  construction: {
+    icon: '🔨',
+    en: 'Construction & skilled trades',
+    es: 'Construcción y oficios',
+    description:
+      'Day-labor centers and union halls connect workers to construction jobs.',
+    descriptionEs:
+      'Centros de trabajo diario y uniones conectan a trabajos de construcción.',
+  },
+  healthcare: {
+    icon: '🏥',
+    en: 'Healthcare entry-level jobs',
+    es: 'Trabajos de salud (nivel de entrada)',
+    description:
+      'CNA, home health aide, and medical assistant roles — training programs often free.',
+    descriptionEs:
+      'CNA, asistente de salud en casa, asistente médico — capacitación a menudo gratis.',
+  },
+  office: {
+    icon: '💼',
+    en: 'Office & administrative',
+    es: 'Oficina y administrativo',
+    description:
+      'Admin and data-entry roles are a good fit for entry-level office work.',
+    descriptionEs:
+      'Roles administrativos y entrada de datos son buenos para empezar.',
+  },
+  tech: {
+    icon: '💻',
+    en: 'Technology jobs',
+    es: 'Trabajos de tecnología',
+    description:
+      'Free coding bootcamps and IT training programs can lead to entry-level tech work.',
+    descriptionEs:
+      'Bootcamps de programación gratis y capacitación en TI pueden llevar a trabajos tech.',
+  },
+};
+
+export const getEmploymentRecommendations = (
+  profile: UserProfile | null,
+): PersonalizedRecommendation[] => {
+  if (!profile) return [];
+  const flags = getProfileFlags(profile);
+  const answers = profile.answers || [];
+  const recs: PersonalizedRecommendation[] = [];
+
+  // Recommend specific job types based on what the user said they want
+  const jobTypes = findAnswer(answers, 'employ_5');
+  if (Array.isArray(jobTypes)) {
+    jobTypes.forEach((type) => {
+      const info = EMPLOY_5_JOB_TYPES[type];
+      if (!info) return;
+      recs.push({
+        id: `jobs-type-${type}`,
+        icon: info.icon,
+        title: info.en,
+        titleEs: info.es,
+        description: info.description,
+        descriptionEs: info.descriptionEs,
+        reason: 'You said this is the type of work you want',
+        reasonEs: 'Dijiste que este es el tipo de trabajo que quieres',
+        actionLabel: 'Search these jobs',
+        actionLabelEs: 'Buscar estos trabajos',
+        actionType: 'navigate',
+        actionPayload: 'Jobs',
+      });
+    });
+  }
+
+  if (flags.hasNoID) {
+    recs.push({
+      id: 'jobs-get-id',
+      icon: '🪪',
+      title: 'Get a valid ID first',
+      titleEs: 'Primero obtén una identificación',
+      description:
+        'Almost every job requires a valid government-issued ID. Free ID help is available through 211 and local nonprofits.',
+      descriptionEs:
+        'Casi todos los trabajos requieren identificación válida. Ayuda gratis al 211 y organizaciones locales.',
+      reason: 'You said you don’t have a valid ID',
+      reasonEs: 'Dijiste que no tienes ID válida',
+      actionLabel: 'Call 211 for ID help',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  }
+
+  if (flags.hasBackgroundIssue) {
+    recs.push({
+      id: 'jobs-second-chance',
+      icon: '🤝',
+      title: 'Second-chance employers',
+      titleEs: 'Empleadores de segunda oportunidad',
+      description:
+        'Goodwill, Homeboy Industries, and fair-chance employers actively hire people with records. Many states also have "ban the box" laws.',
+      descriptionEs:
+        'Goodwill, Homeboy Industries y empleadores "fair-chance" contratan activamente personas con antecedentes.',
+      reason: 'You said you have a record',
+      reasonEs: 'Dijiste que tienes antecedentes',
+      actionLabel: 'Call Goodwill — 1-800-664-6577',
+      actionLabelEs: 'Llama a Goodwill',
+      actionType: 'call',
+      actionPayload: '1-800-664-6577',
+    });
+  }
+
+  if (flags.needsResumeHelp) {
+    recs.push({
+      id: 'jobs-resume-help',
+      icon: '📝',
+      title: 'Free resume writing help',
+      titleEs: 'Ayuda gratis con el currículum',
+      description:
+        'CareerOneStop has a free resume builder. Public libraries offer free printing and resume help.',
+      descriptionEs:
+        'CareerOneStop tiene un constructor de CV gratis. Las bibliotecas ofrecen ayuda e impresión gratis.',
+      reason: 'You said you need resume help',
+      reasonEs: 'Dijiste que necesitas ayuda con el CV',
+      actionLabel: 'Call CareerOneStop — 1-877-872-5627',
+      actionLabelEs: 'Llama a CareerOneStop',
+      actionType: 'call',
+      actionPayload: '1-877-872-5627',
+    });
+  }
+
+  if (flags.needsJobTraining) {
+    recs.push({
+      id: 'jobs-training',
+      icon: '🎓',
+      title: 'Free job training: Job Corps',
+      titleEs: 'Capacitación laboral gratis: Job Corps',
+      description:
+        'Ages 16-24: free education and career training, plus housing and meals included.',
+      descriptionEs:
+        'Edades 16-24: educación y capacitación gratis, más vivienda y comida incluidas.',
+      reason: 'You said you want job training',
+      reasonEs: 'Dijiste que quieres capacitación',
+      actionLabel: 'Call Job Corps — 1-800-733-5627',
+      actionLabelEs: 'Llama a Job Corps',
+      actionType: 'call',
+      actionPayload: '1-800-733-5627',
+    });
+  }
+
+  if (flags.needsEnglishClasses) {
+    recs.push({
+      id: 'jobs-english-classes',
+      icon: '🗣️',
+      title: 'Free English (ESL) classes',
+      titleEs: 'Clases de inglés gratis (ESL)',
+      description:
+        'Public libraries, community colleges, and nonprofits offer free ESL classes. Call 211 for local options.',
+      descriptionEs:
+        'Bibliotecas, colegios comunitarios y organizaciones ofrecen ESL gratis. Llama al 211.',
+      reason: 'You said you want English classes',
+      reasonEs: 'Dijiste que quieres clases de inglés',
+      actionLabel: 'Call 211 for ESL classes',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  }
+
+  if (flags.bilingual) {
+    recs.push({
+      id: 'jobs-bilingual',
+      icon: '🌐',
+      title: 'Bilingual job opportunities',
+      titleEs: 'Trabajos bilingües',
+      description:
+        'Healthcare, customer service, and translation jobs often pay a premium for bilingual workers.',
+      descriptionEs:
+        'Salud, servicio al cliente y traducción a menudo pagan extra por trabajadores bilingües.',
+      reason: 'You said you’re bilingual',
+      reasonEs: 'Dijiste que eres bilingüe',
+      actionLabel: 'Browse bilingual jobs',
+      actionLabelEs: 'Ver trabajos bilingües',
+      actionType: 'navigate',
+      actionPayload: 'Jobs',
+    });
+  }
+
+  if (flags.noReliableTransportation) {
+    recs.push({
+      id: 'jobs-remote-close',
+      icon: '🚌',
+      title: 'Work close to home',
+      titleEs: 'Trabajo cerca de casa',
+      description:
+        'Look for jobs within walking distance or on public transit lines. Remote and work-from-home roles are also worth searching.',
+      descriptionEs:
+        'Busca trabajos a distancia caminable o en líneas de transporte público. Trabajos remotos también.',
+      reason: 'You said transportation is limited',
+      reasonEs: 'Dijiste que el transporte es limitado',
+      actionLabel: 'Search local jobs',
+      actionLabelEs: 'Buscar trabajos locales',
+      actionType: 'navigate',
+      actionPayload: 'Jobs',
+    });
+  }
+
+  return recs;
+};
+
+export const getHealthcareRecommendations = (
+  profile: UserProfile | null,
+): PersonalizedRecommendation[] => {
+  if (!profile) return [];
+  const flags = getProfileFlags(profile);
+  const recs: PersonalizedRecommendation[] = [];
+
+  if (flags.uninsured) {
+    recs.push({
+      id: 'health-medicaid',
+      icon: '🪪',
+      title: 'Apply for Medicaid',
+      titleEs: 'Aplica para Medicaid',
+      description:
+        'Medicaid covers doctor visits, hospital care, prescriptions, and more. Eligibility is based on income.',
+      descriptionEs:
+        'Medicaid cubre visitas al médico, hospital, recetas y más. Elegibilidad basada en ingresos.',
+      reason: 'You said you don’t have insurance',
+      reasonEs: 'Dijiste que no tienes seguro',
+      actionLabel: 'Visit healthcare.gov',
+      actionLabelEs: 'Visita healthcare.gov',
+      actionType: 'url',
+      actionPayload: 'https://www.healthcare.gov/medicaid-chip/',
+    });
+
+    recs.push({
+      id: 'health-fqhc',
+      icon: '🏥',
+      title: 'Free community health centers (FQHCs)',
+      titleEs: 'Centros de salud comunitarios gratis (FQHCs)',
+      description:
+        'FQHCs serve everyone regardless of ability to pay. Primary care, dental, mental health, and pharmacy on sliding scale.',
+      descriptionEs:
+        'Los FQHCs atienden a todos sin importar ingresos. Atención primaria, dental, mental y farmacia.',
+      reason: 'You said you don’t have insurance',
+      reasonEs: 'Dijiste que no tienes seguro',
+      actionLabel: 'Find FQHCs near you',
+      actionLabelEs: 'Buscar FQHCs cerca',
+      actionType: 'navigate',
+      actionPayload: 'Health',
+    });
+  }
+
+  if (flags.urgentMentalHealth) {
+    recs.push({
+      id: 'health-988',
+      icon: '💚',
+      title: '988 Suicide & Crisis Lifeline',
+      titleEs: '988 Línea de Crisis',
+      description:
+        '24/7 free and confidential support. Call or text 988 — trained counselors in English and Spanish.',
+      descriptionEs:
+        'Apoyo gratuito y confidencial 24/7. Llama o envía texto a 988.',
+      reason: 'You said you need urgent mental health support',
+      reasonEs: 'Dijiste que necesitas apoyo urgente de salud mental',
+      actionLabel: 'Call 988',
+      actionLabelEs: 'Llama al 988',
+      actionType: 'call',
+      actionPayload: '988',
+    });
+  } else if (flags.needsMentalHealth || flags.hasMentalHealthCondition) {
+    recs.push({
+      id: 'health-community-mh',
+      icon: '💚',
+      title: 'Community mental health centers',
+      titleEs: 'Centros de salud mental comunitarios',
+      description:
+        'Community mental health centers offer therapy, psychiatry, and group support on a sliding scale.',
+      descriptionEs:
+        'Centros comunitarios ofrecen terapia, psiquiatría y apoyo grupal con tarifa ajustada.',
+      reason: 'You said you want mental health support',
+      reasonEs: 'Dijiste que quieres apoyo de salud mental',
+      actionLabel: 'Call SAMHSA — 1-800-662-4357',
+      actionLabelEs: 'Llama a SAMHSA',
+      actionType: 'call',
+      actionPayload: '1-800-662-4357',
+    });
+  }
+
+  if (flags.urgentDental) {
+    recs.push({
+      id: 'health-dental-urgent',
+      icon: '🦷',
+      title: 'Free emergency dental clinics',
+      titleEs: 'Clínicas dentales de emergencia gratis',
+      description:
+        'Dental schools offer free/low-cost emergency care. Some FQHCs have walk-in dental clinics for pain.',
+      descriptionEs:
+        'Las escuelas dentales ofrecen atención de emergencia. Algunos FQHCs tienen clínicas dentales para dolor.',
+      reason: 'You said you have urgent dental pain',
+      reasonEs: 'Dijiste que tienes dolor dental urgente',
+      actionLabel: 'Call 211 for dental clinics',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  } else if (findAnswer(profile.answers, 'health_6') === 'yes') {
+    recs.push({
+      id: 'health-dental-checkup',
+      icon: '🦷',
+      title: 'Free dental checkup',
+      titleEs: 'Chequeo dental gratis',
+      description:
+        'FQHCs and dental schools offer free or low-cost cleanings, x-rays, and checkups.',
+      descriptionEs:
+        'Los FQHCs y escuelas dentales ofrecen limpieza, rayos X y chequeos gratis o baratos.',
+      reason: 'You said you need a dental checkup',
+      reasonEs: 'Dijiste que necesitas un chequeo dental',
+      actionLabel: 'Find dental clinics',
+      actionLabelEs: 'Buscar clínicas dentales',
+      actionType: 'navigate',
+      actionPayload: 'Health',
+    });
+  }
+
+  if (flags.needsVision) {
+    const visionAnswer = findAnswer(profile.answers, 'health_7');
+    recs.push({
+      id: 'health-vision',
+      icon: '👓',
+      title:
+        visionAnswer === 'yes_glasses'
+          ? 'Free glasses programs'
+          : 'Free eye exams',
+      titleEs:
+        visionAnswer === 'yes_glasses'
+          ? 'Programas de lentes gratis'
+          : 'Exámenes de la vista gratis',
+      description:
+        'Lions Club Sight First, VSP Eyes of Hope, OneSight, and New Eyes provide free eye exams and glasses nationally.',
+      descriptionEs:
+        'Lions Club, VSP Eyes of Hope, OneSight y New Eyes ofrecen exámenes y lentes gratis en todo el país.',
+      reason: 'You said you need vision care',
+      reasonEs: 'Dijiste que necesitas atención visual',
+      actionLabel: 'Call 211 for vision programs',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  }
+
+  if (flags.pregnant) {
+    recs.push({
+      id: 'health-prenatal',
+      icon: '🤰',
+      title: 'Free prenatal care (Medicaid)',
+      titleEs: 'Atención prenatal gratis (Medicaid)',
+      description:
+        'Medicaid covers prenatal care in every state. Most states also cover 60 days postpartum.',
+      descriptionEs:
+        'Medicaid cubre atención prenatal en todos los estados. Muchos estados cubren 60 días después del parto.',
+      reason: 'You said you’re pregnant',
+      reasonEs: 'Dijiste que estás embarazada',
+      actionLabel: 'Apply at healthcare.gov',
+      actionLabelEs: 'Aplica en healthcare.gov',
+      actionType: 'url',
+      actionPayload: 'https://www.healthcare.gov/medicaid-chip/',
+    });
+  }
+
+  if (flags.hasChildrenNeedingCare) {
+    recs.push({
+      id: 'health-chip',
+      icon: '👶',
+      title: 'Children’s healthcare (CHIP)',
+      titleEs: 'Salud infantil (CHIP)',
+      description:
+        'CHIP covers kids in families who earn too much for Medicaid but can’t afford private insurance.',
+      descriptionEs:
+        'CHIP cubre a niños de familias que ganan demasiado para Medicaid pero no pueden pagar seguro privado.',
+      reason: 'You said your children need care',
+      reasonEs: 'Dijiste que tus hijos necesitan atención',
+      actionLabel: 'Call CHIP — 1-877-543-7669',
+      actionLabelEs: 'Llama a CHIP',
+      actionType: 'call',
+      actionPayload: '1-877-543-7669',
+    });
+  }
+
+  if (flags.hasChronicCondition) {
+    recs.push({
+      id: 'health-chronic-care',
+      icon: '🫀',
+      title: 'Chronic disease management',
+      titleEs: 'Manejo de enfermedades crónicas',
+      description:
+        'FQHCs have chronic care programs for diabetes, heart disease, asthma, and high blood pressure.',
+      descriptionEs:
+        'Los FQHCs tienen programas para diabetes, enfermedad cardíaca, asma e hipertensión.',
+      reason: 'You said you have a chronic condition',
+      reasonEs: 'Dijiste que tienes una condición crónica',
+      actionLabel: 'Find an FQHC',
+      actionLabelEs: 'Buscar FQHC',
+      actionType: 'navigate',
+      actionPayload: 'Health',
+    });
+  }
+
+  if (flags.onMedications) {
+    recs.push({
+      id: 'health-rx-help',
+      icon: '💊',
+      title: 'Prescription savings',
+      titleEs: 'Ahorros en recetas',
+      description:
+        'GoodRx and NeedyMeds offer free coupons. Walmart has a $4 generics program. Manufacturers offer free meds through patient assistance.',
+      descriptionEs:
+        'GoodRx y NeedyMeds ofrecen cupones gratis. Walmart tiene un programa de $4 para genéricos.',
+      reason: 'You said you take medications',
+      reasonEs: 'Dijiste que tomas medicamentos',
+      actionLabel: 'Visit GoodRx.com',
+      actionLabelEs: 'Visita GoodRx.com',
+      actionType: 'url',
+      actionPayload: 'https://www.goodrx.com/',
+    });
+  }
+
+  if (flags.substanceUseHelpWanted) {
+    recs.push({
+      id: 'health-samhsa',
+      icon: '🤝',
+      title: 'SAMHSA treatment referrals',
+      titleEs: 'Referencias de tratamiento SAMHSA',
+      description:
+        'Free, confidential 24/7 helpline in English and Spanish for substance use treatment referrals.',
+      descriptionEs:
+        'Línea gratuita y confidencial 24/7 en inglés y español para tratamiento.',
+      reason: 'You said you want help with substance use',
+      reasonEs: 'Dijiste que quieres ayuda con sustancias',
+      actionLabel: 'Call SAMHSA — 1-800-662-4357',
+      actionLabelEs: 'Llama a SAMHSA',
+      actionType: 'call',
+      actionPayload: '1-800-662-4357',
+    });
+  }
+
+  return recs;
+};
+
+export const getHousingRecommendations = (
+  profile: UserProfile | null,
+): PersonalizedRecommendation[] => {
+  if (!profile) return [];
+  const flags = getProfileFlags(profile);
+  const isMinor = profile.ageGroup === 'under18';
+  const recs: PersonalizedRecommendation[] = [];
+
+  if (flags.unsheltered || flags.inShelter) {
+    if (isMinor) {
+      recs.push({
+        id: 'housing-covenant-house',
+        icon: '🛏️',
+        title: 'Covenant House Nineline (youth 16-24)',
+        titleEs: 'Covenant House Nineline (jóvenes 16-24)',
+        description:
+          '24/7 placement line for homeless youth. Knows how to place minors safely and connects to local shelters.',
+        descriptionEs:
+          'Línea 24/7 para jóvenes sin hogar. Conoce cómo ubicar menores con seguridad.',
+        reason: 'You’re under 18 and need shelter',
+        reasonEs: 'Eres menor de 18 y necesitas refugio',
+        actionLabel: 'Call Nineline — 1-800-999-9999',
+        actionLabelEs: 'Llama Nineline',
+        actionType: 'call',
+        actionPayload: '1-800-999-9999',
+      });
+    } else {
+      recs.push({
+        id: 'housing-211-shelter',
+        icon: '🛏️',
+        title: 'Emergency shelter tonight',
+        titleEs: 'Refugio de emergencia esta noche',
+        description:
+          'Dial 211 and press 6 for homeless services. They have real-time shelter bed availability and can place you tonight.',
+        descriptionEs:
+          'Marca 211 y presiona 6. Tienen disponibilidad de camas en tiempo real.',
+        reason: 'You said you’re without stable shelter',
+        reasonEs: 'Dijiste que no tienes refugio estable',
+        actionLabel: 'Call 211',
+        actionLabelEs: 'Llama al 211',
+        actionType: 'call',
+        actionPayload: '211',
+      });
+    }
+  }
+
+  if (flags.hasChildrenInHousehold && (flags.unsheltered || flags.inShelter)) {
+    recs.push({
+      id: 'housing-family-promise',
+      icon: '👨‍👩‍👧',
+      title: 'Family Promise (family shelter)',
+      titleEs: 'Family Promise (refugio familiar)',
+      description:
+        'Family Promise keeps families together in shelter and has 200+ affiliates nationwide.',
+      descriptionEs:
+        'Family Promise mantiene familias juntas con 200+ afiliados en todo el país.',
+      reason: 'You said you have children with you',
+      reasonEs: 'Dijiste que tienes hijos contigo',
+      actionLabel: 'Call Family Promise',
+      actionLabelEs: 'Llama a Family Promise',
+      actionType: 'call',
+      actionPayload: '908-273-1100',
+    });
+  }
+
+  if (flags.veteran) {
+    recs.push({
+      id: 'housing-hud-vash',
+      icon: '🎖️',
+      title: 'HUD-VASH housing voucher',
+      titleEs: 'Vale de vivienda HUD-VASH',
+      description:
+        'HUD-VASH combines rental assistance with VA case management. Available to any homeless veteran.',
+      descriptionEs:
+        'HUD-VASH combina asistencia de alquiler con gestión de casos del VA para veteranos sin hogar.',
+      reason: 'You said you’re a veteran',
+      reasonEs: 'Dijiste que eres veterano',
+      actionLabel: 'Call VA — 1-877-424-3838',
+      actionLabelEs: 'Llama a VA',
+      actionType: 'call',
+      actionPayload: '1-877-424-3838',
+    });
+  }
+
+  if (flags.hasPets) {
+    recs.push({
+      id: 'housing-pet-friendly',
+      icon: '🐾',
+      title: 'Pet-friendly shelter options',
+      titleEs: 'Refugios que aceptan mascotas',
+      description:
+        'RedRover Relief and local humane societies can help keep you and your pet together. Some shelters now accept pets.',
+      descriptionEs:
+        'RedRover Relief y sociedades humanitarias locales ayudan a mantenerte con tu mascota.',
+      reason: 'You said you have pets',
+      reasonEs: 'Dijiste que tienes mascotas',
+      actionLabel: 'Call 211 for pet-friendly shelters',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  }
+
+  if (flags.recentlyEvicted) {
+    recs.push({
+      id: 'housing-second-chance',
+      icon: '⚠️',
+      title: 'Second-chance housing programs',
+      titleEs: 'Vivienda de segunda oportunidad',
+      description:
+        'HUD housing counselors help with eviction recovery and second-chance landlords who rent to those with eviction records.',
+      descriptionEs:
+        'Consejeros HUD ayudan con recuperación de desalojo y propietarios que alquilan con antecedentes.',
+      reason: 'You said you had a recent eviction',
+      reasonEs: 'Dijiste que tuviste un desalojo reciente',
+      actionLabel: 'Call HUD — 1-800-569-4287',
+      actionLabelEs: 'Llama a HUD',
+      actionType: 'call',
+      actionPayload: '1-800-569-4287',
+    });
+  }
+
+  if (flags.noIncome) {
+    recs.push({
+      id: 'housing-emergency-rental',
+      icon: '💵',
+      title: 'Emergency rental assistance',
+      titleEs: 'Asistencia de emergencia de alquiler',
+      description:
+        'Catholic Charities, Salvation Army, and St. Vincent de Paul offer one-time rental assistance to prevent eviction.',
+      descriptionEs:
+        'Catholic Charities, Salvation Army y St. Vincent de Paul ofrecen asistencia de alquiler una vez.',
+      reason: 'You said you have no income',
+      reasonEs: 'Dijiste que no tienes ingresos',
+      actionLabel: 'Call Catholic Charities',
+      actionLabelEs: 'Llama a Catholic Charities',
+      actionType: 'call',
+      actionPayload: '1-800-919-9338',
+    });
+  }
+
+  if (flags.hasVoucher) {
+    recs.push({
+      id: 'housing-use-voucher',
+      icon: '🎫',
+      title: 'Use your housing voucher',
+      titleEs: 'Usa tu vale de vivienda',
+      description:
+        'GoSection8.com and AffordableHousing.com list landlords who accept Section 8 vouchers.',
+      descriptionEs:
+        'GoSection8.com y AffordableHousing.com listan propietarios que aceptan Sección 8.',
+      reason: 'You said you have a housing voucher',
+      reasonEs: 'Dijiste que tienes un vale de vivienda',
+      actionLabel: 'Visit GoSection8.com',
+      actionLabelEs: 'Visita GoSection8.com',
+      actionType: 'url',
+      actionPayload: 'https://www.gosection8.com/',
+    });
+  }
+
+  if (flags.chronicallyHomeless) {
+    recs.push({
+      id: 'housing-psh',
+      icon: '🏢',
+      title: 'Permanent supportive housing',
+      titleEs: 'Vivienda permanente con apoyo',
+      description:
+        'Permanent Supportive Housing (PSH) combines affordable housing with case management for those chronically homeless.',
+      descriptionEs:
+        'PSH combina vivienda asequible con gestión de casos para quienes llevan mucho tiempo sin hogar.',
+      reason: 'You said you’ve been without housing over 1 year',
+      reasonEs: 'Dijiste que llevas más de 1 año sin vivienda',
+      actionLabel: 'Call 211 to ask about PSH',
+      actionLabelEs: 'Llama al 211',
+      actionType: 'call',
+      actionPayload: '211',
+    });
+  }
+
+  return recs;
 };
