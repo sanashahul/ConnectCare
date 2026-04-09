@@ -22,7 +22,7 @@ import { useApp } from '../../context/AppContext';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
-import { getUrgentNeeds, UrgentNeed } from '../../utils/profileInsights';
+import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 
 type DashboardScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -1137,28 +1137,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
 
-  // Urgent needs derived from the user's intake-form answers. This is what
-  // makes the dashboard actually reflect what the user said on the intake
-  // form (e.g. "Yes, urgently" on mental health shows a Call 988 card here).
-  const urgentNeeds = React.useMemo(
-    () => getUrgentNeeds(userProfile),
-    [userProfile?.answers],
-  );
-
-  const handleUrgentAction = (need: UrgentNeed) => {
-    switch (need.actionType) {
-      case 'call':
-        Linking.openURL(`tel:${need.actionPayload.replace(/-/g, '')}`);
-        break;
-      case 'navigate':
-        navigation.navigate(need.actionPayload);
-        break;
-      case 'url':
-        Linking.openURL(need.actionPayload);
-        break;
-    }
-  };
-
   const handleAITopic = async (topicId: string) => {
     const topic = AI_TOPICS.find((t) => t.id === topicId);
     if (!topic) return;
@@ -2201,47 +2179,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         })()}
 
         {/* Urgent Needs Banner - surfaces what the user said on intake */}
-        {urgentNeeds.length > 0 && (
-          <View style={styles.urgentBanner}>
-            <View style={styles.urgentBannerHeader}>
-              <Text style={styles.urgentBannerEmoji}>⚡</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.urgentBannerTitle}>
-                  {isSpanish ? 'Basado en lo que nos dijiste' : 'Based on what you told us'}
-                </Text>
-                <Text style={styles.urgentBannerSubtitle}>
-                  {isSpanish
-                    ? 'Estas acciones son para ti ahora mismo'
-                    : 'These actions are for you right now'}
-                </Text>
-              </View>
-            </View>
-            {urgentNeeds.map((need) => (
-              <TouchableOpacity
-                key={need.id}
-                style={styles.urgentCard}
-                onPress={() => handleUrgentAction(need)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.urgentCardIcon}>{need.icon}</Text>
-                <View style={styles.urgentCardInfo}>
-                  <Text style={styles.urgentCardTitle}>
-                    {isSpanish ? need.titleEs : need.title}
-                  </Text>
-                  <Text style={styles.urgentCardSubtitle}>
-                    {isSpanish ? need.subtitleEs : need.subtitle}
-                  </Text>
-                  <View style={styles.urgentCardAction}>
-                    <Text style={styles.urgentCardActionText}>
-                      {need.actionType === 'call' ? '📞 ' : need.actionType === 'navigate' ? '→ ' : '🔗 '}
-                      {isSpanish ? need.actionLabelEs : need.actionLabel}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        <UrgentNeedsBanner profile={userProfile} navigation={navigation} />
 
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
@@ -2871,76 +2809,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#CBD5E1',
   },
   // Youth Support Banner styles
-  // Urgent Needs banner (driven by intake answers)
-  urgentBanner: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 20,
-    padding: 18,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#FCA5A5',
-  },
-  urgentBannerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  urgentBannerEmoji: {
-    fontSize: 28,
-    marginRight: 10,
-  },
-  urgentBannerTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#991B1B',
-  },
-  urgentBannerSubtitle: {
-    fontSize: 13,
-    color: '#B91C1C',
-    marginTop: 2,
-  },
-  urgentCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-    marginBottom: 10,
-  },
-  urgentCardIcon: {
-    fontSize: 26,
-    marginRight: 12,
-  },
-  urgentCardInfo: {
-    flex: 1,
-  },
-  urgentCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  urgentCardSubtitle: {
-    fontSize: 13,
-    color: '#4B5563',
-    lineHeight: 18,
-    marginBottom: 8,
-  },
-  urgentCardAction: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  urgentCardActionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#991B1B',
-  },
   youthBanner: {
     backgroundColor: '#ECFDF5',
     borderRadius: 20,

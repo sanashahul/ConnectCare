@@ -22,6 +22,7 @@ import {
   getHousingForYouOrder,
   getHousingSummary,
 } from '../../utils/profileInsights';
+import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -453,6 +454,13 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Urgent Needs Banner - filtered to housing + general (youth) */}
+      <UrgentNeedsBanner
+        profile={userProfile}
+        category="housing"
+        navigation={navigation}
+      />
+
       {/* Youth Shelter Banner - Only for minors */}
       {userProfile?.ageGroup === 'under18' && (
         <View style={styles.youthShelterBanner}>

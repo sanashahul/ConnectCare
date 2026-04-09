@@ -65,10 +65,15 @@ export interface UrgentNeed {
   titleEs: string;
   subtitle: string;
   subtitleEs: string;
+  // Primary action — the big button on the card (usually a phone call)
   actionLabel: string;
   actionLabelEs: string;
   actionType: ActionType;
   actionPayload: string; // phone number, screen name, or URL
+  // Optional secondary action — a small "Explore in app" link that
+  // navigates to the relevant category screen so the user can browse
+  // local resources (clinics/shelters/jobs) directly in the app.
+  exploreScreen?: 'Health' | 'Housing' | 'Jobs';
   priority: number; // higher = more urgent
   sourceQuestionId: string;
 }
@@ -195,11 +200,99 @@ export const getProfileFlags = (profile: UserProfile | null): ProfileFlags => {
 /**
  * Returns a priority-sorted list of urgent actions the user should take,
  * based on their intake answers. Drives the Dashboard "Urgent Needs" banner.
+ *
+ * If `category` is provided, only needs for that category (plus 'general')
+ * are returned — this lets category screens show a filtered banner.
  */
-export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
+export const getUrgentNeeds = (
+  profile: UserProfile | null,
+  category?: 'healthcare' | 'housing' | 'employment',
+): UrgentNeed[] => {
   if (!profile) return [];
   const flags = getProfileFlags(profile);
+  const isMinor = profile.ageGroup === 'under18';
   const needs: UrgentNeed[] = [];
+
+  // ============================================
+  // YOUTH-SPECIFIC URGENT NEEDS (under 18)
+  // ============================================
+  // If the user is a minor, these youth-focused resources are ALWAYS
+  // surfaced — having these one tap away is critical for runaway,
+  // abuse, and crisis situations regardless of what specific intake
+  // answers were given.
+  if (isMinor) {
+    needs.push({
+      id: 'youth-crisis-text',
+      category: 'general',
+      icon: '💬',
+      title: 'Free crisis text support (24/7)',
+      titleEs: 'Apoyo de crisis por texto (24/7)',
+      subtitle:
+        'Text HOME to 741741 — free, confidential, available any time.',
+      subtitleEs:
+        'Envía HOME al 741741 — gratis, confidencial, a cualquier hora.',
+      actionLabel: 'Text HOME to 741741',
+      actionLabelEs: 'Enviar HOME al 741741',
+      actionType: 'url',
+      actionPayload: 'sms:741741?body=HOME',
+      priority: 88,
+      sourceQuestionId: 'age',
+    });
+
+    needs.push({
+      id: 'youth-runaway-safeline',
+      category: 'general',
+      icon: '🏃',
+      title: 'National Runaway Safeline',
+      titleEs: 'Línea Nacional para Fugitivos',
+      subtitle:
+        'Safe, confidential help 24/7 — even if you’re not running away.',
+      subtitleEs:
+        'Ayuda segura y confidencial 24/7 — aunque no estés huyendo.',
+      actionLabel: 'Call 1-800-786-2929',
+      actionLabelEs: 'Llama al 1-800-786-2929',
+      actionType: 'call',
+      actionPayload: '1-800-786-2929',
+      priority: 82,
+      sourceQuestionId: 'age',
+    });
+
+    needs.push({
+      id: 'youth-childhelp',
+      category: 'general',
+      icon: '🆘',
+      title: 'Childhelp (abuse hotline)',
+      titleEs: 'Childhelp (línea de abuso)',
+      subtitle:
+        'If you are being hurt or feel unsafe, call 24/7 — free and confidential.',
+      subtitleEs:
+        'Si te están lastimando o te sientes inseguro, llama 24/7 — gratis.',
+      actionLabel: 'Call 1-800-422-4453',
+      actionLabelEs: 'Llama al 1-800-422-4453',
+      actionType: 'call',
+      actionPayload: '1-800-422-4453',
+      priority: 80,
+      sourceQuestionId: 'age',
+    });
+
+    needs.push({
+      id: 'youth-trevor-project',
+      category: 'general',
+      icon: '🌈',
+      title: 'Trevor Project (LGBTQ+)',
+      titleEs: 'Proyecto Trevor (LGBTQ+)',
+      subtitle:
+        'Free crisis support for LGBTQ+ youth — 24/7, text or call.',
+      subtitleEs:
+        'Apoyo gratuito para jóvenes LGBTQ+ — 24/7, texto o llamada.',
+      actionLabel: 'Call 1-866-488-7386',
+      actionLabelEs: 'Llama al 1-866-488-7386',
+      actionType: 'call',
+      actionPayload: '1-866-488-7386',
+      priority: 76,
+      sourceQuestionId: 'age',
+    });
+  }
 
   if (flags.urgentMentalHealth) {
     needs.push({
@@ -222,25 +315,54 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
   }
 
   if (flags.unsheltered) {
-    needs.push({
-      id: 'unsheltered',
-      category: 'housing',
-      icon: flags.livingInVehicle ? '🚗' : '🛏️',
-      title: flags.livingInVehicle
-        ? 'You’re living in your vehicle'
-        : 'You’re unsheltered tonight',
-      titleEs: flags.livingInVehicle
-        ? 'Estás viviendo en tu vehículo'
-        : 'Estás sin refugio esta noche',
-      subtitle: 'Find a safe place to sleep. Shelter referrals available now.',
-      subtitleEs: 'Encuentra un lugar seguro. Referencias de refugio ahora.',
-      actionLabel: 'Call 211 for shelter',
-      actionLabelEs: 'Llama al 211',
-      actionType: 'call',
-      actionPayload: '211',
-      priority: 95,
-      sourceQuestionId: 'housing_1',
-    });
+    // Youth 16-24 get routed to Covenant House Nineline first — it's a
+    // youth-specific crisis and shelter referral line that knows how to
+    // place minors safely, whereas 211 shelter listings often only serve
+    // adults or families.
+    if (isMinor) {
+      needs.push({
+        id: 'youth-unsheltered',
+        category: 'housing',
+        icon: flags.livingInVehicle ? '🚗' : '🛏️',
+        title: flags.livingInVehicle
+          ? 'Unsafe place to stay (under 18)'
+          : 'You’re unsheltered (under 18)',
+        titleEs: flags.livingInVehicle
+          ? 'Lugar inseguro (menor de 18)'
+          : 'Sin refugio (menor de 18)',
+        subtitle:
+          'Covenant House Nineline places youth safely — 24/7, confidential.',
+        subtitleEs:
+          'Covenant House Nineline ayuda a jóvenes — 24/7, confidencial.',
+        actionLabel: 'Call Nineline — 1-800-999-9999',
+        actionLabelEs: 'Llama Nineline — 1-800-999-9999',
+        actionType: 'call',
+        actionPayload: '1-800-999-9999',
+        priority: 99,
+        sourceQuestionId: 'housing_1',
+      });
+    } else {
+      needs.push({
+        id: 'unsheltered',
+        category: 'housing',
+        icon: flags.livingInVehicle ? '🚗' : '🛏️',
+        title: flags.livingInVehicle
+          ? 'You’re living in your vehicle'
+          : 'You’re unsheltered tonight',
+        titleEs: flags.livingInVehicle
+          ? 'Estás viviendo en tu vehículo'
+          : 'Estás sin refugio esta noche',
+        subtitle: 'Find a safe place to sleep. Shelter referrals available now.',
+        subtitleEs: 'Encuentra un lugar seguro. Referencias de refugio ahora.',
+        actionLabel: 'Call 211 (press 6 for shelter)',
+        actionLabelEs: 'Llama al 211',
+        actionType: 'call',
+        actionPayload: '211',
+        exploreScreen: 'Housing',
+        priority: 95,
+        sourceQuestionId: 'housing_1',
+      });
+    }
   }
 
   if (flags.hasChildrenInHousehold && (flags.unsheltered || flags.inShelter)) {
@@ -258,6 +380,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama a Family Promise',
       actionType: 'call',
       actionPayload: '908-273-1100',
+      exploreScreen: 'Housing',
       priority: 92,
       sourceQuestionId: 'housing_4',
     });
@@ -278,6 +401,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama al 211',
       actionType: 'call',
       actionPayload: '211',
+      exploreScreen: 'Health',
       priority: 90,
       sourceQuestionId: 'health_8',
     });
@@ -298,6 +422,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama a VA',
       actionType: 'call',
       actionPayload: '1-877-424-3838',
+      exploreScreen: 'Housing',
       priority: 85,
       sourceQuestionId: 'housing_3',
     });
@@ -342,6 +467,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Buscar consejería cerca',
       actionType: 'navigate',
       actionPayload: 'Health',
+      exploreScreen: 'Health',
       priority: 72,
       sourceQuestionId: 'health_5',
     });
@@ -360,6 +486,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama al 211',
       actionType: 'call',
       actionPayload: '211',
+      exploreScreen: 'Health',
       priority: 70,
       sourceQuestionId: 'health_6',
     });
@@ -380,6 +507,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama a HUD Fair Housing',
       actionType: 'call',
       actionPayload: '1-800-669-9777',
+      exploreScreen: 'Housing',
       priority: 60,
       sourceQuestionId: 'housing_10',
     });
@@ -400,6 +528,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Buscar clínica cercana',
       actionType: 'navigate',
       actionPayload: 'Health',
+      exploreScreen: 'Health',
       priority: 55,
       sourceQuestionId: 'health_1',
     });
@@ -420,6 +549,7 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama al 211',
       actionType: 'call',
       actionPayload: '211',
+      exploreScreen: 'Jobs',
       priority: 50,
       sourceQuestionId: 'employ_3',
     });
@@ -440,12 +570,24 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
       actionLabelEs: 'Llama al 211',
       actionType: 'call',
       actionPayload: '211',
+      exploreScreen: 'Housing',
       priority: 45,
       sourceQuestionId: 'housing_7',
     });
   }
 
-  return needs.sort((a, b) => b.priority - a.priority);
+  // Sort by priority (highest first)
+  const sorted = needs.sort((a, b) => b.priority - a.priority);
+
+  // If a category filter was passed, return only items in that category
+  // plus any 'general' items (like youth crisis hotlines that apply
+  // everywhere). Otherwise return everything.
+  if (category) {
+    return sorted.filter(
+      (n) => n.category === category || n.category === 'general',
+    );
+  }
+  return sorted;
 };
 
 // ============================================

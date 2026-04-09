@@ -22,6 +22,7 @@ import {
   getJobsForYouOrder,
   getEmploymentSummary,
 } from '../../utils/profileInsights';
+import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -290,6 +291,13 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Urgent Needs Banner - filtered to employment + general (youth) */}
+      <UrgentNeedsBanner
+        profile={userProfile}
+        category="employment"
+        navigation={navigation}
+      />
+
       <Text style={styles.sectionTitle}>
         {isSpanish ? 'Recursos de Empleo' : 'Employment Resources'}
       </Text>

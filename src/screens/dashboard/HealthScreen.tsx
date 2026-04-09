@@ -20,6 +20,7 @@ import {
   getHealthcareForYouOrder,
   getHealthcareSummary,
 } from '../../utils/profileInsights';
+import { UrgentNeedsBanner } from '../../components/UrgentNeedsBanner';
 
 type HealthScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -462,6 +463,13 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      {/* Urgent Needs Banner - filtered to healthcare + general (youth) */}
+      <UrgentNeedsBanner
+        profile={userProfile}
+        category="healthcare"
+        navigation={navigation}
+      />
+
       {/* Need Health Help Now Banner */}
       <TouchableOpacity
         style={styles.needNowBanner}
