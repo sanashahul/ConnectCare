@@ -1,16 +1,26 @@
 /**
  * AI Service - Groq Integration
- * Provides intelligent conversational AI for the Case Manager
+ * Provides intelligent conversational AI for the Case Manager.
+ *
+ * The API key is read from the EXPO_PUBLIC_GROQ_API_KEY environment variable
+ * at build time. This is the standard Expo pattern — `app.config.js` also
+ * exposes it via `extra.groqApiKey` for future use. Set it in a local `.env`
+ * file at the repo root:
+ *
+ *   EXPO_PUBLIC_GROQ_API_KEY=gsk_your_key_here
+ *
+ * Get a free key at: https://console.groq.com/keys
  */
-
-import { GROQ_API_KEY } from '../config/secrets';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Get API key
+// Get API key from env (EXPO_PUBLIC_* vars are inlined at build time by Expo)
 const getApiKey = (): string => {
-  console.log('Groq API Key loaded:', GROQ_API_KEY ? 'Yes' : 'No');
-  return GROQ_API_KEY || '';
+  const key = process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
+  if (__DEV__) {
+    console.log('Groq API key loaded:', key ? 'yes' : 'no');
+  }
+  return key;
 };
 
 export interface AIMessage {
@@ -132,10 +142,10 @@ export const sendMessageToAI = async (
   conversationHistory: AIMessage[],
   userContext: UserContext
 ): Promise<string> => {
-  const GROQ_API_KEY = getApiKey();
+  const apiKey = getApiKey();
 
-  if (!GROQ_API_KEY) {
-    console.warn('Groq API key not configured');
+  if (!apiKey) {
+    console.warn('Groq API key not configured (set EXPO_PUBLIC_GROQ_API_KEY)');
     return getFallbackResponse(userMessage, userContext);
   }
 
@@ -164,7 +174,7 @@ export const sendMessageToAI = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',

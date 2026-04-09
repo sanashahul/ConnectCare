@@ -18,6 +18,10 @@ import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
 import { YOUTH_JOB_RESOURCES } from '../../data/youthResources';
+import {
+  getJobsForYouOrder,
+  getEmploymentSummary,
+} from '../../utils/profileInsights';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -349,7 +353,15 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
     </View>
   );
 
-  const renderForYou = () => (
+  const renderForYou = () => {
+    // Personalize based on intake answers
+    const order = getJobsForYouOrder(userProfile);
+    const orderedForYou = order
+      .map((id) => JOBS_FOR_YOU.find((i) => i.id === id))
+      .filter((i): i is typeof JOBS_FOR_YOU[number] => !!i);
+    const summary = getEmploymentSummary(userProfile);
+
+    return (
     <View style={styles.detailContainer}>
       <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
         <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
@@ -362,7 +374,31 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de empleo' : 'Employment guides & resources'}
       </Text>
 
-      {JOBS_FOR_YOU.map((item) => (
+      {/* Intake summary - reflects what the user said on the intake form */}
+      {summary.length > 0 && (
+        <View style={styles.intakeSummaryCard}>
+          <Text style={styles.intakeSummaryTitle}>
+            {isSpanish ? 'Basado en tu intake' : 'Based on your intake'}
+          </Text>
+          <View style={styles.intakeSummaryChips}>
+            {summary.map((item, idx) => (
+              <View key={idx} style={styles.intakeSummaryChip}>
+                <Text style={styles.intakeSummaryChipIcon}>{item.icon}</Text>
+                <View>
+                  <Text style={styles.intakeSummaryChipLabel}>
+                    {isSpanish ? item.labelEs : item.label}
+                  </Text>
+                  <Text style={styles.intakeSummaryChipValue}>
+                    {isSpanish ? item.valueEs : item.value}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {orderedForYou.map((item) => (
         <TouchableOpacity
           key={item.id}
           style={styles.resourceCard}
@@ -396,7 +432,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
       ))}
     </View>
-  );
+    );
+  };
 
   const renderSearch = () => (
     <View style={styles.detailContainer}>
@@ -907,6 +944,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  // Intake summary card - reflects intake-form answers
+  intakeSummaryCard: {
+    backgroundColor: '#FFF7ED',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  intakeSummaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#9A3412',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  intakeSummaryChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  intakeSummaryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+    gap: 8,
+  },
+  intakeSummaryChipIcon: {
+    fontSize: 18,
+  },
+  intakeSummaryChipLabel: {
+    fontSize: 11,
+    color: '#C2410C',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  intakeSummaryChipValue: {
+    fontSize: 13,
+    color: '#7C2D12',
+    fontWeight: '700',
   },
   resourceCard: {
     backgroundColor: '#FFFFFF',
