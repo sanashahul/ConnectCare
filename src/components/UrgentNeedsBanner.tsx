@@ -22,6 +22,12 @@ interface UrgentNeedsBannerProps {
   maxItems?: number;
   /** Passed in so the banner can route 'navigate' actions to other screens. */
   navigation?: NavigationProp<any>;
+  /**
+   * If true, the banner starts collapsed (header only, tap to expand).
+   * Useful on busy screens like the Dashboard where we want the banner
+   * present but unobtrusive.
+   */
+  defaultCollapsed?: boolean;
 }
 
 /**
@@ -46,10 +52,11 @@ export const UrgentNeedsBanner: React.FC<UrgentNeedsBannerProps> = ({
   category,
   maxItems = 4,
   navigation,
+  defaultCollapsed = false,
 }) => {
   const { i18n } = useTranslation();
   const isSpanish = i18n.language === 'es';
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!defaultCollapsed);
 
   const urgentNeeds = useMemo(
     () => getUrgentNeeds(profile, category).slice(0, maxItems),

@@ -1129,7 +1129,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
-  const [youthBannerExpanded, setYouthBannerExpanded] = useState(true);
+  const [youthBannerExpanded, setYouthBannerExpanded] = useState(false);
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
     messageCount: 0,
@@ -1957,7 +1957,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           <LanguageToggle />
         </View>
 
-        {/* Youth Support Banner - for users under 18 */}
+        {/* Urgent Needs Banner - default collapsed (compact pill at top) */}
+        <UrgentNeedsBanner
+          profile={userProfile}
+          navigation={navigation}
+          defaultCollapsed
+        />
+
+        {/* Category Grid */}
+        <Text style={styles.sectionHeader}>
+          {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
+        </Text>
+        {renderCategoryGrid()}
+
+        {/* Todos */}
+        {renderTodos()}
+
+        {/* Youth Support Banner - for users under 18 (collapsed by default) */}
         {userProfile?.ageGroup === 'under18' && (() => {
           const stateCode = userProfile?.location?.state || '';
           const stateLaws = getStateYouthLaws(stateCode);
@@ -2229,10 +2245,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           );
         })()}
 
-        {/* Urgent Needs Banner - surfaces what the user said on intake */}
-        <UrgentNeedsBanner profile={userProfile} navigation={navigation} />
-
-        {/* Intake progress nudge - if the user skipped intake, let them finish later */}
+        {/* Intake progress nudge - small pill shown when intake is incomplete */}
         {(() => {
           const answered = userProfile?.answers?.length || 0;
           const selectedCats = userProfile?.selectedCategories?.length || 0;
@@ -2241,36 +2254,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           const remaining = expected - answered;
           return (
             <TouchableOpacity
-              style={styles.intakeNudge}
+              style={styles.intakeNudgeCompact}
               onPress={() => navigation.navigate('Questionnaire')}
               activeOpacity={0.8}
             >
-              <Text style={styles.intakeNudgeIcon}>📋</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.intakeNudgeTitle}>
-                  {isSpanish
-                    ? `Te faltan ${remaining} preguntas`
-                    : `${remaining} intake questions left`}
-                </Text>
-                <Text style={styles.intakeNudgeSubtitle}>
-                  {isSpanish
-                    ? 'Completa tu intake para recibir más recomendaciones personalizadas.'
-                    : 'Finish your intake for more personalized recommendations.'}
-                </Text>
-              </View>
-              <Text style={styles.intakeNudgeArrow}>›</Text>
+              <Text style={styles.intakeNudgeCompactIcon}>📋</Text>
+              <Text style={styles.intakeNudgeCompactText}>
+                {isSpanish
+                  ? `${remaining} preguntas de intake pendientes`
+                  : `${remaining} intake questions left`}
+              </Text>
+              <Text style={styles.intakeNudgeCompactArrow}>›</Text>
             </TouchableOpacity>
           );
         })()}
-
-        {/* Category Grid */}
-        <Text style={styles.sectionHeader}>
-          {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
-        </Text>
-        {renderCategoryGrid()}
-
-        {/* Todos */}
-        {renderTodos()}
 
         {/* Quick Help */}
         <View style={styles.quickHelpSection}>
@@ -2339,35 +2336,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  intakeNudge: {
+  intakeNudgeCompact: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: '#BFDBFE',
   },
-  intakeNudgeIcon: {
-    fontSize: 26,
-    marginRight: 12,
+  intakeNudgeCompactIcon: {
+    fontSize: 18,
+    marginRight: 10,
   },
-  intakeNudgeTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1E3A8A',
-    marginBottom: 2,
-  },
-  intakeNudgeSubtitle: {
+  intakeNudgeCompactText: {
+    flex: 1,
     fontSize: 13,
-    color: '#2563EB',
-    lineHeight: 17,
+    fontWeight: '600',
+    color: '#1E3A8A',
   },
-  intakeNudgeArrow: {
-    fontSize: 24,
+  intakeNudgeCompactArrow: {
+    fontSize: 20,
     color: '#2563EB',
     fontWeight: '700',
     marginLeft: 8,
