@@ -7,11 +7,14 @@
  * - OpenStreetMap Overpass API (free, no key) - for shelter locations
  *
  * CURATED DATA with REAL phone numbers that actually work:
+ * - 211 (homeless services, press 6)
+ * - HUD Housing Counselor: 1-800-569-4287
  * - Salvation Army: 1-800-725-2769
  * - Catholic Charities: 1-800-919-9338
  * - Family Promise: 908-273-1100
- * - Covenant House: 1-800-388-3888
- * - National Homeless Hotline: 1-800-231-6946
+ * - Covenant House Nineline (youth crisis): 1-800-999-9999
+ * - National Runaway Safeline: 1-800-786-2929 (youth)
+ * - VA Homeless Veterans: 1-877-424-3838
  */
 
 import { Resource, Location } from '../types';
@@ -155,29 +158,31 @@ const getCuratedShelterData = (location: Location): HousingResource[] => {
 
   return [
     {
-      id: 'curated-national-homeless-hotline',
-      name: 'National Homeless Hotline',
+      id: 'curated-hud-housing-counselor',
+      name: 'HUD Housing Counselor Hotline',
       category: 'housing',
-      address: 'Available 24/7 Nationwide',
-      phone: '1-800-231-6946',
-      website: 'https://www.homelessshelterdirectory.org/',
-      description: 'Free hotline connecting you to local shelters and services. Available 24/7.',
-      services: ['24/7 Hotline', 'Shelter Referrals', 'Local Resources'],
-      hours: '24 hours, 7 days a week',
-      hoursEs: '24 horas, 7 días a la semana',
-      eligibility: 'Anyone experiencing homelessness',
-      eligibilityEs: 'Cualquier persona sin hogar',
+      address: 'HUD-approved counselors nationwide',
+      phone: '1-800-569-4287',
+      website: 'https://www.hud.gov/findacounselor',
+      description: 'Free HUD-approved housing counseling — rental assistance, eviction prevention, homebuyer education.',
+      services: ['Housing Counseling', 'Eviction Prevention', 'Rental Help'],
+      hours: 'Mon-Fri 9:00 AM - 5:00 PM (hotline)',
+      hoursEs: 'Lun-Vie 9:00 AM - 5:00 PM (línea)',
+      eligibility: 'Open to everyone - Free HUD-approved services',
+      eligibilityEs: 'Abierto a todos - Servicios gratuitos aprobados por HUD',
       servicesDetailed: [
-        'Free shelter referrals nationwide',
-        'Connected to local shelter networks',
-        'Crisis support available',
-        'Spanish language assistance',
+        'Free HUD-approved housing counseling',
+        'Rental assistance guidance',
+        'Eviction prevention counseling',
+        'Credit and budgeting help',
+        'Referral to local HUD counselors',
       ],
       servicesDetailedEs: [
-        'Referencias gratuitas a refugios en todo el país',
-        'Conectado a redes de refugios locales',
-        'Apoyo de crisis disponible',
-        'Asistencia en español',
+        'Asesoramiento de vivienda aprobado por HUD (gratis)',
+        'Orientación sobre asistencia de alquiler',
+        'Asesoramiento para prevenir desalojos',
+        'Ayuda con crédito y presupuesto',
+        'Referencia a consejeros HUD locales',
       ],
       lat: location.latitude,
       lng: location.longitude,
@@ -319,12 +324,12 @@ const getCuratedShelterData = (location: Location): HousingResource[] => {
     },
     {
       id: 'curated-covenant-house',
-      name: 'Covenant House (Youth 16-24)',
+      name: 'Covenant House Nineline (Youth 16-24)',
       category: 'housing',
       address: 'Major cities across the US',
-      phone: '1-800-388-3888',
+      phone: '1-800-999-9999',
       website: 'https://www.covenanthouse.org/',
-      description: 'Emergency shelter and services for homeless youth ages 16-24.',
+      description: 'Emergency shelter and services for homeless youth ages 16-24. Nineline crisis hotline 1-800-999-9999.',
       services: ['Youth Shelter', 'Crisis Line', 'Education', 'Job Training'],
       hours: '24/7 Crisis Line - Shelter hours vary',
       hoursEs: 'Línea de crisis 24/7 - Horarios de refugio varían',

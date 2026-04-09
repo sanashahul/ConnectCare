@@ -96,9 +96,11 @@ DIRECTRICES IMPORTANTES:
 NÚMEROS VERIFICADOS (usa SOLO estos):
 - Emergencias: 911
 - Línea de Crisis/Suicidio: 988
-- Recursos Comunitarios: 211
+- Recursos Comunitarios y Refugio: 211 (presiona 6 para servicios de personas sin hogar)
 - Violencia Doméstica: 1-800-799-7233
-- Línea Nacional para Personas sin Hogar: 1-800-231-6946${youthGuidelines}
+- Consejero de Vivienda HUD: 1-800-569-4287
+- Veteranos sin Hogar (VA): 1-877-424-3838
+- Línea Nacional para Fugitivos (jóvenes): 1-800-786-2929${youthGuidelines}
 
 INFORMACIÓN DEL USUARIO:
 - Nombre: ${context.name || 'No proporcionado'}
@@ -122,9 +124,11 @@ IMPORTANT GUIDELINES:
 VERIFIED PHONE NUMBERS (use ONLY these):
 - Emergency: 911
 - Crisis/Suicide Lifeline: 988
-- Community Resources: 211
+- Community Resources & Shelter: 211 (press 6 for homeless services)
 - Domestic Violence: 1-800-799-7233
-- National Homeless Hotline: 1-800-231-6946${youthGuidelines}
+- HUD Housing Counselor: 1-800-569-4287
+- VA Homeless Veterans: 1-877-424-3838
+- National Runaway Safeline (youth): 1-800-786-2929${youthGuidelines}
 
 USER INFORMATION:
 - Name: ${context.name || 'Not provided'}
@@ -225,8 +229,8 @@ const getFallbackResponse = (userMessage: string, context: UserContext): string 
   // Check for shelter keywords
   if (/shelter|sleep|bed|homeless|refugio|dormir|cama/i.test(lowerMessage)) {
     return isSpanish
-      ? 'Para encontrar refugio cerca de ti, llama al 211 o visita la sección de Vivienda en esta app. La Línea Nacional para Personas sin Hogar es 1-800-231-6946.'
-      : 'To find shelter near you, call 211 or visit the Housing section in this app. The National Homeless Hotline is 1-800-231-6946.';
+      ? 'Para encontrar refugio cerca de ti, marca 211 y presiona 6 para servicios de personas sin hogar, o visita la sección de Vivienda en esta app.'
+      : 'To find shelter near you, dial 211 and press 6 for homeless services, or visit the Housing section in this app.';
   }
 
   // Check for job keywords

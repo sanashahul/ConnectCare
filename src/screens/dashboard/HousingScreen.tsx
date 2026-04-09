@@ -191,7 +191,7 @@ const HOUSING_PROGRAMS = [
 
 // Emergency resources
 const HOUSING_HOTLINES = [
-  { id: 'hh1', name: 'National Homeless Hotline', nameEs: 'Línea Nacional para Personas Sin Hogar', description: '24/7 shelter referrals', descriptionEs: 'Referencias de refugio 24/7', phone: '1-800-231-6946', icon: '📞' },
+  { id: 'hh1', name: 'HUD Housing Counselor', nameEs: 'Consejero de Vivienda HUD', description: 'Free HUD-approved housing counseling', descriptionEs: 'Asesoramiento de vivienda aprobado por HUD (gratis)', phone: '1-800-569-4287', icon: '📞' },
   { id: 'hh2', name: '211', nameEs: '211', description: 'Local resources & shelter info', descriptionEs: 'Recursos locales e información de refugios', phone: '211', icon: '🆘' },
   { id: 'hh3', name: 'Domestic Violence Hotline', nameEs: 'Línea de Violencia Doméstica', description: 'Safe shelter for DV survivors', descriptionEs: 'Refugio seguro para sobrevivientes de VD', phone: '1-800-799-7233', icon: '💜' },
 ];
@@ -405,7 +405,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           : 'Based on your situation, you should call immediately to find shelter.',
         actions: [
           { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
-          { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+          { label: isSpanish ? 'Consejero HUD' : 'HUD Counselor', phone: '1-800-569-4287', primary: false },
         ],
       };
     }
@@ -446,7 +446,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         : 'Call 211 to connect with housing resources in your area.',
       actions: [
         { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
-        { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+        { label: isSpanish ? 'Consejero HUD' : 'HUD Counselor', phone: '1-800-569-4287', primary: false },
       ],
     };
   };

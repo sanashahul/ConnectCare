@@ -235,7 +235,7 @@ const TOPIC_TODOS: Record<string, { en: string; es: string }[]> = {
   shelter: [
     { en: 'Call 211 for shelter info', es: 'Llamar al 211 para info de refugio' },
     { en: 'Visit local shelter before 5pm', es: 'Visitar refugio local antes de las 5pm' },
-    { en: 'Call National Homeless Hotline: 1-800-231-6946', es: 'Llamar Línea Nacional: 1-800-231-6946' },
+    { en: 'Call HUD Housing Counselor: 1-800-569-4287', es: 'Llamar Consejero HUD: 1-800-569-4287' },
   ],
   section8: [
     { en: 'Find your local PHA (Public Housing Authority)', es: 'Encontrar tu PHA local (Autoridad de Vivienda Pública)' },
@@ -456,8 +456,8 @@ What type of emergency are you experiencing? I can provide more specific resourc
       en: `${empathy}Here's how to find shelter${locationStr}:
 
 📞 CALL NOW:
-• 211 - Real-time shelter bed availability
-• National Homeless Hotline: 1-800-231-6946 (24/7)
+• 211 - Dial and press 6 for homeless services (24/7)
+• HUD Housing Counselor: 1-800-569-4287
 
 🏠 IN THIS APP:
 Go to Housing tab → "Find Housing" to see shelters near you with hours and contact info.
@@ -474,8 +474,8 @@ Would you like me to help with anything else?`,
       es: `${empathy}Así puedes encontrar refugio${locationStr}:
 
 📞 LLAMA AHORA:
-• 211 - Disponibilidad de camas en tiempo real
-• Línea Nacional: 1-800-231-6946 (24/7)
+• 211 - Marca y presiona 6 para servicios de personas sin hogar (24/7)
+• Consejero de Vivienda HUD: 1-800-569-4287
 
 🏠 EN ESTA APP:
 Ve a Vivienda → "Buscar Vivienda" para ver refugios cercanos con horarios y contacto.

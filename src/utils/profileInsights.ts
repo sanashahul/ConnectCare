@@ -376,10 +376,10 @@ export const getUrgentNeeds = (profile: UserProfile | null): UrgentNeed[] => {
         'HUD helps you find ADA-accessible housing in your area.',
       subtitleEs:
         'HUD ayuda a encontrar vivienda accesible ADA en tu área.',
-      actionLabel: 'Call HUD — 1-800-877-0246',
-      actionLabelEs: 'Llama a HUD',
+      actionLabel: 'Call HUD Fair Housing — 1-800-669-9777',
+      actionLabelEs: 'Llama a HUD Fair Housing',
       actionType: 'call',
-      actionPayload: '1-800-877-0246',
+      actionPayload: '1-800-669-9777',
       priority: 60,
       sourceQuestionId: 'housing_10',
     });
