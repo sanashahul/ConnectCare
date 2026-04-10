@@ -9,6 +9,14 @@ export default {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
+    // Runtime version tied to the app version. When you bump
+    // expo.version, Expo Go loads the new bundle automatically.
+    runtimeVersion: {
+      policy: "appVersion"
+    },
+    updates: {
+      url: "https://u.expo.dev/10983464-0e42-4b2e-b720-e031c5e34712"
+    },
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
@@ -46,6 +54,9 @@ export default {
       groqApiKey: process.env.EXPO_PUBLIC_GROQ_API_KEY,
       adzunaAppId: process.env.EXPO_PUBLIC_ADZUNA_APP_ID,
       adzunaAppKey: process.env.EXPO_PUBLIC_ADZUNA_APP_KEY,
+      eas: {
+        projectId: "10983464-0e42-4b2e-b720-e031c5e34712"
+      }
     }
   }
 };
