@@ -26,6 +26,7 @@ import {
   getTopUrgentActions,
   getTopRecommendations,
 } from '../../utils/profileInsights';
+import { seedDemoCaseManager } from '../../utils/seedDemoCaseManager';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 import { useScrollToTop } from '../../components/ScrollToTopButton';
@@ -2205,6 +2206,38 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           );
         })()}
 
+        {/* Try Demo card — only shown when the user has not connected to
+            a case manager yet. Seeds rich demo data so pilot partners can
+            see the full Case Manager experience without pairing. */}
+        {!state.caseManagerData?.connection && (
+          <TouchableOpacity
+            style={styles.tryDemoCard}
+            onPress={() => {
+              seedDemoCaseManager(dispatch, { isSpanish });
+              Alert.alert(
+                isSpanish ? '¡Demo cargado!' : 'Demo loaded!',
+                isSpanish
+                  ? 'Ahora estás conectado/a con Sarah Johnson (demo). Revisa el panel para ver sus mensajes, tareas y notas.'
+                  : "You're now connected with Sarah Johnson (demo). Check your dashboard to see her messages, tasks, and notes.",
+              );
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.tryDemoIcon}>🎯</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.tryDemoTitle}>
+                {isSpanish ? 'Probar el modo demo' : 'Try the demo'}
+              </Text>
+              <Text style={styles.tryDemoSubtitle}>
+                {isSpanish
+                  ? 'Conéctate con un gestor de caso de muestra para ver mensajes, tareas y notas.'
+                  : 'Connect with a sample case manager to see messages, tasks, and notes flow in.'}
+              </Text>
+            </View>
+            <Text style={styles.tryDemoArrow}>›</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
           {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
@@ -2651,6 +2684,40 @@ const styles = StyleSheet.create({
   cmNoteArrow: {
     fontSize: 24,
     color: '#5C7C99',
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  tryDemoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#FDF4E3',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#E4BE76',
+  },
+  tryDemoIcon: {
+    fontSize: 26,
+    marginRight: 12,
+  },
+  tryDemoTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#7A4E1F',
+    marginBottom: 2,
+  },
+  tryDemoSubtitle: {
+    fontSize: 13,
+    color: '#92661F',
+    lineHeight: 18,
+  },
+  tryDemoArrow: {
+    fontSize: 24,
+    color: '#92661F',
     fontWeight: '700',
     marginLeft: 8,
   },

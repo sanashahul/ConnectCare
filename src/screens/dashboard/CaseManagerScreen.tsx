@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import * as Clipboard from 'expo-clipboard';
+import { seedDemoCaseManager } from '../../utils/seedDemoCaseManager';
 import {
   CaseManagerMessage,
   CaseManagerTask,
@@ -289,73 +290,12 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
         <TouchableOpacity
           style={styles.demoButton}
           onPress={() => {
-            dispatch({
-              type: 'SET_CM_CONNECTION',
-              payload: {
-                id: 'demo-cm-1',
-                caseManagerId: 'demo-cm-1',
-                caseManagerName: 'Sarah Johnson',
-                caseManagerEmail: 'sarah.j@shelter.org',
-                connectedAt: new Date().toISOString(),
-                status: 'active',
-              },
-            });
-            // Add demo message
-            dispatch({
-              type: 'ADD_CM_MESSAGE',
-              payload: {
-                senderId: 'demo-cm-1',
-                senderType: 'caseManager',
-                senderName: 'Sarah Johnson',
-                content: isSpanish
-                  ? '¡Hola! Soy Sarah, tu gestora de caso. Estoy aquí para ayudarte. ¿Cómo te encuentras hoy?'
-                  : "Hi! I'm Sarah, your case manager. I'm here to help you. How are you doing today?",
-                read: false,
-              },
-            });
-            // Add demo tasks
-            dispatch({
-              type: 'ADD_CM_TASK',
-              payload: {
-                title: isSpanish ? 'Llamar al 211 para información de refugios' : 'Call 211 for shelter information',
-                description: isSpanish ? 'Pregunta sobre disponibilidad de camas y requisitos' : 'Ask about bed availability and requirements',
-                category: 'housing',
-                status: 'pending',
-                priority: 'high',
-                assignedBy: 'caseManager',
-                assignedByName: 'Sarah Johnson',
-              },
-            });
-            dispatch({
-              type: 'ADD_CM_TASK',
-              payload: {
-                title: isSpanish ? 'Actualizar currículum' : 'Update resume',
-                description: isSpanish ? 'Agregar experiencia laboral reciente' : 'Add recent work experience',
-                category: 'employment',
-                status: 'pending',
-                priority: 'medium',
-                assignedBy: 'caseManager',
-                assignedByName: 'Sarah Johnson',
-              },
-            });
-            // Add demo note
-            dispatch({
-              type: 'ADD_CM_NOTE',
-              payload: {
-                title: isSpanish ? 'Notas de la primera reunión' : 'First meeting notes',
-                content: isSpanish
-                  ? 'Objetivo principal: encontrar vivienda estable. Interesado/a en programas de capacitación laboral. Próximo paso: conectar con el programa de refugios locales.'
-                  : 'Primary goal: find stable housing. Interested in job training programs. Next step: connect with local shelter program.',
-                createdBy: 'caseManager',
-                createdByName: 'Sarah Johnson',
-                isPrivate: false,
-              },
-            });
+            seedDemoCaseManager(dispatch, { isSpanish });
             Alert.alert(
               isSpanish ? '¡Conectado!' : 'Connected!',
               isSpanish
-                ? 'Ahora estás conectado con Sarah Johnson (demo). Revisa tus mensajes y tareas.'
-                : "You're now connected with Sarah Johnson (demo). Check your messages and tasks."
+                ? 'Ahora estás conectado con Sarah Johnson (demo). Revisa tus mensajes, tareas y notas.'
+                : "You're now connected with Sarah Johnson (demo). Check your messages, tasks, and notes."
             );
           }}
         >
