@@ -1525,9 +1525,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   // "Focus today" hero section and the collapsible category groups so
   // styling stays consistent.
   const renderTodoRow = (todo: any) => (
-    <View key={todo.id} style={styles.todoItemContainer}>
+    <View
+      key={todo.id}
+      style={[
+        styles.todoItemContainer,
+        todo.fromCaseManager && styles.todoItemContainerCM,
+      ]}
+    >
       <TouchableOpacity
-        style={styles.todoItem}
+        style={[
+          styles.todoItem,
+          todo.fromCaseManager && { borderBottomWidth: 0 },
+        ]}
         onPress={() => {
           setSelectedTodo(todo);
           setEditingTodoDescription(todo.description || '');
@@ -3007,6 +3016,19 @@ const styles = StyleSheet.create({
   },
   todoItemContainer: {
     marginBottom: 8,
+  },
+  // Case-manager tasks get a distinctive treatment so users can tell
+  // at a glance which items were assigned by their case worker vs.
+  // their own todos: a 4px dusty-blue stripe on the left edge plus a
+  // faint dusty-blue tinted background.
+  todoItemContainerCM: {
+    backgroundColor: '#F4F8FB',
+    borderLeftWidth: 4,
+    borderLeftColor: '#5C7C99',
+    borderRadius: 10,
+    paddingLeft: 10,
+    paddingRight: 8,
+    marginBottom: 10,
   },
   todoContent: {
     flex: 1,
