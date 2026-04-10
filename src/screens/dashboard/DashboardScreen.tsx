@@ -1140,6 +1140,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [youthBannerExpanded, setYouthBannerExpanded] = useState(false);
   const [todoView, setTodoView] = useState<'pending' | 'completed'>('pending');
+  // Whether the whole My To-Do List section is expanded. Collapses to
+  // just a summary header so the dashboard feels less heavy when users
+  // aren't actively working through their tasks.
+  const [todosCollapsed, setTodosCollapsed] = useState(false);
   // Which todo group categories are currently expanded in the rendered
   // list. Managed per-category so users can drill into just one area
   // without the full list dumping on them at once.
@@ -1688,20 +1692,40 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
 
     return (
       <View style={styles.todosSection}>
-        <View style={styles.todoHeader}>
+        <TouchableOpacity
+          style={styles.todoHeader}
+          onPress={() => setTodosCollapsed(!todosCollapsed)}
+          activeOpacity={0.7}
+        >
           <View style={{ flex: 1 }}>
             <Text style={styles.todoHeaderTitle}>
               {isSpanish ? 'Mi Lista de Tareas' : 'My To-Do List'}
+            </Text>
+            <Text style={styles.todoHeaderSubtitle}>
+              {pendingCount > 0
+                ? isSpanish
+                  ? `${pendingCount} pendiente${pendingCount > 1 ? 's' : ''}`
+                  : `${pendingCount} pending`
+                : isSpanish
+                ? '¡Todo hecho!'
+                : 'All done!'}
+              {completedCount > 0 && ` · ${completedCount} ${isSpanish ? 'completada' : 'done'}${completedCount > 1 && !isSpanish ? '' : ''}`}
             </Text>
           </View>
           <TouchableOpacity
             style={styles.addTodoButton}
             onPress={() => setShowAddTodo(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.addTodoButtonText}>+</Text>
           </TouchableOpacity>
-        </View>
+          <Text style={styles.todoHeaderChevron}>
+            {todosCollapsed ? '▸' : '▾'}
+          </Text>
+        </TouchableOpacity>
 
+        {!todosCollapsed && (
+        <>
         {/* To-Do / Completed tab toggle */}
         <View style={styles.todoTabRow}>
           <TouchableOpacity
@@ -1862,6 +1886,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
               );
             })()}
           </>
+        )}
+        </>
         )}
       </View>
     );
@@ -3449,6 +3475,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     marginTop: 2,
+  },
+  todoHeaderChevron: {
+    fontSize: 22,
+    color: '#94A3B8',
+    fontWeight: '700',
+    marginLeft: 8,
   },
   addTodoButton: {
     width: 40,
