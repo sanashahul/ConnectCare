@@ -117,6 +117,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const [addClientLoading, setAddClientLoading] = useState(false);
   const [messageInput, setMessageInput] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [newNoteTitle, setNewNoteTitle] = useState('');
   const [showAddNote, setShowAddNote] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TodoItem | null>(null);
   const messagesScrollRef = useRef<ScrollView>(null);
@@ -183,6 +184,11 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const handleAddTask = () => {
     if (!selectedClient || !newTaskTitle.trim()) return;
 
+    // Keep the legacy client.todos write (for the case worker's own
+    // client-detail view) AND also dispatch to the shared
+    // caseManagerData.tasks slice so the individual sees it on their
+    // Case Manager → Tasks tab and in their main todo list when they
+    // switch back to user mode on the same device.
     dispatch({
       type: 'ADD_CLIENT_TODO',
       payload: {
@@ -195,6 +201,19 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
           completed: false,
           createdBy: 'caseworker',
         },
+      },
+    });
+
+    dispatch({
+      type: 'ADD_CM_TASK',
+      payload: {
+        title: newTaskTitle.trim(),
+        description: newTaskDescription.trim() || undefined,
+        category: newTaskCategory,
+        status: 'pending',
+        priority: newTaskPriority === 'urgent' ? 'high' : 'medium',
+        assignedBy: 'caseManager',
+        assignedByName: state.caseWorkerProfile?.name || 'Case Manager',
       },
     });
 
@@ -290,26 +309,46 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const handleSendMessage = () => {
     if (!selectedClient || !messageInput.trim()) return;
 
-    // In a real app, this would send to the user's CaseManagerData
-    // For now, we'll show an alert since we need backend sync
-    Alert.alert(
-      'Message Sent',
-      `Your message to ${selectedClient.name} has been sent.`,
-      [{ text: 'OK' }]
-    );
+    // Demo mode: dispatch to the shared caseManagerData slice so the
+    // individual's CaseManager screen sees the message immediately when
+    // they switch back to user mode on the same device. Real backend
+    // sync replaces this with a Supabase insert later.
+    dispatch({
+      type: 'ADD_CM_MESSAGE',
+      payload: {
+        senderId: state.caseWorkerProfile?.id || 'caseworker',
+        senderType: 'caseManager',
+        senderName: state.caseWorkerProfile?.name || 'Case Manager',
+        content: messageInput.trim(),
+        read: false,
+      },
+    });
     setMessageInput('');
   };
 
   const handleAddNote = () => {
     if (!selectedClient || !newNote.trim()) return;
 
-    Alert.alert(
-      'Note Added',
-      'Your note has been saved.',
-      [{ text: 'OK' }]
-    );
+    // Demo mode: dispatch to the shared caseManagerData slice so the
+    // individual's Notes tab and dashboard note card see it. Notes are
+    // one-way (case worker → individual) and never private in this demo.
+    dispatch({
+      type: 'ADD_CM_NOTE',
+      payload: {
+        title: newNoteTitle.trim() || 'Note from your case manager',
+        content: newNote.trim(),
+        createdBy: 'caseManager',
+        createdByName: state.caseWorkerProfile?.name || 'Case Manager',
+        isPrivate: false,
+      },
+    });
     setNewNote('');
+    setNewNoteTitle('');
     setShowAddNote(false);
+    Alert.alert(
+      'Note added',
+      `${selectedClient.name} can see this note in their Case Manager → Notes tab.`,
+    );
   };
 
   const formatTime = (timestamp: string) => {
@@ -966,6 +1005,58 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                   disabled={!newTaskTitle.trim()}
                 >
                   <Text style={styles.modalSaveText}>{t('caseworker.clientDetail.save')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Add Note Modal — one-way note from case worker to individual */}
+        <Modal visible={showAddNote} animationType="slide" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Write a note</Text>
+              <Text style={styles.modalSubtitle}>
+                {selectedClient?.name} will see this on their dashboard and in their Case Manager → Notes tab.
+              </Text>
+
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Title (optional)"
+                value={newNoteTitle}
+                onChangeText={setNewNoteTitle}
+                autoFocus
+              />
+
+              <TextInput
+                style={[styles.modalTextArea, { minHeight: 120 }]}
+                placeholder="What do you want to share with your client?"
+                value={newNote}
+                onChangeText={setNewNote}
+                multiline
+                textAlignVertical="top"
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => {
+                    setShowAddNote(false);
+                    setNewNote('');
+                    setNewNoteTitle('');
+                  }}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalSaveButton,
+                    !newNote.trim() && styles.modalSaveButtonDisabled,
+                  ]}
+                  onPress={handleAddNote}
+                  disabled={!newNote.trim()}
+                >
+                  <Text style={styles.modalSaveText}>Save note</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1788,7 +1879,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 24,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#7A7163',
+    marginBottom: 20,
+    lineHeight: 18,
   },
   modalInput: {
     backgroundColor: '#F3F4F6',

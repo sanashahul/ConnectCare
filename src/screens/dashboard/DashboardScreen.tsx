@@ -1476,31 +1476,73 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
         ))}
 
         {/* My Case Manager - at end */}
-        <TouchableOpacity
-          style={[styles.categoryCard, styles.caseManagerCard]}
-          onPress={() => navigation.navigate('CaseManager')}
-        >
-          <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
-            <Text style={styles.categoryIcon}>👤</Text>
-          </View>
-          <View style={styles.categoryTextContainer}>
-            <Text style={styles.categoryLabel}>
-              {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
-            </Text>
-            <Text style={styles.categorySubLabel}>
-              {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
-            </Text>
-          </View>
-          <Text style={styles.categoryChevron}>›</Text>
-        </TouchableOpacity>
+        {(() => {
+          const cm = state.caseManagerData;
+          const unreadMessages = cm?.unreadMessages || 0;
+          const pendingTasks = cm?.pendingTasks || 0;
+          const visibleNotes = (cm?.notes || []).filter((n) => !n.isPrivate).length;
+          const badgeCount = unreadMessages + pendingTasks + visibleNotes;
+          return (
+            <TouchableOpacity
+              style={[styles.categoryCard, styles.caseManagerCard]}
+              onPress={() => navigation.navigate('CaseManager')}
+            >
+              <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
+                <Text style={styles.categoryIcon}>👤</Text>
+              </View>
+              <View style={styles.categoryTextContainer}>
+                <Text style={styles.categoryLabel}>
+                  {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
+                </Text>
+                <Text style={styles.categorySubLabel}>
+                  {cm?.connection
+                    ? isSpanish
+                      ? `Conectado con ${cm.connection.caseManagerName}`
+                      : `Connected with ${cm.connection.caseManagerName}`
+                    : isSpanish
+                    ? 'Conectar y colaborar'
+                    : 'Connect & collaborate'}
+                </Text>
+              </View>
+              {badgeCount > 0 && (
+                <View style={styles.cmCardBadge}>
+                  <Text style={styles.cmCardBadgeText}>{badgeCount}</Text>
+                </View>
+              )}
+              <Text style={styles.categoryChevron}>›</Text>
+            </TouchableOpacity>
+          );
+        })()}
       </View>
     );
   };
 
   const renderTodos = () => {
     const todos = userProfile?.todos || [];
-    const pendingTodos = todos.filter((t) => !t.completed);
-    const completedTodos = todos.filter((t) => t.completed);
+
+    // Adapt case-manager tasks into the same shape as TodoItem so they
+    // render alongside the user's own todos in the same list. Each one
+    // gets a synthetic id prefixed with `cm-` so we can distinguish them
+    // when toggling completion (case-manager tasks dispatch a different
+    // action). The fromCaseManager flag drives the badge in the row.
+    const cmTasks = state.caseManagerData?.tasks || [];
+    const cmTodosAsTodos = cmTasks.map((t): any => ({
+      id: `cm-${t.id}`,
+      title: t.title,
+      description: t.description,
+      priority: t.priority === 'high' ? 'urgent' : 'normal',
+      completed: t.status === 'completed',
+      createdBy: 'caseworker' as const,
+      createdAt: t.createdAt,
+      category: (t.category as any) || 'other',
+      fromCaseManager: true,
+      caseManagerName: t.assignedByName,
+      _cmTaskId: t.id,
+    }));
+
+    const allTodos = [...todos, ...cmTodosAsTodos];
+    const pendingTodos = allTodos.filter((t) => !t.completed);
+    const completedTodos = allTodos.filter((t) => t.completed);
     const pendingCount = pendingTodos.length;
     const completedCount = completedTodos.length;
 
@@ -1636,7 +1678,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                       styles.todoCheckbox,
                       todo.completed && styles.todoCheckboxChecked,
                     ]}
-                    onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+                    onPress={() => {
+                      // Case-manager tasks dispatch a different action
+                      // because they live in caseManagerData.tasks, not
+                      // userProfile.todos.
+                      if ((todo as any).fromCaseManager) {
+                        dispatch({
+                          type: 'UPDATE_CM_TASK_STATUS',
+                          payload: {
+                            taskId: (todo as any)._cmTaskId,
+                            status: todo.completed ? 'pending' : 'completed',
+                          },
+                        });
+                      } else {
+                        dispatch({ type: 'TOGGLE_TODO', payload: todo.id });
+                      }
+                    }}
                   >
                     <Text style={styles.todoCheckmark}>
                       {todo.completed ? '✓' : ''}
@@ -1655,6 +1712,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                       <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
                         📝 {todo.description}
                       </Text>
+                    )}
+                    {/* From case manager badge */}
+                    {(todo as any).fromCaseManager && (
+                      <View style={styles.cmTaskBadge}>
+                        <Text style={styles.cmTaskBadgeText}>
+                          👤 {isSpanish ? 'De tu gestor' : 'From your case manager'}
+                          {(todo as any).caseManagerName ? ` · ${(todo as any).caseManagerName}` : ''}
+                        </Text>
+                      </View>
                     )}
                     {/* Resource type badge */}
                     {todo.resourceType && (
@@ -1681,12 +1747,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                       </View>
                     )}
                   </View>
-                  <TouchableOpacity
-                    style={styles.todoDeleteButton}
-                    onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
-                  >
-                  <Text style={styles.todoDeleteText}>×</Text>
-                </TouchableOpacity>
+                  {!(todo as any).fromCaseManager && (
+                    <TouchableOpacity
+                      style={styles.todoDeleteButton}
+                      onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+                    >
+                      <Text style={styles.todoDeleteText}>×</Text>
+                    </TouchableOpacity>
+                  )}
               </TouchableOpacity>
 
               {/* Action buttons for linked resources */}
@@ -2083,6 +2151,60 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           <Text style={styles.revisitSummaryArrow}>›</Text>
         </TouchableOpacity>
 
+        {/* Case manager note card — surfaces the latest visible note from
+            the user's case manager so they don't have to dig into the
+            Case Manager tab. Only renders if there's at least one note. */}
+        {(() => {
+          const visibleNotes = (state.caseManagerData?.notes || []).filter(
+            (n) => !n.isPrivate,
+          );
+          const unreadMessages = state.caseManagerData?.unreadMessages || 0;
+          if (visibleNotes.length === 0 && unreadMessages === 0) return null;
+          const latest = visibleNotes[visibleNotes.length - 1];
+          return (
+            <TouchableOpacity
+              style={styles.cmNoteCard}
+              onPress={() => navigation.navigate('CaseManager')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.cmNoteIcon}>📝</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cmNoteEyebrow}>
+                  {isSpanish
+                    ? `DE ${latest?.createdByName?.toUpperCase() || 'TU GESTOR'}`
+                    : `FROM ${latest?.createdByName?.toUpperCase() || 'YOUR CASE MANAGER'}`}
+                </Text>
+                {latest && (
+                  <>
+                    <Text style={styles.cmNoteTitle} numberOfLines={1}>
+                      {latest.title}
+                    </Text>
+                    <Text style={styles.cmNoteContent} numberOfLines={2}>
+                      {latest.content}
+                    </Text>
+                  </>
+                )}
+                {visibleNotes.length > 1 && (
+                  <Text style={styles.cmNoteMeta}>
+                    {isSpanish
+                      ? `+${visibleNotes.length - 1} más · toca para ver`
+                      : `+${visibleNotes.length - 1} more · tap to view`}
+                  </Text>
+                )}
+                {unreadMessages > 0 && (
+                  <View style={styles.cmNoteBadge}>
+                    <Text style={styles.cmNoteBadgeText}>
+                      {unreadMessages} {isSpanish ? 'mensaje sin leer' : 'unread message'}
+                      {unreadMessages > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.cmNoteArrow}>›</Text>
+            </TouchableOpacity>
+          );
+        })()}
+
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
           {isSpanish ? 'Explorar Recursos' : 'Explore Resources'}
@@ -2471,6 +2593,96 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+  },
+  cmNoteCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#E8EEF3',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#BFD0DF',
+  },
+  cmNoteIcon: {
+    fontSize: 26,
+    marginRight: 12,
+    marginTop: 2,
+  },
+  cmNoteEyebrow: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#5C7C99',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  cmNoteTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#2D4558',
+    marginBottom: 2,
+  },
+  cmNoteContent: {
+    fontSize: 13,
+    color: '#3E5A73',
+    lineHeight: 18,
+  },
+  cmNoteMeta: {
+    fontSize: 11,
+    color: '#5C7C99',
+    fontWeight: '600',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  cmNoteBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#5C7C99',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  cmNoteBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  cmNoteArrow: {
+    fontSize: 24,
+    color: '#5C7C99',
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  cmCardBadge: {
+    backgroundColor: '#5C7C99',
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  cmCardBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cmTaskBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E8EEF3',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#BFD0DF',
+  },
+  cmTaskBadgeText: {
+    color: '#2D4558',
+    fontSize: 11,
+    fontWeight: '700',
   },
   revisitSummaryIcon: {
     fontSize: 26,
