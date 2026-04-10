@@ -1137,6 +1137,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [youthBannerExpanded, setYouthBannerExpanded] = useState(false);
   const [todoView, setTodoView] = useState<'pending' | 'completed'>('pending');
+  // Which todo group categories are currently expanded in the rendered
+  // list. Managed per-category so users can drill into just one area
+  // without the full list dumping on them at once.
+  const [expandedTodoGroups, setExpandedTodoGroups] = useState<Record<string, boolean>>({});
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
     messageCount: 0,
@@ -1479,10 +1483,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
         {/* My Case Manager - at end */}
         {(() => {
           const cm = state.caseManagerData;
-          const unreadMessages = cm?.unreadMessages || 0;
           const pendingTasks = cm?.pendingTasks || 0;
           const visibleNotes = (cm?.notes || []).filter((n) => !n.isPrivate).length;
-          const badgeCount = unreadMessages + pendingTasks + visibleNotes;
+          const badgeCount = pendingTasks + visibleNotes;
           return (
             <TouchableOpacity
               style={[styles.categoryCard, styles.caseManagerCard]}
@@ -1517,6 +1520,101 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
       </View>
     );
   };
+
+  // Single source of truth for rendering a todo row. Used by both the
+  // "Focus today" hero section and the collapsible category groups so
+  // styling stays consistent.
+  const renderTodoRow = (todo: any) => (
+    <View key={todo.id} style={styles.todoItemContainer}>
+      <TouchableOpacity
+        style={styles.todoItem}
+        onPress={() => {
+          setSelectedTodo(todo);
+          setEditingTodoDescription(todo.description || '');
+        }}
+      >
+        <TouchableOpacity
+          style={[
+            styles.todoCheckbox,
+            todo.completed && styles.todoCheckboxChecked,
+          ]}
+          onPress={() => {
+            // Case-manager tasks dispatch a different action because
+            // they live in caseManagerData.tasks, not userProfile.todos.
+            if (todo.fromCaseManager) {
+              dispatch({
+                type: 'UPDATE_CM_TASK_STATUS',
+                payload: {
+                  taskId: todo._cmTaskId,
+                  status: todo.completed ? 'pending' : 'completed',
+                },
+              });
+            } else {
+              dispatch({ type: 'TOGGLE_TODO', payload: todo.id });
+            }
+          }}
+        >
+          <Text style={styles.todoCheckmark}>
+            {todo.completed ? '✓' : ''}
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.todoContent}>
+          <Text
+            style={[
+              styles.todoText,
+              todo.completed && styles.todoTextCompleted,
+            ]}
+          >
+            {todo.title}
+          </Text>
+          {todo.description && (
+            <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
+              📝 {todo.description}
+            </Text>
+          )}
+          {todo.fromCaseManager && (
+            <View style={styles.cmTaskBadge}>
+              <Text style={styles.cmTaskBadgeText}>
+                👤 {isSpanish ? 'De tu gestor' : 'From your case manager'}
+                {todo.caseManagerName ? ` · ${todo.caseManagerName}` : ''}
+              </Text>
+            </View>
+          )}
+          {todo.resourceType && (
+            <View style={[
+              styles.todoResourceBadge,
+              todo.resourceType === 'job' && { backgroundColor: '#F6EEDD' },
+              todo.resourceType === 'housing' && { backgroundColor: '#F8EBE2' },
+              todo.resourceType === 'clinic' && { backgroundColor: '#EAF2EE' },
+            ]}>
+              <Text style={[
+                styles.todoResourceBadgeText,
+                todo.resourceType === 'job' && { color: '#B8915A' },
+                todo.resourceType === 'housing' && { color: '#C68568' },
+                todo.resourceType === 'clinic' && { color: '#5E8B7E' },
+              ]}>
+                {todo.resourceType === 'job' ? '💼' : todo.resourceType === 'housing' ? '🏠' : '🏥'}
+                {' '}
+                {todo.resourceType === 'job'
+                  ? (isSpanish ? 'Empleo' : 'Job')
+                  : todo.resourceType === 'housing'
+                  ? (isSpanish ? 'Vivienda' : 'Housing')
+                  : (isSpanish ? 'Salud' : 'Health')}
+              </Text>
+            </View>
+          )}
+        </View>
+        {!todo.fromCaseManager && (
+          <TouchableOpacity
+            style={styles.todoDeleteButton}
+            onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+          >
+            <Text style={styles.todoDeleteText}>×</Text>
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderTodos = () => {
     const todos = userProfile?.todos || [];
@@ -1653,140 +1751,88 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           </View>
         ) : (
           <>
-            {groupOrder.flatMap((groupKey) => {
-              const items = groups[groupKey];
-              if (!items || items.length === 0) return [];
-              const meta = groupMeta[groupKey] || groupMeta.other;
-              return [
-                <View key={`group-${groupKey}`} style={styles.todoGroupHeader}>
-                  <Text style={styles.todoGroupIcon}>{meta.icon}</Text>
-                  <Text style={styles.todoGroupLabel}>
-                    {isSpanish ? meta.labelEs : meta.label}
-                  </Text>
-                  <Text style={styles.todoGroupCount}>{items.length}</Text>
-                </View>,
-                ...items.map((todo) => (
-              <View key={todo.id} style={styles.todoItemContainer}>
-                <TouchableOpacity
-                  style={styles.todoItem}
-                  onPress={() => {
-                    setSelectedTodo(todo);
-                    setEditingTodoDescription(todo.description || '');
-                  }}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.todoCheckbox,
-                      todo.completed && styles.todoCheckboxChecked,
-                    ]}
-                    onPress={() => {
-                      // Case-manager tasks dispatch a different action
-                      // because they live in caseManagerData.tasks, not
-                      // userProfile.todos.
-                      if ((todo as any).fromCaseManager) {
-                        dispatch({
-                          type: 'UPDATE_CM_TASK_STATUS',
-                          payload: {
-                            taskId: (todo as any)._cmTaskId,
-                            status: todo.completed ? 'pending' : 'completed',
-                          },
-                        });
-                      } else {
-                        dispatch({ type: 'TOGGLE_TODO', payload: todo.id });
-                      }
-                    }}
-                  >
-                    <Text style={styles.todoCheckmark}>
-                      {todo.completed ? '✓' : ''}
-                    </Text>
-                  </TouchableOpacity>
-                  <View style={styles.todoContent}>
-                    <Text
-                      style={[
-                        styles.todoText,
-                        todo.completed && styles.todoTextCompleted,
-                      ]}
-                    >
-                      {todo.title}
-                    </Text>
-                    {todo.description && (
-                      <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
-                        📝 {todo.description}
-                      </Text>
-                    )}
-                    {/* From case manager badge */}
-                    {(todo as any).fromCaseManager && (
-                      <View style={styles.cmTaskBadge}>
-                        <Text style={styles.cmTaskBadgeText}>
-                          👤 {isSpanish ? 'De tu gestor' : 'From your case manager'}
-                          {(todo as any).caseManagerName ? ` · ${(todo as any).caseManagerName}` : ''}
-                        </Text>
-                      </View>
-                    )}
-                    {/* Resource type badge */}
-                    {todo.resourceType && (
-                      <View style={[
-                        styles.todoResourceBadge,
-                        todo.resourceType === 'job' && { backgroundColor: '#F6EEDD' },
-                        todo.resourceType === 'housing' && { backgroundColor: '#F8EBE2' },
-                        todo.resourceType === 'clinic' && { backgroundColor: '#EAF2EE' },
-                      ]}>
-                        <Text style={[
-                          styles.todoResourceBadgeText,
-                          todo.resourceType === 'job' && { color: '#B8915A' },
-                          todo.resourceType === 'housing' && { color: '#C68568' },
-                          todo.resourceType === 'clinic' && { color: '#5E8B7E' },
-                        ]}>
-                          {todo.resourceType === 'job' ? '💼' : todo.resourceType === 'housing' ? '🏠' : '🏥'}
-                          {' '}
-                          {todo.resourceType === 'job'
-                            ? (isSpanish ? 'Empleo' : 'Job')
-                            : todo.resourceType === 'housing'
-                              ? (isSpanish ? 'Vivienda' : 'Housing')
-                              : (isSpanish ? 'Salud' : 'Health')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  {!(todo as any).fromCaseManager && (
-                    <TouchableOpacity
-                      style={styles.todoDeleteButton}
-                      onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
-                    >
-                      <Text style={styles.todoDeleteText}>×</Text>
-                    </TouchableOpacity>
-                  )}
-              </TouchableOpacity>
+            {(() => {
+              // Sort shownTodos by priority (urgent first) then recency
+              // so the "Focus today" section pulls the most pressing items.
+              const sortedByPriority = [...shownTodos].sort((a, b) => {
+                const aUrgent = a.priority === 'urgent' ? 0 : 1;
+                const bUrgent = b.priority === 'urgent' ? 0 : 1;
+                if (aUrgent !== bUrgent) return aUrgent - bUrgent;
+                return (
+                  new Date(b.createdAt || 0).getTime() -
+                  new Date(a.createdAt || 0).getTime()
+                );
+              });
 
-              {/* Action buttons for linked resources */}
-              {(todo.resourceUrl || todo.resourcePhone) && (
-                <View style={styles.todoActions}>
-                  {todo.resourcePhone && (
-                    <TouchableOpacity
-                      style={styles.todoActionButton}
-                      onPress={() => Linking.openURL(`tel:${todo.resourcePhone}`)}
-                    >
-                      <Text style={styles.todoActionButtonText}>
-                        📞 {isSpanish ? 'Llamar' : 'Call'}
+              // Show the "Focus today" section only on the Pending tab
+              // and only when there are more than 3 items (otherwise the
+              // full list already IS the focus — no point duplicating).
+              const showFocus =
+                todoView === 'pending' && sortedByPriority.length > 3;
+              const focusTodos = showFocus ? sortedByPriority.slice(0, 3) : [];
+              const focusIds = new Set(focusTodos.map((t) => t.id));
+
+              // Find the first non-empty group — that one starts expanded
+              // by default so the list isn't completely collapsed on load.
+              const firstNonEmptyGroup = groupOrder.find(
+                (k) => (groups[k] || []).length > 0,
+              );
+
+              return (
+                <>
+                  {showFocus && (
+                    <View style={styles.focusSection}>
+                      <Text style={styles.focusSectionTitle}>
+                        ✨ {isSpanish ? 'Enfócate hoy' : 'Focus today'}
                       </Text>
-                    </TouchableOpacity>
-                  )}
-                  {todo.resourceUrl && (
-                    <TouchableOpacity
-                      style={[styles.todoActionButton, styles.todoActionButtonPrimary]}
-                      onPress={() => Linking.openURL(todo.resourceUrl!)}
-                    >
-                      <Text style={styles.todoActionButtonTextPrimary}>
-                        🌐 {isSpanish ? 'Ir al sitio' : 'Go to site'}
+                      <Text style={styles.focusSectionSubtitle}>
+                        {isSpanish
+                          ? 'Tus 3 tareas más importantes ahora mismo'
+                          : 'Your top 3 tasks right now'}
                       </Text>
-                    </TouchableOpacity>
+                      {focusTodos.map(renderTodoRow)}
+                    </View>
                   )}
-                </View>
-              )}
-            </View>
-                )),
-              ];
-            })}
+
+                  {groupOrder.map((groupKey) => {
+                    // When Focus is showing, exclude its items from the
+                    // groups below so nothing renders twice.
+                    const items = (groups[groupKey] || []).filter(
+                      (t) => !focusIds.has(t.id),
+                    );
+                    if (items.length === 0) return null;
+                    const meta = groupMeta[groupKey] || groupMeta.other;
+                    const isExpanded =
+                      expandedTodoGroups[groupKey] ??
+                      groupKey === firstNonEmptyGroup;
+                    return (
+                      <View key={`group-${groupKey}`}>
+                        <TouchableOpacity
+                          style={styles.todoGroupHeader}
+                          onPress={() =>
+                            setExpandedTodoGroups({
+                              ...expandedTodoGroups,
+                              [groupKey]: !isExpanded,
+                            })
+                          }
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.todoGroupIcon}>{meta.icon}</Text>
+                          <Text style={styles.todoGroupLabel}>
+                            {isSpanish ? meta.labelEs : meta.label}
+                          </Text>
+                          <Text style={styles.todoGroupCount}>{items.length}</Text>
+                          <Text style={styles.todoGroupChevron}>
+                            {isExpanded ? '▾' : '▸'}
+                          </Text>
+                        </TouchableOpacity>
+                        {isExpanded && items.map(renderTodoRow)}
+                      </View>
+                    );
+                  })}
+                </>
+              );
+            })()}
           </>
         )}
       </View>
@@ -2159,8 +2205,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
           const visibleNotes = (state.caseManagerData?.notes || []).filter(
             (n) => !n.isPrivate,
           );
-          const unreadMessages = state.caseManagerData?.unreadMessages || 0;
-          if (visibleNotes.length === 0 && unreadMessages === 0) return null;
+          if (visibleNotes.length === 0) return null;
           const latest = visibleNotes[visibleNotes.length - 1];
           return (
             <TouchableOpacity
@@ -2175,30 +2220,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                     ? `DE ${latest?.createdByName?.toUpperCase() || 'TU GESTOR'}`
                     : `FROM ${latest?.createdByName?.toUpperCase() || 'YOUR CASE MANAGER'}`}
                 </Text>
-                {latest && (
-                  <>
-                    <Text style={styles.cmNoteTitle} numberOfLines={1}>
-                      {latest.title}
-                    </Text>
-                    <Text style={styles.cmNoteContent} numberOfLines={2}>
-                      {latest.content}
-                    </Text>
-                  </>
-                )}
+                <Text style={styles.cmNoteTitle} numberOfLines={1}>
+                  {latest.title}
+                </Text>
+                <Text style={styles.cmNoteContent} numberOfLines={2}>
+                  {latest.content}
+                </Text>
                 {visibleNotes.length > 1 && (
                   <Text style={styles.cmNoteMeta}>
                     {isSpanish
                       ? `+${visibleNotes.length - 1} más · toca para ver`
                       : `+${visibleNotes.length - 1} more · tap to view`}
                   </Text>
-                )}
-                {unreadMessages > 0 && (
-                  <View style={styles.cmNoteBadge}>
-                    <Text style={styles.cmNoteBadgeText}>
-                      {unreadMessages} {isSpanish ? 'mensaje sin leer' : 'unread message'}
-                      {unreadMessages > 1 ? 's' : ''}
-                    </Text>
-                  </View>
                 )}
               </View>
               <Text style={styles.cmNoteArrow}>›</Text>
@@ -2890,6 +2923,32 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minWidth: 22,
     textAlign: 'center',
+  },
+  todoGroupChevron: {
+    fontSize: 18,
+    color: '#94A3B8',
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+  focusSection: {
+    backgroundColor: '#FAF8F5',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E8E4DC',
+  },
+  focusSectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#4A4236',
+    marginBottom: 4,
+  },
+  focusSectionSubtitle: {
+    fontSize: 12,
+    color: '#7A7163',
+    marginBottom: 10,
+    fontStyle: 'italic',
   },
   todosSection: {
     marginHorizontal: 20,

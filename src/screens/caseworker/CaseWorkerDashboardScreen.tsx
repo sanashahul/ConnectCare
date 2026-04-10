@@ -105,7 +105,7 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const { state, dispatch } = useApp();
   const [mainView, setMainView] = useState<'clients' | 'mytasks'>('clients');
   const [selectedClient, setSelectedClient] = useState<UserProfile | null>(null);
-  const [activeTab, setActiveTab] = useState<'todos' | 'messages' | 'notes' | 'profile'>('todos');
+  const [activeTab, setActiveTab] = useState<'todos' | 'notes' | 'profile'>('todos');
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
@@ -115,12 +115,10 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
   const [newClientCode, setNewClientCode] = useState('');
   const [addClientError, setAddClientError] = useState('');
   const [addClientLoading, setAddClientLoading] = useState(false);
-  const [messageInput, setMessageInput] = useState('');
   const [newNote, setNewNote] = useState('');
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [showAddNote, setShowAddNote] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TodoItem | null>(null);
-  const messagesScrollRef = useRef<ScrollView>(null);
 
   // Personal to-dos state
   const [personalTodos, setPersonalTodos] = useState<PersonalTodo[]>([
@@ -304,26 +302,6 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
       }
       setAddClientLoading(false);
     }, 1000);
-  };
-
-  const handleSendMessage = () => {
-    if (!selectedClient || !messageInput.trim()) return;
-
-    // Demo mode: dispatch to the shared caseManagerData slice so the
-    // individual's CaseManager screen sees the message immediately when
-    // they switch back to user mode on the same device. Real backend
-    // sync replaces this with a Supabase insert later.
-    dispatch({
-      type: 'ADD_CM_MESSAGE',
-      payload: {
-        senderId: state.caseWorkerProfile?.id || 'caseworker',
-        senderType: 'caseManager',
-        senderName: state.caseWorkerProfile?.name || 'Case Manager',
-        content: messageInput.trim(),
-        read: false,
-      },
-    });
-    setMessageInput('');
   };
 
   const handleAddNote = () => {
@@ -665,14 +643,6 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.detailTab, activeTab === 'messages' && styles.detailTabActive]}
-            onPress={() => setActiveTab('messages')}
-          >
-            <Text style={[styles.detailTabText, activeTab === 'messages' && styles.detailTabTextActive]}>
-              💬 Chat
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={[styles.detailTab, activeTab === 'notes' && styles.detailTabActive]}
             onPress={() => setActiveTab('notes')}
           >
@@ -769,53 +739,6 @@ export const CaseWorkerDashboardScreen: React.FC = () => {
                 </>
               )}
             </View>
-          )}
-
-          {activeTab === 'messages' && (
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.messagesContainer}
-            >
-              <ScrollView
-                ref={messagesScrollRef}
-                style={styles.messagesList}
-                contentContainerStyle={styles.messagesContent}
-              >
-                {/* Demo messages */}
-                <View style={styles.messageDate}>
-                  <Text style={styles.messageDateText}>Today</Text>
-                </View>
-                <View style={[styles.messageBubble, styles.messageBubbleClient]}>
-                  <Text style={styles.messageText}>Hi, I have a question about my housing application.</Text>
-                  <Text style={styles.messageTime}>9:30 AM</Text>
-                </View>
-                <View style={[styles.messageBubble, styles.messageBubbleCM]}>
-                  <Text style={[styles.messageText, styles.messageTextCM]}>Of course! What would you like to know?</Text>
-                  <Text style={[styles.messageTime, styles.messageTimeCM]}>9:32 AM</Text>
-                </View>
-                <View style={styles.emptyMessages}>
-                  <Text style={styles.emptyMessagesText}>
-                    Messages sync with the client's app in real-time
-                  </Text>
-                </View>
-              </ScrollView>
-              <View style={styles.messageInputContainer}>
-                <TextInput
-                  style={styles.messageInput}
-                  placeholder="Type a message..."
-                  value={messageInput}
-                  onChangeText={setMessageInput}
-                  multiline
-                />
-                <TouchableOpacity
-                  style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
-                  onPress={handleSendMessage}
-                  disabled={!messageInput.trim()}
-                >
-                  <Text style={styles.sendButtonText}>Send</Text>
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
           )}
 
           {activeTab === 'notes' && (

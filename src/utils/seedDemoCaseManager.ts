@@ -40,35 +40,7 @@ export const seedDemoCaseManager = (
     },
   });
 
-  // 2. Welcome message + a small back-and-forth conversation
-  const messages = isSpanish
-    ? [
-        'Hola, soy Sarah, tu gestora de caso. Estoy aquí para ayudarte. ¿Cómo te encuentras hoy?',
-        '¡Hola Sarah! Necesito ayuda para encontrar refugio esta semana.',
-        'Por supuesto. He agregado algunas tareas a tu lista — empieza llamando al 211. También te dejé una nota con los pasos.',
-        'Gracias, lo haré hoy.',
-      ]
-    : [
-        "Hi, I'm Sarah, your case manager. I'm here to help you. How are you doing today?",
-        'Hi Sarah! I need help finding shelter this week.',
-        "Of course. I've added a few tasks to your list — start with calling 211. I also left you a note with the steps.",
-        "Thanks, I'll do that today.",
-      ];
-
-  messages.forEach((content, idx) => {
-    dispatch({
-      type: 'ADD_CM_MESSAGE',
-      payload: {
-        senderId: idx % 2 === 0 ? caseManagerId : 'user',
-        senderType: idx % 2 === 0 ? 'caseManager' : 'user',
-        senderName: idx % 2 === 0 ? caseManagerName : 'You',
-        content,
-        read: false,
-      },
-    });
-  });
-
-  // 3. Tasks — mix of pending + one already completed
+  // 2. Tasks — mix of pending + one already completed
   const tasks = isSpanish
     ? [
         {
@@ -148,7 +120,7 @@ export const seedDemoCaseManager = (
     });
   });
 
-  // 4. Notes — three rich notes covering welcome, an action plan, and
+  // 3. Notes — three rich notes covering welcome, an action plan, and
   // a follow-up after the first meeting
   const notes = isSpanish
     ? [

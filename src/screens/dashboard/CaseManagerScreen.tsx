@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
   Modal,
 } from 'react-native';
@@ -29,7 +27,7 @@ type CaseManagerScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-type TabType = 'messages' | 'tasks' | 'notes' | 'connect';
+type TabType = 'tasks' | 'notes' | 'connect';
 
 const TASK_CATEGORIES: { id: TaskCategory; label: string; labelEs: string; icon: string }[] = [
   { id: 'housing', label: 'Housing', labelEs: 'Vivienda', icon: '🏠' },
@@ -45,7 +43,6 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('connect');
-  const [messageInput, setMessageInput] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [selectedTask, setSelectedTask] = useState<CaseManagerTask | null>(null);
@@ -61,39 +58,12 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
   const cmData = state.caseManagerData;
   const isConnected = cmData.connection?.status === 'active';
 
-  // Mark messages as read when viewing messages tab
-  useEffect(() => {
-    if (activeTab === 'messages' && cmData.unreadMessages > 0) {
-      dispatch({ type: 'MARK_CM_MESSAGES_READ' });
-    }
-  }, [activeTab]);
-
   const handleCopyCode = async () => {
     if (userProfile?.shareCode) {
       await Clipboard.setStringAsync(userProfile.shareCode);
       setCodeCopied(true);
       setTimeout(() => setCodeCopied(false), 2000);
     }
-  };
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim()) return;
-
-    dispatch({
-      type: 'ADD_CM_MESSAGE',
-      payload: {
-        senderId: userProfile?.id || '',
-        senderType: 'user',
-        senderName: userProfile?.name || 'You',
-        content: messageInput.trim(),
-        read: true,
-      },
-    });
-
-    setMessageInput('');
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
   };
 
   const handleToggleTaskStatus = (taskId: string, currentStatus: TaskStatus) => {
@@ -162,21 +132,6 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
         <Text style={[styles.tabText, activeTab === 'connect' && styles.tabTextActive]}>
           {isSpanish ? 'Conectar' : 'Connect'}
         </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.tab, activeTab === 'messages' && styles.tabActive]}
-        onPress={() => setActiveTab('messages')}
-      >
-        <Text style={styles.tabIcon}>💬</Text>
-        <Text style={[styles.tabText, activeTab === 'messages' && styles.tabTextActive]}>
-          {isSpanish ? 'Mensajes' : 'Messages'}
-        </Text>
-        {cmData.unreadMessages > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{cmData.unreadMessages}</Text>
-          </View>
-        )}
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -305,82 +260,6 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
         </TouchableOpacity>
       )}
     </ScrollView>
-  );
-
-  const renderMessagesTab = () => (
-    <KeyboardAvoidingView
-      style={styles.messagesContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-    >
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.messagesList}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
-      >
-        {cmData.messages.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateIcon}>💬</Text>
-            <Text style={styles.emptyStateTitle}>
-              {isSpanish ? 'No hay mensajes' : 'No messages yet'}
-            </Text>
-            <Text style={styles.emptyStateSubtitle}>
-              {isConnected
-                ? (isSpanish ? 'Envía un mensaje a tu gestor de caso' : 'Send a message to your case manager')
-                : (isSpanish ? 'Conecta con un gestor de caso primero' : 'Connect with a case manager first')}
-            </Text>
-          </View>
-        ) : (
-          cmData.messages.map((message) => (
-            <View
-              key={message.id}
-              style={[
-                styles.messageBubble,
-                message.senderType === 'user' ? styles.messageBubbleUser : styles.messageBubbleCM,
-              ]}
-            >
-              {message.senderType === 'caseManager' && (
-                <Text style={styles.messageSender}>{message.senderName}</Text>
-              )}
-              <Text style={[
-                styles.messageText,
-                message.senderType === 'user' ? styles.messageTextUser : styles.messageTextCM,
-              ]}>
-                {message.content}
-              </Text>
-              <Text style={[
-                styles.messageTime,
-                message.senderType === 'user' ? styles.messageTimeUser : styles.messageTimeCM,
-              ]}>
-                {formatTime(message.timestamp)}
-              </Text>
-            </View>
-          ))
-        )}
-      </ScrollView>
-
-      {isConnected && (
-        <View style={styles.messageInputContainer}>
-          <TextInput
-            style={styles.messageInput}
-            value={messageInput}
-            onChangeText={setMessageInput}
-            placeholder={isSpanish ? 'Escribe un mensaje...' : 'Type a message...'}
-            placeholderTextColor="#94A3B8"
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
-            onPress={handleSendMessage}
-            disabled={!messageInput.trim()}
-          >
-            <Text style={styles.sendButtonText}>→</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </KeyboardAvoidingView>
   );
 
   const renderTasksTab = () => {
@@ -572,7 +451,6 @@ export const CaseManagerScreen: React.FC<CaseManagerScreenProps> = ({ navigation
 
       {/* Tab Content */}
       {activeTab === 'connect' && renderConnectTab()}
-      {activeTab === 'messages' && renderMessagesTab()}
       {activeTab === 'tasks' && renderTasksTab()}
       {activeTab === 'notes' && renderNotesTab()}
 
