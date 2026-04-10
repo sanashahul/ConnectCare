@@ -9,11 +9,10 @@ export default {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
-    // Runtime version tied to the app version. When you bump
-    // expo.version, Expo Go loads the new bundle automatically.
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    // Runtime version as a literal string (required for bare workflow).
+    // Bump this whenever you change native code; JS-only updates can
+    // use the same runtimeVersion and stream via `eas update`.
+    runtimeVersion: "1.0.0",
     updates: {
       url: "https://u.expo.dev/10983464-0e42-4b2e-b720-e031c5e34712"
     },
