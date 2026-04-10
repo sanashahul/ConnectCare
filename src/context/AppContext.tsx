@@ -85,6 +85,7 @@ type AppAction =
   | { type: 'ADD_TODO'; payload: Omit<TodoItem, 'id' | 'createdAt'> }
   | { type: 'UPDATE_TODO_DESCRIPTION'; payload: { todoId: string; description: string } }
   | { type: 'TOGGLE_TODO'; payload: string }
+  | { type: 'TOGGLE_TODO_FOCUS'; payload: string }
   | { type: 'DELETE_TODO'; payload: string }
   | { type: 'SET_CASEWORKER_PROFILE'; payload: CaseWorkerProfile }
   | { type: 'ADD_CLIENT'; payload: UserProfile }
@@ -275,6 +276,20 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       const todos = state.userProfile?.todos || [];
       const updatedTodos = todos.map((todo) =>
         todo.id === action.payload ? { ...todo, completed: !todo.completed } : todo
+      );
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          todos: updatedTodos,
+        },
+      };
+    }
+
+    case 'TOGGLE_TODO_FOCUS': {
+      const todos = state.userProfile?.todos || [];
+      const updatedTodos = todos.map((todo) =>
+        todo.id === action.payload ? { ...todo, focused: !todo.focused } : todo
       );
       return {
         ...state,

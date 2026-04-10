@@ -51,6 +51,8 @@ export interface TodoItem {
   completed: boolean;
   createdBy: 'individual' | 'caseworker';
   createdAt: string;
+  /** When true, the user has pinned this item to the "Focus today" section. */
+  focused?: boolean;
   // Resource linking for clickable to-do items
   resourceType?: 'job' | 'housing' | 'clinic';
   resourceUrl?: string;

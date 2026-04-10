@@ -1521,9 +1521,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
     );
   };
 
-  // Single source of truth for rendering a todo row. Used by both the
-  // "Focus today" hero section and the collapsible category groups so
-  // styling stays consistent.
+  // Single source of truth for rendering a todo row. Used by the
+  // "Focus today" hero section, the pinned case-manager section, and
+  // the collapsible category groups so styling stays consistent.
   const renderTodoRow = (todo: any) => (
     <View
       key={todo.id}
@@ -1533,14 +1533,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
       ]}
     >
       <TouchableOpacity
-        style={[
-          styles.todoItem,
-          todo.fromCaseManager && { borderBottomWidth: 0 },
-        ]}
+        style={styles.todoItem}
         onPress={() => {
           setSelectedTodo(todo);
           setEditingTodoDescription(todo.description || '');
         }}
+        activeOpacity={0.7}
       >
         <TouchableOpacity
           style={[
@@ -1613,10 +1611,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
             </View>
           )}
         </View>
+        {/* Star / focus toggle — user can pin any task to "Focus today".
+            Case-manager tasks are always pinned so they don't get a star. */}
+        {!todo.fromCaseManager && (
+          <TouchableOpacity
+            style={styles.todoStarButton}
+            onPress={() => dispatch({ type: 'TOGGLE_TODO_FOCUS', payload: todo.id })}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={[styles.todoStar, todo.focused && styles.todoStarActive]}>
+              {todo.focused ? '⭐' : '☆'}
+            </Text>
+          </TouchableOpacity>
+        )}
         {!todo.fromCaseManager && (
           <TouchableOpacity
             style={styles.todoDeleteButton}
             onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.todoDeleteText}>×</Text>
           </TouchableOpacity>
@@ -1761,61 +1773,101 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
         ) : (
           <>
             {(() => {
-              // Sort shownTodos by priority (urgent first) then recency
-              // so the "Focus today" section pulls the most pressing items.
-              const sortedByPriority = [...shownTodos].sort((a, b) => {
-                const aUrgent = a.priority === 'urgent' ? 0 : 1;
-                const bUrgent = b.priority === 'urgent' ? 0 : 1;
-                if (aUrgent !== bUrgent) return aUrgent - bUrgent;
-                return (
-                  new Date(b.createdAt || 0).getTime() -
-                  new Date(a.createdAt || 0).getTime()
-                );
-              });
+              // Partition into three buckets:
+              //   1. Case-manager tasks     → pinned section at top
+              //   2. User-pinned focused    → Focus Today
+              //   3. Everything else        → category groups
+              const cmItems = shownTodos.filter((t) => t.fromCaseManager);
+              const userItems = shownTodos.filter((t) => !t.fromCaseManager);
 
-              // Show the "Focus today" section only on the Pending tab
-              // and only when there are more than 3 items (otherwise the
-              // full list already IS the focus — no point duplicating).
-              const showFocus =
-                todoView === 'pending' && sortedByPriority.length > 3;
-              const focusTodos = showFocus ? sortedByPriority.slice(0, 3) : [];
+              // User-pinned focused items always show in Focus Today.
+              // If the user hasn't pinned anything, we auto-pick the top 3
+              // by priority so the section isn't empty.
+              const explicitlyFocused = userItems.filter((t) => t.focused);
+              const autoFocus = (() => {
+                if (explicitlyFocused.length > 0) return [];
+                if (todoView !== 'pending') return [];
+                if (userItems.length <= 3) return [];
+                return [...userItems]
+                  .sort((a, b) => {
+                    const aU = a.priority === 'urgent' ? 0 : 1;
+                    const bU = b.priority === 'urgent' ? 0 : 1;
+                    if (aU !== bU) return aU - bU;
+                    return (
+                      new Date(b.createdAt || 0).getTime() -
+                      new Date(a.createdAt || 0).getTime()
+                    );
+                  })
+                  .slice(0, 3);
+              })();
+              const focusTodos =
+                todoView === 'pending'
+                  ? [...explicitlyFocused, ...autoFocus]
+                  : [];
               const focusIds = new Set(focusTodos.map((t) => t.id));
 
-              // Find the first non-empty group — that one starts expanded
-              // by default so the list isn't completely collapsed on load.
+              // Rebuild groups from only user items that aren't already
+              // in Focus (CM items were already excluded above).
+              const visibleGroups: Record<string, typeof userItems> = {};
+              userItems.forEach((t) => {
+                if (focusIds.has(t.id)) return;
+                const key =
+                  t.category && knownCategories.has(t.category) ? t.category : 'other';
+                if (!visibleGroups[key]) visibleGroups[key] = [];
+                visibleGroups[key].push(t);
+              });
               const firstNonEmptyGroup = groupOrder.find(
-                (k) => (groups[k] || []).length > 0,
+                (k) => (visibleGroups[k] || []).length > 0,
               );
 
               return (
                 <>
-                  {showFocus && (
+                  {/* Pinned "From your case manager" section. Always at
+                      the top when CM tasks exist. */}
+                  {cmItems.length > 0 && (
+                    <View style={styles.cmPinnedSection}>
+                      <View style={styles.cmPinnedHeader}>
+                        <Text style={styles.cmPinnedIcon}>👤</Text>
+                        <Text style={styles.cmPinnedTitle}>
+                          {isSpanish
+                            ? 'De tu gestor de caso'
+                            : 'From your case manager'}
+                        </Text>
+                        <Text style={styles.cmPinnedCount}>{cmItems.length}</Text>
+                      </View>
+                      {cmItems.map(renderTodoRow)}
+                    </View>
+                  )}
+
+                  {/* Focus today — pinned items + optional auto-picks */}
+                  {focusTodos.length > 0 && (
                     <View style={styles.focusSection}>
                       <Text style={styles.focusSectionTitle}>
                         ✨ {isSpanish ? 'Enfócate hoy' : 'Focus today'}
                       </Text>
                       <Text style={styles.focusSectionSubtitle}>
-                        {isSpanish
-                          ? 'Tus 3 tareas más importantes ahora mismo'
-                          : 'Your top 3 tasks right now'}
+                        {explicitlyFocused.length > 0
+                          ? isSpanish
+                            ? 'Tus tareas fijadas — toca ⭐ para quitar'
+                            : 'Your pinned tasks — tap ⭐ to unpin'
+                          : isSpanish
+                          ? 'Tus tareas más importantes — toca ☆ en cualquier tarea para fijarla'
+                          : 'Your top tasks — tap ☆ on any task to pin it'}
                       </Text>
                       {focusTodos.map(renderTodoRow)}
                     </View>
                   )}
 
+                  {/* Category groups — each one is a panel */}
                   {groupOrder.map((groupKey) => {
-                    // When Focus is showing, exclude its items from the
-                    // groups below so nothing renders twice.
-                    const items = (groups[groupKey] || []).filter(
-                      (t) => !focusIds.has(t.id),
-                    );
+                    const items = visibleGroups[groupKey] || [];
                     if (items.length === 0) return null;
                     const meta = groupMeta[groupKey] || groupMeta.other;
                     const isExpanded =
                       expandedTodoGroups[groupKey] ??
                       groupKey === firstNonEmptyGroup;
                     return (
-                      <View key={`group-${groupKey}`}>
+                      <View key={`group-${groupKey}`} style={styles.todoGroupPanel}>
                         <TouchableOpacity
                           style={styles.todoGroupHeader}
                           onPress={() =>
@@ -1835,7 +1887,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                             {isExpanded ? '▾' : '▸'}
                           </Text>
                         </TouchableOpacity>
-                        {isExpanded && items.map(renderTodoRow)}
+                        {isExpanded && (
+                          <View style={styles.todoGroupBody}>
+                            {items.map(renderTodoRow)}
+                          </View>
+                        )}
                       </View>
                     );
                   })}
@@ -2906,8 +2962,7 @@ const styles = StyleSheet.create({
   todoGroupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 14,
-    paddingBottom: 6,
+    paddingVertical: 6,
     paddingHorizontal: 4,
     gap: 8,
   },
@@ -2940,24 +2995,74 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   focusSection: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: '#FDF4E3',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E8E4DC',
+    borderColor: '#E4BE76',
   },
   focusSectionTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#4A4236',
+    color: '#7A4E1F',
     marginBottom: 4,
   },
   focusSectionSubtitle: {
     fontSize: 12,
-    color: '#7A7163',
+    color: '#92661F',
     marginBottom: 10,
     fontStyle: 'italic',
+  },
+  // Pinned "From your case manager" section — always at the top
+  cmPinnedSection: {
+    backgroundColor: '#E8EEF3',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#BFD0DF',
+  },
+  cmPinnedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  cmPinnedIcon: {
+    fontSize: 18,
+  },
+  cmPinnedTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#2D4558',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  cmPinnedCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    backgroundColor: '#5C7C99',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 22,
+    textAlign: 'center',
+  },
+  // Category groups are now visual panels with a warm neutral bg so
+  // the individual white todo cards inside stand out.
+  todoGroupPanel: {
+    backgroundColor: '#FAF8F5',
+    borderRadius: 14,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E8E4DC',
+  },
+  todoGroupBody: {
+    marginTop: 4,
   },
   todosSection: {
     marginHorizontal: 20,
@@ -2976,9 +3081,8 @@ const styles = StyleSheet.create({
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
   todoCheckbox: {
     width: 24,
@@ -3014,21 +3118,39 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
   },
+  // Each todo row is its own white card with a subtle border + shadow,
+  // so items are visually distinct and easy to scan.
   todoItemContainer: {
-    marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E8E4DC',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  // Case-manager tasks get a distinctive treatment so users can tell
-  // at a glance which items were assigned by their case worker vs.
-  // their own todos: a 4px dusty-blue stripe on the left edge plus a
-  // faint dusty-blue tinted background.
+  // Case-manager tasks get a distinctive treatment: dusty-blue left
+  // stripe + faint dusty-blue tinted background, on top of the
+  // standard card.
   todoItemContainerCM: {
     backgroundColor: '#F4F8FB',
     borderLeftWidth: 4,
     borderLeftColor: '#5C7C99',
-    borderRadius: 10,
-    paddingLeft: 10,
-    paddingRight: 8,
-    marginBottom: 10,
+    borderColor: '#BFD0DF',
+  },
+  todoStarButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  todoStar: {
+    fontSize: 20,
+    color: '#CBD5E1',
+  },
+  todoStarActive: {
+    color: '#D97706',
   },
   todoContent: {
     flex: 1,
