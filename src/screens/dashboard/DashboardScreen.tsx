@@ -1446,28 +1446,40 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
       { id: 'housing', icon: '🏠', label: 'Housing', labelEs: 'Vivienda', color: '#F8EBE2', iconBg: '#F1DDD0', screen: 'Housing' },
     ];
 
-    // Filter to show only selected categories, but always show AI
-    const displayCategories = allCategories.filter((cat) => categories.includes(cat.id as any));
+    // Show all categories so users can always browse resources regardless
+    // of what they picked in intake. The ones they selected get a small
+    // "Personalized" pill to indicate their plan is ready for that section.
+    const displayCategories = allCategories;
 
     return (
       <View style={styles.categoryGrid}>
-        {displayCategories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[styles.categoryCard, { backgroundColor: category.color }]}
-            onPress={() => navigation.navigate(category.screen)}
-          >
-            <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
-              <Text style={styles.categoryIcon}>{category.icon}</Text>
-            </View>
-            <View style={styles.categoryTextContainer}>
-              <Text style={styles.categoryLabel}>
-                {isSpanish ? category.labelEs : category.label}
-              </Text>
-            </View>
-            <Text style={styles.categoryChevron}>›</Text>
-          </TouchableOpacity>
-        ))}
+        {displayCategories.map((category) => {
+          const isPersonalized = categories.includes(category.id as any);
+          return (
+            <TouchableOpacity
+              key={category.id}
+              style={[styles.categoryCard, { backgroundColor: category.color }]}
+              onPress={() => navigation.navigate(category.screen)}
+            >
+              <View style={[styles.categoryIconContainer, { backgroundColor: category.iconBg }]}>
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+              </View>
+              <View style={styles.categoryTextContainer}>
+                <Text style={styles.categoryLabel}>
+                  {isSpanish ? category.labelEs : category.label}
+                </Text>
+                {isPersonalized && (
+                  <View style={styles.categoryPersonalizedPill}>
+                    <Text style={styles.categoryPersonalizedText}>
+                      ⭐ {isSpanish ? 'Personalizado' : 'Personalized'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.categoryChevron}>›</Text>
+            </TouchableOpacity>
+          );
+        })}
 
         {/* My Case Manager - at end */}
         {(() => {
@@ -2982,6 +2994,20 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#0F172A',
+  },
+  categoryPersonalizedPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  categoryPersonalizedText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#4A4236',
+    letterSpacing: 0.3,
   },
   categoryChevron: {
     fontSize: 22,

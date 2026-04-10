@@ -69,21 +69,32 @@ export const fetchHUDShelters = async (
  */
 const fetchSheltersFromOSM = async (location: Location): Promise<HousingResource[]> => {
   try {
-    // Search within ~15 miles (0.25 degrees roughly)
-    const bbox = `${location.latitude - 0.25},${location.longitude - 0.25},${location.latitude + 0.25},${location.longitude + 0.25}`;
+    // Search within ~30 miles (0.5 degrees roughly) — expanded from
+    // the old 15-mile radius so rural areas pick up more results.
+    const bbox = `${location.latitude - 0.5},${location.longitude - 0.5},${location.latitude + 0.5},${location.longitude + 0.5}`;
 
-    // Overpass query for homeless shelters, social facilities, and emergency lodging
+    // Overpass query covering every OSM tag variation we know about
+    // for shelters, homeless services, food banks (often co-located),
+    // and social-facility nodes flagged for homeless use.
     const query = `
-      [out:json][timeout:10];
+      [out:json][timeout:15];
       (
         node["social_facility"="shelter"](${bbox});
         node["social_facility"="homeless_shelter"](${bbox});
+        node["social_facility"="food_bank"](${bbox});
+        node["social_facility"="soup_kitchen"](${bbox});
         node["amenity"="shelter"](${bbox});
-        node["amenity"="social_facility"]["social_facility:for"="homeless"](${bbox});
+        node["amenity"="social_facility"](${bbox});
         node["emergency"="shelter"](${bbox});
+        node["shelter_type"="homeless_shelter"](${bbox});
+        node["shelter_type"="emergency_shelter"](${bbox});
         way["social_facility"="shelter"](${bbox});
         way["social_facility"="homeless_shelter"](${bbox});
-        way["amenity"="social_facility"]["social_facility:for"="homeless"](${bbox});
+        way["social_facility"="food_bank"](${bbox});
+        way["social_facility"="soup_kitchen"](${bbox});
+        way["amenity"="shelter"](${bbox});
+        way["amenity"="social_facility"](${bbox});
+        way["emergency"="shelter"](${bbox});
       );
       out center body;
     `.trim();
@@ -107,27 +118,66 @@ const fetchSheltersFromOSM = async (location: Location): Promise<HousingResource
       return [];
     }
 
-    return data.elements.slice(0, 10).map((element: any): HousingResource => {
-      const lat = element.lat || element.center?.lat || location.latitude;
-      const lng = element.lon || element.center?.lon || location.longitude;
-      const tags = element.tags || {};
-
-      return {
-        id: `osm-shelter-${element.id}`,
-        name: tags.name || tags['name:en'] || 'Homeless Shelter',
-        category: 'housing',
-        address: formatOSMAddress(tags) || `Near ${location.city || 'your location'}`,
-        phone: tags.phone || tags['contact:phone'],
-        website: tags.website || tags['contact:website'],
-        description: tags.description || 'Emergency shelter - call ahead to verify availability',
-        services: ['Emergency Shelter', 'Temporary Housing'],
-        lat,
-        lng,
-        distance: calculateDistance(location.latitude, location.longitude, lat, lng),
-        hours: 'Call for hours',
-        hoursEs: 'Llame para horarios',
-      };
+    // Filter out anything that's clearly not a homeless shelter
+    // (e.g., hiking shelters, bus shelters). Prefer items with a
+    // name and a recognizable homeless/social tag.
+    const filtered = data.elements.filter((el: any) => {
+      const tags = el.tags || {};
+      // Must have some identifying name or a clear homeless tag
+      if (tags.social_facility === 'shelter' || tags.social_facility === 'homeless_shelter') return true;
+      if (tags.social_facility === 'food_bank' || tags.social_facility === 'soup_kitchen') return true;
+      if (tags['social_facility:for'] === 'homeless') return true;
+      if (tags.shelter_type === 'homeless_shelter' || tags.shelter_type === 'emergency_shelter') return true;
+      // amenity=shelter is broad (bus shelters, hiking shelters) —
+      // only include if it has a name suggesting homelessness
+      if (tags.amenity === 'shelter' && tags.name) {
+        const name = tags.name.toLowerCase();
+        if (
+          name.includes('homeless') ||
+          name.includes('emergency') ||
+          name.includes('mission') ||
+          name.includes('rescue')
+        ) {
+          return true;
+        }
+        return false;
+      }
+      return false;
     });
+
+    return filtered
+      .map((element: any): HousingResource => {
+        const lat = element.lat || element.center?.lat || location.latitude;
+        const lng = element.lon || element.center?.lon || location.longitude;
+        const tags = element.tags || {};
+        const isFoodBank = tags.social_facility === 'food_bank';
+        const isSoupKitchen = tags.social_facility === 'soup_kitchen';
+
+        return {
+          id: `osm-shelter-${element.id}`,
+          name: tags.name || tags['name:en'] || (isFoodBank ? 'Food Bank' : isSoupKitchen ? 'Soup Kitchen' : 'Homeless Shelter'),
+          category: 'housing',
+          address: formatOSMAddress(tags) || `Near ${location.city || 'your location'}`,
+          phone: tags.phone || tags['contact:phone'],
+          website: tags.website || tags['contact:website'],
+          description:
+            tags.description ||
+            (isFoodBank
+              ? 'Local food bank — often connected to shelter networks. Call ahead.'
+              : isSoupKitchen
+              ? 'Local soup kitchen — often connected to shelter networks. Call ahead.'
+              : 'Emergency shelter - call ahead to verify availability'),
+          services: isFoodBank || isSoupKitchen ? ['Food', 'Referrals'] : ['Emergency Shelter', 'Temporary Housing'],
+          lat,
+          lng,
+          distance: calculateDistance(location.latitude, location.longitude, lat, lng),
+          hours: 'Call for hours',
+          hoursEs: 'Llame para horarios',
+        };
+      })
+      // Sort by proximity so the closest real local options bubble up
+      .sort((a: HousingResource, b: HousingResource) => (a.distance || 0) - (b.distance || 0))
+      .slice(0, 15);
   } catch (error) {
     console.error('Error fetching from OpenStreetMap:', error);
     return [];
@@ -773,23 +823,39 @@ export const getAllHousingResources = async (
     getTransitionalHousingResources(location),
   ]);
 
-  // Combine all resources - curated shelters first (they have verified phone numbers)
+  // Combine all resources. We sort them so actual local OSM shelters
+  // with real addresses bubble up to the top, followed by the curated
+  // national hotlines and HUD resources.
   const allResources = [
-    ...shelters, // Curated shelters with real phone numbers first
-    ...counselors, // HUD counselors (they have real locations)
+    ...shelters,
+    ...counselors,
     ...emergency,
     ...affordable,
     ...transitional,
   ];
 
-  // Sort by: curated resources first, then by distance
   return allResources.sort((a, b) => {
-    // Prioritize curated resources (start with 'curated-')
-    const aIsCurated = a.id.startsWith('curated-') ? 1 : 0;
-    const bIsCurated = b.id.startsWith('curated-') ? 1 : 0;
-    if (aIsCurated !== bIsCurated) return bIsCurated - aIsCurated;
+    // 1. Local OSM shelters (actual addresses) come first
+    const aIsOsm = a.id.startsWith('osm-shelter-') ? 0 : 1;
+    const bIsOsm = b.id.startsWith('osm-shelter-') ? 0 : 1;
+    if (aIsOsm !== bIsOsm) return aIsOsm - bIsOsm;
 
-    // Then prioritize resources with real phone numbers (not just 211)
+    // 2. Within OSM, sort by distance (closest first)
+    if (aIsOsm === 0 && bIsOsm === 0) {
+      return (a.distance || 0) - (b.distance || 0);
+    }
+
+    // 3. HUD housing counselors with real locations next
+    const aIsHud = a.id.startsWith('hud-counselor-') ? 0 : 1;
+    const bIsHud = b.id.startsWith('hud-counselor-') ? 0 : 1;
+    if (aIsHud !== bIsHud) return aIsHud - bIsHud;
+
+    // 4. Curated national hotlines (verified phone numbers) come after
+    const aIsCurated = a.id.startsWith('curated-') ? 0 : 1;
+    const bIsCurated = b.id.startsWith('curated-') ? 0 : 1;
+    if (aIsCurated !== bIsCurated) return aIsCurated - bIsCurated;
+
+    // 5. Resources with real phone numbers (not just 211) over 211 fallbacks
     if (a.phone && a.phone !== '211' && (!b.phone || b.phone === '211')) return -1;
     if ((!a.phone || a.phone === '211') && b.phone && b.phone !== '211') return 1;
 

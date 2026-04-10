@@ -61,7 +61,48 @@ export const PersonalizedRecommendations: React.FC<
     }
   }, [profile?.answers, profile?.ageGroup, category]);
 
-  if (recs.length === 0) return null;
+  const color = {
+    healthcare: { bg: '#EAF2EE', border: '#B8D4C9', title: '#2F5548', reason: '#456B5E', actionBg: '#D4E5DD', actionText: '#2F5548' },
+    housing: { bg: '#F8EBE2', border: '#E8CAB8', title: '#6B3E2A', reason: '#8B4F35', actionBg: '#F1DDD0', actionText: '#6B3E2A' },
+    employment: { bg: '#F6EEDD', border: '#E4D1A2', title: '#5E4620', reason: '#7A5C28', actionBg: '#EFE3C8', actionText: '#5E4620' },
+  }[category];
+
+  // Empty state: user either didn't select this category in intake OR
+  // didn't answer any relevant questions. Show a friendly CTA that
+  // offers to take them back to the intake so they can unlock the
+  // personalized recommendations for this section.
+  if (recs.length === 0) {
+    const categoryLabel =
+      category === 'healthcare'
+        ? isSpanish ? 'salud' : 'health'
+        : category === 'housing'
+        ? isSpanish ? 'vivienda' : 'housing'
+        : isSpanish ? 'empleo' : 'employment';
+
+    return (
+      <View style={[styles.container, { backgroundColor: color.bg, borderColor: color.border }]}>
+        <Text style={[styles.emptyTitle, { color: color.title }]}>
+          {isSpanish
+            ? `No tenemos tu plan de ${categoryLabel} todavía`
+            : `No ${categoryLabel} plan yet`}
+        </Text>
+        <Text style={[styles.emptyDescription, { color: color.reason }]}>
+          {isSpanish
+            ? 'Responde algunas preguntas del intake sobre esta área para recibir un plan personalizado.'
+            : 'Answer a few intake questions about this area to unlock a personalized plan with next steps.'}
+        </Text>
+        <TouchableOpacity
+          style={[styles.emptyButton, { backgroundColor: color.actionBg }]}
+          onPress={() => (navigation as any)?.navigate('Questionnaire')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.emptyButtonText, { color: color.actionText }]}>
+            {isSpanish ? '→ Responder preguntas' : '→ Answer intake questions'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const handleAction = (rec: PersonalizedRecommendation) => {
     switch (rec.actionType) {
@@ -172,12 +213,6 @@ export const PersonalizedRecommendations: React.FC<
     return '🔗 ';
   };
 
-  const color = {
-    healthcare: { bg: '#EAF2EE', border: '#B8D4C9', title: '#2F5548', reason: '#456B5E', actionBg: '#D4E5DD', actionText: '#2F5548' },
-    housing: { bg: '#F8EBE2', border: '#E8CAB8', title: '#6B3E2A', reason: '#8B4F35', actionBg: '#F1DDD0', actionText: '#6B3E2A' },
-    employment: { bg: '#F6EEDD', border: '#E4D1A2', title: '#5E4620', reason: '#7A5C28', actionBg: '#EFE3C8', actionText: '#5E4620' },
-  }[category];
-
   return (
     <View style={[styles.container, { backgroundColor: color.bg, borderColor: color.border }]}>
       <TouchableOpacity
@@ -254,6 +289,26 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  emptyDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  emptyButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  emptyButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
   },
   card: {
     backgroundColor: '#FFFFFF',
