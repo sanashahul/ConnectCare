@@ -1131,6 +1131,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
   const [newTodoDescription, setNewTodoDescription] = useState('');
+  const [newTodoCategory, setNewTodoCategory] = useState<
+    'healthcare' | 'housing' | 'employment' | 'documents' | 'benefits' | 'education' | 'other'
+  >('other');
   const [selectedTodo, setSelectedTodo] = useState<any>(null);
   const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -1306,36 +1309,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
   const handleAddTodo = (title: string, description?: string) => {
     if (!title.trim()) return;
 
-    // Map AI-chat intents and unknown topics to real TaskCategory values
-    // so the todo lands in a visible group in the rendered list. Anything
-    // outside the known set falls back to 'other'.
-    const intentToCategory: Record<string, 'healthcare' | 'housing' | 'employment' | 'documents' | 'benefits' | 'education' | 'other'> = {
-      healthcare: 'healthcare',
-      clinic: 'healthcare',
-      mentalhealth: 'healthcare',
-      housing: 'housing',
-      shelter: 'housing',
-      section8: 'housing',
-      employment: 'employment',
-      job: 'employment',
-      documents: 'documents',
-      food: 'other',
-      '211': 'other',
-      emergency: 'other',
-    };
-    const category = (currentTopic && intentToCategory[currentTopic]) || 'other';
-
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title: title.trim(),
         description: description?.trim() || undefined,
         completed: false,
-        category,
+        category: newTodoCategory,
       } as any,
     });
 
     setNewTodoDescription('');
+    setNewTodoCategory('other');
     Alert.alert(
       isSpanish ? '¡Agregado!' : 'Added!',
       isSpanish ? 'Tarea agregada a tu lista' : 'Task added to your to-do list',
@@ -1780,30 +1765,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
               const cmItems = shownTodos.filter((t) => t.fromCaseManager);
               const userItems = shownTodos.filter((t) => !t.fromCaseManager);
 
-              // User-pinned focused items always show in Focus Today.
-              // If the user hasn't pinned anything, we auto-pick the top 3
-              // by priority so the section isn't empty.
+              // User-pinned focused items show in Focus Today. No more
+              // auto-picks — Focus Today is ONLY items the user has
+              // explicitly starred. If nothing is pinned, the section
+              // is hidden entirely.
               const explicitlyFocused = userItems.filter((t) => t.focused);
-              const autoFocus = (() => {
-                if (explicitlyFocused.length > 0) return [];
-                if (todoView !== 'pending') return [];
-                if (userItems.length <= 3) return [];
-                return [...userItems]
-                  .sort((a, b) => {
-                    const aU = a.priority === 'urgent' ? 0 : 1;
-                    const bU = b.priority === 'urgent' ? 0 : 1;
-                    if (aU !== bU) return aU - bU;
-                    return (
-                      new Date(b.createdAt || 0).getTime() -
-                      new Date(a.createdAt || 0).getTime()
-                    );
-                  })
-                  .slice(0, 3);
-              })();
               const focusTodos =
-                todoView === 'pending'
-                  ? [...explicitlyFocused, ...autoFocus]
-                  : [];
+                todoView === 'pending' ? explicitlyFocused : [];
               const focusIds = new Set(focusTodos.map((t) => t.id));
 
               // Rebuild groups from only user items that aren't already
@@ -1816,9 +1784,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                 if (!visibleGroups[key]) visibleGroups[key] = [];
                 visibleGroups[key].push(t);
               });
-              const firstNonEmptyGroup = groupOrder.find(
-                (k) => (visibleGroups[k] || []).length > 0,
-              );
+              // Default all non-empty groups to expanded. Users can
+              // collapse specific ones, but by default nothing is
+              // hidden — so newly-added tasks are visible immediately
+              // without the user having to hunt for a collapsed panel.
 
               return (
                 <>
@@ -1846,13 +1815,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                         ✨ {isSpanish ? 'Enfócate hoy' : 'Focus today'}
                       </Text>
                       <Text style={styles.focusSectionSubtitle}>
-                        {explicitlyFocused.length > 0
-                          ? isSpanish
-                            ? 'Tus tareas fijadas — toca ⭐ para quitar'
-                            : 'Your pinned tasks — tap ⭐ to unpin'
-                          : isSpanish
-                          ? 'Tus tareas más importantes — toca ☆ en cualquier tarea para fijarla'
-                          : 'Your top tasks — tap ☆ on any task to pin it'}
+                        {isSpanish
+                          ? 'Tus tareas fijadas — toca ⭐ para quitar'
+                          : 'Your pinned tasks — tap ⭐ to unpin'}
                       </Text>
                       {focusTodos.map(renderTodoRow)}
                     </View>
@@ -1863,9 +1828,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
                     const items = visibleGroups[groupKey] || [];
                     if (items.length === 0) return null;
                     const meta = groupMeta[groupKey] || groupMeta.other;
-                    const isExpanded =
-                      expandedTodoGroups[groupKey] ??
-                      groupKey === firstNonEmptyGroup;
+                    const isExpanded = expandedTodoGroups[groupKey] ?? true;
                     return (
                       <View key={`group-${groupKey}`} style={styles.todoGroupPanel}>
                         <TouchableOpacity
@@ -1938,6 +1901,47 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation, ro
             numberOfLines={3}
             textAlignVertical="top"
           />
+
+          {/* Category picker — so users can choose which group the new
+              task lands in. Defaults to "Other". */}
+          <Text style={styles.addTodoLabel}>
+            {isSpanish ? 'Categoría' : 'Category'}
+          </Text>
+          <View style={styles.addTodoCategoryRow}>
+            {([
+              { id: 'healthcare', icon: '🏥', label: 'Health', labelEs: 'Salud' },
+              { id: 'housing', icon: '🏠', label: 'Housing', labelEs: 'Vivienda' },
+              { id: 'employment', icon: '💼', label: 'Jobs', labelEs: 'Empleo' },
+              { id: 'documents', icon: '🪪', label: 'Docs', labelEs: 'Docs' },
+              { id: 'benefits', icon: '💵', label: 'Benefits', labelEs: 'Beneficios' },
+              { id: 'education', icon: '🎓', label: 'Education', labelEs: 'Educación' },
+              { id: 'other', icon: '📋', label: 'Other', labelEs: 'Otros' },
+            ] as const).map((cat) => {
+              const isActive = newTodoCategory === cat.id;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[
+                    styles.addTodoCategoryChip,
+                    isActive && styles.addTodoCategoryChipActive,
+                  ]}
+                  onPress={() => setNewTodoCategory(cat.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.addTodoCategoryChipIcon}>{cat.icon}</Text>
+                  <Text
+                    style={[
+                      styles.addTodoCategoryChipText,
+                      isActive && styles.addTodoCategoryChipTextActive,
+                    ]}
+                  >
+                    {isSpanish ? cat.labelEs : cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           <TouchableOpacity
             style={[
               styles.addTodoSubmit,
@@ -3523,6 +3527,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     marginBottom: 16,
+  },
+  addTodoLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4A4236',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  addTodoCategoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  addTodoCategoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F8F6F1',
+    borderWidth: 1,
+    borderColor: '#E8E4DC',
+    gap: 6,
+  },
+  addTodoCategoryChipActive: {
+    backgroundColor: '#5E8B7E',
+    borderColor: '#5E8B7E',
+  },
+  addTodoCategoryChipIcon: {
+    fontSize: 16,
+  },
+  addTodoCategoryChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4A4236',
+  },
+  addTodoCategoryChipTextActive: {
+    color: '#FFFFFF',
   },
   addTodoSubmit: {
     backgroundColor: '#5E8B7E',
