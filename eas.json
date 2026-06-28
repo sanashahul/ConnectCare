@@ -13,9 +13,15 @@
         "buildType": "apk"
       }
     },
-    "production": {}
+    "production": {
+      "autoIncrement": true
+    }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "sajid.shahul@gmail.com"
+      }
+    }
   }
 }

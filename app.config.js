@@ -16,13 +16,14 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.anonymous.ConnectCare",
+      bundleIdentifier: "com.sanashahul.connectcare",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "ConnectCare needs your location to find resources near you.",
         NSLocationAlwaysAndWhenInUseUsageDescription: "ConnectCare needs your location to find resources near you."
       }
     },
     android: {
+      package: "com.sanashahul.connectcare",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
