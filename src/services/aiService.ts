@@ -434,28 +434,31 @@ ${resourceData || '(no local results — recommend calling 211)'}
 
 Lead with the closest LOCAL options in ${locationLabel} (the ones with a distance shown). Name them specifically. Use national lines (211, 988) only as a backup, never as your main recommendation.
 
+Lead with the closest LOCAL options in ${locationLabel} (the ones with a distance shown). Name them specifically. Use national lines (211, 988) only as a backup, never as your main recommendation.
+
 Return ONLY valid JSON, no prose, in exactly this shape:
 {
-  "summary": "1-2 warm sentences summarizing their situation and that you've got their back",
+  "summary": "2-3 warm sentences that reflect THEIR specific situation (reference their real answers - e.g. sleeping outside, has kids, no insurance, veteran) and reassure them you've got a real plan for them",
   "recommendations": [
     {
       "title": "short action title",
-      "why": "1 sentence on why this fits them specifically",
+      "why": "1 sentence on why this fits THEM specifically, referencing their answer (e.g. 'Because you have your kids with you...')",
       "resourceName": "a SPECIFIC real organization by name in ${locationLabel} (from the list above or from your own knowledge of real orgs there), matched to their exact need. Never vague like 'a local shelter'.",
-      "phone": "the organization's phone number - your best specific number from the list or your knowledge. Fill this in; do not default to 211. Leave empty only if you truly have no number.",
+      "address": "the organization's street address or neighborhood if you know it, else empty",
+      "phone": "the organization's real phone number - your best specific number from the list or your knowledge. Fill this in; do not default to 211. Leave empty only if you truly have no number.",
       "website": "the organization's website - your best specific url from the list or your knowledge. Fill this in when you know it.",
-      "action": "a concrete, specific first step tailored to them (e.g. 'Call X at [phone] and ask about the family shelter intake')",
+      "action": "a concrete, specific first step tailored to them, naming the org and its phone (e.g. 'Call Compass Family Services at 415-644-0504 and ask for emergency family shelter intake')",
       "category": "housing|healthcare|employment|documents|benefits|other"
     }
   ]
 }
-Give 3 to 5 recommendations, ordered by urgency and matched to this person's specific answers/needs. Name SPECIFIC real organizations in ${locationLabel} (use the list above first, then your own knowledge of real local orgs) and include each one's phone number AND website. Give your best specific contact info - do NOT default to 211; only use 211/988/911 when they are genuinely the right resource. Details may need verification, and the app tells the user to confirm, so provide your best real info rather than leaving it blank.`;
+Give 4 to 6 recommendations, ordered by urgency and matched precisely to this person's specific answers/needs (their living situation, whether they have kids, insurance status, veteran status, etc.). Be as specific and complete as a great human case manager who knows ${locationLabel} well. Name SPECIFIC real organizations (use the list above first, then your own knowledge of real local orgs) and include each one's address, phone number AND website. Give your best specific contact info - do NOT default to 211; only use 211/988/911 when they are genuinely the right resource. Details may need verification, and the app tells the user to confirm, so provide your best real info rather than leaving it blank.`;
 
     const data = await callClaude(
       {
         system,
         messages: [{ role: 'user', content: 'Create my personalized plan as JSON.' }],
-        maxTokens: 1600,
+        maxTokens: 2200,
       },
       apiKey
     );

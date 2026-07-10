@@ -128,11 +128,14 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
 
   const addToList = (rec: PlanRecommendation) => {
     const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    const desc = [rec.action || rec.why, rec.resourceName, rec.address]
+      .filter(Boolean)
+      .join(' · ');
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title: rec.title,
-        description: rec.action || rec.why || undefined,
+        description: desc || undefined,
         completed: false,
         priority: 'normal',
         createdBy: 'individual',
@@ -170,6 +173,7 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
           <View style={styles.resourceChip}>
             <View style={{ flex: 1 }}>
               {!!rec.resourceName && <Text style={styles.resourceName}>{rec.resourceName}</Text>}
+              {!!rec.address && <Text style={styles.resourceAddress}>📍 {rec.address}</Text>}
               {!!rec.action && <Text style={styles.resourceAction}>{rec.action}</Text>}
               <View style={styles.resourceLinks}>
                 {!!rec.phone && (
@@ -529,6 +533,7 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   resourceName: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
+  resourceAddress: { fontSize: 12.5, color: '#475569', marginTop: 2 },
   resourceAction: { fontSize: 12.5, color: '#64748B', lineHeight: 18, marginTop: 2 },
   resourceLinks: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 8 },
   resourceLink: { fontSize: 13.5, color: '#0D9488', fontWeight: '800' },

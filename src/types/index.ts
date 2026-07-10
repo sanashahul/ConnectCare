@@ -51,6 +51,7 @@ export interface PlanRecommendation {
   title: string;
   why: string;
   resourceName?: string;
+  address?: string;
   phone?: string;
   website?: string;
   action: string;

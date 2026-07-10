@@ -1317,11 +1317,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   // Add a plan recommendation to the to-do list, carrying its resource contact.
   const handleAddRecommendation = (rec: PlanRecommendation) => {
     const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    const desc = [rec.action || rec.why, rec.resourceName, (rec as any).address]
+      .filter(Boolean)
+      .join(' · ');
     dispatch({
       type: 'ADD_TODO',
       payload: {
         title: rec.title,
-        description: rec.action || rec.why || undefined,
+        description: desc || undefined,
         completed: false,
         priority: 'normal',
         createdBy: 'individual',
