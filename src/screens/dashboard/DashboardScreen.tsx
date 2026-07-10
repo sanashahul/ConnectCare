@@ -1126,6 +1126,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [selectedTodo, setSelectedTodo] = useState<any>(null);
   const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [todoTab, setTodoTab] = useState<'active' | 'done'>('active');
+  const [todoCategoryFilter, setTodoCategoryFilter] = useState<string | null>(null);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
   const [conversationContext, setConversationContext] = useState<ConversationContext>({
     lastIntent: '',
@@ -1335,12 +1337,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     );
   };
 
-  // Open Casy and immediately ask about a specific plan recommendation.
-  const handleAskCasyAbout = async (rec: PlanRecommendation) => {
+  // Open Casy in the chat modal and immediately send a message.
+  const askCasyInModal = async (messageText: string) => {
     setShowAI(true);
-    const messageText = isSpanish
-      ? `Ayúdame con este paso de mi plan: ${rec.title}. ${rec.action}`
-      : `Help me with this step from my plan: ${rec.title}. ${rec.action}`;
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
@@ -1378,6 +1377,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     }
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 200);
   };
+
+  // Open Casy and immediately ask about a specific plan recommendation.
+  const handleAskCasyAbout = (rec: PlanRecommendation) =>
+    askCasyInModal(
+      isSpanish
+        ? `Ayúdame con este paso de mi plan: ${rec.title}. ${rec.action}`
+        : `Help me with this step from my plan: ${rec.title}. ${rec.action}`
+    );
+
+  // Open Casy and ask for help with a specific to-do item.
+  const handleTodoCasyHelp = (todo: any) =>
+    askCasyInModal(
+      isSpanish
+        ? `Ayúdame con esta tarea de mi lista: "${todo.title}". ¿Cómo la logro?`
+        : `Help me with this task on my list: "${todo.title}". How do I get it done?`
+    );
 
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
@@ -1569,127 +1584,179 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
   const renderTodos = () => {
     const todos = userProfile?.todos || [];
-    const pendingTodos = todos.filter((t) => !t.completed);
-    const completedCount = todos.filter((t) => t.completed).length;
+    const pending = todos.filter((t) => !t.completed);
+    const done = todos.filter((t) => t.completed);
+    const base = todoTab === 'done' ? done : pending;
+
+    const CAT: Record<string, { en: string; es: string; icon: string; color: string; bg: string }> = {
+      housing: { en: 'Housing', es: 'Vivienda', icon: '🏠', color: '#7C3AED', bg: '#F5F3FF' },
+      employment: { en: 'Jobs', es: 'Empleo', icon: '💼', color: '#EA580C', bg: '#FFF7ED' },
+      healthcare: { en: 'Health', es: 'Salud', icon: '🏥', color: '#0D9488', bg: '#F0FDFA' },
+      documents: { en: 'Documents', es: 'Documentos', icon: '📄', color: '#2563EB', bg: '#EFF6FF' },
+      benefits: { en: 'Benefits', es: 'Beneficios', icon: '💳', color: '#16A34A', bg: '#F0FDF4' },
+      education: { en: 'Education', es: 'Educación', icon: '📚', color: '#DB2777', bg: '#FEF2F2' },
+      other: { en: 'Other', es: 'Otro', icon: '✅', color: '#475569', bg: '#F8FAFC' },
+    };
+    const catKey = (t: any) => (CAT[t.category] ? t.category : 'other');
+    const presentCats = Array.from(new Set(base.map(catKey)));
+    const list = todoCategoryFilter ? base.filter((t) => catKey(t) === todoCategoryFilter) : base;
+
+    const renderTodoCard = (todo: any) => {
+      const ck = catKey(todo);
+      const c = CAT[ck];
+      return (
+        <View key={todo.id} style={styles.todoItemContainer}>
+          <TouchableOpacity
+            style={styles.todoItem}
+            onPress={() => {
+              setSelectedTodo(todo);
+              setEditingTodoDescription(todo.description || '');
+            }}
+          >
+            <TouchableOpacity
+              style={[styles.todoCheckbox, todo.completed && styles.todoCheckboxDone]}
+              onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
+            >
+              <Text style={styles.todoCheckmark}>{todo.completed ? '✓' : ''}</Text>
+            </TouchableOpacity>
+            <View style={styles.todoContent}>
+              <Text style={[styles.todoText, todo.completed && styles.todoTextDone]}>{todo.title}</Text>
+              {todo.description && (
+                <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
+                  📝 {todo.description}
+                </Text>
+              )}
+              <View style={[styles.todoResourceBadge, { backgroundColor: c.bg }]}>
+                <Text style={[styles.todoResourceBadgeText, { color: c.color }]}>
+                  {c.icon} {isSpanish ? c.es : c.en}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.todoDeleteButton}
+              onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
+            >
+              <Text style={styles.todoDeleteText}>×</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+
+          {/* Action buttons */}
+          <View style={styles.todoActions}>
+            {todo.resourcePhone && (
+              <TouchableOpacity
+                style={styles.todoActionButton}
+                onPress={() => Linking.openURL(`tel:${todo.resourcePhone}`)}
+              >
+                <Text style={styles.todoActionButtonText}>📞 {isSpanish ? 'Llamar' : 'Call'}</Text>
+              </TouchableOpacity>
+            )}
+            {todo.resourceUrl && (
+              <TouchableOpacity
+                style={styles.todoActionButton}
+                onPress={() => Linking.openURL(todo.resourceUrl)}
+              >
+                <Text style={styles.todoActionButtonText}>🌐 {isSpanish ? 'Sitio' : 'Website'}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.todoActionButton, styles.todoActionButtonPrimary]}
+              onPress={() => handleTodoCasyHelp(todo)}
+            >
+              <Text style={styles.todoActionButtonTextPrimary}>
+                💬 {isSpanish ? 'Ayuda de Casy' : 'Get Casy help'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    };
 
     return (
       <View style={styles.todosSection}>
         <View style={styles.todoHeader}>
           <View>
-            <Text style={styles.todoHeaderTitle}>
-              {isSpanish ? 'Mi Lista de Tareas' : 'My To-Do List'}
-            </Text>
+            <Text style={styles.todoHeaderTitle}>{isSpanish ? 'Mi Lista de Tareas' : 'My To-Do List'}</Text>
             <Text style={styles.todoHeaderSubtitle}>
-              {pendingTodos.length > 0
-                ? (isSpanish ? `${pendingTodos.length} pendiente${pendingTodos.length > 1 ? 's' : ''}` : `${pendingTodos.length} pending`)
-                : (isSpanish ? '¡Todo hecho!' : 'All done!')}
-              {completedCount > 0 && ` • ${completedCount} ${isSpanish ? 'completado' : 'done'}`}
+              {pending.length > 0
+                ? isSpanish
+                  ? `${pending.length} pendiente${pending.length > 1 ? 's' : ''}`
+                  : `${pending.length} pending`
+                : isSpanish
+                  ? '¡Todo hecho!'
+                  : 'All done!'}
+              {done.length > 0 && ` • ${done.length} ${isSpanish ? 'completado' : 'done'}`}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.addTodoButton}
-            onPress={() => setShowAddTodo(true)}
-          >
+          <TouchableOpacity style={styles.addTodoButton} onPress={() => setShowAddTodo(true)}>
             <Text style={styles.addTodoButtonText}>+</Text>
           </TouchableOpacity>
         </View>
 
-        {pendingTodos.length === 0 ? (
+        {/* Tabs: To-Do / Done */}
+        <View style={styles.todoTabs}>
+          <TouchableOpacity
+            style={[styles.todoTab, todoTab === 'active' && styles.todoTabActive]}
+            onPress={() => { setTodoTab('active'); setTodoCategoryFilter(null); }}
+          >
+            <Text style={[styles.todoTabText, todoTab === 'active' && styles.todoTabTextActive]}>
+              {isSpanish ? 'Por hacer' : 'To-Do'} ({pending.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.todoTab, todoTab === 'done' && styles.todoTabActive]}
+            onPress={() => { setTodoTab('done'); setTodoCategoryFilter(null); }}
+          >
+            <Text style={[styles.todoTabText, todoTab === 'done' && styles.todoTabTextActive]}>
+              {isSpanish ? 'Hecho' : 'Done'} ({done.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Category filter chips */}
+        {presentCats.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.catFilterRow}
+            contentContainerStyle={{ gap: 8, paddingRight: 8 }}
+          >
+            <TouchableOpacity
+              style={[styles.catChip, !todoCategoryFilter && styles.catChipActive]}
+              onPress={() => setTodoCategoryFilter(null)}
+            >
+              <Text style={[styles.catChipText, !todoCategoryFilter && styles.catChipTextActive]}>
+                {isSpanish ? 'Todas' : 'All'}
+              </Text>
+            </TouchableOpacity>
+            {presentCats.map((ck) => (
+              <TouchableOpacity
+                key={ck}
+                style={[styles.catChip, todoCategoryFilter === ck && styles.catChipActive]}
+                onPress={() => setTodoCategoryFilter(ck)}
+              >
+                <Text style={[styles.catChipText, todoCategoryFilter === ck && styles.catChipTextActive]}>
+                  {CAT[ck].icon} {isSpanish ? CAT[ck].es : CAT[ck].en}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+
+        {list.length === 0 ? (
           <View style={styles.emptyTodos}>
-            <Text style={styles.emptyTodosEmoji}>✨</Text>
+            <Text style={styles.emptyTodosEmoji}>{todoTab === 'done' ? '☑️' : '✨'}</Text>
             <Text style={styles.emptyTodosText}>
-              {isSpanish
-                ? 'Usa a Casy para agregar tareas'
-                : 'Use Casy to add tasks'}
+              {todoTab === 'done'
+                ? isSpanish ? 'Aún no has completado tareas' : 'No completed tasks yet'
+                : isSpanish ? 'Usa a Casy para agregar tareas' : 'Use Casy to add tasks'}
             </Text>
           </View>
         ) : (
           <>
-            {pendingTodos.slice(0, 4).map((todo) => (
-              <View key={todo.id} style={styles.todoItemContainer}>
-                <TouchableOpacity
-                  style={styles.todoItem}
-                  onPress={() => {
-                    setSelectedTodo(todo);
-                    setEditingTodoDescription(todo.description || '');
-                  }}
-                >
-                  <TouchableOpacity
-                    style={styles.todoCheckbox}
-                    onPress={() => dispatch({ type: 'TOGGLE_TODO', payload: todo.id })}
-                  >
-                    <Text style={styles.todoCheckmark}></Text>
-                  </TouchableOpacity>
-                  <View style={styles.todoContent}>
-                    <Text style={styles.todoText}>{todo.title}</Text>
-                    {todo.description && (
-                      <Text style={styles.todoDescriptionPreview} numberOfLines={1}>
-                        📝 {todo.description}
-                      </Text>
-                    )}
-                    {/* Resource type badge */}
-                    {todo.resourceType && (
-                      <View style={[
-                        styles.todoResourceBadge,
-                        todo.resourceType === 'job' && { backgroundColor: '#FFF7ED' },
-                        todo.resourceType === 'housing' && { backgroundColor: '#F5F3FF' },
-                        todo.resourceType === 'clinic' && { backgroundColor: '#F0FDFA' },
-                      ]}>
-                        <Text style={[
-                          styles.todoResourceBadgeText,
-                          todo.resourceType === 'job' && { color: '#EA580C' },
-                          todo.resourceType === 'housing' && { color: '#7C3AED' },
-                          todo.resourceType === 'clinic' && { color: '#0D9488' },
-                        ]}>
-                          {todo.resourceType === 'job' ? '💼' : todo.resourceType === 'housing' ? '🏠' : '🏥'}
-                          {' '}
-                          {todo.resourceType === 'job'
-                            ? (isSpanish ? 'Empleo' : 'Job')
-                            : todo.resourceType === 'housing'
-                              ? (isSpanish ? 'Vivienda' : 'Housing')
-                              : (isSpanish ? 'Salud' : 'Health')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={styles.todoDeleteButton}
-                    onPress={() => dispatch({ type: 'DELETE_TODO', payload: todo.id })}
-                  >
-                  <Text style={styles.todoDeleteText}>×</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-
-              {/* Action buttons for linked resources */}
-              {(todo.resourceUrl || todo.resourcePhone) && (
-                <View style={styles.todoActions}>
-                  {todo.resourcePhone && (
-                    <TouchableOpacity
-                      style={styles.todoActionButton}
-                      onPress={() => Linking.openURL(`tel:${todo.resourcePhone}`)}
-                    >
-                      <Text style={styles.todoActionButtonText}>
-                        📞 {isSpanish ? 'Llamar' : 'Call'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {todo.resourceUrl && (
-                    <TouchableOpacity
-                      style={[styles.todoActionButton, styles.todoActionButtonPrimary]}
-                      onPress={() => Linking.openURL(todo.resourceUrl!)}
-                    >
-                      <Text style={styles.todoActionButtonTextPrimary}>
-                        🌐 {isSpanish ? 'Ir al sitio' : 'Go to site'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </View>
-            ))}
-            {pendingTodos.length > 4 && (
+            {list.slice(0, 6).map((todo) => renderTodoCard(todo))}
+            {list.length > 6 && (
               <Text style={styles.moreText}>
-                +{pendingTodos.length - 4} {isSpanish ? 'más' : 'more'}
+                +{list.length - 6} {isSpanish ? 'más' : 'more'}
               </Text>
             )}
           </>
@@ -2642,6 +2709,42 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
+  todoTabs: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 14,
+    marginBottom: 12,
+  },
+  todoTab: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 9,
+    alignItems: 'center',
+  },
+  todoTabActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  todoTabText: { fontSize: 14, fontWeight: '700', color: '#64748B' },
+  todoTabTextActive: { color: '#0D9488' },
+  catFilterRow: { marginBottom: 12 },
+  catChip: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 13,
+  },
+  catChipActive: { backgroundColor: '#0D9488', borderColor: '#0D9488' },
+  catChipText: { fontSize: 13, fontWeight: '700', color: '#475569' },
+  catChipTextActive: { color: '#FFFFFF' },
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2656,11 +2759,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#CBD5E1',
     marginRight: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todoCheckboxDone: {
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
   },
   todoText: {
     fontSize: 16,
     color: '#0F172A',
     flex: 1,
+  },
+  todoTextDone: {
+    textDecorationLine: 'line-through',
+    color: '#94A3B8',
   },
   moreText: {
     fontSize: 14,
@@ -2964,8 +3077,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   todoCheckmark: {
-    color: '#0D9488',
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '800',
   },
   todoDeleteButton: {
     width: 28,
