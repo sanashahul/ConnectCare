@@ -717,7 +717,7 @@ export const getTransitionalHousingResources = async (
       name: 'Goodwill Housing Programs',
       category: 'housing',
       address: `Find local Goodwill in ${location.state || 'your state'}`,
-      phone: '1-800-664-6577',
+      phone: '1-800-466-3945',
       website: 'https://www.goodwill.org/find-jobs-and-services/',
       description: 'Transitional housing combined with job training and employment services.',
       services: ['Transitional Housing', 'Job Training', 'Employment'],

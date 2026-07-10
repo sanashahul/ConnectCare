@@ -6,7 +6,7 @@
  * - Job Corps: 1-800-733-5627 | jobcorps.gov
  * - AmeriCorps: 1-800-942-2677 | americorps.gov
  * - CareerOneStop: 1-877-872-5627 | careeronestop.org
- * - Goodwill: 1-800-664-6577 | goodwill.org
+ * - Goodwill: 1-800-466-3945 | goodwill.org
  * - Workforce Development: Contact via 211
  *
  * JOB SEARCH SITES (all verified working):
@@ -305,7 +305,7 @@ export const getCuratedEmploymentResources = (
       nameEs: 'Servicios de Carrera Goodwill',
       category: 'employment',
       address: `Find location near ${city}`,
-      phone: '1-800-664-6577',
+      phone: '1-800-466-3945',
       website: 'https://www.goodwill.org/jobs-training/',
       description: 'Free job training, resume help, and employment services',
       descriptionEs: 'Capacitación laboral gratuita, ayuda con CV y servicios de empleo',
@@ -329,8 +329,8 @@ export const getCuratedEmploymentResources = (
         'Asistencia en búsqueda de empleo',
         'Ropa de trabajo y vestimenta profesional'
       ],
-      howToApply: 'Visit your local Goodwill or call 1-800-664-6577',
-      howToApplyEs: 'Visite su Goodwill local o llame al 1-800-664-6577',
+      howToApply: 'Visit your local Goodwill or call 1-800-466-3945',
+      howToApplyEs: 'Visite su Goodwill local o llame al 1-800-466-3945',
       lat: location.latitude,
       lng: location.longitude,
       distance: 0,
