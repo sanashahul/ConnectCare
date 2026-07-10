@@ -206,7 +206,7 @@ export const YOUTH_SHELTER_RESOURCES = {
       nameEs: 'StandUp for Kids',
       description: 'Street outreach program helping homeless and at-risk youth nationwide.',
       descriptionEs: 'Programa de alcance callejero que ayuda a jóvenes sin hogar y en riesgo en todo el país.',
-      phone: '1-888-365-4543',
+      phone: '1-800-365-4543',
       website: 'https://www.standupforkids.org',
     },
     {

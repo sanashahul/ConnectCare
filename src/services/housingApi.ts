@@ -8,10 +8,10 @@
  *
  * CURATED DATA with REAL phone numbers that actually work:
  * - Salvation Army: 1-800-725-2769
- * - Catholic Charities: 1-800-919-9338
+ * - Catholic Charities: 703-549-1390
  * - Family Promise: 908-273-1100
- * - Covenant House: 1-800-388-3888
- * - National Homeless Hotline: 1-800-231-6946
+ * - Covenant House (Nineline): 1-800-999-9999
+ * - National referral line: 211
  */
 
 import { Resource, Location } from '../types';
@@ -159,9 +159,9 @@ const getCuratedShelterData = (location: Location): HousingResource[] => {
       name: 'National Homeless Hotline',
       category: 'housing',
       address: 'Available 24/7 Nationwide',
-      phone: '1-800-231-6946',
+      phone: '211',
       website: 'https://www.homelessshelterdirectory.org/',
-      description: 'Free hotline connecting you to local shelters and services. Available 24/7.',
+      description: 'Call or text 211 to connect to local shelters and services. Available 24/7.',
       services: ['24/7 Hotline', 'Shelter Referrals', 'Local Resources'],
       hours: '24 hours, 7 days a week',
       hoursEs: '24 horas, 7 días a la semana',
@@ -254,8 +254,8 @@ const getCuratedShelterData = (location: Location): HousingResource[] => {
       name: 'Catholic Charities USA',
       category: 'housing',
       address: `Find local office in ${state || 'your state'}`,
-      phone: '1-800-919-9338',
-      website: 'https://www.catholiccharitiesusa.org/find-help/',
+      phone: '703-549-1390',
+      website: 'https://www.catholiccharitiesusa.org/about-us/find-a-local-agency/',
       description: 'Emergency shelter, affordable housing, and homeless prevention services.',
       services: ['Shelter', 'Housing Assistance', 'Food', 'Counseling'],
       hours: 'Mon-Fri: 8:00 AM - 5:00 PM (varies by location)',
@@ -322,7 +322,7 @@ const getCuratedShelterData = (location: Location): HousingResource[] => {
       name: 'Covenant House (Youth 16-24)',
       category: 'housing',
       address: 'Major cities across the US',
-      phone: '1-800-388-3888',
+      phone: '1-800-999-9999',
       website: 'https://www.covenanthouse.org/',
       description: 'Emergency shelter and services for homeless youth ages 16-24.',
       services: ['Youth Shelter', 'Crisis Line', 'Education', 'Job Training'],
@@ -685,7 +685,7 @@ export const getTransitionalHousingResources = async (
       id: 'transitional-oxford-house',
       name: 'Oxford House (Recovery Housing)',
       category: 'housing',
-      address: 'Over 3,000 houses in 44 states',
+      address: 'Over 3,200 houses nationwide',
       phone: '1-800-689-6411',
       website: 'https://www.oxfordhouse.org/',
       description: 'Self-supporting recovery housing for those in addiction recovery.',

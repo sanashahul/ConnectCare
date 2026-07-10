@@ -123,7 +123,7 @@ const HOUSING_PROGRAMS = [
     descriptionEs: 'Programa gubernamental de asistencia de alquiler',
     steps: [
       { step: 1, title: 'Check Eligibility', titleEs: 'Verificar Elegibilidad', detail: 'Income must be below 50% of area median income. Check at your local PHA.', detailEs: 'Los ingresos deben estar por debajo del 50% del ingreso medio del área. Verifica en tu PHA local.' },
-      { step: 2, title: 'Find Your Local PHA', titleEs: 'Encontrar tu PHA Local', detail: 'Visit hud.gov/program_offices/public_indian_housing/pha/contacts to find your Public Housing Authority.', detailEs: 'Visita hud.gov/program_offices/public_indian_housing/pha/contacts para encontrar tu Autoridad de Vivienda Pública.' },
+      { step: 2, title: 'Find Your Local PHA', titleEs: 'Encontrar tu PHA Local', detail: 'Visit hud.gov/contactus/public-housing-contacts to find your Public Housing Authority.', detailEs: 'Visita hud.gov/contactus/public-housing-contacts para encontrar tu Autoridad de Vivienda Pública.' },
       { step: 3, title: 'Apply When Waitlist Opens', titleEs: 'Aplicar Cuando la Lista Abra', detail: 'Waitlists open periodically. Call your PHA to check status or sign up for notifications.', detailEs: 'Las listas de espera abren periódicamente. Llama a tu PHA para verificar el estado o inscribirte para notificaciones.' },
       { step: 4, title: 'Gather Documents', titleEs: 'Reunir Documentos', detail: 'ID, Social Security cards, birth certificates, proof of income, bank statements.', detailEs: 'Identificación, tarjetas de Seguro Social, actas de nacimiento, prueba de ingresos, estados de cuenta bancarios.' },
       { step: 5, title: 'Attend Interview', titleEs: 'Asistir a la Entrevista', detail: 'Bring all documents. Be honest about your situation.', detailEs: 'Lleva todos los documentos. Sé honesto sobre tu situación.' },
@@ -181,13 +181,13 @@ const HOUSING_PROGRAMS = [
       { step: 4, title: 'Find Housing', titleEs: 'Encontrar Vivienda', detail: 'Use your voucher to find approved housing.', detailEs: 'Usa tu vale para encontrar vivienda aprobada.' },
     ],
     phone: '1-877-424-3838',
-    website: 'https://www.va.gov/homeless/hud-vash.asp',
+    website: 'https://department.va.gov/homeless/hud-vash/',
   },
 ];
 
 // Emergency resources
 const HOUSING_HOTLINES = [
-  { id: 'hh1', name: 'National Homeless Hotline', nameEs: 'Línea Nacional para Personas Sin Hogar', description: '24/7 shelter referrals', descriptionEs: 'Referencias de refugio 24/7', phone: '1-800-231-6946', icon: '📞' },
+  { id: 'hh1', name: 'National Runaway Safeline', nameEs: 'Línea Nacional para Fugitivos', description: '24/7 youth crisis & shelter help', descriptionEs: 'Ayuda de crisis y refugio para jóvenes 24/7', phone: '1-800-786-2929', icon: '📞' },
   { id: 'hh2', name: '211', nameEs: '211', description: 'Local resources & shelter info', descriptionEs: 'Recursos locales e información de refugios', phone: '211', icon: '🆘' },
   { id: 'hh3', name: 'Domestic Violence Hotline', nameEs: 'Línea de Violencia Doméstica', description: 'Safe shelter for DV survivors', descriptionEs: 'Refugio seguro para sobrevivientes de VD', phone: '1-800-799-7233', icon: '💜' },
 ];
@@ -401,7 +401,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           : 'Based on your situation, you should call immediately to find shelter.',
         actions: [
           { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
-          { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+          { label: isSpanish ? 'Línea para Fugitivos' : 'Runaway Safeline', phone: '1-800-786-2929', primary: false },
         ],
       };
     }
@@ -414,7 +414,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           ? 'Como veterano, tienes acceso a programas especiales de vivienda.'
           : 'As a veteran, you have access to special housing programs.',
         actions: [
-          { label: isSpanish ? 'VA Housing' : 'VA Housing', phone: '1-877-222-8387', primary: true },
+          { label: isSpanish ? 'VA Housing' : 'VA Housing', phone: '1-877-424-3838', primary: true },
           { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: false },
         ],
       };
@@ -429,7 +429,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           : 'There are shelters specifically for families with children.',
         actions: [
           { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
-          { label: isSpanish ? 'Family Promise' : 'Family Promise', phone: '1-866-586-4483', primary: false },
+          { label: isSpanish ? 'Family Promise' : 'Family Promise', phone: '908-273-1100', primary: false },
         ],
       };
     }
@@ -442,7 +442,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         : 'Call 211 to connect with housing resources in your area.',
       actions: [
         { label: isSpanish ? 'Llamar 211' : 'Call 211', phone: '211', primary: true },
-        { label: isSpanish ? 'Línea Nacional' : 'National Hotline', phone: '1-800-231-6946', primary: false },
+        { label: isSpanish ? 'Línea para Fugitivos' : 'Runaway Safeline', phone: '1-800-786-2929', primary: false },
       ],
     };
   };
