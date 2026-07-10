@@ -14,6 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
+import { AIAssistant } from '../../components/AIAssistant';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
@@ -1109,6 +1110,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {activeSection === 'help' && renderHelp()}
         {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
+      <AIAssistant focus="housing" />
     </SafeAreaView>
   );
 

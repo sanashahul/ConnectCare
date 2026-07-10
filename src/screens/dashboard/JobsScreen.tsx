@@ -14,6 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
+import { AIAssistant } from '../../components/AIAssistant';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
@@ -794,6 +795,7 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {activeSection === 'quickhire' && renderQuickHire()}
         {activeSection === 'help' && renderHelp()}
       </ScrollView>
+      <AIAssistant focus="employment" />
     </SafeAreaView>
   );
 };

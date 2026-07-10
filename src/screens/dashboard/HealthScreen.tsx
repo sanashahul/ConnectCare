@@ -14,6 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
+import { AIAssistant } from '../../components/AIAssistant';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
 
@@ -1002,6 +1003,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {activeSection === 'urgent' && renderUrgent()}
         {activeSection === 'needNow' && renderNeedNow()}
       </ScrollView>
+      <AIAssistant focus="healthcare" />
     </SafeAreaView>
   );
 };

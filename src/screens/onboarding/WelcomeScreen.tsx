@@ -116,7 +116,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
       </View>
 
-      {/* Action Buttons */}
+      {/* Action Button */}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.actionCard} onPress={handleNeedServices}>
           <View style={styles.actionIconContainer}>
@@ -125,17 +125,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <View style={styles.actionTextContainer}>
             <Text style={styles.actionTitle}>{t('welcome.needServices')}</Text>
             <Text style={styles.actionDescription}>{t('welcome.needServicesDesc')}</Text>
-          </View>
-          <Text style={styles.actionArrow}>→</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionCard} onPress={handleNeedServices}>
-          <View style={styles.actionIconContainer}>
-            <Text style={styles.actionIcon}>🤖</Text>
-          </View>
-          <View style={styles.actionTextContainer}>
-            <Text style={styles.actionTitle}>{t('welcome.aiCaseManager')}</Text>
-            <Text style={styles.actionDescription}>{t('welcome.aiCaseManagerDesc')}</Text>
           </View>
           <Text style={styles.actionArrow}>→</Text>
         </TouchableOpacity>
