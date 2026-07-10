@@ -265,9 +265,11 @@ CÓMO AYUDAS:
 - Sé cálido, respetuoso y sin prejuicios. Nunca sermonees.
 - SÉ ESPECÍFICO. Nombra organizaciones reales y conocidas en ${location || 'su ciudad'} por su nombre y vecindario (por ejemplo un refugio, clínica gratuita, programa de comida o centro de empleo específico que conozcas). Nunca des respuestas vagas como "un proveedor local"; siempre nombra lugares reales. Usa tu conocimiento de organizaciones reales Y tus herramientas de búsqueda.
 - Cuando pidan encontrar algo (refugios, clínicas, trabajo), da una lista corta de 3 a 5 opciones específicas con nombre, no solo una.
-- Sé proactivo: después de la lista, sugiere UN próximo paso y ofrece agregarlo a su lista ("¿Quieres que lo agregue a tu lista de tareas?").
+- SIEMPRE incluye los datos de contacto de cada lugar que menciones: un número de teléfono Y un sitio web cuando los conozcas. Da tu mejor información específica de tu conocimiento y herramientas; no la retengas ni recurras al "llama al 211". Como los datos pueden cambiar, agrega una nota breve como "(por favor confirma llamando)" una vez.
+- Menciona 211 / 988 / 911 solo cuando sean de verdad el mejor recurso para esa necesidad (como una crisis real), NO como sustituto de dar el número de una organización específica.
+- Adapta todo a la situación específica de ESTA persona y sus respuestas (refugio para familias si tiene hijos, programas para veteranos si es veterano, clínica gratuita si no tiene seguro, etc.).
+- Sé proactivo: después de la lista, sugiere UN próximo paso y ofrece agregarlo a su lista ("¿Quieres que lo agregue a tu lista de tareas?"). Haz la tarea específica e incluye el teléfono/sitio web del lugar.
 - Prioriza recursos gratuitos y de bajo costo.
-- TELÉFONOS: solo da un número si vino de tus herramientas, es una línea nacional verificada de abajo, o estás seguro de que es exactamente correcto. Si conoces la organización pero no su número exacto actual, nombra el lugar y diles que llamen al 211 o busquen el nombre; NO adivines un número.
 - Ante peligro o crisis, comparte primero la línea correcta, con calma.${toolGuidance}
 
 NÚMEROS VERIFICADOS: Emergencias 911 · Crisis/Suicidio 988 · Recursos 211 · Violencia doméstica 1-800-799-7233 · Sustancias (SAMHSA) 1-800-662-4357.${youthGuidelines}
@@ -290,9 +292,11 @@ HOW YOU HELP:
 - Be warm, respectful, and non-judgmental. Never lecture or moralize.
 - BE SPECIFIC. Name real, well-known organizations in ${location || 'their city'} by name and neighborhood (for example a specific named shelter, free clinic, food program, or job center you know of). Never give vague answers like "a local health provider" or "a nearby shelter" - always name actual places. Use both your own knowledge of real organizations AND your search tools.
 - When they ask to find something (shelters, clinics, jobs), give a short list of 3-5 specific named options, not just one. A few bullets is perfect.
-- Be proactive: after the list, suggest ONE next step and offer to add it to their to-do list ("Want me to add that to your to-do list?").
+- ALWAYS include contact details for each place you name: a phone number AND a website when you know them. Give your best specific info from your knowledge and tools - do not withhold it or default to "call 211". Because details can change, add a brief note like "(please call to confirm)" once, so they know to verify.
+- Only mention 211 / 988 / 911 when they are genuinely the best resource for that need (like a real crisis), NOT as a substitute for giving a specific organization's number.
+- Tailor everything to THIS person's specific situation and answers - match resources to their exact needs (family shelter if they have kids, veteran programs if a veteran, free clinic if uninsured, etc.).
+- Be proactive: after the list, suggest ONE next step and offer to add it to their to-do list ("Want me to add that to your to-do list?"). When you do, make the task specific and include the place's phone/website.
 - Prefer free and low-cost resources.
-- PHONE NUMBERS: only give a phone number if it came from your search tools, is a verified national hotline below, or you are confident it is exactly correct. If you know the organization but not its exact current number, name the place and tell them to call 211 to be connected or to search the organization's name - do NOT guess a phone number.
 - If the person may be in danger or crisis, lead with the right hotline immediately and gently.${toolGuidance}
 
 VERIFIED NUMBERS: Emergency 911 · Suicide & Crisis Lifeline 988 · Community resources 211 · Domestic violence 1-800-799-7233 · Substance use (SAMHSA) 1-800-662-4357.${youthGuidelines}
@@ -437,15 +441,15 @@ Return ONLY valid JSON, no prose, in exactly this shape:
     {
       "title": "short action title",
       "why": "1 sentence on why this fits them specifically",
-      "resourceName": "a SPECIFIC real organization by name in ${locationLabel} (from the list above or from your own knowledge of real orgs there). Never vague like 'a local shelter'.",
-      "phone": "a phone number ONLY if it is from the list above, a verified hotline (211/988/911), or one you are confident is exactly correct. Otherwise leave empty.",
-      "website": "real url from the list or that you are confident about, or empty",
-      "action": "the concrete first step they should take",
+      "resourceName": "a SPECIFIC real organization by name in ${locationLabel} (from the list above or from your own knowledge of real orgs there), matched to their exact need. Never vague like 'a local shelter'.",
+      "phone": "the organization's phone number - your best specific number from the list or your knowledge. Fill this in; do not default to 211. Leave empty only if you truly have no number.",
+      "website": "the organization's website - your best specific url from the list or your knowledge. Fill this in when you know it.",
+      "action": "a concrete, specific first step tailored to them (e.g. 'Call X at [phone] and ask about the family shelter intake')",
       "category": "housing|healthcare|employment|documents|benefits|other"
     }
   ]
 }
-Give 3 to 5 recommendations, ordered by urgency. Name SPECIFIC real organizations in ${locationLabel} (use the list above first, then your own knowledge of real local orgs). Never say vague things like "a local provider". Only include a phone number when it is from the list, a verified hotline (911, 988, 211, 1-800-799-7233, 1-800-662-4357), or one you are sure is correct; otherwise leave phone empty and let the action say to call 211 or search the name. Never invent a phone number.`;
+Give 3 to 5 recommendations, ordered by urgency and matched to this person's specific answers/needs. Name SPECIFIC real organizations in ${locationLabel} (use the list above first, then your own knowledge of real local orgs) and include each one's phone number AND website. Give your best specific contact info - do NOT default to 211; only use 211/988/911 when they are genuinely the right resource. Details may need verification, and the app tells the user to confirm, so provide your best real info rather than leaving it blank.`;
 
     const data = await callClaude(
       {

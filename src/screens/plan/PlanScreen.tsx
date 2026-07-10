@@ -166,20 +166,26 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
           <Text style={styles.stepCatIcon}>{cs.icon}</Text>
         </View>
 
-        {(!!rec.resourceName || !!rec.phone || !!rec.action) && (
+        {(!!rec.resourceName || !!rec.phone || !!rec.action || !!rec.website) && (
           <View style={styles.resourceChip}>
             <View style={{ flex: 1 }}>
               {!!rec.resourceName && <Text style={styles.resourceName}>{rec.resourceName}</Text>}
               {!!rec.action && <Text style={styles.resourceAction}>{rec.action}</Text>}
+              <View style={styles.resourceLinks}>
+                {!!rec.phone && (
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`tel:${rec.phone!.replace(/[^0-9]/g, '')}`)}
+                  >
+                    <Text style={styles.resourceLink}>📞 {rec.phone}</Text>
+                  </TouchableOpacity>
+                )}
+                {!!rec.website && (
+                  <TouchableOpacity onPress={() => Linking.openURL(rec.website!)}>
+                    <Text style={styles.resourceLink}>🌐 {isSpanish ? 'Sitio web' : 'Website'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-            {!!rec.phone && (
-              <TouchableOpacity
-                style={styles.callBtn}
-                onPress={() => Linking.openURL(`tel:${rec.phone!.replace(/[^0-9]/g, '')}`)}
-              >
-                <Text style={styles.callText}>{rec.phone}</Text>
-              </TouchableOpacity>
-            )}
           </View>
         )}
 
@@ -329,6 +335,12 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
+
+              <Text style={styles.verifyNote}>
+                {isSpanish
+                  ? 'Casy usa IA. Los teléfonos y sitios web pueden cambiar, así que confirma llamando antes de ir.'
+                  : 'Casy is AI-powered. Phone numbers and websites can change, so please call to confirm before visiting.'}
+              </Text>
 
               {renderGroupedPlan()}
 
@@ -518,6 +530,16 @@ const styles = StyleSheet.create({
   },
   resourceName: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
   resourceAction: { fontSize: 12.5, color: '#64748B', lineHeight: 18, marginTop: 2 },
+  resourceLinks: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 8 },
+  resourceLink: { fontSize: 13.5, color: '#0D9488', fontWeight: '800' },
+  verifyNote: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontStyle: 'italic',
+    marginBottom: 14,
+    marginLeft: 4,
+    lineHeight: 17,
+  },
   callBtn: {
     backgroundColor: '#F0FDFA',
     borderWidth: 1,
