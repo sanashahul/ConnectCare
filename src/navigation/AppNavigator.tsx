@@ -14,9 +14,6 @@ import {
   HealthScreen,
   JobsScreen,
   HousingScreen,
-  CaseManagerScreen,
-  CaseWorkerEntryScreen,
-  CaseWorkerDashboardScreen,
   PinSetupScreen,
 } from '../screens';
 import { PinLockScreen } from '../screens/PinLockScreen';
@@ -34,9 +31,6 @@ export type RootStackParamList = {
   Health: undefined;
   Jobs: undefined;
   Housing: undefined;
-  CaseManager: undefined;
-  CaseWorkerEntry: undefined;
-  CaseWorkerDashboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -44,47 +38,28 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const AppNavigator: React.FC = () => {
   const { state, dispatch } = useApp();
 
-  // Check if user has completed onboarding
-  // For caseworkers: onboarding complete when they have connected to at least one client
-  // For users: onboarding complete when shareCode is set
-  const hasCompletedOnboarding = state.userRole === 'caseworker'
-    ? !!state.caseWorkerProfile && state.connectedClients.length > 0
-    : !!state.userProfile?.shareCode;
-
-  // Check if user has a PIN set and app should be locked
-  const hasPinSet = state.userRole === 'caseworker'
-    ? !!state.caseWorkerProfile?.pin
-    : !!state.userProfile?.pin;
-
-  // Only show PIN lock if onboarding is complete, PIN is set, and app is locked
+  // Onboarding is complete once the user has a shareCode set.
+  const hasCompletedOnboarding = !!state.userProfile?.shareCode;
+  const hasPinSet = !!state.userProfile?.pin;
   const shouldShowPinLock = hasCompletedOnboarding && hasPinSet && state.isLocked;
 
-  // Determine initial route based on saved state
   const getInitialRoute = (): keyof RootStackParamList => {
-    if (state.userRole === 'individual' && state.userProfile?.shareCode) {
-      // User has completed onboarding
+    if (state.userProfile?.shareCode) {
       return 'Dashboard';
-    }
-    if (state.userRole === 'caseworker' && state.caseWorkerProfile) {
-      // Case worker is logged in
-      return 'CaseWorkerDashboard';
     }
     return 'Welcome';
   };
 
   if (state.isLoading) {
-    return null; // Or a loading screen
+    return null;
   }
 
-  // Show PIN lock screen if app is locked and user has PIN
   if (shouldShowPinLock) {
     return <PinLockScreen onUnlock={() => dispatch({ type: 'UNLOCK_APP' })} />;
   }
 
-  // Use a key based on completed user state to force re-render when reset
-  // Important: Use shareCode (set at onboarding completion) instead of id to avoid
-  // resetting navigation during onboarding when userProfile is first created
-  const navKey = state.userProfile?.shareCode || state.caseWorkerProfile?.id || 'onboarding';
+  // Re-key on completed onboarding so navigation resets cleanly after reset.
+  const navKey = state.userProfile?.shareCode || 'onboarding';
 
   return (
     <NavigationContainer key={navKey}>
@@ -99,7 +74,7 @@ export const AppNavigator: React.FC = () => {
         {/* Welcome */}
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
 
-        {/* Individual Onboarding */}
+        {/* Onboarding */}
         <Stack.Screen name="NameInput" component={NameInputScreen} />
         <Stack.Screen name="AgeInput" component={AgeInputScreen} />
         <Stack.Screen name="ImmigrationStatus" component={ImmigrationStatusScreen} />
@@ -121,15 +96,6 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Health" component={HealthScreen} />
         <Stack.Screen name="Jobs" component={JobsScreen} />
         <Stack.Screen name="Housing" component={HousingScreen} />
-        <Stack.Screen name="CaseManager" component={CaseManagerScreen} />
-
-        {/* Case Worker */}
-        <Stack.Screen name="CaseWorkerEntry" component={CaseWorkerEntryScreen} />
-        <Stack.Screen
-          name="CaseWorkerDashboard"
-          component={CaseWorkerDashboardScreen}
-          options={{ gestureEnabled: false }}
-        />
       </Stack.Navigator>
     </NavigationContainer>
   );

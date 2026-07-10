@@ -1419,7 +1419,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </TouchableOpacity>
         ))}
 
-        {/* AI Case Manager */}
+        {/* AI Case Manager - your always-on personal guide */}
         <TouchableOpacity
           style={[styles.categoryCard, styles.aiCategoryCard]}
           onPress={() => setShowAI(true)}
@@ -1428,26 +1428,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <Text style={styles.categoryIcon}>🤖</Text>
           </View>
           <Text style={styles.categoryLabel}>
-            {isSpanish ? 'AI Gestor' : 'AI Case Manager'}
+            {isSpanish ? 'AI Gestor de Caso' : 'AI Case Manager'}
           </Text>
           <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Ayuda personalizada' : 'Personal help'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* My Case Manager - at end */}
-        <TouchableOpacity
-          style={[styles.categoryCard, styles.caseManagerCard]}
-          onPress={() => navigation.navigate('CaseManager')}
-        >
-          <View style={[styles.categoryIconContainer, { backgroundColor: '#E0F2FE' }]}>
-            <Text style={styles.categoryIcon}>👤</Text>
-          </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'Mi Gestor' : 'My Case Manager'}
-          </Text>
-          <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Conectar y colaborar' : 'Connect & collaborate'}
+            {isSpanish ? 'Tu guía personal 24/7' : 'Your 24/7 personal guide'}
           </Text>
         </TouchableOpacity>
       </View>

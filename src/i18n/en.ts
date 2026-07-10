@@ -5,6 +5,8 @@ export default {
     subtitle: 'Connecting you to the care you need',
     needServices: 'I Need Services',
     needServicesDesc: 'Start your assessment',
+    aiCaseManager: 'AI Case Manager',
+    aiCaseManagerDesc: 'Your 24/7 personal guide',
     caseworker: "I'm a Case Worker",
     caseworkerDesc: 'Enter share code',
     selectLanguage: 'Select Language',

@@ -23,10 +23,8 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onUnlock }) => {
   const [error, setError] = useState(false);
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
-  // Get the stored PIN based on user role
-  const storedPin = state.userRole === 'caseworker'
-    ? state.caseWorkerProfile?.pin
-    : state.userProfile?.pin;
+  // Get the stored PIN (individual user).
+  const storedPin = state.userProfile?.pin;
 
   const handlePinChange = (digit: string) => {
     if (pin.length < 4) {

@@ -5,6 +5,8 @@ export default {
     subtitle: 'Conectándote con la ayuda que necesitas',
     needServices: 'Necesito Servicios',
     needServicesDesc: 'Comenzar mi evaluación',
+    aiCaseManager: 'AI Gestor de Caso',
+    aiCaseManagerDesc: 'Tu guía personal 24/7',
     caseworker: 'Soy Trabajador Social',
     caseworkerDesc: 'Ingresar código',
     selectLanguage: 'Seleccionar Idioma',

@@ -18,7 +18,6 @@ import { changeLanguage, loadStoredLanguage } from '../../i18n';
 type RootStackParamList = {
   Welcome: undefined;
   NameInput: undefined;
-  CaseWorkerEntry: undefined;
 };
 
 type WelcomeScreenProps = {
@@ -44,11 +43,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const handleNeedServices = () => {
     dispatch({ type: 'SET_USER_ROLE', payload: 'individual' });
     navigation.navigate('NameInput');
-  };
-
-  const handleCaseWorker = () => {
-    dispatch({ type: 'SET_USER_ROLE', payload: 'caseworker' });
-    navigation.navigate('CaseWorkerEntry');
   };
 
   const handleResetApp = () => {
@@ -135,13 +129,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <Text style={styles.actionArrow}>→</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionCard} onPress={handleCaseWorker}>
+        <TouchableOpacity style={styles.actionCard} onPress={handleNeedServices}>
           <View style={styles.actionIconContainer}>
-            <Text style={styles.actionIcon}>👥</Text>
+            <Text style={styles.actionIcon}>🤖</Text>
           </View>
           <View style={styles.actionTextContainer}>
-            <Text style={styles.actionTitle}>{t('welcome.caseworker')}</Text>
-            <Text style={styles.actionDescription}>{t('welcome.caseworkerDesc')}</Text>
+            <Text style={styles.actionTitle}>{t('welcome.aiCaseManager')}</Text>
+            <Text style={styles.actionDescription}>{t('welcome.aiCaseManagerDesc')}</Text>
           </View>
           <Text style={styles.actionArrow}>→</Text>
         </TouchableOpacity>
