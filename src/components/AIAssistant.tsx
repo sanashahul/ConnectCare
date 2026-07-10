@@ -158,11 +158,12 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
-        <View style={styles.backdrop}>
-          <KeyboardAvoidingView
-            style={styles.sheet}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.backdrop}>
+            <View style={styles.sheet}>
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
@@ -237,8 +238,9 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
                 <Text style={styles.sendIcon}>→</Text>
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );
@@ -263,6 +265,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   fabIcon: { fontSize: 28 },
+  flex: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.4)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: '#FFFFFF',
@@ -316,7 +319,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 10,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 14,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
     backgroundColor: '#FFFFFF',
