@@ -45,6 +45,9 @@ export default {
       ]
     ],
     extra: {
+      eas: {
+        projectId: "10983464-0e42-4b2e-b720-e031c5e34712"
+      },
       groqApiKey: process.env.EXPO_PUBLIC_GROQ_API_KEY,
       adzunaAppId: process.env.EXPO_PUBLIC_ADZUNA_APP_ID,
       adzunaAppKey: process.env.EXPO_PUBLIC_ADZUNA_APP_KEY,
