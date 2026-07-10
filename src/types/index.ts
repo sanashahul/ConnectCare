@@ -42,6 +42,25 @@ export interface QuestionAnswer {
   answer: string | string[];
 }
 
+// A single recommended action in the user's personalized plan.
+export interface PlanRecommendation {
+  title: string;
+  why: string;
+  resourceName?: string;
+  phone?: string;
+  website?: string;
+  action: string;
+  category: TaskCategory;
+}
+
+// The personalized plan Casy generates from the user's questionnaire answers,
+// grounded in real resources fetched for their location.
+export interface PersonalizedPlan {
+  summary: string;
+  recommendations: PlanRecommendation[];
+  language: 'en' | 'es';
+}
+
 export interface TodoItem {
   id: string;
   title: string;
@@ -74,6 +93,9 @@ export interface UserProfile {
   connectedCaseWorkerId?: string;
   todos: TodoItem[];
   createdAt: string;
+  // Casy's personalized plan, generated after the questionnaire.
+  recommendations?: PersonalizedPlan;
+  planGeneratedAt?: string;
 }
 
 export interface CaseWorkerProfile {

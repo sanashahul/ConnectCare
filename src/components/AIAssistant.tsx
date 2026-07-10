@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { sendMessageToAI, AIMessage, UserContext } from '../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext } from '../services/aiService';
 import { CasyAvatar } from './CasyAvatar';
 
 export type AIFocus = 'housing' | 'healthcare' | 'employment';
@@ -92,6 +92,12 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
+  const hasCoords =
+    !!profile?.location &&
+    typeof profile.location.latitude === 'number' &&
+    typeof profile.location.longitude === 'number' &&
+    (profile.location.latitude !== 0 || profile.location.longitude !== 0);
+
   const context: UserContext = {
     name: profile?.name,
     city: profile?.location?.city,
@@ -100,6 +106,9 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     needs: profile?.selectedCategories,
     ageGroup: profile?.ageGroup,
     isMinor: profile?.ageGroup === 'under18',
+    // Give Casy coordinates so it can run live searches, and the full answers.
+    location: hasCoords ? profile?.location : undefined,
+    answersSummary: buildAnswersSummary(profile?.answers, isSpanish ? 'es' : 'en'),
   };
 
   const greeting = greetingFor(focus, profile?.name, isSpanish);

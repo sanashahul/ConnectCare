@@ -7,6 +7,7 @@ import {
   ImmigrationStatus,
   Location,
   QuestionAnswer,
+  PersonalizedPlan,
   TodoItem,
   UserRole,
   AgeGroup,
@@ -76,6 +77,7 @@ type AppAction =
   | { type: 'SET_LOCATION'; payload: Location }
   | { type: 'SET_CATEGORIES'; payload: ServiceCategory[] }
   | { type: 'SET_ANSWER'; payload: QuestionAnswer }
+  | { type: 'SET_RECOMMENDATIONS'; payload: PersonalizedPlan }
   | { type: 'COMPLETE_ONBOARDING' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
@@ -189,6 +191,17 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           answers: newAnswers,
+        },
+      };
+    }
+
+    case 'SET_RECOMMENDATIONS': {
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          recommendations: action.payload,
+          planGeneratedAt: new Date().toISOString(),
         },
       };
     }

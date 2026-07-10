@@ -7,13 +7,15 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, ProgressBar, AIAssistant } from '../../components';
+import { Button, ProgressBar, AIAssistant, CasyAvatar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { getQuestionsByCategory } from '../../data/questions';
-import { Question, ServiceCategory } from '../../types';
+import { Question, ServiceCategory, QuestionAnswer } from '../../types';
+import { generatePersonalizedPlan, buildAnswersSummary } from '../../services/aiService';
 
 type RootStackParamList = {
   Questionnaire: undefined;
@@ -32,6 +34,7 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
   const { state, dispatch } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+  const [generating, setGenerating] = useState(false);
 
   // Get all questions for selected categories
   const allQuestions = useMemo(() => {
@@ -87,6 +90,54 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     handleAnswer(text);
   };
 
+  const goToDashboard = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
+    });
+  };
+
+  // On completion, ask Casy to build a personalized plan grounded in real
+  // resources for this person, then land them on their dashboard.
+  const finishOnboarding = async (finalAnswers: Record<string, string | string[]>) => {
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+    setGenerating(true);
+    try {
+      const profile = state.userProfile;
+      const isEs = i18n.language === 'es';
+      const qaArray: QuestionAnswer[] = Object.entries(finalAnswers).map(
+        ([questionId, answer]) => ({ questionId, answer })
+      );
+      const loc = profile?.location;
+      const hasCoords =
+        !!loc &&
+        typeof loc.latitude === 'number' &&
+        typeof loc.longitude === 'number' &&
+        (loc.latitude !== 0 || loc.longitude !== 0);
+
+      const plan = await generatePersonalizedPlan({
+        name: profile?.name,
+        city: loc?.city,
+        state: loc?.state,
+        language: isEs ? 'es' : 'en',
+        needs: profile?.selectedCategories,
+        ageGroup: profile?.ageGroup,
+        isMinor: profile?.ageGroup === 'under18',
+        location: hasCoords ? loc : undefined,
+        answersSummary: buildAnswersSummary(qaArray, isEs ? 'es' : 'en'),
+      });
+
+      if (plan) {
+        dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
+      }
+    } catch (e) {
+      console.warn('Plan generation failed; continuing to dashboard.', e);
+    } finally {
+      setGenerating(false);
+      goToDashboard();
+    }
+  };
+
   const handleNext = () => {
     // Save current answer to context
     const answer = answers[currentQuestion.id];
@@ -101,12 +152,10 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     }
 
     if (isLastQuestion) {
-      // Complete onboarding
-      dispatch({ type: 'COMPLETE_ONBOARDING' });
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Dashboard' }],
-      });
+      const finalAnswers = answer
+        ? { ...answers, [currentQuestion.id]: answer }
+        : answers;
+      finishOnboarding(finalAnswers);
     } else {
       setCurrentIndex((prev) => prev + 1);
     }
@@ -127,6 +176,27 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     if (typeof answer === 'string' && answer.trim() === '') return false;
     return true;
   };
+
+  // While Casy builds the personalized plan, show a warm loading screen.
+  if (generating) {
+    const isEs = i18n.language === 'es';
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.generatingWrap}>
+          <CasyAvatar size={72} />
+          <ActivityIndicator size="large" color="#0D9488" style={{ marginTop: 28 }} />
+          <Text style={styles.generatingTitle}>
+            {isEs ? 'Casy está preparando tu plan' : 'Casy is building your plan'}
+          </Text>
+          <Text style={styles.generatingSub}>
+            {isEs
+              ? 'Estoy revisando tus respuestas y buscando recursos reales cerca de ti.'
+              : "I'm reviewing your answers and finding real resources near you."}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!currentQuestion) {
     return null;
@@ -274,6 +344,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FEFEFE',
+  },
+  generatingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  generatingTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginTop: 24,
+    textAlign: 'center',
+  },
+  generatingSub: {
+    fontSize: 15,
+    color: '#64748B',
+    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   progressContainer: {
     paddingHorizontal: 24,

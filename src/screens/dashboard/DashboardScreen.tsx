@@ -20,7 +20,8 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
-import { sendMessageToAI, AIMessage } from '../../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, AIMessage } from '../../services/aiService';
+import { PlanRecommendation } from '../../types';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 
@@ -1137,6 +1138,28 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const userProfile = state.userProfile;
   const categories = userProfile?.selectedCategories || [];
 
+  // Build the full context Casy needs: profile, coordinates (for live search),
+  // and a readable summary of the questionnaire answers.
+  const buildAIContext = () => {
+    const loc = userProfile?.location;
+    const hasCoords =
+      !!loc &&
+      typeof loc.latitude === 'number' &&
+      typeof loc.longitude === 'number' &&
+      (loc.latitude !== 0 || loc.longitude !== 0);
+    return {
+      name: userProfile?.name,
+      city: loc?.city,
+      state: loc?.state,
+      language: (isSpanish ? 'es' : 'en') as 'es' | 'en',
+      needs: userProfile?.selectedCategories,
+      ageGroup: userProfile?.ageGroup,
+      isMinor: userProfile?.ageGroup === 'under18',
+      location: hasCoords ? loc : undefined,
+      answersSummary: buildAnswersSummary(userProfile?.answers, isSpanish ? 'es' : 'en'),
+    };
+  };
+
   const handleAITopic = async (topicId: string) => {
     const topic = AI_TOPICS.find((t) => t.id === topicId);
     if (!topic) return;
@@ -1188,14 +1211,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        {
-          name: userProfile?.name,
-          city: userProfile?.location?.city,
-          state: userProfile?.location?.state,
-          language: isSpanish ? 'es' : 'en',
-          ageGroup: userProfile?.ageGroup,
-          isMinor: userProfile?.ageGroup === 'under18',
-        }
+        buildAIContext()
       );
 
       setIsTyping(false);
@@ -1296,6 +1312,73 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     handleAddTodo(isSpanish ? todo.es : todo.en);
   };
 
+  // Add a plan recommendation to the to-do list, carrying its resource contact.
+  const handleAddRecommendation = (rec: PlanRecommendation) => {
+    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title: rec.title,
+        description: rec.action || rec.why || undefined,
+        completed: false,
+        priority: 'normal',
+        createdBy: 'individual',
+        category: (allowed.includes(rec.category) ? rec.category : 'other') as any,
+        resourcePhone: rec.phone || undefined,
+        resourceUrl: rec.website || undefined,
+      },
+    });
+    Alert.alert(
+      isSpanish ? '¡Agregado!' : 'Added!',
+      isSpanish ? 'Paso agregado a tu lista de tareas' : 'Step added to your to-do list',
+      [{ text: 'OK' }]
+    );
+  };
+
+  // Open Casy and immediately ask about a specific plan recommendation.
+  const handleAskCasyAbout = async (rec: PlanRecommendation) => {
+    setShowAI(true);
+    const messageText = isSpanish
+      ? `Ayúdame con este paso de mi plan: ${rec.title}. ${rec.action}`
+      : `Help me with this step from my plan: ${rec.title}. ${rec.action}`;
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: messageText,
+    };
+    setChatMessages((prev) => [...prev, userMessage]);
+    setIsTyping(true);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+    try {
+      const aiHistory: AIMessage[] = chatMessages
+        .filter((msg) => msg.type === 'user' || msg.type === 'ai')
+        .slice(-6)
+        .map((msg) => ({
+          role: msg.type === 'user' ? ('user' as const) : ('model' as const),
+          content: msg.content,
+        }));
+      const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext());
+      setIsTyping(false);
+      setChatMessages((prev) => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), type: 'ai', content: responseContent },
+      ]);
+    } catch {
+      setIsTyping(false);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          type: 'ai',
+          content: isSpanish
+            ? 'Lo siento, tuve un problema. Intenta de nuevo o llama al 211.'
+            : 'Sorry, I had a problem. Please try again or call 211.',
+        },
+      ]);
+    }
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 200);
+  };
+
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
 
@@ -1334,14 +1417,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        {
-          name: userProfile?.name,
-          city: userProfile?.location?.city,
-          state: userProfile?.location?.state,
-          language: isSpanish ? 'es' : 'en',
-          ageGroup: userProfile?.ageGroup,
-          isMinor: userProfile?.ageGroup === 'under18',
-        }
+        buildAIContext()
       );
 
       setIsTyping(false);
@@ -1391,6 +1467,86 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       };
       setChatMessages(prev => [...prev, fallbackResponse]);
     }
+  };
+
+  const renderPlan = () => {
+    const plan = userProfile?.recommendations;
+    if (!plan || !plan.recommendations?.length) return null;
+
+    const catStyle: Record<string, { bg: string; icon: string }> = {
+      housing: { bg: '#F5F3FF', icon: '🏠' },
+      healthcare: { bg: '#F0FDFA', icon: '🏥' },
+      employment: { bg: '#FFF7ED', icon: '💼' },
+      documents: { bg: '#EFF6FF', icon: '📄' },
+      benefits: { bg: '#F0FDF4', icon: '💳' },
+      education: { bg: '#FEF2F2', icon: '📚' },
+      other: { bg: '#F8FAFC', icon: '✅' },
+    };
+
+    return (
+      <View style={styles.planSection}>
+        <View style={styles.planHeader}>
+          <CasyAvatar size={40} />
+          <View style={{ marginLeft: 12, flex: 1 }}>
+            <Text style={styles.planHeaderTitle}>
+              {isSpanish ? 'Tu plan de Casy' : 'Your plan from Casy'}
+            </Text>
+            <Text style={styles.planHeaderSub}>
+              {isSpanish ? 'Basado en tus respuestas' : 'Based on your answers'}
+            </Text>
+          </View>
+        </View>
+
+        {!!plan.summary && <Text style={styles.planSummary}>{plan.summary}</Text>}
+
+        {plan.recommendations.map((rec, idx) => {
+          const cs = catStyle[rec.category] || catStyle.other;
+          return (
+            <View key={idx} style={styles.recCard}>
+              <View style={styles.recTop}>
+                <View style={[styles.recIcon, { backgroundColor: cs.bg }]}>
+                  <Text style={{ fontSize: 20 }}>{cs.icon}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.recTitle}>{rec.title}</Text>
+                  {!!rec.why && <Text style={styles.recWhy}>{rec.why}</Text>}
+                </View>
+              </View>
+
+              {!!rec.resourceName && (
+                <View style={styles.recResource}>
+                  <Text style={styles.recResourceName}>{rec.resourceName}</Text>
+                  {!!rec.phone && (
+                    <TouchableOpacity onPress={() => Linking.openURL(`tel:${rec.phone.replace(/[^0-9]/g, '')}`)}>
+                      <Text style={styles.recPhone}>📞 {rec.phone}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
+              <View style={styles.recActions}>
+                <TouchableOpacity
+                  style={styles.recAskBtn}
+                  onPress={() => handleAskCasyAbout(rec)}
+                >
+                  <Text style={styles.recAskText}>
+                    {isSpanish ? 'Preguntar a Casy' : 'Ask Casy'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.recAddBtn}
+                  onPress={() => handleAddRecommendation(rec)}
+                >
+                  <Text style={styles.recAddText}>
+                    + {isSpanish ? 'Agregar' : 'Add to list'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
   };
 
   const renderCategoryGrid = () => {
@@ -1900,6 +2056,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         </View>
 
+        {/* Personalized plan from Casy */}
+        {renderPlan()}
+
         {/* Youth Support Banner - for users under 18 */}
         {userProfile?.ageGroup === 'under18' && (() => {
           const stateCode = userProfile?.location?.state || '';
@@ -2225,6 +2384,121 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FEFEFE',
+  },
+  planSection: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  planHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  planHeaderSub: {
+    fontSize: 13,
+    color: '#0D9488',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  planSummary: {
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 22,
+    marginBottom: 14,
+  },
+  recCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  recTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  recIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  recTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 3,
+  },
+  recWhy: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 19,
+  },
+  recResource: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  recResourceName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  recPhone: {
+    fontSize: 14,
+    color: '#0D9488',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  recActions: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 10,
+  },
+  recAskBtn: {
+    flex: 1,
+    backgroundColor: '#0D9488',
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  recAskText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  recAddBtn: {
+    flex: 1,
+    backgroundColor: '#F0FDFA',
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  recAddText: {
+    color: '#0D9488',
+    fontWeight: '700',
+    fontSize: 14,
   },
   content: {
     flex: 1,
