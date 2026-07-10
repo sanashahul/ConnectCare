@@ -240,7 +240,37 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     );
   };
 
-  const allRevealed = revealed >= recs.length;
+  // Group the recommendations into "Your Housing Plan / Healthcare Plan /
+  // Employment Plan" sections so the plan reads by category.
+  const renderGroupedPlan = () => {
+    const titles: Record<string, { en: string; es: string; icon: string }> = {
+      housing: { en: 'Your Housing Plan', es: 'Tu plan de vivienda', icon: '🏠' },
+      healthcare: { en: 'Your Healthcare Plan', es: 'Tu plan de salud', icon: '🏥' },
+      employment: { en: 'Your Employment Plan', es: 'Tu plan de empleo', icon: '💼' },
+      other: { en: 'Your Action Plan', es: 'Tu plan de acción', icon: '✅' },
+    };
+    const order = ['housing', 'healthcare', 'employment'];
+    const groups: Record<string, PlanRecommendation[]> = {};
+    recs.forEach((r) => {
+      const key = order.includes(r.category) ? r.category : 'other';
+      (groups[key] = groups[key] || []).push(r);
+    });
+    const keys = [...order.filter((k) => groups[k]), ...(groups.other ? ['other'] : [])];
+
+    let globalIdx = 0;
+    return keys.map((key) => {
+      const t = titles[key];
+      return (
+        <View key={key} style={styles.group}>
+          <View style={styles.groupHeader}>
+            <Text style={styles.groupIcon}>{t.icon}</Text>
+            <Text style={styles.groupTitle}>{isSpanish ? t.es : t.en}</Text>
+          </View>
+          {groups[key].map((rec) => renderStep(rec, globalIdx++))}
+        </View>
+      );
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -294,35 +324,23 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
                   <Text style={[styles.introText, { marginTop: 10 }]}>{plan.summary}</Text>
                   <Text style={styles.introTeaser}>
                     {isSpanish
-                      ? 'Vamos paso a paso. Aquí es donde yo empezaría:'
-                      : "Let's take this one step at a time. Here's where I'd start:"}
+                      ? 'Aquí está tu plan, organizado para ti:'
+                      : "Here's your plan, organized for you:"}
                   </Text>
                 </View>
               </View>
 
-              {recs.slice(0, revealed).map((rec, idx) => renderStep(rec, idx))}
+              {renderGroupedPlan()}
 
-              {!allRevealed ? (
-                <TouchableOpacity style={styles.nextBtn} onPress={() => setRevealed((r) => r + 1)}>
-                  <Text style={styles.nextText}>
-                    {isSpanish ? 'Ver el siguiente paso' : 'Show me the next step'} ↓
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <View style={styles.introRow}>
-                    <CasyAvatar size={34} />
-                    <View style={styles.introBubble}>
-                      <Text style={styles.introText}>
-                        {isSpanish
-                          ? 'Ese es tu plan. Cuando quieras, entra a estas secciones para ver más recursos reales cerca de ti, y pregúntame lo que sea.'
-                          : "That's your plan. Whenever you're ready, step into these sections for more real resources near you, and ask me anything."}
-                      </Text>
-                    </View>
-                  </View>
-                  {renderSections()}
-                </>
-              )}
+              <TouchableOpacity
+                style={styles.dashboardBtn}
+                onPress={() => navigation.navigate('Dashboard')}
+              >
+                <Text style={styles.dashboardBtnText}>
+                  {isSpanish ? 'Continuar a mi panel' : 'Continue to my dashboard'}
+                </Text>
+                <Text style={styles.dashboardBtnArrow}>→</Text>
+              </TouchableOpacity>
             </>
           )}
 
@@ -396,6 +414,30 @@ const styles = StyleSheet.create({
   },
   introText: { fontSize: 15.5, color: '#0F172A', lineHeight: 23 },
   introTeaser: { fontSize: 14, color: '#0D9488', fontWeight: '700', marginTop: 8 },
+
+  group: { marginBottom: 8 },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10, marginTop: 6 },
+  groupIcon: { fontSize: 20 },
+  groupTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
+
+  dashboardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0D9488',
+    borderRadius: 16,
+    paddingVertical: 16,
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 6,
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  dashboardBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
+  dashboardBtnArrow: { color: '#FFFFFF', fontWeight: '800', fontSize: 19 },
 
   sectionsBlock: { marginTop: 4, marginBottom: 8 },
   sectionsTitle: {

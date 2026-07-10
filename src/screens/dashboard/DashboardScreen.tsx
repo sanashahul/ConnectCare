@@ -1983,56 +1983,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               )}
             </View>
           )}
-        </ScrollView>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={0}
-        >
-          <View style={styles.aiInputContainer}>
-            <TextInput
-              style={styles.aiInput}
-              value={userInput}
-              onChangeText={setUserInput}
-              placeholder={isSpanish ? 'Pregunta lo que quieras...' : 'Ask me anything...'}
-              placeholderTextColor="#94A3B8"
-              multiline
-              onSubmitEditing={handleSendMessage}
-              editable={!isTyping}
-            />
-            <TouchableOpacity
-              style={[styles.aiSendButton, isTyping && styles.aiSendButtonDisabled]}
-              onPress={handleSendMessage}
-              disabled={isTyping || !userInput.trim()}
-            >
-              <Text style={styles.aiSendText}>{isTyping ? '...' : '→'}</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </Modal>
-  );
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>
-              {isSpanish ? '¡Hola' : 'Hello'}, {userProfile?.name || 'Friend'}! 👋
-            </Text>
-            <Text style={styles.subtitle}>
-              {isSpanish ? 'Tus recursos personalizados' : 'Your personalized resources'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Personalized plan from Casy */}
-        {renderPlan()}
-
+        {/* Youth Support Banner - moved to bottom */}
         {/* Youth Support Banner - for users under 18 */}
         {userProfile?.ageGroup === 'under18' && (() => {
           const stateCode = userProfile?.location?.state || '';
@@ -2292,6 +2244,56 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             </View>
           );
         })()}
+        </ScrollView>
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
+        >
+          <View style={styles.aiInputContainer}>
+            <TextInput
+              style={styles.aiInput}
+              value={userInput}
+              onChangeText={setUserInput}
+              placeholder={isSpanish ? 'Pregunta lo que quieras...' : 'Ask me anything...'}
+              placeholderTextColor="#94A3B8"
+              multiline
+              onSubmitEditing={handleSendMessage}
+              editable={!isTyping}
+            />
+            <TouchableOpacity
+              style={[styles.aiSendButton, isTyping && styles.aiSendButtonDisabled]}
+              onPress={handleSendMessage}
+              disabled={isTyping || !userInput.trim()}
+            >
+              <Text style={styles.aiSendText}>{isTyping ? '...' : '→'}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>
+              {isSpanish ? '¡Hola' : 'Hello'}, {userProfile?.name || 'Friend'}! 👋
+            </Text>
+            <Text style={styles.subtitle}>
+              {isSpanish ? 'Tus recursos personalizados' : 'Your personalized resources'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Personalized plan from Casy */}
+        {renderPlan()}
+
 
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>

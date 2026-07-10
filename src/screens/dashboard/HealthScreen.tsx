@@ -499,6 +499,41 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Recursos de salud personalizados' : 'Personalized health resources'}
       </Text>
 
+      {/* Casy's personalized healthcare plan items */}
+      {(() => {
+        const planRecs = (userProfile?.recommendations?.recommendations || []).filter(
+          (r) => r.category === 'healthcare'
+        );
+        if (!planRecs.length) return null;
+        return (
+          <View style={styles.planForYou}>
+            <Text style={styles.planForYouLabel}>
+              {isSpanish ? 'DE TU PLAN CON CASY' : 'FROM YOUR PLAN WITH CASY'}
+            </Text>
+            {planRecs.map((rec, i) => (
+              <View key={`plan-${i}`} style={styles.planForYouCard}>
+                <Text style={styles.planForYouTitle}>{rec.title}</Text>
+                {!!rec.why && <Text style={styles.planForYouWhy}>{rec.why}</Text>}
+                {(!!rec.resourceName || !!rec.phone) && (
+                  <View style={styles.planForYouResource}>
+                    {!!rec.resourceName && (
+                      <Text style={styles.planForYouOrg}>{rec.resourceName}</Text>
+                    )}
+                    {!!rec.phone && (
+                      <TouchableOpacity
+                        onPress={() => Linking.openURL(`tel:${rec.phone!.replace(/[^0-9]/g, '')}`)}
+                      >
+                        <Text style={styles.planForYouPhone}>📞 {rec.phone}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        );
+      })()}
+
       {HEALTH_FOR_YOU.map((item) => (
         <TouchableOpacity
           key={item.id}
@@ -1098,6 +1133,52 @@ const styles = StyleSheet.create({
   },
   detailContainer: {
     padding: 20,
+  },
+  planForYou: {
+    marginBottom: 20,
+  },
+  planForYouLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0D9488',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  planForYouCard: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  planForYouTitle: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 3,
+  },
+  planForYouWhy: {
+    fontSize: 13,
+    color: '#475569',
+    lineHeight: 19,
+  },
+  planForYouResource: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#CCFBF1',
+  },
+  planForYouOrg: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  planForYouPhone: {
+    fontSize: 14,
+    color: '#0D9488',
+    fontWeight: '800',
+    marginTop: 4,
   },
   backButton: {
     marginBottom: 16,
