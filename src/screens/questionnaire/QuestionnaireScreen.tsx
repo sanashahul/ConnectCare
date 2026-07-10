@@ -317,6 +317,14 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
       {/* Question */}
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <Text style={styles.question}>{getQuestionText(currentQuestion)}</Text>
+        {!!(i18n.language === 'es' ? currentQuestion.reasonEs : currentQuestion.reason) && (
+          <View style={styles.reasonRow}>
+            <CasyAvatar size={22} />
+            <Text style={styles.reasonText}>
+              {i18n.language === 'es' ? currentQuestion.reasonEs : currentQuestion.reason}
+            </Text>
+          </View>
+        )}
         {renderOptions()}
       </ScrollView>
 
@@ -397,9 +405,28 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 28,
+    marginBottom: 14,
     lineHeight: 36,
     letterSpacing: -0.3,
+  },
+  reasonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F0FDFA',
+    borderColor: '#CCFBF1',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 26,
+  },
+  reasonText: {
+    flex: 1,
+    fontSize: 13.5,
+    color: '#0F766E',
+    lineHeight: 19,
+    fontWeight: '500',
   },
   selectHint: {
     fontSize: 14,

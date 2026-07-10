@@ -35,6 +35,10 @@ export interface Question {
   questionEs: string;
   type: 'single' | 'multiple' | 'text' | 'yesno';
   options?: QuestionOption[];
+  // Short "why we ask" note shown to the user, so every question is
+  // transparently tied to how Casy will help them.
+  reason?: string;
+  reasonEs?: string;
 }
 
 export interface QuestionAnswer {

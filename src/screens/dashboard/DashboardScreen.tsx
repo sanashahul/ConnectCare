@@ -1485,14 +1485,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
     return (
       <View style={styles.planSection}>
+        {/* Header band */}
         <View style={styles.planHeader}>
-          <CasyAvatar size={40} />
+          <CasyAvatar size={46} />
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text style={styles.planHeaderTitle}>
               {isSpanish ? 'Tu plan de Casy' : 'Your plan from Casy'}
             </Text>
             <Text style={styles.planHeaderSub}>
-              {isSpanish ? 'Basado en tus respuestas' : 'Based on your answers'}
+              {isSpanish ? 'Hecho para ti · Basado en tus respuestas' : 'Made for you · Based on your answers'}
             </Text>
           </View>
         </View>
@@ -1504,21 +1505,35 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           return (
             <View key={idx} style={styles.recCard}>
               <View style={styles.recTop}>
-                <View style={[styles.recIcon, { backgroundColor: cs.bg }]}>
-                  <Text style={{ fontSize: 20 }}>{cs.icon}</Text>
+                <View style={styles.recNumber}>
+                  <Text style={styles.recNumberText}>{idx + 1}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
+                  {idx === 0 && (
+                    <Text style={styles.recPriority}>
+                      {isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}
+                    </Text>
+                  )}
                   <Text style={styles.recTitle}>{rec.title}</Text>
                   {!!rec.why && <Text style={styles.recWhy}>{rec.why}</Text>}
                 </View>
+                <Text style={styles.recCatIcon}>{cs.icon}</Text>
               </View>
 
-              {!!rec.resourceName && (
-                <View style={styles.recResource}>
-                  <Text style={styles.recResourceName}>{rec.resourceName}</Text>
+              {(!!rec.resourceName || !!rec.phone || !!rec.action) && (
+                <View style={styles.recResourceChip}>
+                  <View style={{ flex: 1 }}>
+                    {!!rec.resourceName && (
+                      <Text style={styles.recResourceName}>{rec.resourceName}</Text>
+                    )}
+                    {!!rec.action && <Text style={styles.recAction}>{rec.action}</Text>}
+                  </View>
                   {!!rec.phone && (
-                    <TouchableOpacity onPress={() => Linking.openURL(`tel:${rec.phone.replace(/[^0-9]/g, '')}`)}>
-                      <Text style={styles.recPhone}>📞 {rec.phone}</Text>
+                    <TouchableOpacity
+                      style={styles.recCallBtn}
+                      onPress={() => Linking.openURL(`tel:${rec.phone.replace(/[^0-9]/g, '')}`)}
+                    >
+                      <Text style={styles.recCallText}>{rec.phone}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2387,117 +2402,166 @@ const styles = StyleSheet.create({
   },
   planSection: {
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 18,
+    borderRadius: 26,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#CCFBF1',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 18,
-    elevation: 4,
+    borderColor: '#E9FBF6',
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 5,
   },
   planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  planHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  planHeaderSub: {
-    fontSize: 13,
-    color: '#0D9488',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  planSummary: {
-    fontSize: 15,
-    color: '#334155',
-    lineHeight: 22,
     marginBottom: 14,
   },
+  planHeaderTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  planHeaderSub: {
+    fontSize: 12.5,
+    color: '#0D9488',
+    fontWeight: '700',
+    marginTop: 3,
+    letterSpacing: 0.2,
+  },
+  planSummary: {
+    fontSize: 15.5,
+    color: '#334155',
+    lineHeight: 23,
+    marginBottom: 18,
+  },
   recCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#EEF2F6',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   recTop: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  recIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  recNumber: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#0D9488',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    marginTop: 2,
+  },
+  recNumberText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  recCatIcon: {
+    fontSize: 20,
+    marginLeft: 8,
+  },
+  recPriority: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#0D9488',
+    letterSpacing: 1,
+    marginBottom: 4,
   },
   recTitle: {
-    fontSize: 15,
+    fontSize: 15.5,
     fontWeight: '700',
     color: '#0F172A',
     marginBottom: 3,
+    lineHeight: 21,
   },
   recWhy: {
     fontSize: 13,
     color: '#64748B',
     lineHeight: 19,
   },
-  recResource: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+  recResourceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   recResourceName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#0F172A',
   },
-  recPhone: {
-    fontSize: 14,
+  recAction: {
+    fontSize: 12.5,
+    color: '#64748B',
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  recCallBtn: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#99F6E4',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginLeft: 10,
+  },
+  recCallText: {
+    fontSize: 13.5,
     color: '#0D9488',
-    fontWeight: '700',
-    marginTop: 4,
+    fontWeight: '800',
   },
   recActions: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 14,
     gap: 10,
   },
   recAskBtn: {
     flex: 1,
     backgroundColor: '#0D9488',
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   recAskText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 14,
   },
   recAddBtn: {
     flex: 1,
-    backgroundColor: '#F0FDFA',
-    borderRadius: 12,
-    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#CCFBF1',
   },
   recAddText: {
     color: '#0D9488',
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 14,
   },
   content: {

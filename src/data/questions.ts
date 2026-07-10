@@ -6,6 +6,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you currently have health insurance?',
     questionEs: '¿Tienes actualmente seguro médico?',
+    reason: 'So I can point you to free care if you are not covered.',
+    reasonEs: 'Para dirigirte a atención gratuita si no tienes cobertura.',
     type: 'single',
     options: [
       { id: 'yes', label: 'Yes', labelEs: 'Sí' },
@@ -18,6 +20,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you have any chronic health conditions?',
     questionEs: '¿Tienes alguna condición de salud crónica?',
+    reason: 'So I can find clinics that manage your specific conditions.',
+    reasonEs: 'Para encontrar clínicas que atiendan tus condiciones específicas.',
     type: 'multiple',
     options: [
       { id: 'diabetes', label: 'Diabetes', labelEs: 'Diabetes' },
@@ -34,6 +38,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Are you currently taking any medications?',
     questionEs: '¿Estás tomando algún medicamento actualmente?',
+    reason: 'So I can help you keep prescriptions filled affordably.',
+    reasonEs: 'Para ayudarte a surtir tus recetas a bajo costo.',
     type: 'yesno',
   },
   {
@@ -41,6 +47,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'When was your last visit to a doctor?',
     questionEs: '¿Cuándo fue tu última visita al médico?',
+    reason: 'So I know how urgent a checkup is for you.',
+    reasonEs: 'Para saber qué tan urgente es un chequeo para ti.',
     type: 'single',
     options: [
       { id: 'month', label: 'Within the last month', labelEs: 'En el último mes' },
@@ -55,6 +63,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you need mental health support?',
     questionEs: '¿Necesitas apoyo de salud mental?',
+    reason: 'So I can connect you with the right support, gently.',
+    reasonEs: 'Para conectarte con el apoyo adecuado, con cuidado.',
     type: 'single',
     options: [
       { id: 'yes_urgent', label: 'Yes, urgently', labelEs: 'Sí, urgentemente' },
@@ -68,6 +78,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you have dental care needs?',
     questionEs: '¿Tienes necesidades de atención dental?',
+    reason: 'So I can find low-cost dental care near you.',
+    reasonEs: 'Para encontrar atención dental de bajo costo cerca de ti.',
     type: 'single',
     options: [
       { id: 'yes_urgent', label: 'Yes, I have pain or urgent issues', labelEs: 'Sí, tengo dolor o problemas urgentes' },
@@ -80,6 +92,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you have vision care needs?',
     questionEs: '¿Tienes necesidades de atención visual?',
+    reason: 'So I can find affordable eye care and glasses.',
+    reasonEs: 'Para encontrar atención visual y lentes asequibles.',
     type: 'single',
     options: [
       { id: 'yes_glasses', label: 'Yes, I need glasses/contacts', labelEs: 'Sí, necesito lentes/contactos' },
@@ -92,6 +106,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Are you pregnant or do you have children who need medical care?',
     questionEs: '¿Estás embarazada o tienes hijos que necesitan atención médica?',
+    reason: 'So I can prioritize prenatal and children\'s care.',
+    reasonEs: 'Para priorizar la atención prenatal y de los niños.',
     type: 'single',
     options: [
       { id: 'pregnant', label: 'I am pregnant', labelEs: 'Estoy embarazada' },
@@ -105,6 +121,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you have any disabilities that affect your daily life?',
     questionEs: '¿Tienes alguna discapacidad que afecte tu vida diaria?',
+    reason: 'So I can find accessible services and any benefits you qualify for.',
+    reasonEs: 'Para encontrar servicios accesibles y beneficios que te correspondan.',
     type: 'single',
     options: [
       { id: 'physical', label: 'Physical disability', labelEs: 'Discapacidad física' },
@@ -119,6 +137,8 @@ export const healthcareQuestions: Question[] = [
     category: 'healthcare',
     question: 'Do you have substance use concerns you would like help with?',
     questionEs: '¿Tienes preocupaciones sobre uso de sustancias con las que te gustaría recibir ayuda?',
+    reason: 'So I can share confidential help if you ever want it.',
+    reasonEs: 'Para compartir ayuda confidencial si alguna vez la deseas.',
     type: 'single',
     options: [
       { id: 'yes_help', label: 'Yes, I want help', labelEs: 'Sí, quiero ayuda' },
@@ -135,6 +155,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'What is your current employment status?',
     questionEs: '¿Cuál es tu situación laboral actual?',
+    reason: 'So I can match you with the right kind of work.',
+    reasonEs: 'Para conectarte con el tipo de trabajo adecuado.',
     type: 'single',
     options: [
       { id: 'unemployed', label: 'Unemployed, looking for work', labelEs: 'Desempleado, buscando trabajo' },
@@ -149,6 +171,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'What is your highest level of education?',
     questionEs: '¿Cuál es tu nivel más alto de educación?',
+    reason: 'So I can find jobs and training that fit where you are.',
+    reasonEs: 'Para encontrar empleos y capacitación acordes a tu nivel.',
     type: 'single',
     options: [
       { id: 'none', label: 'No formal education', labelEs: 'Sin educación formal' },
@@ -165,6 +189,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'Do you have a valid government-issued ID?',
     questionEs: '¿Tienes una identificación oficial válida?',
+    reason: 'So I can help you get an ID, which most jobs require.',
+    reasonEs: 'Para ayudarte a obtener una identificación, que casi todos los empleos piden.',
     type: 'single',
     options: [
       { id: 'yes', label: 'Yes', labelEs: 'Sí' },
@@ -178,6 +204,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'Do you have reliable transportation?',
     questionEs: '¿Tienes transporte confiable?',
+    reason: 'So I can find jobs you can actually get to.',
+    reasonEs: 'Para encontrar empleos a los que realmente puedas llegar.',
     type: 'single',
     options: [
       { id: 'own_car', label: 'Yes, I have my own vehicle', labelEs: 'Sí, tengo mi propio vehículo' },
@@ -192,6 +220,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'What type of work are you looking for?',
     questionEs: '¿Qué tipo de trabajo estás buscando?',
+    reason: 'So I can search real openings you would actually want.',
+    reasonEs: 'Para buscar vacantes reales que de verdad te interesen.',
     type: 'multiple',
     options: [
       { id: 'food', label: 'Food service/Restaurant', labelEs: 'Servicio de alimentos/Restaurante' },
@@ -209,6 +239,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'Do you have any work restrictions?',
     questionEs: '¿Tienes alguna restricción de trabajo?',
+    reason: 'So I only suggest jobs that truly work for you.',
+    reasonEs: 'Para sugerir solo empleos que de verdad funcionen para ti.',
     type: 'multiple',
     options: [
       { id: 'physical', label: 'Physical limitations', labelEs: 'Limitaciones físicas' },
@@ -224,6 +256,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'What skills or certifications do you have?',
     questionEs: '¿Qué habilidades o certificaciones tienes?',
+    reason: 'So I can match your strengths to better-paying work.',
+    reasonEs: 'Para conectar tus fortalezas con empleos mejor pagados.',
     type: 'multiple',
     options: [
       { id: 'computer', label: 'Computer/technology skills', labelEs: 'Habilidades de computación/tecnología' },
@@ -241,6 +275,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'Are you able to pass a background check?',
     questionEs: '¿Puedes pasar una verificación de antecedentes?',
+    reason: 'So I can point you to second-chance employers if needed.',
+    reasonEs: 'Para dirigirte a empleadores de segunda oportunidad si hace falta.',
     type: 'single',
     options: [
       { id: 'yes', label: 'Yes', labelEs: 'Sí' },
@@ -254,6 +290,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'What hours/schedule can you work?',
     questionEs: '¿Qué horario puedes trabajar?',
+    reason: 'So I can find shifts that fit your life.',
+    reasonEs: 'Para encontrar turnos que se ajusten a tu vida.',
     type: 'multiple',
     options: [
       { id: 'morning', label: 'Mornings (6am-12pm)', labelEs: 'Mañanas (6am-12pm)' },
@@ -269,6 +307,8 @@ export const employmentQuestions: Question[] = [
     category: 'employment',
     question: 'Do you need job training or resume help?',
     questionEs: '¿Necesitas capacitación laboral o ayuda con tu currículum?',
+    reason: 'So I can line up the right training or resume help.',
+    reasonEs: 'Para conseguir la capacitación o ayuda con el currículum adecuada.',
     type: 'multiple',
     options: [
       { id: 'resume', label: 'Resume writing help', labelEs: 'Ayuda para escribir currículum' },
@@ -287,6 +327,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'What is your current living situation?',
     questionEs: '¿Cuál es tu situación de vivienda actual?',
+    reason: 'So I know how urgently you need a safe place.',
+    reasonEs: 'Para saber qué tan urgente es un lugar seguro para ti.',
     type: 'single',
     options: [
       { id: 'street', label: 'Living on the street/outdoors', labelEs: 'Viviendo en la calle/al aire libre' },
@@ -302,6 +344,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'How long have you been without stable housing?',
     questionEs: '¿Cuánto tiempo llevas sin vivienda estable?',
+    reason: 'So I can flag programs for longer-term support you qualify for.',
+    reasonEs: 'Para identificar programas de apoyo prolongado a los que califiques.',
     type: 'single',
     options: [
       { id: 'week', label: 'Less than a week', labelEs: 'Menos de una semana' },
@@ -316,6 +360,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Are you a veteran?',
     questionEs: '¿Eres veterano?',
+    reason: 'So I can unlock VA housing and benefits you have earned.',
+    reasonEs: 'Para acceder a vivienda y beneficios VA que has ganado.',
     type: 'yesno',
   },
   {
@@ -323,6 +369,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Do you have children staying with you?',
     questionEs: '¿Tienes hijos que se quedan contigo?',
+    reason: 'So I can find family-friendly shelters and housing.',
+    reasonEs: 'Para encontrar refugios y vivienda para familias.',
     type: 'single',
     options: [
       { id: 'yes', label: 'Yes', labelEs: 'Sí' },
@@ -335,6 +383,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Do you have pets?',
     questionEs: '¿Tienes mascotas?',
+    reason: 'So I only suggest pet-friendly options and never ask you to leave them.',
+    reasonEs: 'Para sugerir solo opciones que acepten mascotas y no pedirte que las dejes.',
     type: 'single',
     options: [
       { id: 'dog', label: 'Yes, a dog', labelEs: 'Sí, un perro' },
@@ -349,6 +399,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Do you have any source of income?',
     questionEs: '¿Tienes alguna fuente de ingresos?',
+    reason: 'So I can match you to housing you can actually afford.',
+    reasonEs: 'Para encontrar vivienda que realmente puedas pagar.',
     type: 'multiple',
     options: [
       { id: 'job', label: 'Employment income', labelEs: 'Ingresos de empleo' },
@@ -364,6 +416,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Have you been evicted before?',
     questionEs: '¿Te han desalojado antes?',
+    reason: 'So I can find programs that look past evictions.',
+    reasonEs: 'Para encontrar programas que consideren desalojos previos.',
     type: 'single',
     options: [
       { id: 'yes_recent', label: 'Yes, within the last 3 years', labelEs: 'Sí, en los últimos 3 años' },
@@ -377,6 +431,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Do you have any housing vouchers?',
     questionEs: '¿Tienes algún vale de vivienda?',
+    reason: 'So I can help you use or apply for a voucher.',
+    reasonEs: 'Para ayudarte a usar o solicitar un vale de vivienda.',
     type: 'single',
     options: [
       { id: 'section8', label: 'Yes, Section 8', labelEs: 'Sí, Sección 8' },
@@ -391,6 +447,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'What area or neighborhood do you prefer to live in?',
     questionEs: '¿En qué área o vecindario prefieres vivir?',
+    reason: 'So I can focus the search where you want to be.',
+    reasonEs: 'Para enfocar la búsqueda donde quieras estar.',
     type: 'text',
   },
   {
@@ -398,6 +456,8 @@ export const housingQuestions: Question[] = [
     category: 'housing',
     question: 'Do you need ADA-accessible housing?',
     questionEs: '¿Necesitas vivienda accesible según ADA?',
+    reason: 'So I can find accessible housing that fits your needs.',
+    reasonEs: 'Para encontrar vivienda accesible que se ajuste a tus necesidades.',
     type: 'single',
     options: [
       { id: 'yes_wheelchair', label: 'Yes, wheelchair accessible', labelEs: 'Sí, accesible para silla de ruedas' },
