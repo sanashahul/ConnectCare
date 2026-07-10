@@ -35,6 +35,9 @@ import { PlanRecommendation } from '../../types';
 type RootStackParamList = {
   Plan: undefined;
   Dashboard: undefined;
+  Health: undefined;
+  Housing: undefined;
+  Jobs: undefined;
 };
 
 type PlanScreenProps = {
@@ -201,6 +204,42 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     );
   };
 
+  // Hand-off into the Health / Housing / Jobs sections for the categories the
+  // user chose, so the plan flows naturally into deeper resources.
+  const renderSections = () => {
+    const cats = profile?.selectedCategories || [];
+    const map: Record<string, { label: string; screen: keyof RootStackParamList; icon: string; bg: string }> = {
+      housing: { label: isSpanish ? 'Vivienda' : 'Housing', screen: 'Housing', icon: '🏠', bg: '#F5F3FF' },
+      healthcare: { label: isSpanish ? 'Salud' : 'Health', screen: 'Health', icon: '🏥', bg: '#F0FDFA' },
+      employment: { label: isSpanish ? 'Empleo' : 'Jobs', screen: 'Jobs', icon: '💼', bg: '#FFF7ED' },
+    };
+    const shown = cats.filter((c) => map[c]);
+    if (!shown.length) return null;
+    return (
+      <View style={styles.sectionsBlock}>
+        <Text style={styles.sectionsTitle}>
+          {isSpanish ? 'Explora tus secciones' : 'Explore your sections'}
+        </Text>
+        {shown.map((c) => {
+          const s = map[c];
+          return (
+            <TouchableOpacity
+              key={c}
+              style={styles.sectionBtn}
+              onPress={() => navigation.navigate(s.screen)}
+            >
+              <View style={[styles.sectionIconWrap, { backgroundColor: s.bg }]}>
+                <Text style={styles.sectionIcon}>{s.icon}</Text>
+              </View>
+              <Text style={styles.sectionLabel}>{s.label}</Text>
+              <Text style={styles.sectionArrow}>→</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
   const allRevealed = revealed >= recs.length;
 
   return (
@@ -247,7 +286,12 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
               <View style={styles.introRow}>
                 <CasyAvatar size={34} />
                 <View style={styles.introBubble}>
-                  <Text style={styles.introText}>{plan.summary}</Text>
+                  <Text style={styles.introText}>
+                    {isSpanish
+                      ? `¡Hola, ${profile?.name || ''}! Gracias por dar el paso de buscar ayuda. Me llamo Casy y seré tu gestor de caso. Según lo que me contaste, esto es lo que preparé para ti:`
+                      : `Welcome, ${profile?.name || 'friend'}! Thank you for reaching out, that takes courage. My name is Casy, and I'll be your case manager. Based on what you mentioned, here's what I put together for you:`}
+                  </Text>
+                  <Text style={[styles.introText, { marginTop: 10 }]}>{plan.summary}</Text>
                   <Text style={styles.introTeaser}>
                     {isSpanish
                       ? 'Vamos paso a paso. Aquí es donde yo empezaría:'
@@ -265,16 +309,19 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               ) : (
-                <View style={styles.introRow}>
-                  <CasyAvatar size={34} />
-                  <View style={styles.introBubble}>
-                    <Text style={styles.introText}>
-                      {isSpanish
-                        ? 'Ese es tu plan. Estoy aquí contigo, pregúntame lo que sea cuando quieras.'
-                        : "That's your plan. I'm right here with you, ask me anything whenever you need."}
-                    </Text>
+                <>
+                  <View style={styles.introRow}>
+                    <CasyAvatar size={34} />
+                    <View style={styles.introBubble}>
+                      <Text style={styles.introText}>
+                        {isSpanish
+                          ? 'Ese es tu plan. Cuando quieras, entra a estas secciones para ver más recursos reales cerca de ti, y pregúntame lo que sea.'
+                          : "That's your plan. Whenever you're ready, step into these sections for more real resources near you, and ask me anything."}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                  {renderSections()}
+                </>
               )}
             </>
           )}
@@ -349,6 +396,43 @@ const styles = StyleSheet.create({
   },
   introText: { fontSize: 15.5, color: '#0F172A', lineHeight: 23 },
   introTeaser: { fontSize: 14, color: '#0D9488', fontWeight: '700', marginTop: 8 },
+
+  sectionsBlock: { marginTop: 4, marginBottom: 8 },
+  sectionsTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  sectionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EEF2F6',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  sectionIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  sectionIcon: { fontSize: 22 },
+  sectionLabel: { flex: 1, fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  sectionArrow: { fontSize: 20, color: '#0D9488', fontWeight: '800' },
 
   stepCard: {
     backgroundColor: '#FFFFFF',
