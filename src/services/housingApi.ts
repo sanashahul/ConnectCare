@@ -55,7 +55,7 @@ export const fetchHUDShelters = async (
 
     return allShelters;
   } catch (error) {
-    console.error('Error fetching shelters:', error);
+    console.log('Error fetching shelters:', error);
     return getCuratedShelterData(location);
   }
 };
@@ -126,7 +126,7 @@ const fetchSheltersFromOSM = async (location: Location): Promise<HousingResource
       };
     });
   } catch (error) {
-    console.error('Error fetching from OpenStreetMap:', error);
+    console.log('Error fetching from OpenStreetMap:', error);
     return [];
   }
 };
@@ -494,7 +494,7 @@ export const fetchHousingCounselors = async (
         : 0,
     }));
   } catch (error) {
-    console.error('Error fetching HUD counselors:', error);
+    console.log('Error fetching HUD counselors:', error);
     return [];
   }
 };

@@ -64,7 +64,7 @@ export const fetchHealthCenters = async (
     // Sort by distance
     return uniqueClinics.sort((a, b) => (a.distance || 0) - (b.distance || 0)).slice(0, 15);
   } catch (error) {
-    console.error('Error fetching health centers:', error);
+    console.log('Error fetching health centers:', error);
     return getCuratedHealthcareData(location);
   }
 };
@@ -139,7 +139,7 @@ const fetchFromHRSALocator = async (
       acceptsWalkIns: true,
     }));
   } catch (error) {
-    console.error('Error fetching from HRSA Locator:', error);
+    console.log('Error fetching from HRSA Locator:', error);
     // Try zip-based search as fallback
     if (location.zipCode) {
       return await fetchFromHRSAByZip(location);
@@ -196,7 +196,7 @@ const fetchFromHRSAByZip = async (location: Location): Promise<Resource[]> => {
       acceptsWalkIns: true,
     }));
   } catch (error) {
-    console.error('Error fetching HRSA by ZIP:', error);
+    console.log('Error fetching HRSA by ZIP:', error);
     return [];
   }
 };
@@ -250,7 +250,7 @@ const fetchFromNPIRegistry = async (location: Location): Promise<Resource[]> => 
       };
     });
   } catch (error) {
-    console.error('Error fetching from NPI Registry:', error);
+    console.log('Error fetching from NPI Registry:', error);
     return [];
   }
 };
@@ -342,7 +342,7 @@ export const fetchMentalHealthServices = async (
       },
     }));
   } catch (error) {
-    console.error('Error fetching mental health services:', error);
+    console.log('Error fetching mental health services:', error);
     return getMentalHealthHotlines(location);
   }
 };

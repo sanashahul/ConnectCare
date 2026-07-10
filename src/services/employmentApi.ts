@@ -108,7 +108,7 @@ export const fetchUSAJobs = async (
       };
     });
   } catch (error) {
-    console.error('Error fetching USAJobs:', error);
+    console.log('Error fetching USAJobs:', error);
     return [];
   }
 };
@@ -164,7 +164,7 @@ export const fetchAdzunaJobs = async (
         : 0,
     }));
   } catch (error) {
-    console.error('Error fetching Adzuna jobs:', error);
+    console.log('Error fetching Adzuna jobs:', error);
     return [];
   }
 };

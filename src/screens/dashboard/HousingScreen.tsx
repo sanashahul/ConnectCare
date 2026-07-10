@@ -360,7 +360,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       const results = await getHousingResources(userProfile.location);
       setCounselors(results);
     } catch (error) {
-      console.error('Error loading counselors:', error);
+      console.log('Error loading counselors:', error);
     }
     setIsLoading(false);
   };

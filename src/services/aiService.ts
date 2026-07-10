@@ -143,7 +143,7 @@ const runSearchTool = async (name: string, location: Location): Promise<string> 
       return formatResources(await getAllEmploymentResources(location));
     }
   } catch (e) {
-    console.warn('Search tool failed:', name, e);
+    console.log('Search tool failed:', name, e);
   }
   return 'Search is temporarily unavailable. Advise the user to call 211 for local referrals.';
 };
@@ -296,7 +296,7 @@ export const sendMessageToAI = async (
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    console.warn('Anthropic API key not configured; using offline fallback.');
+    console.log('Anthropic API key not configured; using offline fallback.');
     return getFallbackResponse(userMessage, userContext);
   }
 
@@ -335,14 +335,14 @@ export const sendMessageToAI = async (
 
       const text = extractText(data);
       if (text) return text;
-      console.error('No text response from Claude:', data.stop_reason);
+      console.log('No text response from Claude:', data.stop_reason);
       return getFallbackResponse(userMessage, userContext);
     }
 
     // Safety net if the loop never produced final text.
     return getFallbackResponse(userMessage, userContext);
   } catch (error) {
-    console.error('Error calling Claude API:', error);
+    console.log('Error calling Claude API:', error);
     return getFallbackResponse(userMessage, userContext);
   }
 };
@@ -445,7 +445,7 @@ Give 3 to 5 recommendations, ordered by urgency. Use ONLY phone numbers and name
     }
     return plan;
   } catch (error) {
-    console.error('Error generating personalized plan:', error);
+    console.log('Error generating personalized plan:', error);
     return null;
   }
 };

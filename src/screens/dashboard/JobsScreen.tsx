@@ -240,7 +240,7 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       const results = await getEmploymentResources(userProfile.location);
       setJobs(results);
     } catch (error) {
-      console.error('Error loading jobs:', error);
+      console.log('Error loading jobs:', error);
     }
     setIsLoading(false);
   };

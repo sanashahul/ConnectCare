@@ -1086,7 +1086,7 @@ const LinkableText: React.FC<LinkableTextProps> = ({ text, style, linkColor = '#
         await Linking.openURL(`tel:${cleanNumber}`);
       }
     } catch (error) {
-      console.error('Failed to open link:', error);
+      console.log('Failed to open link:', error);
     }
   };
 
@@ -1243,7 +1243,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.log('Error getting AI response:', error);
       setIsTyping(false);
 
       // Fallback to local response if Groq fails
@@ -1454,7 +1454,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.log('Error getting AI response:', error);
       setIsTyping(false);
 
       // Fallback to local response on error

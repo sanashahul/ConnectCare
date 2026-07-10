@@ -265,7 +265,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       const results = await getHealthcareResources(userProfile.location);
       setClinics(results);
     } catch (error) {
-      console.error('Error loading clinics:', error);
+      console.log('Error loading clinics:', error);
     }
     setIsLoading(false);
   };
