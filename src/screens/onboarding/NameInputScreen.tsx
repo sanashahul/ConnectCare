@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, Input, ProgressBar } from '../../components';
+import { Button, Input, ProgressBar, AIAssistant } from '../../components';
 import { useApp } from '../../context/AppContext';
 
 type RootStackParamList = {
@@ -100,6 +100,7 @@ export const NameInputScreen: React.FC<NameInputScreenProps> = ({ navigation }) 
           />
         </View>
       </KeyboardAvoidingView>
+      <AIAssistant />
     </SafeAreaView>
   );
 };

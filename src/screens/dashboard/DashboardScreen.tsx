@@ -846,7 +846,7 @@ Don't have ANY ID? Start with birth certificate, then SSN card, then state ID.`,
     greeting: {
       en: `${getTimeGreeting(false)}, ${nameStr}! 👋
 
-I'm your AI Case Manager, here to help you find resources for:
+I'm Casy, your AI case manager, here to help you find resources for:
 
 🏠 Housing & Shelter
 🏥 Healthcare & Mental Health
@@ -858,7 +858,7 @@ I'm your AI Case Manager, here to help you find resources for:
 What can I help you with today? You can tap a topic below or just type your question.`,
       es: `¡${getTimeGreeting(true)}, ${nameStr}! 👋
 
-Soy tu Gestor de Caso AI, aquí para ayudarte a encontrar recursos para:
+Soy Casy, tu gestor de caso de IA, aquí para ayudarte a encontrar recursos para:
 
 🏠 Vivienda y Refugio
 🏥 Salud y Salud Mental
@@ -1427,11 +1427,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
             <Text style={styles.categoryIcon}>🤖</Text>
           </View>
-          <Text style={styles.categoryLabel}>
-            {isSpanish ? 'AI Gestor de Caso' : 'AI Case Manager'}
-          </Text>
+          <Text style={styles.categoryLabel}>Casy</Text>
           <Text style={styles.categorySubLabel}>
-            {isSpanish ? 'Tu guía personal 24/7' : 'Your 24/7 personal guide'}
+            {isSpanish ? 'Tu gestor de caso de IA' : 'Your AI case manager'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -1470,8 +1468,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <Text style={styles.emptyTodosEmoji}>✨</Text>
             <Text style={styles.emptyTodosText}>
               {isSpanish
-                ? 'Usa el AI Case Manager para agregar tareas'
-                : 'Use AI Case Manager to add tasks'}
+                ? 'Usa a Casy para agregar tareas'
+                : 'Use Casy to add tasks'}
             </Text>
           </View>
         ) : (
@@ -1711,8 +1709,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <Text style={styles.aiCloseText}>✕</Text>
           </TouchableOpacity>
           <View style={styles.aiTitleContainer}>
-            <Text style={styles.aiTitle}>🤖 {isSpanish ? 'AI Gestor de Caso' : 'AI Case Manager'}</Text>
-            <Text style={styles.aiSubtitle}>{isSpanish ? 'Tu asistente inteligente' : 'Your intelligent assistant'}</Text>
+            <Text style={styles.aiTitle}>🤖 Casy</Text>
+            <Text style={styles.aiSubtitle}>{isSpanish ? 'Tu gestor de caso de IA' : 'Your AI case manager'}</Text>
           </View>
           <View style={styles.aiSpacer} />
         </View>
@@ -1729,7 +1727,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
                 {isSpanish ? `¡Hola${userProfile?.name ? `, ${userProfile.name}` : ''}!` : `Hi${userProfile?.name ? `, ${userProfile.name}` : ''}!`}
               </Text>
               <Text style={styles.aiWelcomeSubtitle}>
-                {isSpanish ? 'Soy tu AI Gestor de Caso. Puedo ayudarte a encontrar recursos para vivienda, salud, empleo, y más. ¿Qué necesitas hoy?' : "I'm your AI Case Manager. I can help you find resources for housing, healthcare, jobs, and more. What do you need today?"}
+                {isSpanish ? 'Soy Casy, y seré tu gestor de caso de IA. Puedo ayudarte a encontrar recursos para vivienda, salud, empleo, y más. ¿Qué necesitas hoy?' : "I'm Casy, and I'll be your AI case manager. I can help you find resources for housing, healthcare, jobs, and more. What do you need today?"}
               </Text>
 
               <View style={styles.aiTopicsGrid}>

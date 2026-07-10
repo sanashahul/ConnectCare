@@ -28,28 +28,32 @@ interface Props {
 
 const greetingFor = (focus: AIFocus | undefined, name: string | undefined, isSpanish: boolean): string => {
   const hi = name
-    ? isSpanish ? `Hola, ${name}. ` : `Hi, ${name}. `
-    : isSpanish ? 'Hola. ' : 'Hi. ';
+    ? isSpanish ? `¡Hola, ${name}! ` : `Hi ${name}! `
+    : isSpanish ? '¡Hola! ' : 'Hi there! ';
+  // Casy introduces itself warmly, then offers to help with the current tab.
+  const intro = isSpanish
+    ? 'Soy Casy, y seré tu gestor de caso de IA. '
+    : "I'm Casy, and I'll be your AI case manager. ";
   const byFocus: Record<AIFocus, { en: string; es: string }> = {
     housing: {
-      en: "I'm your AI Case Manager. I can help with shelters, housing programs, and applications. What do you need?",
-      es: 'Soy tu AI Gestor de Caso. Puedo ayudarte con refugios, programas de vivienda y solicitudes. ¿Qué necesitas?',
+      en: 'I can help with shelters, housing programs, and applications. What do you need?',
+      es: 'Puedo ayudarte con refugios, programas de vivienda y solicitudes. ¿Qué necesitas?',
     },
     healthcare: {
-      en: "I'm your AI Case Manager. I can help you find clinics, mental health support, and medication help. What do you need?",
-      es: 'Soy tu AI Gestor de Caso. Puedo ayudarte a encontrar clínicas, apoyo de salud mental y ayuda con medicamentos. ¿Qué necesitas?',
+      en: 'I can help you find clinics, mental health support, and medication help. What do you need?',
+      es: 'Puedo ayudarte a encontrar clínicas, apoyo de salud mental y ayuda con medicamentos. ¿Qué necesitas?',
     },
     employment: {
-      en: "I'm your AI Case Manager. I can help with jobs, training, resumes, and IDs. What do you need?",
-      es: 'Soy tu AI Gestor de Caso. Puedo ayudarte con empleo, capacitación, currículums e identificaciones. ¿Qué necesitas?',
+      en: 'I can help with jobs, training, resumes, and IDs. What do you need?',
+      es: 'Puedo ayudarte con empleo, capacitación, currículums e identificaciones. ¿Qué necesitas?',
     },
   };
   const generic = {
-    en: "I'm your AI Case Manager. I can help with housing, healthcare, and jobs. What do you need today?",
-    es: 'Soy tu AI Gestor de Caso. Puedo ayudarte con vivienda, salud y empleo. ¿Qué necesitas hoy?',
+    en: 'I can help with housing, healthcare, and jobs, in English or Spanish. What do you need today?',
+    es: 'Puedo ayudarte con vivienda, salud y empleo, en inglés o español. ¿Qué necesitas hoy?',
   };
   const body = focus ? byFocus[focus] : generic;
-  return hi + (isSpanish ? body.es : body.en);
+  return hi + intro + (isSpanish ? body.es : body.en);
 };
 
 const suggestionsFor = (focus: AIFocus | undefined, isSpanish: boolean): string[] => {
@@ -154,11 +158,9 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
               <View style={styles.headerLeft}>
                 <Text style={styles.headerIcon}>🤖</Text>
                 <View>
-                  <Text style={styles.headerTitle}>
-                    {isSpanish ? 'AI Gestor de Caso' : 'AI Case Manager'}
-                  </Text>
+                  <Text style={styles.headerTitle}>Casy</Text>
                   <Text style={styles.headerSub}>
-                    {isSpanish ? 'Tu asistente 24/7' : 'Your 24/7 assistant'}
+                    {isSpanish ? 'Tu gestor de caso de IA · 24/7' : 'Your AI case manager · 24/7'}
                   </Text>
                 </View>
               </View>

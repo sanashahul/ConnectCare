@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, ProgressBar } from '../../components';
+import { Button, ProgressBar, AIAssistant } from '../../components';
 import { useApp } from '../../context/AppContext';
 
 type RootStackParamList = {
@@ -199,6 +199,7 @@ export const PinSetupScreen: React.FC<PinSetupScreenProps> = ({ navigation }) =>
           style={styles.backButton}
         />
       </View>
+      <AIAssistant />
     </SafeAreaView>
   );
 };
