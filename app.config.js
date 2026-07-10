@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "ConnectCare",
     slug: "ConnectCare",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -16,7 +16,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.sanashahul.connectcare",
+      bundleIdentifier: "com.anonymous.ConnectCare",
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription: "ConnectCare needs your location to find resources near you.",
@@ -24,7 +24,7 @@ export default {
       }
     },
     android: {
-      package: "com.sanashahul.connectcare",
+      package: "com.anonymous.ConnectCare",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
