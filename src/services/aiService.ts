@@ -131,16 +131,26 @@ const formatResources = (resources: ResourceLike[], limit = 6): string => {
     .join('\n');
 };
 
+// Prioritize LOCAL results (real geocoded places with a distance) over the
+// national curated hotlines, so Casy recommends places actually near the user
+// instead of parroting national numbers. Keeps a couple national lines as backup.
+const selectForAI = (resources: ResourceLike[], limit = 8): ResourceLike[] => {
+  const isLocal = (r: ResourceLike) => typeof r.distance === 'number' && r.distance > 0;
+  const local = resources.filter(isLocal).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  const national = resources.filter((r) => !isLocal(r));
+  return [...local.slice(0, 6), ...national.slice(0, 3)].slice(0, limit);
+};
+
 const runSearchTool = async (name: string, location: Location): Promise<string> => {
   try {
     if (name === 'search_housing') {
-      return formatResources(await getAllHousingResources(location));
+      return formatResources(selectForAI(await getAllHousingResources(location)));
     }
     if (name === 'search_healthcare') {
-      return formatResources(await getAllHealthcareResources(location));
+      return formatResources(selectForAI(await getAllHealthcareResources(location)));
     }
     if (name === 'search_jobs') {
-      return formatResources(await getAllEmploymentResources(location));
+      return formatResources(selectForAI(await getAllEmploymentResources(location)));
     }
   } catch (e) {
     console.log('Search tool failed:', name, e);
@@ -233,10 +243,10 @@ Youth hotlines: Runaway Safeline 1-800-786-2929 · Childhelp 1-800-422-4453 · C
     ? isSpanish
       ? `
 
-BÚSQUEDA EN VIVO: Tienes herramientas (search_housing, search_healthcare, search_jobs) que encuentran recursos REALES cerca de esta persona. Úsalas cuando pidan algo concreto (un refugio, una clínica, trabajo). Luego recomienda por nombre los mejores resultados con su teléfono. NO inventes: si una herramienta no devuelve resultados, di que llamen al 211.`
+BÚSQUEDA EN VIVO: Tienes herramientas (search_housing, search_healthcare, search_jobs) que encuentran recursos REALES cerca de esta persona. Úsalas cuando pidan algo concreto (un refugio, una clínica, trabajo). Prioriza los resultados LOCALES más cercanos (los que muestran distancia) y nómbralos específicamente; usa líneas nacionales como el 211 solo como respaldo. NO inventes: si una herramienta no devuelve resultados, di que llamen al 211.`
       : `
 
-LIVE SEARCH: You have tools (search_housing, search_healthcare, search_jobs) that find REAL resources near this person. Use them whenever they ask for something concrete (a shelter, a clinic, a job). Then recommend the best results by name with their phone number. Do NOT make things up: if a tool returns nothing, tell them to call 211.`
+LIVE SEARCH: You have tools (search_housing, search_healthcare, search_jobs) that find REAL resources near this person. Use them whenever they ask for something concrete (a shelter, a clinic, a job). Lead with the closest LOCAL results (the ones showing a distance) and name them specifically; use national lines like 211 only as a backup, not your main answer. Do NOT make things up: if a tool returns nothing, tell them to call 211.`
     : '';
 
   if (isSpanish) {
@@ -385,9 +395,9 @@ export const generatePersonalizedPlan = async (
     ]);
 
     const resourceData = [
-      housing.length ? `HOUSING:\n${formatResources(housing, 5)}` : '',
-      health.length ? `HEALTHCARE:\n${formatResources(health, 5)}` : '',
-      jobs.length ? `EMPLOYMENT:\n${formatResources(jobs, 5)}` : '',
+      housing.length ? `HOUSING:\n${formatResources(selectForAI(housing), 8)}` : '',
+      health.length ? `HEALTHCARE:\n${formatResources(selectForAI(health), 8)}` : '',
+      jobs.length ? `EMPLOYMENT:\n${formatResources(selectForAI(jobs), 8)}` : '',
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -409,8 +419,10 @@ PERSON:
 THEIR ANSWERS:
 ${context.answersSummary || '(none provided)'}
 
-REAL RESOURCES NEAR THEM (recommend from these; use their exact phone numbers):
+REAL RESOURCES NEAR THEM (listed with distance in miles; recommend from these and use their exact phone numbers):
 ${resourceData || '(no local results — recommend calling 211)'}
+
+Lead with the closest LOCAL options in ${locationLabel} (the ones with a distance shown). Name them specifically. Use national lines (211, 988) only as a backup, never as your main recommendation.
 
 Return ONLY valid JSON, no prose, in exactly this shape:
 {

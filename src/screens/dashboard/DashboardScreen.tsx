@@ -1473,94 +1473,53 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     const plan = userProfile?.recommendations;
     if (!plan || !plan.recommendations?.length) return null;
 
-    const catStyle: Record<string, { bg: string; icon: string }> = {
-      housing: { bg: '#F5F3FF', icon: '🏠' },
-      healthcare: { bg: '#F0FDFA', icon: '🏥' },
-      employment: { bg: '#FFF7ED', icon: '💼' },
-      documents: { bg: '#EFF6FF', icon: '📄' },
-      benefits: { bg: '#F0FDF4', icon: '💳' },
-      education: { bg: '#FEF2F2', icon: '📚' },
-      other: { bg: '#F8FAFC', icon: '✅' },
-    };
+    const first = plan.recommendations[0];
+    const count = plan.recommendations.length;
 
     return (
-      <View style={styles.planSection}>
-        {/* Header band */}
-        <View style={styles.planHeader}>
-          <CasyAvatar size={46} />
+      <TouchableOpacity
+        style={styles.planCard}
+        activeOpacity={0.9}
+        onPress={() => navigation.navigate('Plan')}
+      >
+        <View style={styles.planCardHeader}>
+          <CasyAvatar size={44} />
           <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={styles.planHeaderTitle}>
-              {isSpanish ? 'Tu plan de Casy' : 'Your plan from Casy'}
+            <Text style={styles.planCardTitle}>
+              {isSpanish ? 'Tu plan con Casy' : 'Your plan with Casy'}
             </Text>
-            <Text style={styles.planHeaderSub}>
-              {isSpanish ? 'Hecho para ti · Basado en tus respuestas' : 'Made for you · Based on your answers'}
+            <Text style={styles.planCardSub}>
+              {isSpanish
+                ? `${count} ${count === 1 ? 'paso' : 'pasos'} hechos para ti`
+                : `${count} ${count === 1 ? 'step' : 'steps'} made for you`}
             </Text>
           </View>
         </View>
 
-        {!!plan.summary && <Text style={styles.planSummary}>{plan.summary}</Text>}
+        {!!plan.summary && (
+          <Text style={styles.planCardSummary} numberOfLines={3}>
+            {plan.summary}
+          </Text>
+        )}
 
-        {plan.recommendations.map((rec, idx) => {
-          const cs = catStyle[rec.category] || catStyle.other;
-          return (
-            <View key={idx} style={styles.recCard}>
-              <View style={styles.recTop}>
-                <View style={styles.recNumber}>
-                  <Text style={styles.recNumberText}>{idx + 1}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  {idx === 0 && (
-                    <Text style={styles.recPriority}>
-                      {isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}
-                    </Text>
-                  )}
-                  <Text style={styles.recTitle}>{rec.title}</Text>
-                  {!!rec.why && <Text style={styles.recWhy}>{rec.why}</Text>}
-                </View>
-                <Text style={styles.recCatIcon}>{cs.icon}</Text>
-              </View>
+        {!!first && (
+          <View style={styles.planCardFirst}>
+            <Text style={styles.planCardFirstLabel}>
+              {isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}
+            </Text>
+            <Text style={styles.planCardFirstTitle} numberOfLines={1}>
+              {first.title}
+            </Text>
+          </View>
+        )}
 
-              {(!!rec.resourceName || !!rec.phone || !!rec.action) && (
-                <View style={styles.recResourceChip}>
-                  <View style={{ flex: 1 }}>
-                    {!!rec.resourceName && (
-                      <Text style={styles.recResourceName}>{rec.resourceName}</Text>
-                    )}
-                    {!!rec.action && <Text style={styles.recAction}>{rec.action}</Text>}
-                  </View>
-                  {!!rec.phone && (
-                    <TouchableOpacity
-                      style={styles.recCallBtn}
-                      onPress={() => Linking.openURL(`tel:${rec.phone.replace(/[^0-9]/g, '')}`)}
-                    >
-                      <Text style={styles.recCallText}>{rec.phone}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-
-              <View style={styles.recActions}>
-                <TouchableOpacity
-                  style={styles.recAskBtn}
-                  onPress={() => handleAskCasyAbout(rec)}
-                >
-                  <Text style={styles.recAskText}>
-                    {isSpanish ? 'Preguntar a Casy' : 'Ask Casy'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.recAddBtn}
-                  onPress={() => handleAddRecommendation(rec)}
-                >
-                  <Text style={styles.recAddText}>
-                    + {isSpanish ? 'Agregar' : 'Add to list'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+        <View style={styles.planCardCta}>
+          <Text style={styles.planCardCtaText}>
+            {isSpanish ? 'Ver mi plan con Casy' : 'View my plan with Casy'}
+          </Text>
+          <Text style={styles.planCardCtaArrow}>→</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -2400,6 +2359,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FEFEFE',
   },
+  planCard: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 26,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 5,
+  },
+  planCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  planCardTitle: { fontSize: 19, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
+  planCardSub: { fontSize: 12.5, color: '#0D9488', fontWeight: '700', marginTop: 3, letterSpacing: 0.2 },
+  planCardSummary: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 14 },
+  planCardFirst: {
+    backgroundColor: '#F0FDFA',
+    borderRadius: 14,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    marginBottom: 14,
+  },
+  planCardFirstLabel: { fontSize: 10, fontWeight: '800', color: '#0D9488', letterSpacing: 1, marginBottom: 3 },
+  planCardFirstTitle: { fontSize: 14.5, fontWeight: '700', color: '#0F172A' },
+  planCardCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0D9488',
+    borderRadius: 16,
+    paddingVertical: 14,
+    gap: 8,
+    shadowColor: '#0D9488',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  planCardCtaText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
+  planCardCtaArrow: { color: '#FFFFFF', fontWeight: '800', fontSize: 18 },
   planSection: {
     marginHorizontal: 20,
     marginBottom: 24,

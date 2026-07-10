@@ -16,6 +16,7 @@ import {
   HousingScreen,
   PinSetupScreen,
 } from '../screens';
+import { PlanScreen } from '../screens/plan/PlanScreen';
 import { PinLockScreen } from '../screens/PinLockScreen';
 
 export type RootStackParamList = {
@@ -28,6 +29,7 @@ export type RootStackParamList = {
   CategorySelection: undefined;
   Questionnaire: undefined;
   Dashboard: undefined;
+  Plan: undefined;
   Health: undefined;
   Jobs: undefined;
   Housing: undefined;
@@ -91,6 +93,9 @@ export const AppNavigator: React.FC = () => {
           component={DashboardScreen}
           options={{ gestureEnabled: false }}
         />
+
+        {/* Plan */}
+        <Stack.Screen name="Plan" component={PlanScreen} />
 
         {/* Category Screens */}
         <Stack.Screen name="Health" component={HealthScreen} />
