@@ -1,0 +1,49 @@
+# EAS upload ignore list. When this file exists, EAS Build uses it INSTEAD of
+# .gitignore to decide what to upload. It mirrors .gitignore EXCEPT it does NOT
+# exclude src/config/secrets.ts, so the API key is bundled into the build.
+# (secrets.ts stays gitignored, so it is still never committed to GitHub.)
+
+# dependencies
+node_modules/
+
+# version control / expo caches
+.git/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders (EAS regenerates these via prebuild)
+/ios
+/android
+
+# NOTE: src/config/secrets.ts is intentionally NOT listed here so the API key
+# is included in the EAS build.

@@ -18,6 +18,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.sanashahul.connectcare",
       infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription: "ConnectCare needs your location to find resources near you.",
         NSLocationAlwaysAndWhenInUseUsageDescription: "ConnectCare needs your location to find resources near you."
       }
