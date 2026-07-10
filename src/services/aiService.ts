@@ -4,25 +4,19 @@
  * that helps people find housing, healthcare, and employment resources.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { ANTHROPIC_API_KEY } from '../config/secrets';
 
 // The most capable Claude model. Thinking is off by default on this model,
 // which keeps chat responses fast. Swap to 'claude-sonnet-5' for lower cost.
 const MODEL = 'claude-opus-4-8';
 
-const getApiKey = (): string => ANTHROPIC_API_KEY || '';
+const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
-let client: Anthropic | null = null;
-const getClient = (): Anthropic | null => {
-  const apiKey = getApiKey();
-  if (!apiKey) return null;
-  if (!client) {
-    // dangerouslyAllowBrowser is required for direct-from-client (mobile) use.
-    client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-  }
-  return client;
-};
+// We call the Anthropic REST API directly with fetch instead of using
+// @anthropic-ai/sdk. The SDK pulls in Node built-ins (node:fs) that React
+// Native's Metro bundler cannot resolve, which breaks native builds. fetch
+// works identically on iOS, Android, and web with no extra dependencies.
+const getApiKey = (): string => ANTHROPIC_API_KEY || '';
 
 export interface AIMessage {
   role: 'user' | 'model';
@@ -128,9 +122,9 @@ export const sendMessageToAI = async (
   conversationHistory: AIMessage[],
   userContext: UserContext
 ): Promise<string> => {
-  const anthropic = getClient();
+  const apiKey = getApiKey();
 
-  if (!anthropic) {
+  if (!apiKey) {
     console.warn('Anthropic API key not configured; using offline fallback.');
     return getFallbackResponse(userMessage, userContext);
   }
@@ -144,18 +138,37 @@ export const sendMessageToAI = async (
       { role: 'user' as const, content: userMessage },
     ];
 
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 600,
-      system: getSystemPrompt(userContext),
-      messages,
+    const response = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        // Required for direct-from-client (browser/mobile) requests.
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 600,
+        system: getSystemPrompt(userContext),
+        messages,
+      }),
     });
 
-    const textBlock = response.content.find((block) => block.type === 'text');
-    const aiResponse = textBlock && 'text' in textBlock ? textBlock.text : '';
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error('Anthropic API error:', response.status, errText);
+      return getFallbackResponse(userMessage, userContext);
+    }
+
+    const data = await response.json();
+    const textBlock = Array.isArray(data.content)
+      ? data.content.find((block: { type: string }) => block.type === 'text')
+      : null;
+    const aiResponse = textBlock && typeof textBlock.text === 'string' ? textBlock.text : '';
 
     if (!aiResponse) {
-      console.error('No text response from Claude:', response.stop_reason);
+      console.error('No text response from Claude:', data.stop_reason);
       return getFallbackResponse(userMessage, userContext);
     }
 
