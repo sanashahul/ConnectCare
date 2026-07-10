@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
+import { CasyAvatar } from '../../components/CasyAvatar';
 import { sendMessageToAI, AIMessage } from '../../services/aiService';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
@@ -1425,7 +1426,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           onPress={() => setShowAI(true)}
         >
           <View style={[styles.categoryIconContainer, { backgroundColor: '#DBEAFE' }]}>
-            <Text style={styles.categoryIcon}>🤖</Text>
+            <CasyAvatar size={34} />
           </View>
           <Text style={styles.categoryLabel}>Casy</Text>
           <Text style={styles.categorySubLabel}>
@@ -1709,7 +1710,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             <Text style={styles.aiCloseText}>✕</Text>
           </TouchableOpacity>
           <View style={styles.aiTitleContainer}>
-            <Text style={styles.aiTitle}>🤖 Casy</Text>
+            <Text style={styles.aiTitle}>Casy</Text>
             <Text style={styles.aiSubtitle}>{isSpanish ? 'Tu gestor de caso de IA' : 'Your AI case manager'}</Text>
           </View>
           <View style={styles.aiSpacer} />

@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { sendMessageToAI, AIMessage, UserContext } from '../services/aiService';
+import { CasyAvatar } from './CasyAvatar';
 
 export type AIFocus = 'housing' | 'healthcare' | 'employment';
 
@@ -142,9 +143,9 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
         style={styles.fab}
         activeOpacity={0.85}
         onPress={() => setOpen(true)}
-        accessibilityLabel={isSpanish ? 'Abrir AI Gestor de Caso' : 'Open AI Case Manager'}
+        accessibilityLabel={isSpanish ? 'Abrir a Casy' : 'Open Casy'}
       >
-        <Text style={styles.fabIcon}>🤖</Text>
+        <CasyAvatar size={38} bg="transparent" face="#FFFFFF" />
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
@@ -156,7 +157,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Text style={styles.headerIcon}>🤖</Text>
+                <CasyAvatar size={44} />
                 <View>
                   <Text style={styles.headerTitle}>Casy</Text>
                   <Text style={styles.headerSub}>

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '../../components';
+import { AIAssistant } from '../../components/AIAssistant';
 import { useApp } from '../../context/AppContext';
 import { changeLanguage, loadStoredLanguage } from '../../i18n';
 
@@ -137,6 +138,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <Text style={styles.resetButtonText}>Reset App Data</Text>
         </TouchableOpacity>
       </View>
+
+      <AIAssistant />
     </SafeAreaView>
   );
 };
