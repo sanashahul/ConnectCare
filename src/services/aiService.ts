@@ -742,6 +742,106 @@ Give 3 to 5 recommendations, ordered by fit, all in the "${category}" category. 
 };
 
 // ---------------------------------------------------------------------------
+// Emergency / "need help now": the nearest SPECIFIC places to get help right
+// now (closest ER, urgent care, free clinic / emergency shelter, drop-in),
+// so the urgent screens name real local options instead of only 211/911.
+// ---------------------------------------------------------------------------
+
+const EMERGENCY_KIND: Record<string, { en: string; es: string; want: string; category: string }> = {
+  healthcare: {
+    en: 'medical care right now',
+    es: 'atención médica ahora',
+    want:
+      'the CLOSEST emergency room (for real emergencies), the nearest urgent care / walk-in clinics, and free or community health clinics that see people without insurance or ID',
+    category: 'healthcare',
+  },
+  housing: {
+    en: 'shelter or housing help tonight',
+    es: 'refugio o ayuda de vivienda esta noche',
+    want:
+      'the nearest emergency shelters (with intake/check-in info), drop-in centers, the local coordinated-entry / access point, and any 24-hour housing crisis line',
+    category: 'housing',
+  },
+};
+
+export const generateEmergencyHelp = async (
+  context: UserContext,
+  kind: 'healthcare' | 'housing'
+): Promise<PlanRecommendation[] | null> => {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  const isSpanish = context.language === 'es';
+  const k = EMERGENCY_KIND[kind];
+  const locationLabel = context.city
+    ? `${context.city}, ${context.state || ''}`.trim()
+    : 'their area';
+
+  try {
+    const system = `You are Casy, an expert AI case manager helping someone who needs ${
+      k.en
+    } URGENTLY in ${locationLabel}. Name the NEAREST SPECIFIC real places they can go or call right now. ${
+      isSpanish ? 'Respond in Spanish.' : 'Respond in English.'
+    }
+
+PERSON:
+- Location: ${locationLabel}
+- Age: ${context.isMinor ? 'Under 18 (a MINOR - recommend youth-appropriate options)' : 'Adult'}
+${context.answersSummary ? `\nWhat you know about them:\n${context.answersSummary}` : ''}
+
+List ${k.want}. Give the actual named places in ${locationLabel} (e.g. a specific named hospital, clinic, or shelter you know serves that area), with address and phone. This is urgent, so be concrete and calm.
+
+Return ONLY valid JSON, no prose:
+{
+  "recommendations": [
+    {
+      "title": "short label (e.g. 'Nearest ER', 'Walk-in clinic', 'Emergency shelter')",
+      "why": "1 short line on when to use this one",
+      "resourceName": "the SPECIFIC real place name in ${locationLabel}",
+      "address": "street address or neighborhood if known, else empty",
+      "phone": "the real phone number (or 911 ONLY for the life-threatening-emergency entry)",
+      "website": "website if known, else empty",
+      "action": "a concrete first step (e.g. 'Go to X Hospital ER at <address>' or 'Call X shelter at <phone> and ask for a bed tonight')",
+      "category": "${k.category}"
+    }
+  ]
+}
+Give 3 to 4 options ordered from most immediate. ALWAYS include, as ONE entry, the life-threatening-emergency option (call 911 / go to the ER). For the others, give SPECIFIC named local places with their real phone numbers - do not just say '211' or 'a local clinic'. The app tells users to confirm details, so provide your best real info.`;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const data = await callClaude(
+        {
+          system,
+          messages: [{ role: 'user', content: `List the nearest ${k.en} options as JSON.` }],
+          maxTokens: 1400,
+        },
+        apiKey
+      );
+      const text = extractText(data);
+      try {
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+          const parsed = JSON.parse(text.slice(start, end + 1));
+          if (parsed && Array.isArray(parsed.recommendations)) {
+            return parsed.recommendations
+              .filter((r: any) => r && (r.resourceName || r.title))
+              .map((r: any) => ({ ...r, category: k.category }));
+          }
+        }
+      } catch {
+        /* retry */
+      }
+      console.log('Emergency help parse failed; retrying...', kind, attempt);
+    }
+    return null;
+  } catch (error) {
+    console.log('Error generating emergency help:', error);
+    return null;
+  }
+};
+
+// ---------------------------------------------------------------------------
 // Conversational intake: system prompt for gathering info by chat, and a
 // function that turns the intake conversation into a profile + plan.
 // ---------------------------------------------------------------------------

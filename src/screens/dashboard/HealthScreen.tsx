@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHealthcareResources } from '../../services';
@@ -910,6 +911,9 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
               ))}
             </View>
           </View>
+
+          {/* Casy's nearest specific places (ER / urgent care / free clinic) */}
+          <CasyEmergencyHelp kind="healthcare" isSpanish={isSpanish} />
 
           {/* Start Over Button */}
           <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>

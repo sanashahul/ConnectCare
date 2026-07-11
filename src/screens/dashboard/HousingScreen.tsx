@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
@@ -1185,6 +1186,9 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
                     : "• Many shelters have check-in times (usually 5-8pm)\n• Bring ID if you have it\n• Ask about meals, showers, and case management\n• If you're in danger, call 911"}
                 </Text>
               </View>
+
+              {/* Casy's nearest specific places (emergency shelter / drop-in) */}
+              <CasyEmergencyHelp kind="housing" isSpanish={isSpanish} />
 
               <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
                 <Text style={styles.startOverText}>
