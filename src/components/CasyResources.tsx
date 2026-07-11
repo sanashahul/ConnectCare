@@ -10,10 +10,12 @@ import { CasyAvatar } from './CasyAvatar';
 interface Props {
   resources: PlanRecommendation[];
   isSpanish: boolean;
+  label?: string;
 }
 
-export const CasyResources: React.FC<Props> = ({ resources, isSpanish }) => {
+export const CasyResources: React.FC<Props> = ({ resources, isSpanish, label }) => {
   if (!resources || resources.length === 0) return null;
+  const heading = label || (isSpanish ? 'DE CASY, PARA TI' : 'FROM CASY, FOR YOU');
 
   // De-dupe by org name / title.
   const seen = new Set<string>();
@@ -28,7 +30,7 @@ export const CasyResources: React.FC<Props> = ({ resources, isSpanish }) => {
     <View style={styles.wrap}>
       <View style={styles.header}>
         <CasyAvatar size={22} />
-        <Text style={styles.label}>{isSpanish ? 'DE CASY, PARA TI' : 'FROM CASY, FOR YOU'}</Text>
+        <Text style={styles.label}>{heading}</Text>
       </View>
       {items.map((r, i) => (
         <View key={i} style={styles.card}>

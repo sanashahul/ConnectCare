@@ -352,6 +352,23 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de empleo' : 'Employment guides & resources'}
       </Text>
 
+      {/* Youth job training for minors */}
+      {userProfile?.ageGroup === 'under18' && (
+        <CasyResources
+          isSpanish={isSpanish}
+          label={isSpanish ? 'CAPACITACIÓN PARA JÓVENES' : 'YOUTH JOB TRAINING'}
+          resources={YOUTH_JOB_RESOURCES.programs.map((p) => ({
+            title: isSpanish ? p.nameEs : p.name,
+            resourceName: isSpanish ? p.nameEs : p.name,
+            why: isSpanish ? p.descriptionEs : p.description,
+            phone: p.phone,
+            website: p.website,
+            action: '',
+            category: 'employment' as any,
+          }))}
+        />
+      )}
+
       <CasyResources
         isSpanish={isSpanish}
         resources={[

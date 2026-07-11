@@ -614,6 +614,23 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
       </Text>
 
+      {/* Youth shelters for minors */}
+      {userProfile?.ageGroup === 'under18' && (
+        <CasyResources
+          isSpanish={isSpanish}
+          label={isSpanish ? 'REFUGIOS PARA JÓVENES' : 'YOUTH SHELTERS'}
+          resources={YOUTH_SHELTER_RESOURCES.shelters.map((s) => ({
+            title: isSpanish ? s.nameEs : s.name,
+            resourceName: isSpanish ? s.nameEs : s.name,
+            why: isSpanish ? s.descriptionEs : s.description,
+            phone: s.phone,
+            website: s.website,
+            action: '',
+            category: 'housing' as any,
+          }))}
+        />
+      )}
+
       <CasyResources
         isSpanish={isSpanish}
         resources={[
