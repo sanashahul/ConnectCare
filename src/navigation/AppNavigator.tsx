@@ -19,6 +19,7 @@ import {
 import { PlanScreen } from '../screens/plan/PlanScreen';
 import { IntakeChatScreen } from '../screens/intake/IntakeChatScreen';
 import { PinLockScreen } from '../screens/PinLockScreen';
+import { LoadingScreen } from '../screens/LoadingScreen';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -55,7 +56,7 @@ export const AppNavigator: React.FC = () => {
   };
 
   if (state.isLoading) {
-    return null;
+    return <LoadingScreen />;
   }
 
   if (shouldShowPinLock) {
