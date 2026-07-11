@@ -15,6 +15,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
@@ -145,8 +146,27 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     }
   };
 
+  // Quick exit: instantly leave to a neutral site so no one nearby sees the
+  // app. Critical for anyone in an unsafe situation.
+  const quickExit = () => {
+    setOpen(false);
+    Linking.openURL('https://weather.com').catch(() => {
+      Linking.openURL('https://google.com').catch(() => {});
+    });
+  };
+
   return (
     <>
+      {/* Quick Exit / panic button */}
+      <TouchableOpacity
+        style={styles.exitFab}
+        activeOpacity={0.85}
+        onPress={quickExit}
+        accessibilityLabel={isSpanish ? 'Salida rápida' : 'Quick exit'}
+      >
+        <Text style={styles.exitFabText}>✕ {isSpanish ? 'Salir' : 'Exit'}</Text>
+      </TouchableOpacity>
+
       {/* Floating button */}
       <TouchableOpacity
         style={styles.fab}
@@ -265,6 +285,25 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   fabIcon: { fontSize: 28 },
+  exitFab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 96,
+    backgroundColor: '#0F172A',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 999,
+    opacity: 0.85,
+  },
+  exitFabText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
   flex: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.4)', justifyContent: 'flex-end' },
   sheet: {

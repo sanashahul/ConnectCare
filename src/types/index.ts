@@ -101,6 +101,8 @@ export interface UserProfile {
   // Casy's personalized plan, generated after the questionnaire.
   recommendations?: PersonalizedPlan;
   planGeneratedAt?: string;
+  // Indices of plan recommendations the user has marked done (progress).
+  planProgress?: number[];
 }
 
 export interface CaseWorkerProfile {

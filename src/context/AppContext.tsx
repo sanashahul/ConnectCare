@@ -78,6 +78,7 @@ type AppAction =
   | { type: 'SET_CATEGORIES'; payload: ServiceCategory[] }
   | { type: 'SET_ANSWER'; payload: QuestionAnswer }
   | { type: 'SET_RECOMMENDATIONS'; payload: PersonalizedPlan }
+  | { type: 'TOGGLE_PLAN_STEP'; payload: number }
   | { type: 'COMPLETE_ONBOARDING' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
@@ -202,6 +203,22 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
           ...(state.userProfile || createEmptyUserProfile()),
           recommendations: action.payload,
           planGeneratedAt: new Date().toISOString(),
+          planProgress: [],
+        },
+      };
+    }
+
+    case 'TOGGLE_PLAN_STEP': {
+      const current = state.userProfile?.planProgress || [];
+      const idx = action.payload;
+      const next = current.includes(idx)
+        ? current.filter((i) => i !== idx)
+        : [...current, idx];
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          planProgress: next,
         },
       };
     }

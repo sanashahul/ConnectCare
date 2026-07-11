@@ -19,6 +19,7 @@ import {
   Linking,
   Alert,
   StatusBar,
+  Share,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -61,6 +62,32 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
   const profile = state.userProfile;
   const plan = profile?.recommendations;
   const recs = plan?.recommendations || [];
+  const progress = profile?.planProgress || [];
+  const doneCount = progress.length;
+  const isDone = (idx: number) => progress.includes(idx);
+
+  const sharePlan = () => {
+    if (!plan) return;
+    const lines = [
+      isSpanish ? 'Mi plan de ConnectCare (con Casy)' : 'My ConnectCare plan (with Casy)',
+      '',
+      plan.summary,
+      '',
+      ...recs.map((r, i) => {
+        const parts = [`${i + 1}. ${r.title}`];
+        if (r.resourceName) parts.push(`   ${r.resourceName}`);
+        if (r.address) parts.push(`   ${r.address}`);
+        if (r.phone) parts.push(`   ${r.phone}`);
+        if (r.website) parts.push(`   ${r.website}`);
+        return parts.join('\n');
+      }),
+      '',
+      isSpanish
+        ? 'Nota: confirma los datos llamando antes de ir.'
+        : 'Note: please call to confirm details before visiting.',
+    ];
+    Share.share({ message: lines.join('\n') }).catch(() => {});
+  };
 
   const [revealed, setRevealed] = useState(1);
   const [chat, setChat] = useState<AIMessage[]>([]);
@@ -153,17 +180,21 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
 
   const renderStep = (rec: PlanRecommendation, idx: number) => {
     const cs = CAT_STYLE[rec.category] || CAT_STYLE.other;
+    const done = isDone(idx);
     return (
-      <View key={idx} style={styles.stepCard}>
+      <View key={idx} style={[styles.stepCard, done && styles.stepCardDone]}>
         <View style={styles.stepTop}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{idx + 1}</Text>
-          </View>
+          <TouchableOpacity
+            style={[styles.stepCheck, done && styles.stepCheckDone]}
+            onPress={() => dispatch({ type: 'TOGGLE_PLAN_STEP', payload: idx })}
+          >
+            <Text style={styles.stepCheckMark}>{done ? '✓' : idx + 1}</Text>
+          </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            {idx === 0 && (
+            {idx === 0 && !done && (
               <Text style={styles.stepPriority}>{isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}</Text>
             )}
-            <Text style={styles.stepTitle}>{rec.title}</Text>
+            <Text style={[styles.stepTitle, done && styles.stepTitleDone]}>{rec.title}</Text>
             {!!rec.why && <Text style={styles.stepWhy}>{rec.why}</Text>}
           </View>
           <Text style={styles.stepCatIcon}>{cs.icon}</Text>
@@ -210,6 +241,22 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
             <Text style={styles.addText}>+ {isSpanish ? 'Agregar' : 'Add'}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Warm handoff: prep the person for this step */}
+        <TouchableOpacity
+          style={styles.prepBtn}
+          onPress={() =>
+            ask(
+              isSpanish
+                ? `Prepárame para este paso: "${rec.title}"${rec.resourceName ? ` con ${rec.resourceName}` : ''}. ¿Qué debo llevar y qué debo decir exactamente cuando llame o vaya?`
+                : `Prep me for this step: "${rec.title}"${rec.resourceName ? ` with ${rec.resourceName}` : ''}. What should I bring, and exactly what should I say when I call or go?`
+            )
+          }
+        >
+          <Text style={styles.prepText}>
+            📋 {isSpanish ? 'Prepárame: qué llevar y qué decir' : 'Prep me: what to bring & say'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -294,7 +341,13 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
           <CasyAvatar size={30} />
           <Text style={styles.headerTitle}>{isSpanish ? 'Tu plan con Casy' : 'Your plan with Casy'}</Text>
         </View>
-        <View style={{ width: 40 }} />
+        {plan ? (
+          <TouchableOpacity onPress={sharePlan} style={styles.shareBtn}>
+            <Text style={styles.shareText}>↗</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
       </View>
 
       <KeyboardAvoidingView
@@ -345,6 +398,33 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
                   ? 'Casy usa IA. Los teléfonos y sitios web pueden cambiar, así que confirma llamando antes de ir.'
                   : 'Casy is AI-powered. Phone numbers and websites can change, so please call to confirm before visiting.'}
               </Text>
+
+              {/* Progress */}
+              <View style={styles.progressCard}>
+                <View style={styles.progressTop}>
+                  <Text style={styles.progressLabel}>
+                    {isSpanish ? 'Tu progreso' : 'Your progress'}
+                  </Text>
+                  <Text style={styles.progressCount}>
+                    {doneCount}/{recs.length} {isSpanish ? 'hecho' : 'done'}
+                  </Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${recs.length ? (doneCount / recs.length) * 100 : 0}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressCheer}>
+                  {doneCount === 0
+                    ? isSpanish ? 'Un paso a la vez. Tú puedes.' : "One step at a time. You've got this."
+                    : doneCount >= recs.length
+                      ? isSpanish ? '¡Lo lograste! Estoy orgulloso de ti.' : "You did it all! I'm proud of you."
+                      : isSpanish ? `¡Buen trabajo! Sigue así.` : `Great work, keep it going!`}
+                </Text>
+              </View>
 
               {renderGroupedPlan()}
 
@@ -416,6 +496,46 @@ const styles = StyleSheet.create({
   backText: { fontSize: 34, color: '#0D9488', fontWeight: '700', marginTop: -4 },
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerTitle: { fontSize: 17, fontWeight: '800', color: '#0F172A' },
+  shareBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  shareText: { fontSize: 24, color: '#0D9488', fontWeight: '800' },
+  progressCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  progressTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  progressLabel: { fontSize: 14, fontWeight: '800', color: '#0F172A' },
+  progressCount: { fontSize: 14, fontWeight: '800', color: '#0D9488' },
+  progressTrack: { height: 10, borderRadius: 999, backgroundColor: '#F1F5F9', overflow: 'hidden' },
+  progressFill: { height: 10, borderRadius: 999, backgroundColor: '#0D9488' },
+  progressCheer: { fontSize: 13, color: '#0D9488', fontWeight: '700', marginTop: 10 },
+  stepCheck: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#0D9488',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  stepCheckDone: { backgroundColor: '#16A34A' },
+  stepCheckMark: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  stepCardDone: { opacity: 0.7 },
+  stepTitleDone: { textDecorationLine: 'line-through', color: '#94A3B8' },
+  prepBtn: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  prepText: { color: '#475569', fontWeight: '700', fontSize: 13 },
   content: { padding: 18, paddingBottom: 28 },
 
   introRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16 },

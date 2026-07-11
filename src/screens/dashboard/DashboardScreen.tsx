@@ -1491,8 +1491,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     const plan = userProfile?.recommendations;
     if (!plan || !plan.recommendations?.length) return null;
 
-    const first = plan.recommendations[0];
     const count = plan.recommendations.length;
+    const progress = userProfile?.planProgress || [];
+    const doneCount = progress.length;
+    const nextIdx = plan.recommendations.findIndex((_, i) => !progress.includes(i));
+    const nextStep = nextIdx >= 0 ? plan.recommendations[nextIdx] : null;
+    const allDone = doneCount >= count;
+    const pct = count ? (doneCount / count) * 100 : 0;
 
     return (
       <TouchableOpacity
@@ -1507,33 +1512,41 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               {isSpanish ? 'Tu plan con Casy' : 'Your plan with Casy'}
             </Text>
             <Text style={styles.planCardSub}>
-              {isSpanish
-                ? `${count} ${count === 1 ? 'paso' : 'pasos'} hechos para ti`
-                : `${count} ${count === 1 ? 'step' : 'steps'} made for you`}
+              {doneCount > 0
+                ? `${doneCount}/${count} ${isSpanish ? 'hecho' : 'done'}`
+                : isSpanish
+                  ? `${count} ${count === 1 ? 'paso' : 'pasos'} hechos para ti`
+                  : `${count} ${count === 1 ? 'step' : 'steps'} made for you`}
             </Text>
           </View>
         </View>
 
-        {!!plan.summary && (
-          <Text style={styles.planCardSummary} numberOfLines={3}>
-            {plan.summary}
-          </Text>
-        )}
+        {/* Progress bar */}
+        <View style={styles.planCardTrack}>
+          <View style={[styles.planCardFill, { width: `${pct}%` }]} />
+        </View>
 
-        {!!first && (
+        {/* Casy check-in */}
+        {allDone ? (
+          <Text style={styles.planCardCheckin}>
+            {isSpanish ? '🎉 ¡Completaste tu plan! Estoy orgulloso de ti.' : "🎉 You finished your plan! I'm proud of you."}
+          </Text>
+        ) : nextStep ? (
           <View style={styles.planCardFirst}>
             <Text style={styles.planCardFirstLabel}>
-              {isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}
+              {doneCount > 0
+                ? isSpanish ? 'SIGUIENTE · ¿CÓMO VA?' : 'NEXT UP · HOW’S IT GOING?'
+                : isSpanish ? 'EMPIEZA AQUÍ' : 'START HERE'}
             </Text>
-            <Text style={styles.planCardFirstTitle} numberOfLines={1}>
-              {first.title}
+            <Text style={styles.planCardFirstTitle} numberOfLines={2}>
+              {nextStep.title}
             </Text>
           </View>
-        )}
+        ) : null}
 
         <View style={styles.planCardCta}>
           <Text style={styles.planCardCtaText}>
-            {isSpanish ? 'Ver mi plan con Casy' : 'View my plan with Casy'}
+            {isSpanish ? 'Continuar con Casy' : 'Continue with Casy'}
           </Text>
           <Text style={styles.planCardCtaArrow}>→</Text>
         </View>
@@ -2450,6 +2463,9 @@ const styles = StyleSheet.create({
   planCardTitle: { fontSize: 19, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
   planCardSub: { fontSize: 12.5, color: '#0D9488', fontWeight: '700', marginTop: 3, letterSpacing: 0.2 },
   planCardSummary: { fontSize: 15, color: '#475569', lineHeight: 22, marginBottom: 14 },
+  planCardTrack: { height: 8, borderRadius: 999, backgroundColor: '#F1F5F9', overflow: 'hidden', marginBottom: 14 },
+  planCardFill: { height: 8, borderRadius: 999, backgroundColor: '#0D9488' },
+  planCardCheckin: { fontSize: 14, color: '#16A34A', fontWeight: '700', marginBottom: 14, lineHeight: 20 },
   planCardFirst: {
     backgroundColor: '#F0FDFA',
     borderRadius: 14,
