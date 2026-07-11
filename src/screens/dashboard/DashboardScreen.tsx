@@ -1538,16 +1538,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const renderPlan = () => {
     const plan = userProfile?.recommendations;
 
-    // No plan yet (old profile, or generation didn't run) — offer to build it.
+    // No plan yet (old profile, skipped intake, or generation didn't run).
     if (!plan || !plan.recommendations?.length) {
       if (!userProfile?.shareCode) return null;
+      const answeredCount = userProfile?.answers?.length || 0;
       return (
-        <TouchableOpacity
-          style={styles.planCard}
-          activeOpacity={0.9}
-          onPress={handleBuildPlan}
-          disabled={generatingPlan}
-        >
+        <View style={styles.planCard}>
           <View style={styles.planCardHeader}>
             <CasyAvatar size={44} />
             <View style={{ marginLeft: 12, flex: 1 }}>
@@ -1560,23 +1556,42 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             </View>
           </View>
           <Text style={styles.planCardSummary}>
-            {isSpanish
-              ? 'Puedo crear un plan personalizado con recursos reales según tu situación.'
-              : 'I can build you a personalized plan with real resources based on your situation.'}
+            {answeredCount < 3
+              ? isSpanish
+                ? 'Responde unas preguntas rápidas y crearé un plan personalizado con recursos reales para ti.'
+                : "Answer a few quick questions and I'll build you a personalized plan with real resources."
+              : isSpanish
+                ? 'Puedo crear un plan personalizado con recursos reales según tu situación.'
+                : 'I can build you a personalized plan with real resources based on your situation.'}
           </Text>
-          <View style={styles.planCardCta}>
+          <TouchableOpacity
+            style={styles.planCardCta}
+            activeOpacity={0.9}
+            onPress={handleBuildPlan}
+            disabled={generatingPlan}
+          >
             {generatingPlan ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
                 <Text style={styles.planCardCtaText}>
-                  {isSpanish ? 'Crear mi plan personalizado' : 'Build my personalized plan'}
+                  {isSpanish ? 'Crear mi plan' : 'Build my plan'}
                 </Text>
                 <Text style={styles.planCardCtaArrow}>→</Text>
               </>
             )}
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.planCardSecondary}
+            onPress={() => navigation.navigate('Questionnaire')}
+          >
+            <Text style={styles.planCardSecondaryText}>
+              {answeredCount > 0
+                ? isSpanish ? 'Continuar mis preguntas' : 'Finish my questions'
+                : isSpanish ? 'Responder unas preguntas' : 'Answer a few questions'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 
@@ -2581,6 +2596,8 @@ const styles = StyleSheet.create({
   },
   planCardCtaText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   planCardCtaArrow: { color: '#FFFFFF', fontWeight: '800', fontSize: 18 },
+  planCardSecondary: { alignItems: 'center', paddingVertical: 12, marginTop: 2 },
+  planCardSecondaryText: { color: '#0D9488', fontWeight: '700', fontSize: 14 },
   planSection: {
     marginHorizontal: 20,
     marginBottom: 24,

@@ -33,7 +33,14 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+  // Pre-fill any answers already saved, so returning to the intake resumes.
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>(() => {
+    const init: Record<string, string | string[]> = {};
+    (state.userProfile?.answers || []).forEach((a) => {
+      init[a.questionId] = a.answer;
+    });
+    return init;
+  });
   const [generating, setGenerating] = useState(false);
 
   // Get all questions for selected categories
@@ -169,6 +176,26 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     }
   };
 
+  // Skip just this question and move on (or finish if it's the last).
+  const handleSkipQuestion = () => {
+    if (isLastQuestion) {
+      finishOnboarding(answers);
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  // Skip the rest of the intake and go straight to the app. They can come
+  // back and finish from the dashboard, and build their plan whenever.
+  const handleSkipAll = () => {
+    const answer = answers[currentQuestion.id];
+    if (answer) {
+      dispatch({ type: 'SET_ANSWER', payload: { questionId: currentQuestion.id, answer } });
+    }
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+    goToDashboard();
+  };
+
   const canProceed = () => {
     const answer = answers[currentQuestion.id];
     if (!answer) return false;
@@ -299,6 +326,18 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     <SafeAreaView style={styles.container}>
       {/* Progress */}
       <View style={styles.progressContainer}>
+        <View style={styles.progressTopRow}>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryBadgeText}>
+              {getCurrentCategoryLabel(currentQuestion.category)}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={handleSkipAll} style={styles.skipAllBtn}>
+            <Text style={styles.skipAllText}>
+              {i18n.language === 'es' ? 'Omitir por ahora' : 'Skip for now'} ›
+            </Text>
+          </TouchableOpacity>
+        </View>
         <ProgressBar
           current={currentIndex + 1}
           total={totalQuestions}
@@ -307,11 +346,6 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
             total: totalQuestions,
           })}
         />
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryBadgeText}>
-            {getCurrentCategoryLabel(currentQuestion.category)}
-          </Text>
-        </View>
       </View>
 
       {/* Question */}
@@ -326,6 +360,13 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
           </View>
         )}
         {renderOptions()}
+
+        {/* Skip just this question */}
+        <TouchableOpacity onPress={handleSkipQuestion} style={styles.skipQuestionBtn}>
+          <Text style={styles.skipQuestionText}>
+            {i18n.language === 'es' ? 'Omitir esta pregunta' : 'Skip this question'}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Navigation */}
@@ -377,13 +418,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
   },
+  progressTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+    marginBottom: 14,
+  },
   categoryBadge: {
     backgroundColor: '#F0FDFA',
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 24,
-    alignSelf: 'flex-start',
-    marginTop: 16,
     borderWidth: 1,
     borderColor: '#99F6E4',
   },
@@ -393,6 +439,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
   },
+  skipAllBtn: { paddingVertical: 8, paddingHorizontal: 8 },
+  skipAllText: { color: '#94A3B8', fontSize: 14, fontWeight: '700' },
+  skipQuestionBtn: { alignSelf: 'center', paddingVertical: 14, marginTop: 4 },
+  skipQuestionText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
   scrollView: {
     flex: 1,
   },
