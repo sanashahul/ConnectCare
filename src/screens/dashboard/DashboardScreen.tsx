@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
-import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage } from '../../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput } from '../../services/aiService';
 import { PlanRecommendation } from '../../types';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
@@ -1164,6 +1164,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     };
   };
 
+  // Let Casy add a task straight to the to-do list from chat.
+  const addTaskFromCasy = (task: AddTaskInput) => {
+    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title: task.title,
+        description: task.note || undefined,
+        completed: false,
+        priority: 'normal',
+        createdBy: 'individual',
+        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        resourcePhone: task.phone || undefined,
+        resourceUrl: task.website || undefined,
+      },
+    });
+  };
+
   // Build (or rebuild) the personalized plan on demand.
   const handleBuildPlan = async () => {
     if (generatingPlan) return;
@@ -1241,7 +1259,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        buildAIContext()
+        buildAIContext(),
+        addTaskFromCasy
       );
 
       setIsTyping(false);
@@ -1387,7 +1406,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           role: msg.type === 'user' ? ('user' as const) : ('model' as const),
           content: msg.content,
         }));
-      const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext());
+      const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext(), addTaskFromCasy);
       setIsTyping(false);
       setChatMessages((prev) => [
         ...prev,
@@ -1463,7 +1482,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       const responseContent = await sendMessageToAI(
         messageText,
         aiHistory,
-        buildAIContext()
+        buildAIContext(),
+        addTaskFromCasy
       );
 
       setIsTyping(false);

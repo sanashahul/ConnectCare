@@ -103,6 +103,35 @@ const SEARCH_TOOLS = [
   },
 ];
 
+// Tool that lets Casy add a task straight to the person's to-do list.
+export interface AddTaskInput {
+  title: string;
+  note?: string;
+  phone?: string;
+  website?: string;
+  category?: string;
+}
+
+const ADD_TASK_TOOL = {
+  name: 'add_task',
+  description:
+    "Add a task to the person's to-do list in the app. Use this whenever they agree to add a step, or when a clear next action would genuinely help them (e.g. 'Call Compass Family Services'). Include the org's phone and website if relevant. After adding, tell them warmly that you've added it to their list.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      title: { type: 'string', description: 'Short, specific task title' },
+      note: { type: 'string', description: 'Optional detail: org name, address, what to do' },
+      phone: { type: 'string', description: "The resource's phone number, if any" },
+      website: { type: 'string', description: "The resource's website, if any" },
+      category: {
+        type: 'string',
+        enum: ['housing', 'healthcare', 'employment', 'documents', 'benefits', 'education', 'other'],
+      },
+    },
+    required: ['title'],
+  },
+};
+
 interface ResourceLike {
   name: string;
   address?: string;
@@ -268,7 +297,7 @@ CÓMO AYUDAS:
 - SIEMPRE incluye los datos de contacto de cada lugar que menciones: un número de teléfono Y un sitio web cuando los conozcas. Da tu mejor información específica de tu conocimiento y herramientas; no la retengas ni recurras al "llama al 211". Como los datos pueden cambiar, agrega una nota breve como "(por favor confirma llamando)" una vez.
 - Menciona 211 / 988 / 911 solo cuando sean de verdad el mejor recurso para esa necesidad (como una crisis real), NO como sustituto de dar el número de una organización específica.
 - Adapta todo a la situación específica de ESTA persona y sus respuestas (refugio para familias si tiene hijos, programas para veteranos si es veterano, clínica gratuita si no tiene seguro, etc.).
-- Sé proactivo: después de la lista, sugiere UN próximo paso y ofrece agregarlo a su lista ("¿Quieres que lo agregue a tu lista de tareas?"). Haz la tarea específica e incluye el teléfono/sitio web del lugar.
+- Sé proactivo: sugiere UN próximo paso. Puedes agregar tareas a su lista TÚ MISMO con la herramienta add_task. Cuando digan que sí (o cuando un paso claro obviamente ayude), llama a add_task con un título específico más el teléfono/sitio web y la categoría del lugar, y luego dile con calidez que lo agregaste a su lista.
 - Prioriza recursos gratuitos y de bajo costo.
 - Ante peligro o crisis, comparte primero la línea correcta, con calma.${toolGuidance}
 
@@ -295,7 +324,7 @@ HOW YOU HELP:
 - ALWAYS include contact details for each place you name: a phone number AND a website when you know them. Give your best specific info from your knowledge and tools - do not withhold it or default to "call 211". Because details can change, add a brief note like "(please call to confirm)" once, so they know to verify.
 - Only mention 211 / 988 / 911 when they are genuinely the best resource for that need (like a real crisis), NOT as a substitute for giving a specific organization's number.
 - Tailor everything to THIS person's specific situation and answers - match resources to their exact needs (family shelter if they have kids, veteran programs if a veteran, free clinic if uninsured, etc.).
-- Be proactive: after the list, suggest ONE next step and offer to add it to their to-do list ("Want me to add that to your to-do list?"). When you do, make the task specific and include the place's phone/website.
+- Be proactive: suggest ONE next step. You can add tasks to their to-do list YOURSELF with the add_task tool. When they say yes (or when a clear next step would obviously help), actually call add_task with a specific title plus the org's phone/website and category, then warmly tell them you've added it to their list.
 - Prefer free and low-cost resources.
 - If the person may be in danger or crisis, lead with the right hotline immediately and gently.${toolGuidance}
 
@@ -311,7 +340,8 @@ Always respond in English. Never say you are an AI language model or mention the
 export const sendMessageToAI = async (
   userMessage: string,
   conversationHistory: AIMessage[],
-  userContext: UserContext
+  userContext: UserContext,
+  onAddTask?: (task: AddTaskInput) => void
 ): Promise<string> => {
   const apiKey = getApiKey();
 
@@ -330,18 +360,35 @@ export const sendMessageToAI = async (
     ];
 
     const system = getSystemPrompt(userContext);
-    // Only offer live-search tools when we have coordinates to search with.
-    const tools = userContext.location ? SEARCH_TOOLS : undefined;
+    // Casy can add tasks (when a handler is provided) and search real
+    // resources (when we have coordinates).
+    const tools = [
+      ...(onAddTask ? [ADD_TASK_TOOL] : []),
+      ...(userContext.location ? SEARCH_TOOLS : []),
+    ];
+    const toolsParam = tools.length ? tools : undefined;
 
-    // Tool-use loop: let Casy call search tools, feed results back, repeat.
-    for (let round = 0; round < 4; round++) {
-      const data = await callClaude({ system, messages, tools, maxTokens: 1100 }, apiKey);
+    // Tool-use loop: let Casy call tools, feed results back, repeat.
+    for (let round = 0; round < 5; round++) {
+      const data = await callClaude({ system, messages, tools: toolsParam, maxTokens: 1100 }, apiKey);
 
-      if (data.stop_reason === 'tool_use' && userContext.location) {
+      if (data.stop_reason === 'tool_use' && toolsParam) {
         const toolUses = (data.content || []).filter((b: any) => b.type === 'tool_use');
         const toolResults = [];
         for (const use of toolUses) {
-          const result = await runSearchTool(use.name, userContext.location);
+          let result: string;
+          if (use.name === 'add_task' && onAddTask) {
+            try {
+              onAddTask(use.input as AddTaskInput);
+              result = `Added "${(use.input as AddTaskInput)?.title || 'the task'}" to their to-do list.`;
+            } catch {
+              result = 'Could not add the task.';
+            }
+          } else if (use.name.startsWith('search_') && userContext.location) {
+            result = await runSearchTool(use.name, userContext.location);
+          } else {
+            result = 'Done.';
+          }
           toolResults.push({
             type: 'tool_result',
             tool_use_id: use.id,

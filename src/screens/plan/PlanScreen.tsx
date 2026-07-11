@@ -128,6 +128,23 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     };
   };
 
+  const addTaskFromCasy = (task: any) => {
+    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title: task.title,
+        description: task.note || undefined,
+        completed: false,
+        priority: 'normal',
+        createdBy: 'individual',
+        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        resourcePhone: task.phone || undefined,
+        resourceUrl: task.website || undefined,
+      } as any,
+    });
+  };
+
   const ask = async (text: string) => {
     const msg = text.trim();
     if (!msg || loading) return;
@@ -136,7 +153,7 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     setInput('');
     setLoading(true);
     try {
-      const reply = await sendMessageToAI(msg, history, buildContext());
+      const reply = await sendMessageToAI(msg, history, buildContext(), addTaskFromCasy);
       setChat((prev) => [...prev, { role: 'model', content: reply }]);
     } catch {
       setChat((prev) => [

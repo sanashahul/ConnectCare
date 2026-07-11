@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext } from '../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext, AddTaskInput } from '../services/aiService';
 import { CasyAvatar } from './CasyAvatar';
 
 export type AIFocus = 'housing' | 'healthcare' | 'employment';
@@ -83,9 +83,27 @@ const suggestionsFor = (focus: AIFocus | undefined, isSpanish: boolean): string[
 
 export const AIAssistant: React.FC<Props> = ({ focus }) => {
   const { i18n } = useTranslation();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const isSpanish = i18n.language === 'es';
   const profile = state.userProfile;
+
+  // Let Casy add a task straight to the to-do list from chat.
+  const addTaskFromCasy = (task: AddTaskInput) => {
+    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+    dispatch({
+      type: 'ADD_TODO',
+      payload: {
+        title: task.title,
+        description: task.note || undefined,
+        completed: false,
+        priority: 'normal',
+        createdBy: 'individual',
+        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        resourcePhone: task.phone || undefined,
+        resourceUrl: task.website || undefined,
+      } as any,
+    });
+  };
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
@@ -129,7 +147,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     setInput('');
     setLoading(true);
     try {
-      const reply = await sendMessageToAI(msg, history, context);
+      const reply = await sendMessageToAI(msg, history, context, addTaskFromCasy);
       setMessages((prev) => [...prev, { role: 'model', content: reply }]);
     } catch {
       setMessages((prev) => [
