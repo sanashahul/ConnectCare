@@ -105,6 +105,9 @@ export interface UserProfile {
   planProgress?: number[];
   // Resources Casy saved to the user's "For You" sections from chat.
   savedResources?: PlanRecommendation[];
+  // Casy's personalized picks per tab (housing/employment/healthcare),
+  // generated from the person's answers so each tab is specific to them.
+  categoryPicks?: { [category: string]: PlanRecommendation[] };
 }
 
 export interface CaseWorkerProfile {

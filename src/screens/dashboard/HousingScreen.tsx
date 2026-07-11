@@ -16,11 +16,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
-import { YOUTH_SHELTER_RESOURCES, YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 
 type HousingScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -452,67 +452,32 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
 
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      {/* Youth Shelter Banner - Only for minors */}
+      {/* Casy's personalized housing picks, based on this person's answers
+          (youth-specific for minors). Replaces the old static youth list. */}
+      <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
+
+      {/* Runaway Safeline - kept as a safety-critical resource for minors */}
       {userProfile?.ageGroup === 'under18' && (
-        <View style={styles.youthShelterBanner}>
-          <View style={styles.youthShelterHeader}>
-            <Text style={styles.youthShelterEmoji}>🏠</Text>
-            <Text style={styles.youthShelterTitle}>
-              {isSpanish ? 'Refugios Juveniles' : 'Youth Shelters'}
+        <View style={styles.youthSafelineCard}>
+          <Text style={styles.youthSafelineEmoji}>🌟</Text>
+          <View style={styles.youthSafelineInfo}>
+            <Text style={styles.youthSafelineName}>
+              {isSpanish ? 'Línea Nacional para Fugitivos' : 'National Runaway Safeline'}
+            </Text>
+            <Text style={styles.youthSafelineDesc}>
+              {isSpanish
+                ? 'Si estás pensando en huir, llama primero. Pueden ayudarte a encontrar opciones más seguras.'
+                : "If you're thinking about running away, call first. They can help you find safer options."}
             </Text>
           </View>
-          <Text style={styles.youthShelterMessage}>
-            {isSpanish
-              ? 'Los refugios juveniles son más seguros que los refugios para adultos y tienen personal que entiende tu situación.'
-              : 'Youth shelters are safer than adult shelters and have staff who understand your situation.'}
-          </Text>
-
-          {/* Youth Shelter Resources */}
-          {YOUTH_SHELTER_RESOURCES.shelters.map((shelter) => (
-            <TouchableOpacity
-              key={shelter.id}
-              style={styles.youthShelterCard}
-              onPress={() => handleCall(shelter.phone)}
-            >
-              <View style={styles.youthShelterCardContent}>
-                <View style={styles.youthShelterInfo}>
-                  <Text style={styles.youthShelterName}>
-                    {isSpanish ? shelter.nameEs : shelter.name}
-                  </Text>
-                  <Text style={styles.youthShelterDesc}>
-                    {isSpanish ? shelter.descriptionEs : shelter.description}
-                  </Text>
-                  <Text style={styles.youthShelterPhone}>{shelter.phone}</Text>
-                </View>
-                <View style={styles.youthCallIcon}>
-                  <Text style={styles.youthCallIconText}>📞</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          {/* Runaway Safeline - Important for youth */}
-          <View style={styles.youthSafelineCard}>
-            <Text style={styles.youthSafelineEmoji}>🌟</Text>
-            <View style={styles.youthSafelineInfo}>
-              <Text style={styles.youthSafelineName}>
-                {isSpanish ? 'Línea Nacional para Fugitivos' : 'National Runaway Safeline'}
-              </Text>
-              <Text style={styles.youthSafelineDesc}>
-                {isSpanish
-                  ? 'Si estás pensando en huir, llama primero. Pueden ayudarte a encontrar opciones más seguras.'
-                  : "If you're thinking about running away, call first. They can help you find safer options."}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.youthSafelineButton}
-              onPress={() => handleCall('1-800-786-2929')}
-            >
-              <Text style={styles.youthSafelineButtonText}>
-                {isSpanish ? 'Llamar' : 'Call'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.youthSafelineButton}
+            onPress={() => handleCall('1-800-786-2929')}
+          >
+            <Text style={styles.youthSafelineButtonText}>
+              {isSpanish ? 'Llamar' : 'Call'}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -614,22 +579,8 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
       </Text>
 
-      {/* Youth shelters for minors */}
-      {userProfile?.ageGroup === 'under18' && (
-        <CasyResources
-          isSpanish={isSpanish}
-          label={isSpanish ? 'REFUGIOS PARA JÓVENES' : 'YOUTH SHELTERS'}
-          resources={YOUTH_SHELTER_RESOURCES.shelters.map((s) => ({
-            title: isSpanish ? s.nameEs : s.name,
-            resourceName: isSpanish ? s.nameEs : s.name,
-            why: isSpanish ? s.descriptionEs : s.description,
-            phone: s.phone,
-            website: s.website,
-            action: '',
-            category: 'housing' as any,
-          }))}
-        />
-      )}
+      {/* Casy's personalized housing picks (youth-aware for minors) */}
+      <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
 
       <CasyResources
         isSpanish={isSpanish}

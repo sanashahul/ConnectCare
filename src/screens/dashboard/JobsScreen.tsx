@@ -16,11 +16,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
-import { YOUTH_JOB_RESOURCES } from '../../data/youthResources';
 
 type JobsScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -352,22 +352,8 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Guías y recursos de empleo' : 'Employment guides & resources'}
       </Text>
 
-      {/* Youth job training for minors */}
-      {userProfile?.ageGroup === 'under18' && (
-        <CasyResources
-          isSpanish={isSpanish}
-          label={isSpanish ? 'CAPACITACIÓN PARA JÓVENES' : 'YOUTH JOB TRAINING'}
-          resources={YOUTH_JOB_RESOURCES.programs.map((p) => ({
-            title: isSpanish ? p.nameEs : p.name,
-            resourceName: isSpanish ? p.nameEs : p.name,
-            why: isSpanish ? p.descriptionEs : p.description,
-            phone: p.phone,
-            website: p.website,
-            action: '',
-            category: 'employment' as any,
-          }))}
-        />
-      )}
+      {/* Casy's personalized job picks (youth-aware for minors) */}
+      <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
 
       <CasyResources
         isSpanish={isSpanish}
@@ -763,43 +749,11 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Youth Job Training Banner for Minors */}
-        {userProfile?.ageGroup === 'under18' && activeSection === null && (
-          <View style={styles.youthTrainingBanner}>
-            <View style={styles.youthTrainingHeader}>
-              <Text style={styles.youthTrainingEmoji}>🎓</Text>
-              <Text style={styles.youthTrainingTitle}>
-                {isSpanish ? 'Programas para Jóvenes' : 'Youth Training Programs'}
-              </Text>
-            </View>
-            <Text style={styles.youthTrainingText}>
-              {isSpanish
-                ? 'Estos programas están diseñados especialmente para jóvenes. Ofrecen capacitación, educación, y a veces hasta vivienda y comidas.'
-                : 'These programs are specially designed for young people. They offer training, education, and sometimes even housing and meals.'}
-            </Text>
-            {YOUTH_JOB_RESOURCES.programs.map((program) => (
-              <TouchableOpacity
-                key={program.id}
-                style={styles.youthProgramCard}
-                onPress={() => program.website && Linking.openURL(program.website)}
-              >
-                <View style={styles.youthProgramInfo}>
-                  <Text style={styles.youthProgramName}>
-                    {isSpanish ? program.nameEs : program.name}
-                  </Text>
-                  <Text style={styles.youthProgramDesc}>
-                    {isSpanish ? program.descriptionEs : program.description}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.youthProgramCall}
-                  onPress={() => Linking.openURL(`tel:${program.phone.replace(/-/g, '')}`)}
-                >
-                  <Text style={styles.youthProgramCallIcon}>📞</Text>
-                  <Text style={styles.youthProgramPhone}>{program.phone}</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+        {/* Casy's personalized job picks, based on this person's answers
+            (youth-specific for minors). Replaces the old static youth list. */}
+        {activeSection === null && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+            <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
           </View>
         )}
 

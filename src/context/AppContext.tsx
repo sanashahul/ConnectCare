@@ -81,6 +81,7 @@ type AppAction =
   | { type: 'SET_RECOMMENDATIONS'; payload: PersonalizedPlan }
   | { type: 'TOGGLE_PLAN_STEP'; payload: number }
   | { type: 'ADD_SAVED_RESOURCE'; payload: PlanRecommendation }
+  | { type: 'SET_CATEGORY_PICKS'; payload: { category: string; items: PlanRecommendation[] } }
   | { type: 'COMPLETE_ONBOARDING' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
@@ -235,6 +236,17 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           savedResources: [...current, action.payload],
+        },
+      };
+    }
+
+    case 'SET_CATEGORY_PICKS': {
+      const existing = state.userProfile?.categoryPicks || {};
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          categoryPicks: { ...existing, [action.payload.category]: action.payload.items },
         },
       };
     }

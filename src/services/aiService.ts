@@ -14,7 +14,7 @@
  */
 
 import { ANTHROPIC_API_KEY } from '../config/secrets';
-import { Location, QuestionAnswer, PersonalizedPlan } from '../types';
+import { Location, QuestionAnswer, PersonalizedPlan, PlanRecommendation } from '../types';
 import { getAllQuestions } from '../data/questions';
 import { getAllHousingResources } from './housingApi';
 import { getAllHealthcareResources } from './healthcareApi';
@@ -620,6 +620,121 @@ Give 4 to 6 recommendations, ordered by urgency and matched precisely to this pe
     return null;
   } catch (error) {
     console.log('Error generating personalized plan:', error);
+    return null;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Per-tab personalized picks: Casy's specific recommendations for one category
+// (housing / employment / healthcare), grounded in this person's answers, so
+// each tab shows options tailored to them instead of a generic static list.
+// ---------------------------------------------------------------------------
+
+const CATEGORY_LABEL: Record<string, { en: string; es: string; kinds: string }> = {
+  housing: {
+    en: 'housing / shelter',
+    es: 'vivienda / refugio',
+    kinds: 'shelters, transitional housing, rapid re-housing, housing assistance, drop-in centers',
+  },
+  employment: {
+    en: 'jobs / employment',
+    es: 'empleo / trabajo',
+    kinds: 'job centers, training programs, staffing/temp agencies, apprenticeships, day-labor, career services',
+  },
+  healthcare: {
+    en: 'healthcare',
+    es: 'salud',
+    kinds: 'free/low-cost clinics, community health centers, mental health, substance use, dental, pharmacies',
+  },
+};
+
+export const generateCategoryPicks = async (
+  context: UserContext,
+  category: 'housing' | 'employment' | 'healthcare'
+): Promise<PlanRecommendation[] | null> => {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  const isSpanish = context.language === 'es';
+  const cat = CATEGORY_LABEL[category];
+  const locationLabel = context.city
+    ? `${context.city}, ${context.state || ''}`.trim()
+    : 'their area';
+
+  try {
+    const system = `You are Casy, an expert AI case manager. Recommend SPECIFIC real ${
+      cat.en
+    } resources for this person, chosen from their questionnaire answers so every pick fits THEIR situation. ${
+      isSpanish ? 'Respond in Spanish.' : 'Respond in English.'
+    }
+
+PERSON:
+- Name: ${context.name || 'the user'}
+- Location: ${locationLabel}
+- Age: ${context.isMinor ? 'Under 18 (a MINOR)' : 'Adult'}
+${
+  context.isMinor
+    ? `\nTHIS PERSON IS A MINOR (under 18). Recommend YOUTH-SPECIFIC ${cat.en} options only, NOT adult ones${
+        category === 'housing'
+          ? ' (youth/teen shelters, host homes, transitional living programs like Covenant House 1-800-999-9999, StandUp for Kids, and any local youth shelter; include the National Runaway Safeline 1-800-786-2929 if fleeing home)'
+          : category === 'employment'
+          ? ' (youth job/education programs like Job Corps 1-800-733-5627, YouthBuild, YouthBuild USA, local youth workforce programs)'
+          : ' (adolescent/school-based clinics, youth mental-health services, Covenant House health services)'
+      }. Be extra protective and warm.`
+    : ''
+}
+
+THEIR ANSWERS (tailor every pick to these - living situation, kids, insurance, veteran status, disabilities, income, etc.):
+${context.answersSummary || '(none provided)'}
+
+Recommend ${cat.kinds} in ${locationLabel}. Name SPECIFIC real organizations you know serve this area (not vague like "a local shelter"). Lead with the ones that best fit their exact answers.
+
+Return ONLY valid JSON, no prose, in exactly this shape:
+{
+  "recommendations": [
+    {
+      "title": "short label for the place",
+      "why": "1 sentence on why this fits THEM specifically, referencing their answer",
+      "resourceName": "the SPECIFIC real organization name in ${locationLabel}",
+      "address": "street address or neighborhood if known, else empty",
+      "phone": "the org's real phone number - your best specific number; do not default to 211. Empty only if truly unknown.",
+      "website": "the org's website if you know it, else empty",
+      "action": "a concrete first step naming the org and its phone",
+      "category": "${category}"
+    }
+  ]
+}
+Give 3 to 5 recommendations, ordered by fit, all in the "${category}" category. Provide your best real contact info (the app tells users to confirm details); do not leave phone/website blank when you know them, and do not fall back to 211 unless it is genuinely the best option.`;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const data = await callClaude(
+        {
+          system,
+          messages: [{ role: 'user', content: `Recommend my ${cat.en} options as JSON.` }],
+          maxTokens: 1600,
+        },
+        apiKey
+      );
+      const text = extractText(data);
+      try {
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+          const parsed = JSON.parse(text.slice(start, end + 1));
+          if (parsed && Array.isArray(parsed.recommendations)) {
+            return parsed.recommendations
+              .filter((r: any) => r && (r.resourceName || r.title))
+              .map((r: any) => ({ ...r, category }));
+          }
+        }
+      } catch {
+        /* fall through to retry */
+      }
+      console.log('Category picks parse failed; retrying...', category, attempt);
+    }
+    return null;
+  } catch (error) {
+    console.log('Error generating category picks:', error);
     return null;
   }
 };
