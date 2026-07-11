@@ -16,6 +16,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
@@ -401,77 +403,95 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     };
   };
 
+  // Landing: opens straight on Casy's personalized health recommendations,
+  // with Need Help Now + My To-Dos kept prominent and the rest as small links.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      {/* Need Health Help Now Banner */}
-      <TouchableOpacity
-        style={styles.needNowBanner}
+      <Text style={styles.sectionTitle}>
+        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
+      </Text>
+      <Text style={styles.sectionSubtitle}>
+        {isSpanish
+          ? 'Recursos de salud personalizados según tus respuestas'
+          : 'Personalized health resources based on your answers'}
+      </Text>
+
+      <CasyCategoryPicks category="healthcare" isSpanish={isSpanish} />
+
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'healthcare'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'healthcare'),
+        ]}
+      />
+
+      {/* Kept across all tabs: Need Help Now + My To-Dos */}
+      <HomeLinkCard
+        icon="🏥"
+        bg="#FEF2F2"
+        title={isSpanish ? '¿Necesitas Ayuda Ahora?' : 'Need Help Now'}
+        subtitle={isSpanish ? 'Encuentra atención de inmediato' : 'Find care right away'}
         onPress={() => {
           resetTriage();
           setActiveSection('needNow');
         }}
-      >
-        <View style={styles.needNowContent}>
-          <Text style={styles.needNowIcon}>🏥</Text>
-          <View style={styles.needNowText}>
-            <Text style={styles.needNowTitle}>
-              {isSpanish ? '¿Necesitas Ayuda de Salud?' : 'Need Health Help?'}
-            </Text>
-            <Text style={styles.needNowSubtitle}>
-              {isSpanish ? 'Toca aquí para encontrar atención' : 'Tap here to find care'}
-            </Text>
-          </View>
-          <Text style={styles.needNowArrow}>→</Text>
-        </View>
-      </TouchableOpacity>
+      />
+      <HomeLinkCard
+        icon="📋"
+        bg="#FFF7ED"
+        title={isSpanish ? 'Mis Tareas' : 'My To-Dos'}
+        subtitle={isSpanish ? 'Tus tareas de salud' : 'Your health tasks'}
+        onPress={() => setActiveSection('todos')}
+      />
 
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Salud' : 'Health Resources'}
-      </Text>
-      <Text style={styles.sectionSubtitle}>
-        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
-      </Text>
+      {/* Other health resources, kept as compact secondary links */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Más recursos' : 'More resources'}</Text>
+      <HomeLinkCard
+        icon="🚨"
+        variant="secondary"
+        title={isSpanish ? 'Recursos de emergencia' : 'Emergency resources'}
+        onPress={() => setActiveSection('urgent')}
+      />
+      <HomeLinkCard
+        icon="🏥"
+        variant="secondary"
+        title={isSpanish ? 'Buscar clínicas cercanas' : 'Find nearby clinics'}
+        onPress={() => setActiveSection('clinics')}
+      />
 
-      <View style={styles.grid}>
+      {/* Health guides */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Guías de salud' : 'Health guides'}</Text>
+      {HEALTH_FOR_YOU.map((item) => (
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('foryou')}
+          key={item.id}
+          style={styles.resourceCard}
+          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
+          <View style={styles.resourceHeader}>
+            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
+              <Text style={styles.resourceIcon}>{item.icon}</Text>
+            </View>
+            <View style={styles.resourceInfo}>
+              <Text style={styles.resourceTitle}>{isSpanish ? item.titleEs : item.title}</Text>
+              <Text style={styles.resourceDescription}>
+                {isSpanish ? item.descriptionEs : item.description}
+              </Text>
+            </View>
+            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Recursos personalizados' : 'Personalized resources'}
-          </Text>
+          {expandedItem === item.id && (
+            <View style={styles.resourceDetails}>
+              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
+                <View key={index} style={styles.detailRow}>
+                  <Text style={styles.detailBullet}>•</Text>
+                  <Text style={styles.detailText}>{detail}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
-          onPress={() => setActiveSection('urgent')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
-            <Text style={styles.gridIcon}>🚨</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Necesito Ayuda Ahora' : 'Need Help Now'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Recursos de emergencia' : 'Emergency resources'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
-          onPress={() => setActiveSection('todos')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
-            <Text style={styles.gridIcon}>📋</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Tareas de salud' : 'Health tasks'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      ))}
     </View>
   );
 
@@ -1064,6 +1084,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  moreTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.4,
+    marginTop: 14,
+    marginBottom: 10,
   },
   grid: {
     flexDirection: 'row',

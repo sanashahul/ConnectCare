@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
@@ -450,11 +451,30 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
     };
   };
 
+  // Landing: opens straight on Casy's personalized housing recommendations,
+  // with Need Housing Now + My To-Dos kept prominent and the rest as links.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
+      <Text style={styles.sectionTitle}>
+        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
+      </Text>
+      <Text style={styles.sectionSubtitle}>
+        {isSpanish
+          ? 'Recursos de vivienda personalizados según tus respuestas'
+          : 'Personalized housing resources based on your answers'}
+      </Text>
+
       {/* Casy's personalized housing picks, based on this person's answers
-          (youth-specific for minors). Replaces the old static youth list. */}
+          (youth-specific for minors). */}
       <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
+
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),
+        ]}
+      />
 
       {/* Runaway Safeline - kept as a safety-critical resource for minors */}
       {userProfile?.ageGroup === 'under18' && (
@@ -481,88 +501,72 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         </View>
       )}
 
-      {/* Need Housing Now Banner */}
-      <TouchableOpacity
-        style={styles.needNowBanner}
+      {/* Kept across all tabs: Need Help Now + My To-Dos */}
+      <HomeLinkCard
+        icon="🏠"
+        bg="#FEF2F2"
+        title={isSpanish ? '¿Necesitas Vivienda Ahora?' : 'Need Housing Now'}
+        subtitle={isSpanish ? 'Ayuda inmediata' : 'Get immediate help'}
         onPress={() => {
           resetTriage();
           setActiveSection('needNow');
         }}
-      >
-        <View style={styles.needNowContent}>
-          <Text style={styles.needNowIcon}>🏠</Text>
-          <View style={styles.needNowTextContainer}>
-            <Text style={styles.needNowTitle}>
-              {isSpanish ? '¿Necesitas Vivienda Ahora?' : 'Need Housing Now?'}
-            </Text>
-            <Text style={styles.needNowSubtitle}>
-              {isSpanish ? 'Toca aquí para ayuda inmediata' : 'Tap here for immediate help'}
-            </Text>
-          </View>
-          <Text style={styles.needNowArrow}>→</Text>
-        </View>
-      </TouchableOpacity>
+      />
+      <HomeLinkCard
+        icon="📋"
+        bg="#F0FDFA"
+        title={isSpanish ? 'Mis Tareas' : 'My To-Dos'}
+        subtitle={isSpanish ? 'Tus tareas de vivienda' : 'Your housing tasks'}
+        onPress={() => setActiveSection('todos')}
+      />
 
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Vivienda' : 'Housing Resources'}
-      </Text>
-      <Text style={styles.sectionSubtitle}>
-        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
-      </Text>
+      {/* Other housing resources, kept as compact secondary links */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Más recursos' : 'More resources'}</Text>
+      <HomeLinkCard
+        icon="🏠"
+        variant="secondary"
+        title={isSpanish ? 'Tipos de vivienda' : 'Housing options & types'}
+        onPress={() => setActiveSection('options')}
+      />
+      <HomeLinkCard
+        icon="📞"
+        variant="secondary"
+        title={isSpanish ? 'Líneas de ayuda' : 'Helplines'}
+        onPress={() => setActiveSection('help')}
+      />
 
-      <View style={styles.grid}>
+      {/* Housing guides */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Guías de vivienda' : 'Housing guides'}</Text>
+      {HOUSING_FOR_YOU.map((item) => (
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('foryou')}
+          key={item.id}
+          style={styles.resourceCard}
+          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
+          <View style={styles.resourceHeader}>
+            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
+              <Text style={styles.resourceIcon}>{item.icon}</Text>
+            </View>
+            <View style={styles.resourceInfo}>
+              <Text style={styles.resourceTitle}>{isSpanish ? item.titleEs : item.title}</Text>
+              <Text style={styles.resourceDescription}>
+                {isSpanish ? item.descriptionEs : item.description}
+              </Text>
+            </View>
+            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
-          </Text>
+          {expandedItem === item.id && (
+            <View style={styles.resourceDetails}>
+              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
+                <View key={index} style={styles.detailRow}>
+                  <Text style={styles.detailBullet}>•</Text>
+                  <Text style={styles.detailText}>{detail}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
-          onPress={() => setActiveSection('options')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
-            <Text style={styles.gridIcon}>🏠</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Opciones' : 'Options'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Tipos de vivienda' : 'Housing types'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('todos')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>📋</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Tareas de vivienda' : 'Housing tasks'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
-          onPress={() => setActiveSection('help')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
-            <Text style={styles.gridIcon}>📞</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Líneas de Ayuda' : 'Helplines'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Números de emergencia' : 'Emergency numbers'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      ))}
     </View>
   );
 
@@ -1261,6 +1265,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  moreTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.4,
+    marginTop: 14,
+    marginBottom: 10,
   },
   grid: {
     flexDirection: 'row',

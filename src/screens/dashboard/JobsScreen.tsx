@@ -17,6 +17,7 @@ import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
@@ -287,55 +288,80 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
     }
   };
 
+  // Landing: opens straight on Casy's personalized job recommendations,
+  // with My To-Dos kept prominent and the rest as compact secondary links.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
       <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recursos de Empleo' : 'Employment Resources'}
+        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
       </Text>
       <Text style={styles.sectionSubtitle}>
-        {isSpanish ? 'Toca una categoría para explorar' : 'Tap a category to explore'}
+        {isSpanish
+          ? 'Recursos de empleo personalizados según tus respuestas'
+          : 'Personalized job resources based on your answers'}
       </Text>
 
-      <View style={styles.grid}>
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
-          onPress={() => setActiveSection('foryou')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
-            <Text style={styles.gridIcon}>⭐</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Para Ti' : 'For You'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Guías y consejos' : 'Guides & tips'}
-          </Text>
-        </TouchableOpacity>
+      {/* Casy's personalized job picks (youth-aware for minors) */}
+      <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
 
-        <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('todos')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>📋</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Tareas de empleo' : 'Job tasks'}
-          </Text>
-        </TouchableOpacity>
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'employment'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'employment'),
+        ]}
+      />
 
+      {/* Kept across all tabs: My To-Dos */}
+      <HomeLinkCard
+        icon="📋"
+        bg="#F5F3FF"
+        title={isSpanish ? 'Mis Tareas' : 'My To-Dos'}
+        subtitle={isSpanish ? 'Tus tareas de empleo' : 'Your job tasks'}
+        onPress={() => setActiveSection('todos')}
+      />
+
+      {/* Other job resources, kept as compact secondary links */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Más recursos' : 'More resources'}</Text>
+      <HomeLinkCard
+        icon="📞"
+        variant="secondary"
+        title={isSpanish ? 'Líneas de ayuda de empleo' : 'Job helplines'}
+        onPress={() => setActiveSection('help')}
+      />
+
+      {/* Employment guides */}
+      <Text style={styles.moreTitle}>{isSpanish ? 'Guías de empleo' : 'Job guides'}</Text>
+      {JOBS_FOR_YOU.map((item) => (
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
-          onPress={() => setActiveSection('help')}
+          key={item.id}
+          style={styles.resourceCard}
+          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
         >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#FECACA' }]}>
-            <Text style={styles.gridIcon}>📞</Text>
+          <View style={styles.resourceHeader}>
+            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
+              <Text style={styles.resourceIcon}>{item.icon}</Text>
+            </View>
+            <View style={styles.resourceInfo}>
+              <Text style={styles.resourceTitle}>{isSpanish ? item.titleEs : item.title}</Text>
+              <Text style={styles.resourceDescription}>
+                {isSpanish ? item.descriptionEs : item.description}
+              </Text>
+            </View>
+            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Obtener Ayuda' : 'Get Help'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Líneas de ayuda' : 'Helplines'}
-          </Text>
+          {expandedItem === item.id && (
+            <View style={styles.resourceDetails}>
+              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
+                <View key={index} style={styles.detailRow}>
+                  <Text style={styles.detailBullet}>•</Text>
+                  <Text style={styles.detailText}>{detail}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </TouchableOpacity>
-      </View>
+      ))}
     </View>
   );
 
@@ -749,14 +775,6 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Casy's personalized job picks, based on this person's answers
-            (youth-specific for minors). Replaces the old static youth list. */}
-        {activeSection === null && (
-          <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
-            <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
-          </View>
-        )}
-
         {activeSection === null && renderMainGrid()}
         {activeSection === 'foryou' && renderForYou()}
         {activeSection === 'todos' && (
@@ -824,6 +842,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginBottom: 24,
+  },
+  moreTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.4,
+    marginTop: 14,
+    marginBottom: 10,
   },
   grid: {
     flexDirection: 'row',
