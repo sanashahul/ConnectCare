@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, ProgressBar, AIAssistant, CasyAvatar } from '../../components';
+import { Button, ProgressBar, CasyAvatar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { getQuestionsByCategory } from '../../data/questions';
 import { Question, ServiceCategory, QuestionAnswer } from '../../types';
@@ -388,7 +388,6 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
           style={styles.nextButton}
         />
       </View>
-      <AIAssistant />
     </SafeAreaView>
   );
 };

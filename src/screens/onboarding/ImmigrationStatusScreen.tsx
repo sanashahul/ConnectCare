@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, SelectableCard, ProgressBar, AIAssistant } from '../../components';
+import { Button, SelectableCard, ProgressBar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { ImmigrationStatus } from '../../types';
 
@@ -103,7 +103,6 @@ export const ImmigrationStatusScreen: React.FC<ImmigrationStatusScreenProps> = (
           style={styles.nextButton}
         />
       </View>
-      <AIAssistant />
     </SafeAreaView>
   );
 };

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, ProgressBar, AIAssistant } from '../../components';
+import { Button, ProgressBar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { AgeGroup } from '../../types';
 
@@ -187,7 +187,6 @@ export const AgeInputScreen: React.FC<AgeInputScreenProps> = ({ navigation }) =>
           style={styles.nextButton}
         />
       </View>
-      <AIAssistant />
     </SafeAreaView>
   );
 };

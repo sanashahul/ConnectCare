@@ -411,10 +411,15 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
               <View style={styles.introRow}>
                 <CasyAvatar size={34} />
                 <View style={styles.introBubble}>
+                  <Text style={styles.introWelcome}>
+                    {isSpanish
+                      ? `¡Bienvenido/a a tu plan, ${profile?.name || ''}! 🎉`
+                      : `Welcome to your plan, ${profile?.name || 'friend'}! 🎉`}
+                  </Text>
                   <Text style={styles.introText}>
                     {isSpanish
-                      ? `¡Hola, ${profile?.name || ''}! Gracias por dar el paso de buscar ayuda. Me llamo Casy y seré tu gestor de caso. Según lo que me contaste, esto es lo que preparé para ti:`
-                      : `Welcome, ${profile?.name || 'friend'}! Thank you for reaching out, that takes courage. My name is Casy, and I'll be your case manager. Based on what you mentioned, here's what I put together for you:`}
+                      ? `Soy Casy, tu gestor de caso. Según lo que me contaste, preparé esto especialmente para ti:`
+                      : `I'm Casy, your case manager. Based on what you shared, I put this together just for you:`}
                   </Text>
                   <Text style={[styles.introText, { marginTop: 10 }]}>{plan.summary}</Text>
                   <Text style={styles.introTeaser}>
@@ -580,6 +585,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 6,
     padding: 14,
   },
+  introWelcome: { fontSize: 20, fontWeight: '800', color: '#0F172A', marginBottom: 8, letterSpacing: -0.3 },
   introText: { fontSize: 15.5, color: '#0F172A', lineHeight: 23 },
   introTeaser: { fontSize: 14, color: '#0D9488', fontWeight: '700', marginTop: 8 },
 

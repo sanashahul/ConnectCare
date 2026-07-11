@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, ProgressBar, AIAssistant } from '../../components';
+import { Button, ProgressBar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { ServiceCategory } from '../../types';
 
@@ -141,7 +141,6 @@ export const CategorySelectionScreen: React.FC<CategorySelectionScreenProps> = (
           style={styles.nextButton}
         />
       </View>
-      <AIAssistant />
     </SafeAreaView>
   );
 };

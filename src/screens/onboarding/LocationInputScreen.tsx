@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, Input, ProgressBar, AIAssistant } from '../../components';
+import { Button, Input, ProgressBar } from '../../components';
 import { useApp } from '../../context/AppContext';
 import { getCurrentLocation, getLocationFromZip } from '../../utils/location';
 import { Location } from '../../types';
@@ -191,7 +191,6 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
           />
         </View>
       </KeyboardAvoidingView>
-      <AIAssistant />
     </SafeAreaView>
   );
 };
