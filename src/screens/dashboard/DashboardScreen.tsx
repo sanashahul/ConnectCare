@@ -15,12 +15,13 @@ import {
   Animated,
   Easing,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
-import { sendMessageToAI, buildAnswersSummary, AIMessage } from '../../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage } from '../../services/aiService';
 import { PlanRecommendation } from '../../types';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
@@ -1126,6 +1127,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [selectedTodo, setSelectedTodo] = useState<any>(null);
   const [editingTodoDescription, setEditingTodoDescription] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
   const [todoTab, setTodoTab] = useState<'active' | 'done'>('active');
   const [todoCategoryFilter, setTodoCategoryFilter] = useState<string | null>(null);
   const [youthTab, setYouthTab] = useState<'hotlines' | 'laws' | 'abuse'>('hotlines');
@@ -1160,6 +1162,32 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       location: hasCoords ? loc : undefined,
       answersSummary: buildAnswersSummary(userProfile?.answers, isSpanish ? 'es' : 'en'),
     };
+  };
+
+  // Build (or rebuild) the personalized plan on demand.
+  const handleBuildPlan = async () => {
+    if (generatingPlan) return;
+    setGeneratingPlan(true);
+    try {
+      const plan = await generatePersonalizedPlan(buildAIContext());
+      if (plan) {
+        dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
+      } else {
+        Alert.alert(
+          isSpanish ? 'Ups' : 'Hmm',
+          isSpanish
+            ? 'No pude crear tu plan ahora. Revisa tu conexión e intenta de nuevo.'
+            : "I couldn't build your plan right now. Check your connection and try again."
+        );
+      }
+    } catch {
+      Alert.alert(
+        isSpanish ? 'Ups' : 'Hmm',
+        isSpanish ? 'Algo salió mal. Intenta de nuevo.' : 'Something went wrong. Please try again.'
+      );
+    } finally {
+      setGeneratingPlan(false);
+    }
   };
 
   const handleAITopic = async (topicId: string) => {
@@ -1489,7 +1517,48 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
   const renderPlan = () => {
     const plan = userProfile?.recommendations;
-    if (!plan || !plan.recommendations?.length) return null;
+
+    // No plan yet (old profile, or generation didn't run) — offer to build it.
+    if (!plan || !plan.recommendations?.length) {
+      if (!userProfile?.shareCode) return null;
+      return (
+        <TouchableOpacity
+          style={styles.planCard}
+          activeOpacity={0.9}
+          onPress={handleBuildPlan}
+          disabled={generatingPlan}
+        >
+          <View style={styles.planCardHeader}>
+            <CasyAvatar size={44} />
+            <View style={{ marginLeft: 12, flex: 1 }}>
+              <Text style={styles.planCardTitle}>
+                {isSpanish ? 'Tu plan con Casy' : 'Your plan with Casy'}
+              </Text>
+              <Text style={styles.planCardSub}>
+                {isSpanish ? 'Listo para crear tu plan' : 'Ready to build your plan'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.planCardSummary}>
+            {isSpanish
+              ? 'Puedo crear un plan personalizado con recursos reales según tu situación.'
+              : 'I can build you a personalized plan with real resources based on your situation.'}
+          </Text>
+          <View style={styles.planCardCta}>
+            {generatingPlan ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Text style={styles.planCardCtaText}>
+                  {isSpanish ? 'Crear mi plan personalizado' : 'Build my personalized plan'}
+                </Text>
+                <Text style={styles.planCardCtaArrow}>→</Text>
+              </>
+            )}
+          </View>
+        </TouchableOpacity>
+      );
+    }
 
     const count = plan.recommendations.length;
     const progress = userProfile?.planProgress || [];
