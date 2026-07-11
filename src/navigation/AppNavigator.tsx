@@ -14,6 +14,7 @@ import {
   HealthScreen,
   JobsScreen,
   HousingScreen,
+  SavedFromCasyScreen,
   PinSetupScreen,
 } from '../screens';
 import { PlanScreen } from '../screens/plan/PlanScreen';
@@ -36,6 +37,7 @@ export type RootStackParamList = {
   Health: undefined;
   Jobs: undefined;
   Housing: undefined;
+  SavedFromCasy: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -114,6 +116,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Health" component={HealthScreen} />
         <Stack.Screen name="Jobs" component={JobsScreen} />
         <Stack.Screen name="Housing" component={HousingScreen} />
+        <Stack.Screen name="SavedFromCasy" component={SavedFromCasyScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

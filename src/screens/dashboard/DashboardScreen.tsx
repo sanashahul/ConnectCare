@@ -2258,6 +2258,28 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {/* Personalized plan from Casy */}
         {renderPlan()}
 
+        {/* Saved from Casy - one home for all of Casy's recommendations + saved */}
+        <TouchableOpacity
+          style={styles.savedCasyCard}
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('SavedFromCasy')}
+        >
+          <View style={styles.savedCasyIconWrap}>
+            <Text style={styles.savedCasyIcon}>⭐</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.savedCasyTitle}>
+              {isSpanish ? 'Guardado de Casy' : 'Saved from Casy'}
+            </Text>
+            <Text style={styles.savedCasySub}>
+              {isSpanish
+                ? 'Tus recomendaciones y recursos guardados'
+                : 'Your recommendations & saved resources'}
+            </Text>
+          </View>
+          <Text style={styles.savedCasyArrow}>→</Text>
+        </TouchableOpacity>
+
 
         {/* Category Grid */}
         <Text style={styles.sectionHeader}>
@@ -2600,6 +2622,30 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 5,
   },
+  savedCasyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 24,
+    backgroundColor: '#F0FDFA',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  savedCasyIconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#CCFBF1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  savedCasyIcon: { fontSize: 22 },
+  savedCasyTitle: { fontSize: 16.5, fontWeight: '800', color: '#0F172A' },
+  savedCasySub: { fontSize: 13, color: '#64748B', marginTop: 2 },
+  savedCasyArrow: { fontSize: 20, color: '#0D9488', fontWeight: '700', marginLeft: 8 },
   planCardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   planCardTitle: { fontSize: 19, fontWeight: '800', color: '#0F172A', letterSpacing: -0.3 },
   planCardSub: { fontSize: 12.5, color: '#0D9488', fontWeight: '700', marginTop: 3, letterSpacing: 0.2 },

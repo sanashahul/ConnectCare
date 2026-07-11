@@ -455,26 +455,10 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   // with Need Housing Now + My To-Dos kept prominent and the rest as links.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
-      </Text>
+      <Text style={styles.sectionTitle}>{isSpanish ? 'Vivienda' : 'Housing'}</Text>
       <Text style={styles.sectionSubtitle}>
-        {isSpanish
-          ? 'Recursos de vivienda personalizados según tus respuestas'
-          : 'Personalized housing resources based on your answers'}
+        {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
-
-      {/* Casy's personalized housing picks, based on this person's answers
-          (youth-specific for minors). */}
-      <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
-
-      <CasyResources
-        isSpanish={isSpanish}
-        resources={[
-          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
-          ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),
-        ]}
-      />
 
       {/* Runaway Safeline - kept as a safety-critical resource for minors */}
       {userProfile?.ageGroup === 'under18' && (

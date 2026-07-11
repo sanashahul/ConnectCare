@@ -403,28 +403,14 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     };
   };
 
-  // Landing: opens straight on Casy's personalized health recommendations,
-  // with Need Help Now + My To-Dos kept prominent and the rest as small links.
+  // Landing: Need Help Now + My To-Dos, then browse links and guides. Casy's
+  // personalized recommendations now live in the "Saved from Casy" tab.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
-      </Text>
+      <Text style={styles.sectionTitle}>{isSpanish ? 'Salud' : 'Health'}</Text>
       <Text style={styles.sectionSubtitle}>
-        {isSpanish
-          ? 'Recursos de salud personalizados según tus respuestas'
-          : 'Personalized health resources based on your answers'}
+        {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
-
-      <CasyCategoryPicks category="healthcare" isSpanish={isSpanish} />
-
-      <CasyResources
-        isSpanish={isSpanish}
-        resources={[
-          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'healthcare'),
-          ...(userProfile?.savedResources || []).filter((r) => r.category === 'healthcare'),
-        ]}
-      />
 
       {/* Kept across all tabs: Need Help Now + My To-Dos */}
       <HomeLinkCard

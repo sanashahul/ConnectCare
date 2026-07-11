@@ -288,29 +288,14 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
     }
   };
 
-  // Landing: opens straight on Casy's personalized job recommendations,
-  // with My To-Dos kept prominent and the rest as compact secondary links.
+  // Landing: My To-Dos + browse links and guides. Casy's personalized
+  // recommendations now live in the "Saved from Casy" tab.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
-      <Text style={styles.sectionTitle}>
-        {isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
-      </Text>
+      <Text style={styles.sectionTitle}>{isSpanish ? 'Empleo' : 'Jobs'}</Text>
       <Text style={styles.sectionSubtitle}>
-        {isSpanish
-          ? 'Recursos de empleo personalizados según tus respuestas'
-          : 'Personalized job resources based on your answers'}
+        {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
-
-      {/* Casy's personalized job picks (youth-aware for minors) */}
-      <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
-
-      <CasyResources
-        isSpanish={isSpanish}
-        resources={[
-          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'employment'),
-          ...(userProfile?.savedResources || []).filter((r) => r.category === 'employment'),
-        ]}
-      />
 
       {/* Kept across all tabs: My To-Dos */}
       <HomeLinkCard
