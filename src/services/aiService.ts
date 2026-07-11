@@ -144,7 +144,7 @@ export interface SaveResourceInput {
 const SAVE_RESOURCE_TOOL = {
   name: 'save_resource',
   description:
-    "Save a helpful ORGANIZATION or place to the person's 'For You' resources so they can find it later in the app (under Health, Housing, or Jobs). Use this whenever you recommend a specific real place (a shelter, clinic, food bank, job program) - save it with its phone, website, and address. After saving, warmly tell them WHICH tab you saved it to by name: category 'housing' -> the Housing tab, 'healthcare' -> the Health tab, 'employment' -> the Jobs tab (e.g. \"I'll keep this in your Health tab so it's easy to find\").",
+    "Save a helpful ORGANIZATION or place to the person's 'Saved from Casy' screen (opened from a card on their Dashboard) so they can find it later, organized into sections. Use this whenever you recommend a specific real place (a shelter, clinic, food bank, job program) - save it with its phone, website, and address. After saving, warmly tell them it's in their Saved from Casy and name the section: category 'housing' -> Housing, 'healthcare' -> Health, 'employment' -> Jobs, else -> Other (e.g. \"I've kept this in your Saved from Casy, under Health, so it's easy to find\").",
   input_schema: {
     type: 'object',
     properties: {
@@ -383,7 +383,7 @@ CÓMO AYUDAS:
 - Menciona 211 / 988 / 911 solo cuando sean de verdad el mejor recurso para esa necesidad (como una crisis real), NO como sustituto de dar el número de una organización específica.
 - Adapta todo a la situación específica de ESTA persona y sus respuestas (refugio para familias si tiene hijos, programas para veteranos si es veterano, clínica gratuita si no tiene seguro, etc.).
 - IMPORTANTE: CADA vez que recomiendes un lugar real específico, DEBES llamar a save_resource con su teléfono, sitio web, dirección y la categoría CORRECTA para que aparezca en la pestaña correcta: usa "housing" para refugios/vivienda, "healthcare" para clínicas/salud/salud mental, "employment" para trabajo/capacitación. Esto lo pone en sus recursos "Para Ti". Hazlo con cada lugar que nombres (llama a save_resource varias veces si nombras varios).
-- DILE SIEMPRE, con naturalidad, DÓNDE lo estás guardando, nombrando la pestaña exacta: vivienda → "lo guardo en tu pestaña de Vivienda", salud → "lo guardo en tu pestaña de Salud", empleo → "lo guardo en tu pestaña de Empleo". Por ejemplo: "Voy a guardar la Clínica X en tu pestaña de Salud para que la encuentres fácil." Así queda claro dónde volver a buscarlo.
+- DILE SIEMPRE, con naturalidad, DÓNDE queda: todo lo que guardas va a su pantalla "Guardado de Casy" (que se abre desde una tarjeta en su Panel), organizado en secciones. Nombra la sección: vivienda → Vivienda, salud → Salud, empleo → Empleo, cualquier otra cosa (documentos, beneficios, educación) → Otros. Por ejemplo: "Guardé la Clínica X en tu Guardado de Casy, en la sección de Salud, para que la encuentres fácil." Así queda claro dónde volver a buscarlo.
 - Aparte, para ACCIONES concretas que la persona decida hacer (como "llamar a X para reservar una cama"), usa add_task. save_resource = lugares que guardar; add_task = cosas que hacer. Puedes usar ambos.
 - Prioriza recursos gratuitos y de bajo costo.
 - Ante peligro o crisis, comparte primero la línea correcta, con calma.${toolGuidance}
@@ -412,7 +412,7 @@ HOW YOU HELP:
 - Only mention 211 / 988 / 911 when they are genuinely the best resource for that need (like a real crisis), NOT as a substitute for giving a specific organization's number.
 - Tailor everything to THIS person's specific situation and answers - match resources to their exact needs (family shelter if they have kids, veteran programs if a veteran, free clinic if uninsured, etc.).
 - IMPORTANT: EVERY time you recommend a specific real place, you MUST call save_resource for it, with its phone, website, address, and the CORRECT category so it lands in the right tab: use "housing" for shelters/housing, "healthcare" for clinics/health/mental health, "employment" for jobs/training. This puts it in their "For You" section so they can find it later. Do this for each place you name (call save_resource multiple times if you name several).
-- ALWAYS tell them, naturally, WHERE you're saving it by naming the exact tab: housing → "I'll save this in your Housing tab", healthcare → "I'll save this in your Health tab", employment → "I'll save this in your Jobs tab". For example: "I'll save Clinic X in your Health tab so it's easy to find later." That way it's always clear where to go back and find it.
+- ALWAYS tell them, naturally, WHERE it goes: everything you save lands in their "Saved from Casy" screen (opened from a card on their Dashboard), organized into sections. Name the section: housing → Housing, healthcare → Health, employment → Jobs, anything else (documents, benefits, education) → Other. For example: "I've saved Clinic X to your Saved from Casy, under Health, so it's easy to find later." That way it's always clear where to go back and find it.
 - Separately, for concrete ACTIONS the person commits to (like "call X to reserve a bed"), use the add_task tool to add it to their to-do list. save_resource = places to keep; add_task = things to do. You can use both.
 - Prefer free and low-cost resources.
 - If the person may be in danger or crisis, lead with the right hotline immediately and gently.${toolGuidance}
@@ -478,7 +478,7 @@ export const sendMessageToAI = async (
           } else if (use.name === 'save_resource' && onSaveResource) {
             try {
               onSaveResource(use.input as SaveResourceInput);
-              result = `Saved "${(use.input as SaveResourceInput)?.resourceName || 'the resource'}" to their For You resources.`;
+              result = `Saved "${(use.input as SaveResourceInput)?.resourceName || 'the resource'}" to their Saved from Casy screen. Tell them warmly and name the section it's under.`;
             } catch {
               result = 'Could not save the resource.';
             }

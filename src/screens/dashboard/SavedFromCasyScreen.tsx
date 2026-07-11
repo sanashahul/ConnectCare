@@ -41,10 +41,26 @@ export const SavedFromCasyScreen: React.FC<Props> = ({ navigation }) => {
   const isSpanish = i18n.language === 'es';
   const profile = state.userProfile;
 
-  // Show a section for each category the person is working on; fall back to all
-  // three if none were selected.
+  // Categories the person is working on get AI-generated picks; fall back to
+  // all three if none were selected.
   const selected = (profile?.selectedCategories || []).filter((c) => ORDER.includes(c));
-  const cats = selected.length ? ORDER.filter((c) => selected.includes(c)) : ORDER;
+  const pickCats = selected.length ? ORDER.filter((c) => selected.includes(c)) : ORDER;
+
+  // All of Casy's resources (plan + chat-saved) so nothing gets orphaned.
+  const allResources = [
+    ...(profile?.recommendations?.recommendations || []),
+    ...(profile?.savedResources || []),
+  ];
+  const resourcesFor = (cat: ServiceCategory) => allResources.filter((r) => r.category === cat);
+
+  // Show a main section when it has picks to generate OR any saved resources.
+  const mainCats = ORDER.filter((c) => pickCats.includes(c) || resourcesFor(c).length > 0);
+
+  // Everything that isn't housing/health/jobs (documents, benefits, education,
+  // other, ...) collects in one "Other" section.
+  const otherResources = allResources.filter(
+    (r) => !ORDER.includes(r.category as ServiceCategory)
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,12 +87,8 @@ export const SavedFromCasyScreen: React.FC<Props> = ({ navigation }) => {
             : "Everything Casy has recommended and saved for you, all in one place."}
         </Text>
 
-        {cats.map((cat) => {
+        {mainCats.map((cat) => {
           const meta = CATEGORY_META[cat];
-          const saved = [
-            ...(profile?.recommendations?.recommendations || []).filter((r) => r.category === cat),
-            ...(profile?.savedResources || []).filter((r) => r.category === cat),
-          ];
           return (
             <View key={cat} style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -85,13 +97,31 @@ export const SavedFromCasyScreen: React.FC<Props> = ({ navigation }) => {
               </View>
 
               {/* Casy's per-category picks (generated from their answers) */}
-              <CasyCategoryPicks category={cat} isSpanish={isSpanish} />
+              {pickCats.includes(cat) && (
+                <CasyCategoryPicks category={cat} isSpanish={isSpanish} />
+              )}
 
               {/* Plan + chat-saved resources for this category */}
-              <CasyResources resources={saved} isSpanish={isSpanish} />
+              <CasyResources resources={resourcesFor(cat)} isSpanish={isSpanish} />
             </View>
           );
         })}
+
+        {/* Other: anything not housing/health/jobs */}
+        {otherResources.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionIcon}>📌</Text>
+              <Text style={styles.sectionTitle}>{isSpanish ? 'Otros' : 'Other'}</Text>
+            </View>
+            <Text style={styles.sectionHint}>
+              {isSpanish
+                ? 'Documentos, beneficios y otros recursos que Casy guardó.'
+                : 'Documents, benefits, and other resources Casy saved.'}
+            </Text>
+            <CasyResources resources={otherResources} isSpanish={isSpanish} />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,4 +149,5 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   sectionIcon: { fontSize: 22 },
   sectionTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A' },
+  sectionHint: { fontSize: 13, color: '#64748B', lineHeight: 19, marginBottom: 12, marginTop: -4 },
 });
