@@ -137,16 +137,14 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
 
       if (plan) {
         dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
-        // Show the plan first, with the dashboard underneath it.
-        setGenerating(false);
-        navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
-        return;
       }
     } catch (e) {
-      console.warn('Plan generation failed; continuing to dashboard.', e);
+      console.warn('Plan generation hiccup; the Plan screen will build/retry.', e);
     }
+    // Always go to the Plan screen. If the plan is ready it shows immediately;
+    // if not, the Plan screen builds it automatically (with its own loading).
     setGenerating(false);
-    goToDashboard();
+    navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
   };
 
   const handleNext = () => {

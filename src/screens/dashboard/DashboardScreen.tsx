@@ -1602,19 +1602,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           <TouchableOpacity
             style={styles.planCardCta}
             activeOpacity={0.9}
-            onPress={handleBuildPlan}
-            disabled={generatingPlan}
+            onPress={() => navigation.navigate('Plan')}
           >
-            {generatingPlan ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <>
-                <Text style={styles.planCardCtaText}>
-                  {isSpanish ? 'Crear mi plan' : 'Build my plan'}
-                </Text>
-                <Text style={styles.planCardCtaArrow}>→</Text>
-              </>
-            )}
+            <Text style={styles.planCardCtaText}>
+              {isSpanish ? 'Crear mi plan' : 'Build my plan'}
+            </Text>
+            <Text style={styles.planCardCtaArrow}>→</Text>
           </TouchableOpacity>
           {!answeredAll && (
             <TouchableOpacity

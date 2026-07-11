@@ -28,6 +28,7 @@ import { CasyAvatar } from '../../components';
 import {
   sendMessageToAI,
   buildAnswersSummary,
+  generatePersonalizedPlan,
   AIMessage,
   UserContext,
 } from '../../services/aiService';
@@ -93,11 +94,36 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
   const [chat, setChat] = useState<AIMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [building, setBuilding] = useState(false);
+  const builtRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
   }, [revealed, chat, loading]);
+
+  // If we land here without a plan (e.g. straight from the questionnaire),
+  // build it automatically with a loading state - no button needed.
+  const buildPlanNow = async () => {
+    if (building) return;
+    setBuilding(true);
+    try {
+      const p = await generatePersonalizedPlan(buildContext());
+      if (p) dispatch({ type: 'SET_RECOMMENDATIONS', payload: p });
+    } catch (e) {
+      console.log('Auto plan build failed:', e);
+    } finally {
+      setBuilding(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!plan && profile?.shareCode && !builtRef.current) {
+      builtRef.current = true;
+      buildPlanNow();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Casy's context, including the plan itself so the conversation is plan-aware.
   const buildContext = (): UserContext => {
@@ -361,6 +387,27 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     });
   };
 
+  // Building the plan: full-screen warm loading.
+  if (building) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.buildingWrap}>
+          <CasyAvatar size={72} />
+          <ActivityIndicator size="large" color="#0D9488" style={{ marginTop: 24 }} />
+          <Text style={styles.buildingTitle}>
+            {isSpanish ? 'Casy está preparando tu plan' : 'Casy is building your plan'}
+          </Text>
+          <Text style={styles.buildingSub}>
+            {isSpanish
+              ? 'Estoy revisando tus respuestas y buscando recursos reales para ti.'
+              : "I'm reviewing your answers and finding real resources for you."}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -397,13 +444,18 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
             <View style={styles.emptyWrap}>
               <CasyAvatar size={64} />
               <Text style={styles.emptyTitle}>
-                {isSpanish ? 'Aún no tienes un plan' : 'No plan yet'}
+                {isSpanish ? 'No pude crear tu plan' : "Couldn't build your plan"}
               </Text>
               <Text style={styles.emptySub}>
                 {isSpanish
-                  ? 'Pregúntame lo que necesites abajo y te ayudo ahora mismo.'
-                  : 'Ask me anything below and I will help you right now.'}
+                  ? 'Revisa tu conexión e inténtalo de nuevo, o pregúntame lo que necesites abajo.'
+                  : 'Check your connection and try again, or ask me anything below.'}
               </Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={buildPlanNow}>
+                <Text style={styles.retryText}>
+                  {isSpanish ? 'Intentar de nuevo' : 'Try again'}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <>
@@ -754,6 +806,17 @@ const styles = StyleSheet.create({
   userText: { fontSize: 15.5, color: '#FFFFFF', lineHeight: 22 },
   loadingBubble: { paddingVertical: 16 },
 
+  buildingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  buildingTitle: { fontSize: 22, fontWeight: '800', color: '#0F172A', marginTop: 24, textAlign: 'center' },
+  buildingSub: { fontSize: 15, color: '#64748B', marginTop: 10, textAlign: 'center', lineHeight: 22 },
+  retryBtn: {
+    marginTop: 18,
+    backgroundColor: '#0D9488',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+  },
+  retryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   emptyWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingHorizontal: 30 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A', marginTop: 18 },
   emptySub: { fontSize: 14.5, color: '#64748B', textAlign: 'center', marginTop: 8, lineHeight: 21 },
