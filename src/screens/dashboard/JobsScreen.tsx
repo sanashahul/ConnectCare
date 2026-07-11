@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
+import { CasyResources } from '../../components/CasyResources';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
@@ -362,6 +363,14 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       <Text style={styles.detailSubtitle}>
         {isSpanish ? 'Guías y recursos de empleo' : 'Employment guides & resources'}
       </Text>
+
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'employment'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'employment'),
+        ]}
+      />
 
       {JOBS_FOR_YOU.map((item) => (
         <TouchableOpacity

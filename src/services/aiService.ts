@@ -115,7 +115,7 @@ export interface AddTaskInput {
 const ADD_TASK_TOOL = {
   name: 'add_task',
   description:
-    "Add a task to the person's to-do list in the app. Use this whenever they agree to add a step, or when a clear next action would genuinely help them (e.g. 'Call Compass Family Services'). Include the org's phone and website if relevant. After adding, tell them warmly that you've added it to their list.",
+    "Add an ACTION to the person's to-do list (something they need to DO, like 'Call Compass Family Services to reserve a bed'). Use for concrete next steps they commit to. Include the org's phone and website if relevant. After adding, warmly tell them you've added it to their to-do list.",
   input_schema: {
     type: 'object',
     properties: {
@@ -129,6 +129,37 @@ const ADD_TASK_TOOL = {
       },
     },
     required: ['title'],
+  },
+};
+
+export interface SaveResourceInput {
+  resourceName: string;
+  why?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  category?: string;
+}
+
+const SAVE_RESOURCE_TOOL = {
+  name: 'save_resource',
+  description:
+    "Save a helpful ORGANIZATION or place to the person's 'For You' resources so they can find it later in the app (under Health, Housing, or Jobs). Use this whenever you recommend a specific real place (a shelter, clinic, food bank, job program) - save it with its phone, website, and address. After saving, warmly tell them you've saved it to their For You resources.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      resourceName: { type: 'string', description: 'The organization/place name' },
+      why: { type: 'string', description: 'One short line on why it fits them' },
+      address: { type: 'string', description: 'Street address or neighborhood, if known' },
+      phone: { type: 'string', description: 'Phone number, if known' },
+      website: { type: 'string', description: 'Website, if known' },
+      category: {
+        type: 'string',
+        enum: ['housing', 'healthcare', 'employment', 'documents', 'benefits', 'education', 'other'],
+        description: 'Which section it belongs in',
+      },
+    },
+    required: ['resourceName', 'category'],
   },
 };
 
@@ -297,7 +328,8 @@ CÓMO AYUDAS:
 - SIEMPRE incluye los datos de contacto de cada lugar que menciones: un número de teléfono Y un sitio web cuando los conozcas. Da tu mejor información específica de tu conocimiento y herramientas; no la retengas ni recurras al "llama al 211". Como los datos pueden cambiar, agrega una nota breve como "(por favor confirma llamando)" una vez.
 - Menciona 211 / 988 / 911 solo cuando sean de verdad el mejor recurso para esa necesidad (como una crisis real), NO como sustituto de dar el número de una organización específica.
 - Adapta todo a la situación específica de ESTA persona y sus respuestas (refugio para familias si tiene hijos, programas para veteranos si es veterano, clínica gratuita si no tiene seguro, etc.).
-- Sé proactivo: sugiere UN próximo paso. Puedes agregar tareas a su lista TÚ MISMO con la herramienta add_task. Cuando digan que sí (o cuando un paso claro obviamente ayude), llama a add_task con un título específico más el teléfono/sitio web y la categoría del lugar, y luego dile con calidez que lo agregaste a su lista.
+- GUARDA los buenos lugares que recomiendes en sus recursos "Para Ti" con la herramienta save_resource (incluye teléfono, sitio web, dirección y categoría) para que los encuentre después. Cuando nombres un refugio, clínica, banco de comida o programa de empleo específico, guárdalo. Dile con calidez que lo guardaste en sus recursos Para Ti.
+- Para ACCIONES concretas que la persona decida hacer (como "llamar a X para reservar una cama"), usa add_task para agregarlo a su lista de tareas. Usa save_resource para lugares que guardar; usa add_task para cosas que hacer.
 - Prioriza recursos gratuitos y de bajo costo.
 - Ante peligro o crisis, comparte primero la línea correcta, con calma.${toolGuidance}
 
@@ -324,7 +356,8 @@ HOW YOU HELP:
 - ALWAYS include contact details for each place you name: a phone number AND a website when you know them. Give your best specific info from your knowledge and tools - do not withhold it or default to "call 211". Because details can change, add a brief note like "(please call to confirm)" once, so they know to verify.
 - Only mention 211 / 988 / 911 when they are genuinely the best resource for that need (like a real crisis), NOT as a substitute for giving a specific organization's number.
 - Tailor everything to THIS person's specific situation and answers - match resources to their exact needs (family shelter if they have kids, veteran programs if a veteran, free clinic if uninsured, etc.).
-- Be proactive: suggest ONE next step. You can add tasks to their to-do list YOURSELF with the add_task tool. When they say yes (or when a clear next step would obviously help), actually call add_task with a specific title plus the org's phone/website and category, then warmly tell them you've added it to their list.
+- SAVE the good places you recommend to their "For You" resources with the save_resource tool (include phone, website, address, category) so they can find them later. When you name a specific shelter, clinic, food bank, or job program, save it. Tell them warmly you've saved it to their For You resources.
+- For concrete ACTIONS the person commits to (like "call X to reserve a bed"), use the add_task tool to add it to their to-do list. Use save_resource for places to keep; use add_task for things to do.
 - Prefer free and low-cost resources.
 - If the person may be in danger or crisis, lead with the right hotline immediately and gently.${toolGuidance}
 
@@ -341,7 +374,8 @@ export const sendMessageToAI = async (
   userMessage: string,
   conversationHistory: AIMessage[],
   userContext: UserContext,
-  onAddTask?: (task: AddTaskInput) => void
+  onAddTask?: (task: AddTaskInput) => void,
+  onSaveResource?: (resource: SaveResourceInput) => void
 ): Promise<string> => {
   const apiKey = getApiKey();
 
@@ -364,6 +398,7 @@ export const sendMessageToAI = async (
     // resources (when we have coordinates).
     const tools = [
       ...(onAddTask ? [ADD_TASK_TOOL] : []),
+      ...(onSaveResource ? [SAVE_RESOURCE_TOOL] : []),
       ...(userContext.location ? SEARCH_TOOLS : []),
     ];
     const toolsParam = tools.length ? tools : undefined;
@@ -383,6 +418,13 @@ export const sendMessageToAI = async (
               result = `Added "${(use.input as AddTaskInput)?.title || 'the task'}" to their to-do list.`;
             } catch {
               result = 'Could not add the task.';
+            }
+          } else if (use.name === 'save_resource' && onSaveResource) {
+            try {
+              onSaveResource(use.input as SaveResourceInput);
+              result = `Saved "${(use.input as SaveResourceInput)?.resourceName || 'the resource'}" to their For You resources.`;
+            } catch {
+              result = 'Could not save the resource.';
             }
           } else if (use.name.startsWith('search_') && userContext.location) {
             result = await runSearchTool(use.name, userContext.location);

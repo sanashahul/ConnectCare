@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
+import { CasyResources } from '../../components/CasyResources';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
 
@@ -499,40 +500,14 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {isSpanish ? 'Recursos de salud personalizados' : 'Personalized health resources'}
       </Text>
 
-      {/* Casy's personalized healthcare plan items */}
-      {(() => {
-        const planRecs = (userProfile?.recommendations?.recommendations || []).filter(
-          (r) => r.category === 'healthcare'
-        );
-        if (!planRecs.length) return null;
-        return (
-          <View style={styles.planForYou}>
-            <Text style={styles.planForYouLabel}>
-              {isSpanish ? 'DE TU PLAN CON CASY' : 'FROM YOUR PLAN WITH CASY'}
-            </Text>
-            {planRecs.map((rec, i) => (
-              <View key={`plan-${i}`} style={styles.planForYouCard}>
-                <Text style={styles.planForYouTitle}>{rec.title}</Text>
-                {!!rec.why && <Text style={styles.planForYouWhy}>{rec.why}</Text>}
-                {(!!rec.resourceName || !!rec.phone) && (
-                  <View style={styles.planForYouResource}>
-                    {!!rec.resourceName && (
-                      <Text style={styles.planForYouOrg}>{rec.resourceName}</Text>
-                    )}
-                    {!!rec.phone && (
-                      <TouchableOpacity
-                        onPress={() => Linking.openURL(`tel:${rec.phone!.replace(/[^0-9]/g, '')}`)}
-                      >
-                        <Text style={styles.planForYouPhone}>📞 {rec.phone}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        );
-      })()}
+      {/* Resources Casy planned or saved for this person */}
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'healthcare'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'healthcare'),
+        ]}
+      />
 
       {HEALTH_FOR_YOU.map((item) => (
         <TouchableOpacity

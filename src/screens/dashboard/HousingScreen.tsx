@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
+import { CasyResources } from '../../components/CasyResources';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
@@ -611,6 +612,14 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       <Text style={styles.detailSubtitle}>
         {isSpanish ? 'Guías y recursos de vivienda' : 'Housing guides & resources'}
       </Text>
+
+      <CasyResources
+        isSpanish={isSpanish}
+        resources={[
+          ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
+          ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),
+        ]}
+      />
 
       {HOUSING_FOR_YOU.map((item) => (
         <TouchableOpacity

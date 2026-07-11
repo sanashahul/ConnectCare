@@ -128,8 +128,8 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     };
   };
 
+  const allowedCats = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
   const addTaskFromCasy = (task: any) => {
-    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
     dispatch({
       type: 'ADD_TODO',
       payload: {
@@ -138,9 +138,24 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
         completed: false,
         priority: 'normal',
         createdBy: 'individual',
-        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        category: (task.category && allowedCats.includes(task.category) ? task.category : 'other') as any,
         resourcePhone: task.phone || undefined,
         resourceUrl: task.website || undefined,
+      } as any,
+    });
+  };
+  const saveResourceFromCasy = (r: any) => {
+    dispatch({
+      type: 'ADD_SAVED_RESOURCE',
+      payload: {
+        title: r.resourceName,
+        resourceName: r.resourceName,
+        why: r.why || '',
+        address: r.address,
+        phone: r.phone,
+        website: r.website,
+        action: '',
+        category: (r.category && allowedCats.includes(r.category) ? r.category : 'other') as any,
       } as any,
     });
   };
@@ -153,7 +168,7 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     setInput('');
     setLoading(true);
     try {
-      const reply = await sendMessageToAI(msg, history, buildContext(), addTaskFromCasy);
+      const reply = await sendMessageToAI(msg, history, buildContext(), addTaskFromCasy, saveResourceFromCasy);
       setChat((prev) => [...prev, { role: 'model', content: reply }]);
     } catch {
       setChat((prev) => [

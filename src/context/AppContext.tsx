@@ -8,6 +8,7 @@ import {
   Location,
   QuestionAnswer,
   PersonalizedPlan,
+  PlanRecommendation,
   TodoItem,
   UserRole,
   AgeGroup,
@@ -79,6 +80,7 @@ type AppAction =
   | { type: 'SET_ANSWER'; payload: QuestionAnswer }
   | { type: 'SET_RECOMMENDATIONS'; payload: PersonalizedPlan }
   | { type: 'TOGGLE_PLAN_STEP'; payload: number }
+  | { type: 'ADD_SAVED_RESOURCE'; payload: PlanRecommendation }
   | { type: 'COMPLETE_ONBOARDING' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
@@ -219,6 +221,20 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           planProgress: next,
+        },
+      };
+    }
+
+    case 'ADD_SAVED_RESOURCE': {
+      const current = state.userProfile?.savedResources || [];
+      const key = (r: PlanRecommendation) => `${r.resourceName || r.title}`.toLowerCase();
+      // Avoid duplicates by org name / title.
+      if (current.some((r) => key(r) === key(action.payload))) return state;
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          savedResources: [...current, action.payload],
         },
       };
     }

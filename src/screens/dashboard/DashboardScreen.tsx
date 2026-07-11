@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
-import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput } from '../../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput, SaveResourceInput } from '../../services/aiService';
 import { PlanRecommendation } from '../../types';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
@@ -1164,9 +1164,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     };
   };
 
+  const TODO_CATS = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+
   // Let Casy add a task straight to the to-do list from chat.
   const addTaskFromCasy = (task: AddTaskInput) => {
-    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
     dispatch({
       type: 'ADD_TODO',
       payload: {
@@ -1175,9 +1176,26 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         completed: false,
         priority: 'normal',
         createdBy: 'individual',
-        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        category: (task.category && TODO_CATS.includes(task.category) ? task.category : 'other') as any,
         resourcePhone: task.phone || undefined,
         resourceUrl: task.website || undefined,
+      },
+    });
+  };
+
+  // Let Casy save a resource to the "For You" sections from chat.
+  const saveResourceFromCasy = (r: SaveResourceInput) => {
+    dispatch({
+      type: 'ADD_SAVED_RESOURCE',
+      payload: {
+        title: r.resourceName,
+        resourceName: r.resourceName,
+        why: r.why || '',
+        address: r.address,
+        phone: r.phone,
+        website: r.website,
+        action: '',
+        category: (r.category && TODO_CATS.includes(r.category) ? r.category : 'other') as any,
       },
     });
   };
@@ -1260,7 +1278,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         messageText,
         aiHistory,
         buildAIContext(),
-        addTaskFromCasy
+        addTaskFromCasy,
+        saveResourceFromCasy
       );
 
       setIsTyping(false);
@@ -1406,7 +1425,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           role: msg.type === 'user' ? ('user' as const) : ('model' as const),
           content: msg.content,
         }));
-      const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext(), addTaskFromCasy);
+      const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext(), addTaskFromCasy, saveResourceFromCasy);
       setIsTyping(false);
       setChatMessages((prev) => [
         ...prev,
@@ -1483,7 +1502,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         messageText,
         aiHistory,
         buildAIContext(),
-        addTaskFromCasy
+        addTaskFromCasy,
+        saveResourceFromCasy
       );
 
       setIsTyping(false);

@@ -103,6 +103,8 @@ export interface UserProfile {
   planGeneratedAt?: string;
   // Indices of plan recommendations the user has marked done (progress).
   planProgress?: number[];
+  // Resources Casy saved to the user's "For You" sections from chat.
+  savedResources?: PlanRecommendation[];
 }
 
 export interface CaseWorkerProfile {

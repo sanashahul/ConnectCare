@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext, AddTaskInput } from '../services/aiService';
+import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext, AddTaskInput, SaveResourceInput } from '../services/aiService';
 import { CasyAvatar } from './CasyAvatar';
 
 export type AIFocus = 'housing' | 'healthcare' | 'employment';
@@ -87,9 +87,10 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
   const isSpanish = i18n.language === 'es';
   const profile = state.userProfile;
 
+  const allowedCats = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
+
   // Let Casy add a task straight to the to-do list from chat.
   const addTaskFromCasy = (task: AddTaskInput) => {
-    const allowed = ['housing', 'employment', 'healthcare', 'documents', 'benefits', 'education', 'other'];
     dispatch({
       type: 'ADD_TODO',
       payload: {
@@ -98,9 +99,26 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
         completed: false,
         priority: 'normal',
         createdBy: 'individual',
-        category: (task.category && allowed.includes(task.category) ? task.category : 'other') as any,
+        category: (task.category && allowedCats.includes(task.category) ? task.category : 'other') as any,
         resourcePhone: task.phone || undefined,
         resourceUrl: task.website || undefined,
+      } as any,
+    });
+  };
+
+  // Let Casy save a resource to the "For You" sections from chat.
+  const saveResourceFromCasy = (r: SaveResourceInput) => {
+    dispatch({
+      type: 'ADD_SAVED_RESOURCE',
+      payload: {
+        title: r.resourceName,
+        resourceName: r.resourceName,
+        why: r.why || '',
+        address: r.address,
+        phone: r.phone,
+        website: r.website,
+        action: '',
+        category: (r.category && allowedCats.includes(r.category) ? r.category : 'other') as any,
       } as any,
     });
   };
@@ -147,7 +165,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     setInput('');
     setLoading(true);
     try {
-      const reply = await sendMessageToAI(msg, history, context, addTaskFromCasy);
+      const reply = await sendMessageToAI(msg, history, context, addTaskFromCasy, saveResourceFromCasy);
       setMessages((prev) => [...prev, { role: 'model', content: reply }]);
     } catch {
       setMessages((prev) => [
