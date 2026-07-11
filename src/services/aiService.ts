@@ -262,6 +262,60 @@ const extractText = (data: any): string => {
   return textBlock && typeof textBlock.text === 'string' ? textBlock.text.trim() : '';
 };
 
+// Pull the first [...] JSON array out of a model reply (it may wrap it in prose).
+const parseResourceArray = (text: string): SaveResourceInput[] => {
+  try {
+    const start = text.indexOf('[');
+    const end = text.lastIndexOf(']');
+    if (start === -1 || end === -1) return [];
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((r) => r && typeof r.resourceName === 'string' && r.resourceName.trim());
+  } catch {
+    return [];
+  }
+};
+
+// Deterministic safety net: after Casy replies, extract every specific
+// organization it named and save it to the person's "For You" resources.
+// This runs regardless of whether Casy remembered to call save_resource
+// inline, so recommendations ALWAYS land in the app. De-duped in the reducer.
+const extractAndSaveResources = async (
+  replyText: string,
+  apiKey: string,
+  onSaveResource: (r: SaveResourceInput) => void
+): Promise<void> => {
+  // Only bother if the reply looks like it names contactable resources.
+  const looksLikeResources =
+    /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|1-8\d\d|https?:\/\/|www\.|\.org|\.gov|\.com|shelter|clinic|center|centre|program|hotline|foundation|mission|services/i.test(
+      replyText
+    );
+  if (!looksLikeResources) return;
+
+  try {
+    const system = `You extract resources from a case manager's message into JSON so the app can save them.
+Read the assistant message and list EVERY specific real organization, place, program, or hotline it named that the person could contact or visit.
+Return ONLY a JSON array (no prose, no markdown fences). Each item:
+{"resourceName": string, "why": short string, "address": string or "", "phone": string or "", "website": string or "", "category": one of "housing"|"healthcare"|"employment"|"documents"|"benefits"|"education"|"other"}
+Pick the category by what the resource is for: shelters/housing -> "housing", clinics/health/mental health/substance use -> "healthcare", jobs/training/employment -> "employment".
+Include hotlines (211, 988, Runaway Safeline, etc.) only if the message presented them as a recommended resource, not just an aside. If nothing qualifies, return [].`;
+    const data = await callClaude(
+      { system, messages: [{ role: 'user', content: replyText }], maxTokens: 900 },
+      apiKey
+    );
+    const items = parseResourceArray(extractText(data));
+    items.forEach((r) => {
+      try {
+        onSaveResource(r);
+      } catch {
+        /* ignore individual save failures */
+      }
+    });
+  } catch {
+    /* extraction is best-effort; never break the chat reply */
+  }
+};
+
 // ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
@@ -443,7 +497,15 @@ export const sendMessageToAI = async (
       }
 
       const text = extractText(data);
-      if (text) return text;
+      if (text) {
+        // Guarantee any org Casy just named gets saved to "For You", even if
+        // it didn't call save_resource inline. Fire-and-forget so the reply
+        // shows instantly; dispatch still updates state after we return.
+        if (onSaveResource) {
+          void extractAndSaveResources(text, apiKey, onSaveResource);
+        }
+        return text;
+      }
       console.log('No text response from Claude:', data.stop_reason);
       return getFallbackResponse(userMessage, userContext);
     }
