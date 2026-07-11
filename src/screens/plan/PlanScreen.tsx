@@ -94,7 +94,9 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
   const [chat, setChat] = useState<AIMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [building, setBuilding] = useState(false);
+  // Start in the building state right away if we arrived without a plan, so
+  // the user sees "Casy is building your plan" immediately (no flash).
+  const [building, setBuilding] = useState(() => !plan && !!profile?.shareCode);
   const builtRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -102,19 +104,23 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
   }, [revealed, chat, loading]);
 
-  // If we land here without a plan (e.g. straight from the questionnaire),
-  // build it automatically with a loading state - no button needed.
+  // Build the plan automatically, retrying a few times so a transient failure
+  // resolves on its own - no button needed.
   const buildPlanNow = async () => {
-    if (building) return;
     setBuilding(true);
-    try {
-      const p = await generatePersonalizedPlan(buildContext());
-      if (p) dispatch({ type: 'SET_RECOMMENDATIONS', payload: p });
-    } catch (e) {
-      console.log('Auto plan build failed:', e);
-    } finally {
-      setBuilding(false);
+    let built = false;
+    for (let attempt = 0; attempt < 3 && !built; attempt++) {
+      try {
+        const p = await generatePersonalizedPlan(buildContext());
+        if (p) {
+          dispatch({ type: 'SET_RECOMMENDATIONS', payload: p });
+          built = true;
+        }
+      } catch (e) {
+        console.log('Plan build attempt failed:', attempt, e);
+      }
     }
+    setBuilding(false);
   };
 
   useEffect(() => {

@@ -105,45 +105,13 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     });
   };
 
-  // On completion, ask Casy to build a personalized plan grounded in real
-  // resources for this person, then land them on their dashboard.
-  const finishOnboarding = async (finalAnswers: Record<string, string | string[]>) => {
+  // On completion: save the answers and go straight to the Plan screen, which
+  // shows "Casy is building your plan" and builds it. No button, no dashboard.
+  const finishOnboarding = (finalAnswers: Record<string, string | string[]>) => {
+    Object.entries(finalAnswers).forEach(([questionId, answer]) => {
+      if (answer) dispatch({ type: 'SET_ANSWER', payload: { questionId, answer } });
+    });
     dispatch({ type: 'COMPLETE_ONBOARDING' });
-    setGenerating(true);
-    try {
-      const profile = state.userProfile;
-      const isEs = i18n.language === 'es';
-      const qaArray: QuestionAnswer[] = Object.entries(finalAnswers).map(
-        ([questionId, answer]) => ({ questionId, answer })
-      );
-      const loc = profile?.location;
-      const hasCoords =
-        !!loc &&
-        typeof loc.latitude === 'number' &&
-        typeof loc.longitude === 'number' &&
-        (loc.latitude !== 0 || loc.longitude !== 0);
-
-      const plan = await generatePersonalizedPlan({
-        name: profile?.name,
-        city: loc?.city,
-        state: loc?.state,
-        language: isEs ? 'es' : 'en',
-        needs: profile?.selectedCategories,
-        ageGroup: profile?.ageGroup,
-        isMinor: profile?.ageGroup === 'under18',
-        location: hasCoords ? loc : undefined,
-        answersSummary: buildAnswersSummary(qaArray, isEs ? 'es' : 'en'),
-      });
-
-      if (plan) {
-        dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
-      }
-    } catch (e) {
-      console.warn('Plan generation hiccup; the Plan screen will build/retry.', e);
-    }
-    // Always go to the Plan screen. If the plan is ready it shows immediately;
-    // if not, the Plan screen builds it automatically (with its own loading).
-    setGenerating(false);
     navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
   };
 
