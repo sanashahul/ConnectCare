@@ -16,6 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
 
@@ -160,7 +161,7 @@ const URGENT_RESOURCES = [
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | 'todos' | null>(null);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -460,14 +461,14 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
 
         <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => setActiveSection('todos')}
         >
           <View style={[styles.gridIconContainer, { backgroundColor: '#FFEDD5' }]}>
             <Text style={styles.gridIcon}>📋</Text>
           </View>
           <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
           <Text style={styles.gridDescription}>
-            {isSpanish ? 'Ver lista de tareas' : 'View task list'}
+            {isSpanish ? 'Tareas de salud' : 'Health tasks'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -999,6 +1000,14 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {activeSection === 'clinics' && renderClinics()}
         {activeSection === 'urgent' && renderUrgent()}
         {activeSection === 'needNow' && renderNeedNow()}
+        {activeSection === 'todos' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <CategoryTodoList category="healthcare" isSpanish={isSpanish} />
+          </View>
+        )}
       </ScrollView>
       <AIAssistant focus="healthcare" />
     </SafeAreaView>

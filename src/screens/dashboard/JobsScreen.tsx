@@ -16,6 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
 import { EmploymentResource } from '../../services/employmentApi';
@@ -170,7 +171,7 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'search' | 'quickhire' | 'help' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'todos' | 'help' | null>(null);
   const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -311,14 +312,14 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
         <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('quickhire')}
+          onPress={() => setActiveSection('todos')}
         >
           <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>⚡</Text>
+            <Text style={styles.gridIcon}>📋</Text>
           </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Contratación Rápida' : 'Quick Hire'}</Text>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
           <Text style={styles.gridDescription}>
-            {isSpanish ? 'Trabajos que contratan rápido' : 'Jobs hiring fast'}
+            {isSpanish ? 'Tareas de empleo' : 'Job tasks'}
           </Text>
         </TouchableOpacity>
 
@@ -787,8 +788,14 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
 
         {activeSection === null && renderMainGrid()}
         {activeSection === 'foryou' && renderForYou()}
-        {activeSection === 'search' && renderSearch()}
-        {activeSection === 'quickhire' && renderQuickHire()}
+        {activeSection === 'todos' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <CategoryTodoList category="employment" isSpanish={isSpanish} />
+          </View>
+        )}
         {activeSection === 'help' && renderHelp()}
       </ScrollView>
       <AIAssistant focus="employment" />

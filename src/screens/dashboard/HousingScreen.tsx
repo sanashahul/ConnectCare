@@ -16,6 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
+import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
 import { HousingResource } from '../../services/housingApi';
@@ -281,7 +282,7 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | 'todos' | null>(null);
   const [counselors, setCounselors] = useState<HousingResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -568,6 +569,19 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           <Text style={styles.gridTitle}>{isSpanish ? 'Opciones' : 'Options'}</Text>
           <Text style={styles.gridDescription}>
             {isSpanish ? 'Tipos de vivienda' : 'Housing types'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
+          onPress={() => setActiveSection('todos')}
+        >
+          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
+            <Text style={styles.gridIcon}>📋</Text>
+          </View>
+          <Text style={styles.gridTitle}>{isSpanish ? 'Mis Tareas' : 'My To-Dos'}</Text>
+          <Text style={styles.gridDescription}>
+            {isSpanish ? 'Tareas de vivienda' : 'Housing tasks'}
           </Text>
         </TouchableOpacity>
 
@@ -1105,6 +1119,14 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         {activeSection === 'options' && renderOptions()}
         {activeSection === 'help' && renderHelp()}
         {activeSection === 'needNow' && renderNeedNow()}
+        {activeSection === 'todos' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <CategoryTodoList category="housing" isSpanish={isSpanish} />
+          </View>
+        )}
       </ScrollView>
       <AIAssistant focus="housing" />
     </SafeAreaView>

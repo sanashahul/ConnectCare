@@ -5,3 +5,4 @@ export { ProgressBar } from './ProgressBar';
 export { AIAssistant } from './AIAssistant';
 export { CasyAvatar } from './CasyAvatar';
 export { CasyResources } from './CasyResources';
+export { CategoryTodoList } from './CategoryTodoList';
