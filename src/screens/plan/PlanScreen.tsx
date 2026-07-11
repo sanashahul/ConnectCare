@@ -95,8 +95,8 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   // Start in the building state right away if we arrived without a plan, so
-  // the user sees "Casy is building your plan" immediately (no flash).
-  const [building, setBuilding] = useState(() => !plan && !!profile?.shareCode);
+  // the user sees "Casy is building your plan" immediately (no button, no flash).
+  const [building, setBuilding] = useState(() => !plan);
   const builtRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -123,13 +123,19 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     setBuilding(false);
   };
 
+  // Auto-build the plan the moment we have a ready profile - no button, ever.
+  // This is keyed on the profile (answers/shareCode) so that if the profile
+  // commits a beat AFTER this screen mounts (a race with COMPLETE_ONBOARDING
+  // when finishing the questionnaire), the build still fires on the next
+  // render instead of getting stuck on an empty "build my plan" state.
   useEffect(() => {
-    if (!plan && profile?.shareCode && !builtRef.current) {
-      builtRef.current = true;
-      buildPlanNow();
-    }
+    if (plan || builtRef.current) return;
+    const ready = (profile?.answers?.length || 0) > 0 || !!profile?.shareCode;
+    if (!ready) return;
+    builtRef.current = true;
+    buildPlanNow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [plan, profile?.answers?.length, profile?.shareCode]);
 
   // Casy's context, including the plan itself so the conversation is plan-aware.
   const buildContext = (): UserContext => {
