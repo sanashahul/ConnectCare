@@ -111,7 +111,11 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
     Object.entries(finalAnswers).forEach(([questionId, answer]) => {
       if (answer) dispatch({ type: 'SET_ANSWER', payload: { questionId, answer } });
     });
-    dispatch({ type: 'COMPLETE_ONBOARDING' });
+    // startPlan: land on the Plan screen after onboarding. The navigator
+    // remounts when the shareCode is set, so this flag (not the reset below)
+    // is what actually lands us on Plan. The reset is a fallback for the rare
+    // case where the shareCode already existed and no remount happens.
+    dispatch({ type: 'COMPLETE_ONBOARDING', payload: { startPlan: true } });
     navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
   };
 

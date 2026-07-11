@@ -50,6 +50,13 @@ export const AppNavigator: React.FC = () => {
 
   const getInitialRoute = (): keyof RootStackParamList => {
     if (state.userProfile?.shareCode) {
+      // Just finished the questionnaire: the navigator remounts (its key is
+      // tied to shareCode), so land directly on the Plan screen instead of
+      // the Dashboard - otherwise the reset-to-Plan is thrown away and the
+      // user is dumped on the "build my plan" card.
+      if (state.startPlanAfterOnboarding) {
+        return 'Plan';
+      }
       return 'Dashboard';
     }
     return 'Welcome';

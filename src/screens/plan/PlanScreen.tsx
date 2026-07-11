@@ -104,6 +104,25 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
   }, [revealed, chat, loading]);
 
+  // Clear the "land on Plan after onboarding" flag so future app launches go
+  // to the Dashboard, not back here.
+  useEffect(() => {
+    if (state.startPlanAfterOnboarding) {
+      dispatch({ type: 'CLEAR_START_PLAN' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Go back to the Dashboard. When Plan is the first screen (right after
+  // onboarding) there's nothing to pop, so reset to the Dashboard instead.
+  const goBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+    }
+  };
+
   // Build the plan automatically, retrying a few times so a transient failure
   // resolves on its own - no button needed.
   const buildPlanNow = async () => {
@@ -425,7 +444,7 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
           <Text style={styles.backText}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>

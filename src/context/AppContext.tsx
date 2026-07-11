@@ -66,6 +66,10 @@ interface AppState {
   isLocked: boolean; // PIN lock state
   onboardingStep: number;
   caseManagerData: CaseManagerData;
+  // Transient (not persisted): set true when the user finishes the
+  // questionnaire so the app lands on the Plan screen after the navigator
+  // remounts, instead of the Dashboard. Cleared once the Plan screen opens.
+  startPlanAfterOnboarding?: boolean;
 }
 
 type AppAction =
@@ -82,7 +86,8 @@ type AppAction =
   | { type: 'TOGGLE_PLAN_STEP'; payload: number }
   | { type: 'ADD_SAVED_RESOURCE'; payload: PlanRecommendation }
   | { type: 'SET_CATEGORY_PICKS'; payload: { category: string; items: PlanRecommendation[] } }
-  | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'COMPLETE_ONBOARDING'; payload?: { startPlan?: boolean } }
+  | { type: 'CLEAR_START_PLAN' }
   | { type: 'SET_USER_PIN'; payload: string }
   | { type: 'SET_CASEWORKER_PIN'; payload: string }
   | { type: 'UNLOCK_APP' }
@@ -256,12 +261,18 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return {
         ...state,
         isLocked: false, // Unlock after onboarding
+        // Land on the Plan screen after the navigator remounts (see
+        // AppNavigator) when the user finished the questionnaire.
+        startPlanAfterOnboarding: !!action.payload?.startPlan,
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           shareCode,
         },
       };
     }
+
+    case 'CLEAR_START_PLAN':
+      return { ...state, startPlanAfterOnboarding: false };
 
     case 'SET_USER_PIN':
       return {
