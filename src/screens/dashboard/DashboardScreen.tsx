@@ -23,6 +23,7 @@ import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
 import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput, SaveResourceInput } from '../../services/aiService';
 import { PlanRecommendation } from '../../types';
+import { getQuestionsByCategory } from '../../data/questions';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
 import { getStateYouthLaws, ABUSE_REPORTING_INFO, EMANCIPATION_INFO } from '../../data/youthLegalResources';
 
@@ -1571,6 +1572,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     if (!plan || !plan.recommendations?.length) {
       if (!userProfile?.shareCode) return null;
       const answeredCount = userProfile?.answers?.length || 0;
+      const totalQuestions = (userProfile?.selectedCategories || []).reduce(
+        (n, c) => n + getQuestionsByCategory(c as any).length,
+        0
+      );
+      const answeredAll = totalQuestions > 0 && answeredCount >= totalQuestions;
       return (
         <View style={styles.planCard}>
           <View style={styles.planCardHeader}>
@@ -1610,16 +1616,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               </>
             )}
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.planCardSecondary}
-            onPress={() => navigation.navigate('Questionnaire')}
-          >
-            <Text style={styles.planCardSecondaryText}>
-              {answeredCount > 0
-                ? isSpanish ? 'Continuar mis preguntas' : 'Finish my questions'
-                : isSpanish ? 'Responder unas preguntas' : 'Answer a few questions'}
-            </Text>
-          </TouchableOpacity>
+          {!answeredAll && (
+            <TouchableOpacity
+              style={styles.planCardSecondary}
+              onPress={() => navigation.navigate('Questionnaire')}
+            >
+              <Text style={styles.planCardSecondaryText}>
+                {answeredCount > 0
+                  ? isSpanish ? 'Continuar mis preguntas' : 'Finish my questions'
+                  : isSpanish ? 'Responder unas preguntas' : 'Answer a few questions'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       );
     }

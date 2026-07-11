@@ -486,23 +486,32 @@ export const generatePersonalizedPlan = async (
   const loc = context.location;
 
   try {
-    // If we have coordinates, pull real resources live. Otherwise Casy builds
-    // the plan from its own knowledge of the person's city, so a plan always
-    // generates even without GPS.
+    // If we have coordinates, pull real resources live. This is best-effort:
+    // if the external APIs are slow or fail, we still build the plan from
+    // Casy's own knowledge, so the plan ALWAYS generates.
     let resourceData = '';
     if (loc) {
-      const [housing, health, jobs] = await Promise.all([
-        needs.includes('housing') ? getAllHousingResources(loc) : Promise.resolve([]),
-        needs.includes('healthcare') ? getAllHealthcareResources(loc) : Promise.resolve([]),
-        needs.includes('employment') ? getAllEmploymentResources(loc) : Promise.resolve([]),
-      ]);
-      resourceData = [
-        housing.length ? `HOUSING:\n${formatResources(selectForAI(housing), 8)}` : '',
-        health.length ? `HEALTHCARE:\n${formatResources(selectForAI(health), 8)}` : '',
-        jobs.length ? `EMPLOYMENT:\n${formatResources(selectForAI(jobs), 8)}` : '',
-      ]
-        .filter(Boolean)
-        .join('\n\n');
+      try {
+        const fetchAll = Promise.all([
+          needs.includes('housing') ? getAllHousingResources(loc) : Promise.resolve([]),
+          needs.includes('healthcare') ? getAllHealthcareResources(loc) : Promise.resolve([]),
+          needs.includes('employment') ? getAllEmploymentResources(loc) : Promise.resolve([]),
+        ]);
+        const timeout = new Promise<any[]>((_, reject) =>
+          setTimeout(() => reject(new Error('resource prefetch timed out')), 12000)
+        );
+        const [housing, health, jobs] = (await Promise.race([fetchAll, timeout])) as any[];
+        resourceData = [
+          housing.length ? `HOUSING:\n${formatResources(selectForAI(housing), 8)}` : '',
+          health.length ? `HEALTHCARE:\n${formatResources(selectForAI(health), 8)}` : '',
+          jobs.length ? `EMPLOYMENT:\n${formatResources(selectForAI(jobs), 8)}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n\n');
+      } catch (e) {
+        console.log('Plan resource prefetch failed; using Casy knowledge only.', e);
+        resourceData = '';
+      }
     }
 
     const locationLabel = context.city
@@ -527,8 +536,6 @@ ${resourceData || '(no local results — recommend calling 211)'}
 
 Lead with the closest LOCAL options in ${locationLabel} (the ones with a distance shown). Name them specifically. Use national lines (211, 988) only as a backup, never as your main recommendation.
 
-Lead with the closest LOCAL options in ${locationLabel} (the ones with a distance shown). Name them specifically. Use national lines (211, 988) only as a backup, never as your main recommendation.
-
 Return ONLY valid JSON, no prose, in exactly this shape:
 {
   "summary": "2-3 warm sentences that reflect THEIR specific situation (reference their real answers - e.g. sleeping outside, has kids, no insurance, veteran) and reassure them you've got a real plan for them",
@@ -547,21 +554,25 @@ Return ONLY valid JSON, no prose, in exactly this shape:
 }
 Give 4 to 6 recommendations, ordered by urgency and matched precisely to this person's specific answers/needs (their living situation, whether they have kids, insurance status, veteran status, etc.). Be as specific and complete as a great human case manager who knows ${locationLabel} well. Name SPECIFIC real organizations (use the list above first, then your own knowledge of real local orgs) and include each one's address, phone number AND website. Give your best specific contact info - do NOT default to 211; only use 211/988/911 when they are genuinely the right resource. Details may need verification, and the app tells the user to confirm, so provide your best real info rather than leaving it blank.`;
 
-    const data = await callClaude(
-      {
-        system,
-        messages: [{ role: 'user', content: 'Create my personalized plan as JSON.' }],
-        maxTokens: 2200,
-      },
-      apiKey
-    );
-
-    const text = extractText(data);
-    const plan = parsePlanJson(text);
-    if (plan) {
-      plan.language = context.language;
+    // Try up to twice to get a parseable plan (guards against a rare
+    // malformed response leaving the user with no plan).
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const data = await callClaude(
+        {
+          system,
+          messages: [{ role: 'user', content: 'Create my personalized plan as JSON.' }],
+          maxTokens: 2200,
+        },
+        apiKey
+      );
+      const plan = parsePlanJson(extractText(data));
+      if (plan) {
+        plan.language = context.language;
+        return plan;
+      }
+      console.log('Plan parse failed; retrying...', attempt);
     }
-    return plan;
+    return null;
   } catch (error) {
     console.log('Error generating personalized plan:', error);
     return null;
