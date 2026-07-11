@@ -104,6 +104,25 @@ export const getLocationFromZip = async (zipCode: string): Promise<Location | nu
   }
 };
 
+export const getLocationFromCity = async (
+  city: string,
+  state?: string
+): Promise<Location | null> => {
+  try {
+    const geocode = await ExpoLocation.geocodeAsync(`${city}${state ? ', ' + state : ''}, USA`);
+    if (!geocode || geocode.length === 0) return null;
+    return {
+      latitude: geocode[0].latitude,
+      longitude: geocode[0].longitude,
+      city,
+      state,
+    };
+  } catch (error) {
+    console.log('Error geocoding city:', error);
+    return null;
+  }
+};
+
 export const calculateDistance = (
   lat1: number,
   lon1: number,

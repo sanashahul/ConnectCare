@@ -19,6 +19,7 @@ import { changeLanguage, loadStoredLanguage } from '../../i18n';
 type RootStackParamList = {
   Welcome: undefined;
   NameInput: undefined;
+  IntakeChat: undefined;
 };
 
 type WelcomeScreenProps = {
@@ -128,6 +129,18 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <Text style={styles.actionDescription}>{t('welcome.needServicesDesc')}</Text>
           </View>
           <Text style={styles.actionArrow}>→</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.talkCard}
+          onPress={() => navigation.navigate('IntakeChat')}
+        >
+          <Text style={styles.talkText}>
+            {selectedLanguage === 'es'
+              ? '¿Prefieres hablar? Habla con Casy'
+              : 'Prefer to talk? Chat with Casy'}
+          </Text>
+          <Text style={styles.talkArrow}>💬</Text>
         </TouchableOpacity>
       </View>
 
@@ -282,6 +295,19 @@ const styles = StyleSheet.create({
     color: '#0D9488',
     fontWeight: '600',
   },
+  talkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+  },
+  talkText: { fontSize: 15, color: '#0D9488', fontWeight: '700' },
+  talkArrow: { fontSize: 16 },
   footer: {
     padding: 20,
     alignItems: 'center',

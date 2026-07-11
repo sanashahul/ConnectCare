@@ -476,6 +476,144 @@ Give 4 to 6 recommendations, ordered by urgency and matched precisely to this pe
 };
 
 // ---------------------------------------------------------------------------
+// Conversational intake: system prompt for gathering info by chat, and a
+// function that turns the intake conversation into a profile + plan.
+// ---------------------------------------------------------------------------
+
+export const getIntakeSystemPrompt = (language: 'en' | 'es'): string => {
+  if (language === 'es') {
+    return `Eres "Casy", un gestor de casos de IA cálido y experto. Estás haciendo una entrevista de admisión conversacional con alguien sin hogar o en riesgo, para poder crearle un plan personalizado.
+
+Preséntate con calidez ("Hola, soy Casy..."). Luego, de forma natural y amable, averigua:
+1. Su nombre (cómo le gusta que le llamen)
+2. En qué ciudad y estado están
+3. Qué necesitan más: vivienda, salud, empleo (o varios)
+4. Su situación de vivienda actual
+5. Detalles clave: ¿tiene hijos con usted? ¿es veterano? ¿tiene seguro médico? ¿tiene identificación?
+
+Haz UNA o DOS preguntas a la vez, nunca una lista larga. Sé breve, cálido y humano. No sermonees. Cuando tengas suficiente para ayudar, dile con calidez que toque el botón "Crear mi plan" abajo. Responde siempre en español.`;
+  }
+  return `You are "Casy", a warm, expert AI case manager. You are doing a friendly, conversational intake with someone who is homeless or at risk, so you can build them a personalized plan.
+
+Introduce yourself warmly ("Hi, I'm Casy..."). Then, naturally and gently, find out:
+1. Their name (what they like to be called)
+2. What city and state they're in
+3. What they need most: housing, healthcare, employment (or several)
+4. Their current living situation
+5. Key details: do they have kids with them? are they a veteran? do they have health insurance? do they have an ID?
+
+Ask ONE or TWO questions at a time, never a long list. Keep it short, warm, and human. Don't lecture. When you have enough to help, warmly tell them to tap the "Build my plan" button below. Always respond in English.`;
+};
+
+// Chat turn during conversational intake (uses the intake system prompt).
+export const sendIntakeMessage = async (
+  userMessage: string,
+  history: AIMessage[],
+  language: 'en' | 'es'
+): Promise<string> => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return language === 'es'
+      ? 'Necesito una conexión para conversar. Cuéntame tu ciudad y qué necesitas.'
+      : "I need a connection to chat. Tell me your city and what you need.";
+  }
+  try {
+    const messages = [
+      ...history.map((m) => ({
+        role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.content,
+      })),
+      { role: 'user' as const, content: userMessage },
+    ];
+    const data = await callClaude(
+      { system: getIntakeSystemPrompt(language), messages, maxTokens: 500 },
+      apiKey
+    );
+    return extractText(data) || (language === 'es' ? 'Cuéntame un poco más.' : 'Tell me a little more.');
+  } catch (e) {
+    console.log('Intake message error:', e);
+    return language === 'es' ? 'Intenta de nuevo, por favor.' : 'Please try again.';
+  }
+};
+
+export interface IntakeResult {
+  name?: string;
+  city?: string;
+  state?: string;
+  needs?: string[];
+  plan: PersonalizedPlan;
+}
+
+export const buildPlanFromConversation = async (
+  messages: AIMessage[],
+  language: 'en' | 'es'
+): Promise<IntakeResult | null> => {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  const transcript = messages
+    .map((m) => `${m.role === 'user' ? 'Person' : 'Casy'}: ${m.content}`)
+    .join('\n');
+
+  const system = `You are Casy, an expert AI case manager. Read the intake conversation and produce a personalized action plan for this person. ${
+    language === 'es' ? 'Respond in Spanish.' : 'Respond in English.'
+  }
+
+CONVERSATION:
+${transcript}
+
+From the conversation, extract their profile and build a specific plan. Return ONLY valid JSON:
+{
+  "name": "their first name if mentioned, else empty",
+  "city": "their city if mentioned, else empty",
+  "state": "their state (2-letter or full) if mentioned, else empty",
+  "needs": ["housing" and/or "healthcare" and/or "employment"],
+  "summary": "2-3 warm sentences reflecting their specific situation",
+  "recommendations": [
+    {
+      "title": "short action title",
+      "why": "1 sentence, references their situation",
+      "resourceName": "a SPECIFIC real organization in their city (from your knowledge), matched to their need",
+      "address": "street address or neighborhood if known, else empty",
+      "phone": "the org's real phone number - your best specific number, not 211. Empty only if truly unknown.",
+      "website": "the org's website if known, else empty",
+      "action": "a concrete first step naming the org and its phone",
+      "category": "housing|healthcare|employment|documents|benefits|other"
+    }
+  ]
+}
+Give 4 to 6 recommendations matched to what they told you. Name SPECIFIC real organizations in their city with address, phone, and website. Do NOT default to 211. If they didn't give a city, make the plan with strong national programs and note calling 211 to localize.`;
+
+  try {
+    const data = await callClaude(
+      { system, messages: [{ role: 'user', content: 'Build the plan as JSON.' }], maxTokens: 2200 },
+      apiKey
+    );
+    const text = extractText(data);
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start === -1 || end === -1) return null;
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    if (!parsed || !Array.isArray(parsed.recommendations)) return null;
+    const plan: PersonalizedPlan = {
+      summary: parsed.summary || '',
+      recommendations: parsed.recommendations,
+      language,
+    };
+    return {
+      name: parsed.name || undefined,
+      city: parsed.city || undefined,
+      state: parsed.state || undefined,
+      needs: Array.isArray(parsed.needs) ? parsed.needs : undefined,
+      plan,
+    };
+  } catch (error) {
+    console.log('Error building plan from conversation:', error);
+    return null;
+  }
+};
+
+// ---------------------------------------------------------------------------
 // Offline fallback (no key / no connectivity)
 // ---------------------------------------------------------------------------
 

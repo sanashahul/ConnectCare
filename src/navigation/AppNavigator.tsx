@@ -17,6 +17,7 @@ import {
   PinSetupScreen,
 } from '../screens';
 import { PlanScreen } from '../screens/plan/PlanScreen';
+import { IntakeChatScreen } from '../screens/intake/IntakeChatScreen';
 import { PinLockScreen } from '../screens/PinLockScreen';
 
 export type RootStackParamList = {
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Questionnaire: undefined;
   Dashboard: undefined;
   Plan: undefined;
+  IntakeChat: undefined;
   Health: undefined;
   Jobs: undefined;
   Housing: undefined;
@@ -96,6 +98,9 @@ export const AppNavigator: React.FC = () => {
 
         {/* Plan */}
         <Stack.Screen name="Plan" component={PlanScreen} />
+
+        {/* Conversational intake */}
+        <Stack.Screen name="IntakeChat" component={IntakeChatScreen} />
 
         {/* Category Screens */}
         <Stack.Screen name="Health" component={HealthScreen} />
