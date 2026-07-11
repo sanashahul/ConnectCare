@@ -20,6 +20,7 @@ import { generatePersonalizedPlan, buildAnswersSummary } from '../../services/ai
 type RootStackParamList = {
   Questionnaire: undefined;
   Dashboard: undefined;
+  Plan: undefined;
   CategorySelection: undefined;
 };
 
@@ -136,13 +137,16 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
 
       if (plan) {
         dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
+        // Show the plan first, with the dashboard underneath it.
+        setGenerating(false);
+        navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
+        return;
       }
     } catch (e) {
       console.warn('Plan generation failed; continuing to dashboard.', e);
-    } finally {
-      setGenerating(false);
-      goToDashboard();
     }
+    setGenerating(false);
+    goToDashboard();
   };
 
   const handleNext = () => {

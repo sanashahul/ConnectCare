@@ -33,6 +33,7 @@ import { ServiceCategory } from '../../types';
 type RootStackParamList = {
   IntakeChat: undefined;
   Dashboard: undefined;
+  Plan: undefined;
   Welcome: undefined;
 };
 
@@ -120,7 +121,8 @@ export const IntakeChatScreen: React.FC<Props> = ({ navigation }) => {
 
       dispatch({ type: 'SET_RECOMMENDATIONS', payload: result.plan });
       dispatch({ type: 'COMPLETE_ONBOARDING' });
-      navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] });
+      // Show the plan first, with the dashboard underneath it.
+      navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'Plan' }] });
     } catch {
       setBuilding(false);
     }

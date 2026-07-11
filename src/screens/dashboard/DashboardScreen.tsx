@@ -1208,6 +1208,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       const plan = await generatePersonalizedPlan(buildAIContext());
       if (plan) {
         dispatch({ type: 'SET_RECOMMENDATIONS', payload: plan });
+        navigation.navigate('Plan');
       } else {
         Alert.alert(
           isSpanish ? 'Ups' : 'Hmm',
