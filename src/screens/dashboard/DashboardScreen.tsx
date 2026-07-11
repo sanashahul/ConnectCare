@@ -1464,6 +1464,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         : `Help me with this task on my list: "${todo.title}". How do I get it done?`
     );
 
+  // Warm handoff: what to bring and what to say for a to-do item.
+  const handleTodoPrep = (todo: any) =>
+    askCasyInModal(
+      isSpanish
+        ? `Prepárame para esta tarea: "${todo.title}". ¿Qué necesito llevar y qué debo decir exactamente cuando llame o vaya?`
+        : `Help me prepare for this task: "${todo.title}". What do I need to bring, and exactly what should I say when I call or go?`
+    );
+
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
 
@@ -1808,6 +1816,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Warm handoff: what to bring & say */}
+          <TouchableOpacity style={styles.todoPrepBtn} onPress={() => handleTodoPrep(todo)}>
+            <Text style={styles.todoPrepText}>
+              📋 {isSpanish ? '¿Qué necesito? Prepárame' : 'What do I need? Help me prepare'}
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     };
@@ -2954,6 +2969,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
   },
+  todoPrepBtn: {
+    marginLeft: 38,
+    marginBottom: 8,
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    borderRadius: 12,
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  todoPrepText: { color: '#0D9488', fontWeight: '800', fontSize: 13.5 },
   todoActionButton: {
     flexDirection: 'row',
     alignItems: 'center',

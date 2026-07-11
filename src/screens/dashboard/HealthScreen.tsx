@@ -446,19 +446,6 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
-          onPress={() => setActiveSection('clinics')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#EDE9FE' }]}>
-            <Text style={styles.gridIcon}>🔍</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Clínicas' : 'Find Clinics'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Cerca de ti' : 'Near you'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#FEF2F2' }]}
           onPress={() => setActiveSection('urgent')}
         >

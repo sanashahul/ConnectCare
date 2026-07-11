@@ -310,19 +310,6 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('search')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>🔍</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Trabajos' : 'Job Search'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Encuentra oportunidades' : 'Find opportunities'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#F5F3FF' }]}
           onPress={() => setActiveSection('quickhire')}
         >

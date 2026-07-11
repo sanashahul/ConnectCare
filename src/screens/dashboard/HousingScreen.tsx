@@ -559,19 +559,6 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.gridItem, { backgroundColor: '#F0FDFA' }]}
-          onPress={() => setActiveSection('find')}
-        >
-          <View style={[styles.gridIconContainer, { backgroundColor: '#CCFBF1' }]}>
-            <Text style={styles.gridIcon}>🔍</Text>
-          </View>
-          <Text style={styles.gridTitle}>{isSpanish ? 'Buscar Vivienda' : 'Find Housing'}</Text>
-          <Text style={styles.gridDescription}>
-            {isSpanish ? 'Consejeros cerca de ti' : 'Counselors near you'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.gridItem, { backgroundColor: '#FFF7ED' }]}
           onPress={() => setActiveSection('options')}
         >
