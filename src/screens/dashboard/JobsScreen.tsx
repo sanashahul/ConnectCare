@@ -17,6 +17,8 @@ import { useApp } from '../../context/AppContext';
 import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
+import { Collapsible } from '../../components/Collapsible';
+import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getEmploymentResources } from '../../services';
@@ -172,7 +174,7 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'todos' | 'help' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'todos' | 'help' | 'notes' | null>(null);
   const [jobs, setJobs] = useState<EmploymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -296,6 +298,31 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
       <Text style={styles.sectionSubtitle}>
         {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
+
+      {/* Casy's personalized recommendations, collapsed by default */}
+      <Collapsible
+        icon="⭐"
+        title={isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
+        subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
+      >
+        <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
+        <CasyResources
+          isSpanish={isSpanish}
+          resources={[
+            ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'employment'),
+            ...(userProfile?.savedResources || []).filter((r) => r.category === 'employment'),
+          ]}
+        />
+      </Collapsible>
+
+      {/* Casy Notes - saved conversations for this tab */}
+      <HomeLinkCard
+        icon="📝"
+        bg="#EEF2FF"
+        title={isSpanish ? 'Notas de Casy' : 'Casy Notes'}
+        subtitle={isSpanish ? 'Tus conversaciones guardadas' : 'Your saved conversations'}
+        onPress={() => setActiveSection('notes')}
+      />
 
       {/* Kept across all tabs: My To-Dos */}
       <HomeLinkCard
@@ -771,6 +798,15 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
           </View>
         )}
         {activeSection === 'help' && renderHelp()}
+        {activeSection === 'notes' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.detailTitle}>{isSpanish ? 'Notas de Casy' : 'Casy Notes'}</Text>
+            <CasyNotesList category="employment" isSpanish={isSpanish} />
+          </View>
+        )}
       </ScrollView>
       <AIAssistant focus="employment" />
     </SafeAreaView>

@@ -17,6 +17,7 @@ import {
   CaseManagerTask,
   CaseManagerNote,
   CaseManagerConnection,
+  CasyNote,
   TaskCategory,
   TaskStatus,
   TaskPriority,
@@ -86,6 +87,8 @@ type AppAction =
   | { type: 'TOGGLE_PLAN_STEP'; payload: number }
   | { type: 'ADD_SAVED_RESOURCE'; payload: PlanRecommendation }
   | { type: 'SET_CATEGORY_PICKS'; payload: { category: string; items: PlanRecommendation[] } }
+  | { type: 'SAVE_CASY_NOTE'; payload: CasyNote }
+  | { type: 'DELETE_CASY_NOTE'; payload: string }
   | { type: 'COMPLETE_ONBOARDING'; payload?: { startPlan?: boolean } }
   | { type: 'CLEAR_START_PLAN' }
   | { type: 'SET_USER_PIN'; payload: string }
@@ -241,6 +244,33 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           savedResources: [...current, action.payload],
+        },
+      };
+    }
+
+    case 'SAVE_CASY_NOTE': {
+      const notes = state.userProfile?.casyNotes || [];
+      // Upsert by id: replace an existing note (same chat session) or add.
+      const idx = notes.findIndex((n) => n.id === action.payload.id);
+      const next = idx >= 0
+        ? notes.map((n) => (n.id === action.payload.id ? action.payload : n))
+        : [...notes, action.payload];
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          casyNotes: next,
+        },
+      };
+    }
+
+    case 'DELETE_CASY_NOTE': {
+      const notes = state.userProfile?.casyNotes || [];
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          casyNotes: notes.filter((n) => n.id !== action.payload),
         },
       };
     }

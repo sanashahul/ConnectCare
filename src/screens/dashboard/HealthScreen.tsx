@@ -18,6 +18,8 @@ import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
 import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
+import { Collapsible } from '../../components/Collapsible';
+import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHealthcareResources } from '../../services';
@@ -164,7 +166,7 @@ const URGENT_RESOURCES = [
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | 'todos' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'clinics' | 'urgent' | 'needNow' | 'todos' | 'notes' | null>(null);
   const [clinics, setClinics] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -413,7 +415,30 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
 
-      {/* Kept across all tabs: Need Help Now + My To-Dos */}
+      {/* Casy's personalized recommendations, collapsed by default */}
+      <Collapsible
+        icon="⭐"
+        title={isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
+        subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
+      >
+        <CasyCategoryPicks category="healthcare" isSpanish={isSpanish} />
+        <CasyResources
+          isSpanish={isSpanish}
+          resources={[
+            ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'healthcare'),
+            ...(userProfile?.savedResources || []).filter((r) => r.category === 'healthcare'),
+          ]}
+        />
+      </Collapsible>
+
+      {/* Kept across all tabs: Need Help Now + My To-Dos + Casy Notes */}
+      <HomeLinkCard
+        icon="📝"
+        bg="#EEF2FF"
+        title={isSpanish ? 'Notas de Casy' : 'Casy Notes'}
+        subtitle={isSpanish ? 'Tus conversaciones guardadas' : 'Your saved conversations'}
+        onPress={() => setActiveSection('notes')}
+      />
       <HomeLinkCard
         icon="🏥"
         bg="#FEF2F2"
@@ -1016,6 +1041,15 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
               <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
             </TouchableOpacity>
             <CategoryTodoList category="healthcare" isSpanish={isSpanish} />
+          </View>
+        )}
+        {activeSection === 'notes' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.detailTitle}>{isSpanish ? 'Notas de Casy' : 'Casy Notes'}</Text>
+            <CasyNotesList category="healthcare" isSpanish={isSpanish} />
           </View>
         )}
       </ScrollView>

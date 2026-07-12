@@ -108,6 +108,19 @@ export interface UserProfile {
   // Casy's personalized picks per tab (housing/employment/healthcare),
   // generated from the person's answers so each tab is specific to them.
   categoryPicks?: { [category: string]: PlanRecommendation[] };
+  // Saved Casy conversations ("notes"), grouped per category and by date, so
+  // the person can reopen what was discussed.
+  casyNotes?: CasyNote[];
+}
+
+// A saved Casy conversation the person can reopen later.
+export interface CasyNote {
+  id: string;
+  category: ServiceCategory | 'general';
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp of the last message
+  title: string; // short label (usually the first thing they asked)
+  messages: { role: 'user' | 'model'; content: string }[];
 }
 
 export interface CaseWorkerProfile {

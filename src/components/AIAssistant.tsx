@@ -128,6 +128,10 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  // Identity of the current chat session, so the whole conversation saves as
+  // one dated "Casy note" (reset when the chat is closed = a new note).
+  const noteIdRef = useRef<string | null>(null);
+  const noteCreatedRef = useRef<string>('');
 
   const hasCoords =
     !!profile?.location &&
@@ -157,35 +161,66 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     }
   }, [messages, loading, open]);
 
+  // Save the whole conversation as a dated Casy note for this category so the
+  // person can reopen "the things discussed" later.
+  const saveNote = (fullMessages: AIMessage[]) => {
+    if (!noteIdRef.current) return;
+    const firstUser = fullMessages.find((m) => m.role === 'user')?.content || '';
+    const title = firstUser
+      ? firstUser.length > 64 ? `${firstUser.slice(0, 64)}…` : firstUser
+      : isSpanish ? 'Conversación con Casy' : 'Chat with Casy';
+    dispatch({
+      type: 'SAVE_CASY_NOTE',
+      payload: {
+        id: noteIdRef.current,
+        category: focus || 'general',
+        createdAt: noteCreatedRef.current,
+        updatedAt: new Date().toISOString(),
+        title,
+        messages: fullMessages.map((m) => ({ role: m.role, content: m.content })),
+      },
+    });
+  };
+
   const send = async (text: string) => {
     const msg = text.trim();
     if (!msg || loading) return;
     const history = messages;
+    // Start a new note session on the first message of this chat.
+    if (!noteIdRef.current) {
+      noteIdRef.current = `note_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+      noteCreatedRef.current = new Date().toISOString();
+    }
     setMessages((prev) => [...prev, { role: 'user', content: msg }]);
     setInput('');
     setLoading(true);
+    let reply: string;
     try {
-      const reply = await sendMessageToAI(msg, history, context, addTaskFromCasy, saveResourceFromCasy);
-      setMessages((prev) => [...prev, { role: 'model', content: reply }]);
+      reply = await sendMessageToAI(msg, history, context, addTaskFromCasy, saveResourceFromCasy);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'model',
-          content: isSpanish
-            ? 'Lo siento, tuve un problema. Intenta de nuevo o llama al 211.'
-            : 'Sorry, I had a problem. Please try again or call 211.',
-        },
-      ]);
-    } finally {
-      setLoading(false);
+      reply = isSpanish
+        ? 'Lo siento, tuve un problema. Intenta de nuevo o llama al 211.'
+        : 'Sorry, I had a problem. Please try again or call 211.';
     }
+    setMessages((prev) => [...prev, { role: 'model', content: reply }]);
+    setLoading(false);
+    // Persist the running conversation (upsert by session id).
+    saveNote([...history, { role: 'user', content: msg }, { role: 'model', content: reply }]);
+  };
+
+  // Close the chat and end the note session, so reopening starts a fresh note.
+  const closeChat = () => {
+    setOpen(false);
+    noteIdRef.current = null;
+    noteCreatedRef.current = '';
+    setMessages([]);
   };
 
   // Quick exit: instantly leave to a neutral site so no one nearby sees the
   // app. Critical for anyone in an unsafe situation.
   const quickExit = () => {
     setOpen(false);
+    noteIdRef.current = null;
     Linking.openURL('https://weather.com').catch(() => {
       Linking.openURL('https://google.com').catch(() => {});
     });
@@ -213,7 +248,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
         <CasyAvatar size={38} bg="transparent" face="#FFFFFF" />
       </TouchableOpacity>
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+      <Modal visible={open} animationType="slide" transparent onRequestClose={closeChat}>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -231,7 +266,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => setOpen(false)} style={styles.closeBtn}>
+              <TouchableOpacity onPress={closeChat} style={styles.closeBtn}>
                 <Text style={styles.closeText}>✕</Text>
               </TouchableOpacity>
             </View>

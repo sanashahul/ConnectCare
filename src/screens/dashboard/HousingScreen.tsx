@@ -18,6 +18,8 @@ import { AIAssistant } from '../../components/AIAssistant';
 import { CasyResources } from '../../components/CasyResources';
 import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
 import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
+import { Collapsible } from '../../components/Collapsible';
+import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
@@ -284,7 +286,7 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
-  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | 'todos' | null>(null);
+  const [activeSection, setActiveSection] = useState<'foryou' | 'find' | 'options' | 'help' | 'needNow' | 'todos' | 'notes' | null>(null);
   const [counselors, setCounselors] = useState<HousingResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -460,6 +462,31 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
       <Text style={styles.sectionSubtitle}>
         {isSpanish ? '¿Con qué necesitas ayuda?' : 'What do you need help with?'}
       </Text>
+
+      {/* Casy's personalized recommendations, collapsed by default */}
+      <Collapsible
+        icon="⭐"
+        title={isSpanish ? 'Recomendaciones de Casy para ti' : "Casy's Recommendations for You"}
+        subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
+      >
+        <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
+        <CasyResources
+          isSpanish={isSpanish}
+          resources={[
+            ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
+            ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),
+          ]}
+        />
+      </Collapsible>
+
+      {/* Casy Notes - saved conversations for this tab */}
+      <HomeLinkCard
+        icon="📝"
+        bg="#EEF2FF"
+        title={isSpanish ? 'Notas de Casy' : 'Casy Notes'}
+        subtitle={isSpanish ? 'Tus conversaciones guardadas' : 'Your saved conversations'}
+        onPress={() => setActiveSection('notes')}
+      />
 
       {/* Runaway Safeline - kept as a safety-critical resource for minors */}
       {userProfile?.ageGroup === 'under18' && (
@@ -1082,6 +1109,15 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
               <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
             </TouchableOpacity>
             <CategoryTodoList category="housing" isSpanish={isSpanish} />
+          </View>
+        )}
+        {activeSection === 'notes' && (
+          <View style={styles.detailContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setActiveSection(null)}>
+              <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.detailTitle}>{isSpanish ? 'Notas de Casy' : 'Casy Notes'}</Text>
+            <CasyNotesList category="housing" isSpanish={isSpanish} />
           </View>
         )}
       </ScrollView>
