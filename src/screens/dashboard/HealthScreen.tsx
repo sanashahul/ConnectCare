@@ -511,12 +511,6 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         title={isSpanish ? 'Recursos de emergencia' : 'Emergency resources'}
         onPress={() => setActiveSection('urgent')}
       />
-      <HomeLinkCard
-        icon="🏥"
-        variant="secondary"
-        title={isSpanish ? 'Buscar clínicas cercanas' : 'Find nearby clinics'}
-        onPress={() => setActiveSection('clinics')}
-      />
 
       {/* Health guides */}
       <Text style={styles.moreTitle}>{isSpanish ? 'Guías de salud' : 'Health guides'}</Text>
