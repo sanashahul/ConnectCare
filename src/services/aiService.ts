@@ -520,6 +520,44 @@ export const sendMessageToAI = async (
   }
 };
 
+export type NoteCategory = 'healthcare' | 'housing' | 'employment' | 'general';
+
+// Classify a chat message so a Casy note can be routed to the right tab's
+// notes. Fast, tiny call; returns 'general' when it doesn't clearly fit one.
+export const classifyCategory = async (message: string): Promise<NoteCategory> => {
+  const apiKey = getApiKey();
+  const text = (message || '').toLowerCase();
+  // Cheap keyword pass first (no network) for the obvious cases.
+  const kw = (words: string[]) => words.some((w) => text.includes(w));
+  const health = kw(['health', 'clinic', 'doctor', 'medical', 'mental', 'medic', 'insur', 'dental', 'hospital', 'therap', 'prescription', 'sick', 'pain', 'salud', 'clínica', 'médic', 'dentista']);
+  const housing = kw(['hous', 'shelter', 'rent', 'evict', 'homeless', 'apartment', 'sleep', 'motel', 'vivienda', 'refugio', 'renta', 'desalojo']);
+  const jobs = kw(['job', 'work', 'employ', 'resume', 'hir', 'career', 'income', 'wage', 'training', 'interview', 'empleo', 'trabajo', 'currículum', 'entrevista']);
+  const hits = [health, housing, jobs].filter(Boolean).length;
+  if (hits === 1) {
+    if (health) return 'healthcare';
+    if (housing) return 'housing';
+    return 'employment';
+  }
+
+  // Ambiguous or no keywords: ask Casy to classify (small, fast).
+  if (!apiKey) return 'general';
+  try {
+    const system = `Classify the user's message into ONE category and reply with ONLY that one word (no punctuation):
+- healthcare (health, medical, clinic, mental health, insurance, meds, dental)
+- housing (shelter, rent, housing, eviction, sleeping outside)
+- employment (jobs, work, resume, hiring, training, income)
+- general (greetings, thanks, or anything that doesn't clearly fit one of the above)`;
+    const data = await callClaude({ system, messages: [{ role: 'user', content: message }], maxTokens: 6 }, apiKey);
+    const out = extractText(data).toLowerCase();
+    if (out.includes('health')) return 'healthcare';
+    if (out.includes('hous')) return 'housing';
+    if (out.includes('employ') || out.includes('job')) return 'employment';
+    return 'general';
+  } catch {
+    return 'general';
+  }
+};
+
 // ---------------------------------------------------------------------------
 // Personalized plan: generate recommendations from the user's answers,
 // grounded in real resources fetched live for their location.

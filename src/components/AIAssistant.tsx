@@ -20,6 +20,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { sendMessageToAI, buildAnswersSummary, AIMessage, UserContext, AddTaskInput, SaveResourceInput } from '../services/aiService';
+import { useCasyNoteRouter } from '../hooks/useCasyNoteRouter';
 import { CasyAvatar } from './CasyAvatar';
 
 export type AIFocus = 'housing' | 'healthcare' | 'employment';
@@ -128,10 +129,9 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
-  // Identity of the current chat session, so the whole conversation saves as
-  // one dated "Casy note" (reset when the chat is closed = a new note).
-  const noteIdRef = useRef<string | null>(null);
-  const noteCreatedRef = useRef<string>('');
+  // Routes each exchange to the right category's notes (health message -> Health
+  // notes, housing message -> Housing notes) even within one conversation.
+  const noteRouter = useCasyNoteRouter();
 
   const hasCoords =
     !!profile?.location &&
@@ -161,36 +161,10 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     }
   }, [messages, loading, open]);
 
-  // Save the whole conversation as a dated Casy note for this category so the
-  // person can reopen "the things discussed" later.
-  const saveNote = (fullMessages: AIMessage[]) => {
-    if (!noteIdRef.current) return;
-    const firstUser = fullMessages.find((m) => m.role === 'user')?.content || '';
-    const title = firstUser
-      ? firstUser.length > 64 ? `${firstUser.slice(0, 64)}…` : firstUser
-      : isSpanish ? 'Conversación con Casy' : 'Chat with Casy';
-    dispatch({
-      type: 'SAVE_CASY_NOTE',
-      payload: {
-        id: noteIdRef.current,
-        category: focus || 'general',
-        createdAt: noteCreatedRef.current,
-        updatedAt: new Date().toISOString(),
-        title,
-        messages: fullMessages.map((m) => ({ role: m.role, content: m.content })),
-      },
-    });
-  };
-
   const send = async (text: string) => {
     const msg = text.trim();
     if (!msg || loading) return;
     const history = messages;
-    // Start a new note session on the first message of this chat.
-    if (!noteIdRef.current) {
-      noteIdRef.current = `note_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
-      noteCreatedRef.current = new Date().toISOString();
-    }
     setMessages((prev) => [...prev, { role: 'user', content: msg }]);
     setInput('');
     setLoading(true);
@@ -204,15 +178,15 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
     }
     setMessages((prev) => [...prev, { role: 'model', content: reply }]);
     setLoading(false);
-    // Persist the running conversation (upsert by session id).
-    saveNote([...history, { role: 'user', content: msg }, { role: 'model', content: reply }]);
+    // Route this exchange to the right category's notes (by topic). The tab you
+    // opened Casy from is the fallback for messages that don't fit a category.
+    void noteRouter.record(msg, reply, focus || 'general', isSpanish);
   };
 
-  // Close the chat and end the note session, so reopening starts a fresh note.
+  // Close the chat and end the note session, so reopening starts fresh notes.
   const closeChat = () => {
     setOpen(false);
-    noteIdRef.current = null;
-    noteCreatedRef.current = '';
+    noteRouter.reset();
     setMessages([]);
   };
 
@@ -220,7 +194,7 @@ export const AIAssistant: React.FC<Props> = ({ focus }) => {
   // app. Critical for anyone in an unsafe situation.
   const quickExit = () => {
     setOpen(false);
-    noteIdRef.current = null;
+    noteRouter.reset();
     Linking.openURL('https://weather.com').catch(() => {
       Linking.openURL('https://google.com').catch(() => {});
     });

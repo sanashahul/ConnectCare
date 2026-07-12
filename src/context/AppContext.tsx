@@ -86,6 +86,7 @@ type AppAction =
   | { type: 'SET_RECOMMENDATIONS'; payload: PersonalizedPlan }
   | { type: 'TOGGLE_PLAN_STEP'; payload: number }
   | { type: 'ADD_SAVED_RESOURCE'; payload: PlanRecommendation }
+  | { type: 'REMOVE_CASY_RESOURCE'; payload: string }
   | { type: 'SET_CATEGORY_PICKS'; payload: { category: string; items: PlanRecommendation[] } }
   | { type: 'SAVE_CASY_NOTE'; payload: CasyNote }
   | { type: 'DELETE_CASY_NOTE'; payload: string }
@@ -271,6 +272,27 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         userProfile: {
           ...(state.userProfile || createEmptyUserProfile()),
           casyNotes: notes.filter((n) => n.id !== action.payload),
+        },
+      };
+    }
+
+    case 'REMOVE_CASY_RESOURCE': {
+      const key = action.payload.toLowerCase();
+      const matches = (r: PlanRecommendation) =>
+        `${r.resourceName || r.title}`.toLowerCase() === key;
+      const profile = state.userProfile;
+      if (!profile) return state;
+      return {
+        ...state,
+        userProfile: {
+          ...profile,
+          savedResources: (profile.savedResources || []).filter((r) => !matches(r)),
+          recommendations: profile.recommendations
+            ? {
+                ...profile.recommendations,
+                recommendations: profile.recommendations.recommendations.filter((r) => !matches(r)),
+              }
+            : profile.recommendations,
         },
       };
     }

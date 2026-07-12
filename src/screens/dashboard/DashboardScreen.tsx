@@ -22,6 +22,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
 import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput, SaveResourceInput } from '../../services/aiService';
+import { useCasyNoteRouter } from '../../hooks/useCasyNoteRouter';
 import { PlanRecommendation } from '../../types';
 import { getQuestionsByCategory } from '../../data/questions';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
@@ -1138,6 +1139,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     mentionedTopics: [],
   });
   const scrollViewRef = useRef<ScrollView>(null);
+  // Routes each dashboard chat exchange to the right category's notes by topic.
+  const noteRouter = useCasyNoteRouter();
 
   const isSpanish = i18n.language === 'es';
   const userProfile = state.userProfile;
@@ -1286,6 +1289,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
       setIsTyping(false);
 
+      // Route this exchange to the right category's notes by topic.
+      void noteRouter.record(messageText, responseContent, 'general', isSpanish);
+
       // Update conversation context
       const newContext: ConversationContext = {
         lastIntent: topicId,
@@ -1429,6 +1435,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         }));
       const responseContent = await sendMessageToAI(messageText, aiHistory, buildAIContext(), addTaskFromCasy, saveResourceFromCasy);
       setIsTyping(false);
+      void noteRouter.record(messageText, responseContent, 'general', isSpanish);
       setChatMessages((prev) => [
         ...prev,
         { id: (Date.now() + 1).toString(), type: 'ai', content: responseContent },
@@ -1517,6 +1524,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       );
 
       setIsTyping(false);
+      // Route this exchange to the right category's notes by topic.
+      void noteRouter.record(messageText, responseContent, 'general', isSpanish);
       setCurrentTopic(detectedIntent !== 'unknown' ? detectedIntent : null);
 
       // Update conversation context
@@ -2046,6 +2055,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
   const handleCloseAI = () => {
     setShowAI(false);
+    noteRouter.reset();
     setChatMessages([]);
     setCurrentTopic(null);
     setIsTyping(false);
@@ -2257,28 +2267,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
         {/* Personalized plan from Casy */}
         {renderPlan()}
-
-        {/* Saved from Casy - one home for all of Casy's recommendations + saved */}
-        <TouchableOpacity
-          style={styles.savedCasyCard}
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('SavedFromCasy')}
-        >
-          <View style={styles.savedCasyIconWrap}>
-            <Text style={styles.savedCasyIcon}>⭐</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.savedCasyTitle}>
-              {isSpanish ? 'Guardado de Casy' : 'Saved from Casy'}
-            </Text>
-            <Text style={styles.savedCasySub}>
-              {isSpanish
-                ? 'Tus recomendaciones y recursos guardados'
-                : 'Your recommendations & saved resources'}
-            </Text>
-          </View>
-          <Text style={styles.savedCasyArrow}>→</Text>
-        </TouchableOpacity>
 
 
         {/* Category Grid */}

@@ -454,8 +454,24 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
     };
   };
 
-  // Landing: opens straight on Casy's personalized housing recommendations,
-  // with Need Housing Now + My To-Dos kept prominent and the rest as links.
+  // Remove a resource from "From Casy, for you" (saved or plan).
+  const removeCasyResource = (r: any) => {
+    const key = r.resourceName || r.title;
+    Alert.alert(
+      isSpanish ? 'Eliminar recurso' : 'Remove resource',
+      isSpanish ? `¿Quitar "${key}" de tus recursos?` : `Remove "${key}" from your resources?`,
+      [
+        { text: isSpanish ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: isSpanish ? 'Eliminar' : 'Remove',
+          style: 'destructive',
+          onPress: () => dispatch({ type: 'REMOVE_CASY_RESOURCE', payload: key }),
+        },
+      ]
+    );
+  };
+
+  // Landing: Need Housing Now + My To-Dos kept prominent and the rest as links.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
       <Text style={styles.sectionTitle}>{isSpanish ? 'Vivienda' : 'Housing'}</Text>
@@ -472,6 +488,7 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
         <CasyResources
           isSpanish={isSpanish}
+          onDelete={removeCasyResource}
           resources={[
             ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
             ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),

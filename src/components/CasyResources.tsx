@@ -11,9 +11,11 @@ interface Props {
   resources: PlanRecommendation[];
   isSpanish: boolean;
   label?: string;
+  // When provided, each card shows a delete (✕) that calls this with the item.
+  onDelete?: (resource: PlanRecommendation) => void;
 }
 
-export const CasyResources: React.FC<Props> = ({ resources, isSpanish, label }) => {
+export const CasyResources: React.FC<Props> = ({ resources, isSpanish, label, onDelete }) => {
   if (!resources || resources.length === 0) return null;
   const heading = label || (isSpanish ? 'DE CASY, PARA TI' : 'FROM CASY, FOR YOU');
 
@@ -34,7 +36,17 @@ export const CasyResources: React.FC<Props> = ({ resources, isSpanish, label }) 
       </View>
       {items.map((r, i) => (
         <View key={i} style={styles.card}>
-          <Text style={styles.name}>{r.resourceName || r.title}</Text>
+          {!!onDelete && (
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => onDelete(r)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel={isSpanish ? 'Eliminar' : 'Remove'}
+            >
+              <Text style={styles.deleteText}>✕</Text>
+            </TouchableOpacity>
+          )}
+          <Text style={[styles.name, !!onDelete && { paddingRight: 24 }]}>{r.resourceName || r.title}</Text>
           {!!r.address && <Text style={styles.addr}>📍 {r.address}</Text>}
           {!!r.why && <Text style={styles.why}>{r.why}</Text>}
           {(!!r.phone || !!r.website) && (
@@ -72,6 +84,8 @@ const styles = StyleSheet.create({
     borderColor: '#CCFBF1',
   },
   name: { fontSize: 15.5, fontWeight: '700', color: '#0F172A' },
+  deleteBtn: { position: 'absolute', top: 10, right: 10, zIndex: 2, padding: 2 },
+  deleteText: { fontSize: 15, color: '#94A3B8', fontWeight: '700' },
   addr: { fontSize: 13, color: '#475569', marginTop: 3 },
   why: { fontSize: 13, color: '#475569', lineHeight: 19, marginTop: 3 },
   links: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 10 },

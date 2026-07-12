@@ -290,8 +290,24 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
     }
   };
 
-  // Landing: My To-Dos + browse links and guides. Casy's personalized
-  // recommendations now live in the "Saved from Casy" tab.
+  // Remove a resource from "From Casy, for you" (saved or plan).
+  const removeCasyResource = (r: any) => {
+    const key = r.resourceName || r.title;
+    Alert.alert(
+      isSpanish ? 'Eliminar recurso' : 'Remove resource',
+      isSpanish ? `¿Quitar "${key}" de tus recursos?` : `Remove "${key}" from your resources?`,
+      [
+        { text: isSpanish ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: isSpanish ? 'Eliminar' : 'Remove',
+          style: 'destructive',
+          onPress: () => dispatch({ type: 'REMOVE_CASY_RESOURCE', payload: key }),
+        },
+      ]
+    );
+  };
+
+  // Landing: My To-Dos + browse links and guides.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
       <Text style={styles.sectionTitle}>{isSpanish ? 'Empleo' : 'Jobs'}</Text>
@@ -308,6 +324,7 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
         <CasyResources
           isSpanish={isSpanish}
+          onDelete={removeCasyResource}
           resources={[
             ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'employment'),
             ...(userProfile?.savedResources || []).filter((r) => r.category === 'employment'),

@@ -406,8 +406,24 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     };
   };
 
-  // Landing: Need Help Now + My To-Dos, then browse links and guides. Casy's
-  // personalized recommendations now live in the "Saved from Casy" tab.
+  // Remove a resource from "From Casy, for you" (saved or plan).
+  const removeCasyResource = (r: any) => {
+    const key = r.resourceName || r.title;
+    Alert.alert(
+      isSpanish ? 'Eliminar recurso' : 'Remove resource',
+      isSpanish ? `¿Quitar "${key}" de tus recursos?` : `Remove "${key}" from your resources?`,
+      [
+        { text: isSpanish ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: isSpanish ? 'Eliminar' : 'Remove',
+          style: 'destructive',
+          onPress: () => dispatch({ type: 'REMOVE_CASY_RESOURCE', payload: key }),
+        },
+      ]
+    );
+  };
+
+  // Landing: Need Help Now + My To-Dos, then browse links and guides.
   const renderMainGrid = () => (
     <View style={styles.gridContainer}>
       <Text style={styles.sectionTitle}>{isSpanish ? 'Salud' : 'Health'}</Text>
@@ -424,6 +440,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         <CasyCategoryPicks category="healthcare" isSpanish={isSpanish} />
         <CasyResources
           isSpanish={isSpanish}
+          onDelete={removeCasyResource}
           resources={[
             ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'healthcare'),
             ...(userProfile?.savedResources || []).filter((r) => r.category === 'healthcare'),
