@@ -283,6 +283,27 @@ const isResourceOpen = (hours?: string): { isOpen: boolean; status: string; stat
   return { isOpen: true, status: 'Call to confirm', statusEs: 'Llame para confirmar' };
 };
 
+// Turn the housing triage answers into a short situation summary Casy can act
+// on (so "tonight + with kids" routes to a family emergency shelter).
+const describeHousingSituation = (a: Record<string, string>, _isSpanish: boolean): string => {
+  const situation: Record<string, string> = {
+    tonight: 'needs a place to sleep TONIGHT (emergency)',
+    few_days: 'will need shelter in the next few days',
+    eviction: 'is facing eviction',
+    unsafe: 'is in an unsafe living situation and may be in danger',
+  };
+  const who: Record<string, string> = {
+    just_me: 'is a single adult, alone',
+    with_family: 'has their family/children with them (needs family shelter)',
+    couple: 'is with their partner',
+    veteran: 'is a veteran (veteran housing programs may apply)',
+  };
+  const parts: string[] = [];
+  if (a.situation && situation[a.situation]) parts.push(`Situation: ${situation[a.situation]}`);
+  if (a.who && who[a.who]) parts.push(`Household: ${who[a.who]}`);
+  return parts.join('. ');
+};
+
 export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
@@ -1192,63 +1213,32 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
           </>
         ) : (
           <>
-            <View style={styles.resultContainer}>
-              <View
-                style={[
-                  styles.resultHeader,
-                  recommendation?.urgency === 'immediate' && styles.resultHeaderUrgent,
-                ]}
-              >
-                <Text style={styles.resultEmoji}>
-                  {recommendation?.urgency === 'immediate' ? '🚨' : '🏠'}
-                </Text>
-                <Text style={styles.resultTitle}>{recommendation?.title}</Text>
-              </View>
-
-              <Text style={styles.resultMessage}>{recommendation?.message}</Text>
-
-              <View style={styles.resultActions}>
-                {recommendation?.actions.map((action: any, index: number) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.resultButton,
-                      action.primary ? styles.resultButtonPrimary : styles.resultButtonSecondary,
-                    ]}
-                    onPress={() => handleCall(action.phone)}
-                  >
-                    <Text
-                      style={[
-                        styles.resultButtonText,
-                        action.primary ? styles.resultButtonTextPrimary : styles.resultButtonTextSecondary,
-                      ]}
-                    >
-                      📞 {action.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <View style={styles.additionalInfo}>
-                <Text style={styles.additionalInfoTitle}>
-                  {isSpanish ? 'Consejos Importantes' : 'Important Tips'}
-                </Text>
-                <Text style={styles.additionalInfoText}>
-                  {isSpanish
-                    ? '• Muchos refugios tienen horarios de registro (usualmente 5-8pm)\n• Trae identificación si la tienes\n• Pregunta sobre comidas, duchas y servicios de gestión de casos\n• Si estás en peligro, llama al 911'
-                    : "• Many shelters have check-in times (usually 5-8pm)\n• Bring ID if you have it\n• Ask about meals, showers, and case management\n• If you're in danger, call 911"}
-                </Text>
-              </View>
-
-              {/* Casy's nearest specific places (emergency shelter / drop-in) */}
-              <CasyEmergencyHelp kind="housing" isSpanish={isSpanish} />
-
-              <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
-                <Text style={styles.startOverText}>
-                  {isSpanish ? 'Empezar de Nuevo' : 'Start Over'}
+            {/* Unsafe / danger: keep 911 front and center */}
+            {triageAnswers.situation === 'unsafe' && (
+              <TouchableOpacity style={styles.emergencyBanner} onPress={() => handleCall('911')}>
+                <Text style={styles.emergencyBannerText}>
+                  🚨 {isSpanish ? 'Si estás en peligro, llama al 911' : "If you're in danger, call 911"}
                 </Text>
               </TouchableOpacity>
-            </View>
+            )}
+
+            {/* Lead with Casy's plan, matched to what they just answered */}
+            <Text style={styles.resultsLead}>
+              {isSpanish
+                ? 'Según lo que me dijiste, esto es lo mejor para ti:'
+                : "Based on what you told me, here's the best place for you:"}
+            </Text>
+            <CasyEmergencyHelp
+              kind="housing"
+              isSpanish={isSpanish}
+              situation={describeHousingSituation(triageAnswers, isSpanish)}
+            />
+
+            <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
+              <Text style={styles.startOverText}>
+                {isSpanish ? 'Empezar de Nuevo' : 'Start Over'}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
       </View>
@@ -1315,6 +1305,15 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 10,
   },
+  emergencyBanner: {
+    backgroundColor: '#DC2626',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emergencyBannerText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', paddingHorizontal: 12 },
+  resultsLead: { fontSize: 15, color: '#0F172A', fontWeight: '700', marginBottom: 12 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

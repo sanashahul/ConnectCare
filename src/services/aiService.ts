@@ -804,7 +804,8 @@ const EMERGENCY_KIND: Record<string, { en: string; es: string; want: string; cat
 
 export const generateEmergencyHelp = async (
   context: UserContext,
-  kind: 'healthcare' | 'housing'
+  kind: 'healthcare' | 'housing',
+  situation?: string
 ): Promise<PlanRecommendation[] | null> => {
   const apiKey = getApiKey();
   if (!apiKey) return null;
@@ -818,7 +819,7 @@ export const generateEmergencyHelp = async (
   try {
     const system = `You are Casy, an expert AI case manager helping someone who needs ${
       k.en
-    } URGENTLY in ${locationLabel}. Name the NEAREST SPECIFIC real places they can go or call right now. ${
+    } URGENTLY in ${locationLabel}. Name the NEAREST SPECIFIC real places they can go or call right now, MATCHED to their exact situation. ${
       isSpanish ? 'Respond in Spanish.' : 'Respond in English.'
     }
 
@@ -826,6 +827,11 @@ PERSON:
 - Location: ${locationLabel}
 - Age: ${context.isMinor ? 'Under 18 (a MINOR - recommend youth-appropriate options)' : 'Adult'}
 ${context.answersSummary ? `\nWhat you know about them:\n${context.answersSummary}` : ''}
+${
+  situation
+    ? `\nTHEIR EXACT SITUATION RIGHT NOW (they just told you this - match your picks PRECISELY to it):\n${situation}\nFor example: if they have no insurance, lead with FREE / sliding-scale / community places that serve the uninsured; if it's dental, name dental clinics specifically; if it's mental health, name crisis/behavioral-health options; if it's not life-threatening, do NOT send them to the ER first - send them to the right lower-cost place.`
+    : ''
+}
 
 List ${k.want}. Give the actual named places in ${locationLabel} (e.g. a specific named hospital, clinic, or shelter you know serves that area), with address and phone. This is urgent, so be concrete and calm.
 

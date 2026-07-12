@@ -163,6 +163,35 @@ const URGENT_RESOURCES = [
   { id: 'u4', name: 'SAMHSA Helpline', nameEs: 'Línea de Ayuda SAMHSA', description: 'Substance abuse help 24/7', descriptionEs: 'Ayuda con abuso de sustancias 24/7', phone: '1-800-662-4357', icon: '🤝' },
 ];
 
+// Turn the triage answers into a short situation summary Casy can act on
+// (so "dental pain + no insurance" routes to a free dental clinic, not the ER).
+const describeHealthSituation = (a: Record<string, string>, _isSpanish: boolean): string => {
+  const issue: Record<string, string> = {
+    physical: 'physical illness or injury',
+    mental: 'a mental health or emotional crisis',
+    medication: 'needs medication or a prescription refill',
+    dental: 'dental pain or a dental problem',
+    checkup: 'a check-up or preventive care',
+  };
+  const urgency: Record<string, string> = {
+    emergency: 'life-threatening emergency',
+    urgent: 'urgent - needs care within 24 hours',
+    soon: 'can wait a few days',
+    routine: 'routine - just needs an appointment',
+  };
+  const insurance: Record<string, string> = {
+    yes: 'has private health insurance',
+    medicaid: 'has Medicaid/Medicare',
+    no: 'has NO health insurance (needs free / sliding-scale care)',
+    unsure: 'is unsure about insurance',
+  };
+  const parts: string[] = [];
+  if (a.issue && issue[a.issue]) parts.push(`Health need: ${issue[a.issue]}`);
+  if (a.urgency && urgency[a.urgency]) parts.push(`Urgency: ${urgency[a.urgency]}`);
+  if (a.insurance && insurance[a.insurance]) parts.push(`Insurance: ${insurance[a.insurance]}`);
+  return parts.join('. ');
+};
+
 export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const { state, dispatch } = useApp();
@@ -892,7 +921,8 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
     const showResults = triageStep >= HEALTH_TRIAGE.length;
 
     if (showResults) {
-      const recommendation = getTriageRecommendation();
+      const situation = describeHealthSituation(triageAnswers, isSpanish);
+      const isEmergency = triageAnswers.urgency === 'emergency';
       return (
         <View style={styles.detailContainer}>
           <TouchableOpacity
@@ -905,57 +935,22 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
             <Text style={styles.backButtonText}>← {isSpanish ? 'Volver' : 'Back'}</Text>
           </TouchableOpacity>
 
-          {/* Results Card */}
-          <View style={[styles.resultCard, { borderColor: recommendation.color }]}>
-            <View style={[styles.resultHeader, { backgroundColor: recommendation.color }]}>
-              <Text style={styles.resultIcon}>{recommendation.icon}</Text>
-              <View>
-                <Text style={styles.resultTitle}>{recommendation.title}</Text>
-                <Text style={styles.resultSubtitle}>{recommendation.subtitle}</Text>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.resultActions}>
-              {recommendation.actions.map((action, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.resultActionButton,
-                    action.primary
-                      ? { backgroundColor: recommendation.color }
-                      : { backgroundColor: '#F1F5F9' },
-                  ]}
-                  onPress={() => handleCall(action.phone)}
-                >
-                  <Text
-                    style={[
-                      styles.resultActionText,
-                      action.primary ? { color: '#FFFFFF' } : { color: '#0F172A' },
-                    ]}
-                  >
-                    📞 {action.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Tips */}
-            <View style={styles.resultTips}>
-              <Text style={styles.resultTipsTitle}>
-                {isSpanish ? 'Consejos Importantes:' : 'Important Tips:'}
+          {/* Life-threatening: keep 911 front and center */}
+          {isEmergency && (
+            <TouchableOpacity style={styles.emergencyBanner} onPress={() => handleCall('911')}>
+              <Text style={styles.emergencyBannerText}>
+                🚨 {isSpanish ? 'Llama al 911 ahora' : 'Call 911 now'}
               </Text>
-              {recommendation.tips.map((tip, index) => (
-                <View key={index} style={styles.tipRow}>
-                  <Text style={styles.tipBullet}>•</Text>
-                  <Text style={styles.tipText}>{tip}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
+            </TouchableOpacity>
+          )}
 
-          {/* Casy's nearest specific places (ER / urgent care / free clinic) */}
-          <CasyEmergencyHelp kind="healthcare" isSpanish={isSpanish} />
+          {/* Lead with Casy's plan, matched to what they just answered */}
+          <Text style={styles.resultsLead}>
+            {isSpanish
+              ? 'Según lo que me dijiste, esto es lo mejor para ti:'
+              : "Based on what you told me, here's the best place for you:"}
+          </Text>
+          <CasyEmergencyHelp kind="healthcare" isSpanish={isSpanish} situation={situation} />
 
           {/* Start Over Button */}
           <TouchableOpacity style={styles.startOverButton} onPress={resetTriage}>
@@ -1134,6 +1129,15 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 10,
   },
+  emergencyBanner: {
+    backgroundColor: '#DC2626',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emergencyBannerText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
+  resultsLead: { fontSize: 15, color: '#0F172A', fontWeight: '700', marginBottom: 12 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
