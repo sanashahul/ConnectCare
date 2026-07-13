@@ -474,7 +474,7 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
       <Collapsible
         icon="📌"
         title={isSpanish ? 'Guardado por Casy' : 'Saved by Casy'}
-        subtitle={isSpanish ? 'Salud, comida y beneficios' : 'Health, food & benefits'}
+        subtitle={isSpanish ? 'Salud, comida, beneficios y más' : 'Health, food, benefits & anything else'}
       >
         {(() => {
           const saved = [
