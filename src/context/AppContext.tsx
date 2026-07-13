@@ -90,6 +90,7 @@ type AppAction =
   | { type: 'SET_CATEGORY_PICKS'; payload: { category: string; items: PlanRecommendation[] } }
   | { type: 'SAVE_CASY_NOTE'; payload: CasyNote }
   | { type: 'DELETE_CASY_NOTE'; payload: string }
+  | { type: 'COMPLETE_TOUR' }
   | { type: 'COMPLETE_ONBOARDING'; payload?: { startPlan?: boolean } }
   | { type: 'CLEAR_START_PLAN' }
   | { type: 'SET_USER_PIN'; payload: string }
@@ -296,6 +297,15 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         },
       };
     }
+
+    case 'COMPLETE_TOUR':
+      return {
+        ...state,
+        userProfile: {
+          ...(state.userProfile || createEmptyUserProfile()),
+          hasSeenTour: true,
+        },
+      };
 
     case 'SET_CATEGORY_PICKS': {
       const existing = state.userProfile?.categoryPicks || {};

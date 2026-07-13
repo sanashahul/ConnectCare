@@ -23,6 +23,7 @@ import { useApp } from '../../context/AppContext';
 import { CasyAvatar } from '../../components/CasyAvatar';
 import { sendMessageToAI, buildAnswersSummary, generatePersonalizedPlan, AIMessage, AddTaskInput, SaveResourceInput } from '../../services/aiService';
 import { useCasyNoteRouter } from '../../hooks/useCasyNoteRouter';
+import { AppTour } from '../../components/AppTour';
 import { PlanRecommendation } from '../../types';
 import { getQuestionsByCategory } from '../../data/questions';
 import { YOUTH_HOTLINES, getYouthMessage } from '../../data/youthResources';
@@ -1125,6 +1126,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [showAllTodos, setShowAllTodos] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
   const [newTodoDescription, setNewTodoDescription] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<any>(null);
@@ -2062,6 +2064,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     </Modal>
   );
 
+  // First-run: show the feature tour once, after onboarding is complete.
+  useEffect(() => {
+    if (userProfile?.shareCode && !userProfile?.hasSeenTour) {
+      setShowTour(true);
+    }
+  }, [userProfile?.shareCode, userProfile?.hasSeenTour]);
+
+  const finishTour = () => {
+    setShowTour(false);
+    dispatch({ type: 'COMPLETE_TOUR' });
+  };
+
   const handleCloseAI = () => {
     setShowAI(false);
     noteRouter.reset();
@@ -2264,7 +2278,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>
               {isSpanish ? '¡Hola' : 'Hello'}, {userProfile?.name || 'Friend'}! 👋
             </Text>
@@ -2272,6 +2286,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
               {isSpanish ? 'Tus recursos personalizados' : 'Your personalized resources'}
             </Text>
           </View>
+          <TouchableOpacity
+            style={styles.tourButton}
+            onPress={() => setShowTour(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.tourButtonText}>{isSpanish ? '¿Cómo funciona?' : 'How it works'}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Personalized plan from Casy */}
@@ -2596,6 +2617,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
       {/* Todo Detail Modal */}
       {renderTodoDetailModal()}
+
+      {/* First-run feature tour */}
+      <AppTour visible={showTour} isSpanish={isSpanish} onDone={finishTour} />
     </SafeAreaView>
   );
 };
@@ -2848,7 +2872,18 @@ const styles = StyleSheet.create({
   header: {
     padding: 24,
     paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  tourButton: {
+    backgroundColor: '#F0FDFA',
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  tourButtonText: { color: '#0D9488', fontWeight: '800', fontSize: 12.5 },
   greeting: {
     fontSize: 28,
     fontWeight: '800',

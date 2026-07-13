@@ -111,6 +111,8 @@ export interface UserProfile {
   // Saved Casy conversations ("notes"), grouped per category and by date, so
   // the person can reopen what was discussed.
   casyNotes?: CasyNote[];
+  // Whether the person has seen the first-run feature tour.
+  hasSeenTour?: boolean;
 }
 
 // A saved Casy conversation the person can reopen later.
