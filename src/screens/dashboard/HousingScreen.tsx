@@ -21,6 +21,7 @@ import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
 import { Collapsible } from '../../components/Collapsible';
 import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
+import { foldToTab } from '../../services/aiService';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHousingResources } from '../../services';
 import { Resource } from '../../types';
@@ -507,6 +508,29 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
       >
         <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
+      </Collapsible>
+
+      {/* Saved by Casy: housing + folded topics (legal help) live here */}
+      <Collapsible
+        icon="📌"
+        title={isSpanish ? 'Guardado por Casy' : 'Saved by Casy'}
+        subtitle={isSpanish ? 'Vivienda y ayuda legal' : 'Housing & legal help'}
+      >
+        {(() => {
+          const saved = [
+            ...(userProfile?.recommendations?.recommendations || []),
+            ...(userProfile?.savedResources || []),
+          ].filter((r) => foldToTab(r.category) === 'housing');
+          return saved.length ? (
+            <CasyResources isSpanish={isSpanish} onDelete={removeCasyResource} resources={saved} />
+          ) : (
+            <Text style={styles.sectionSubtitle}>
+              {isSpanish
+                ? 'Cuando Casy guarde recursos de vivienda o ayuda legal, aparecerán aquí.'
+                : 'When Casy saves housing or legal-help resources, they show up here.'}
+            </Text>
+          );
+        })()}
       </Collapsible>
 
       {/* Casy Notes - saved conversations for this tab */}

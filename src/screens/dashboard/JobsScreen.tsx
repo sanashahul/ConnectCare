@@ -20,6 +20,7 @@ import { CasyCategoryPicks } from '../../components/CasyCategoryPicks';
 import { Collapsible } from '../../components/Collapsible';
 import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
+import { foldToTab } from '../../services/aiService';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getEmploymentResources } from '../../services';
 import { Resource } from '../../types';
@@ -322,6 +323,29 @@ export const JobsScreen: React.FC<JobsScreenProps> = ({ navigation }) => {
         subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
       >
         <CasyCategoryPicks category="employment" isSpanish={isSpanish} />
+      </Collapsible>
+
+      {/* Saved by Casy: jobs + folded topics (documents/ID, education) live here */}
+      <Collapsible
+        icon="📌"
+        title={isSpanish ? 'Guardado por Casy' : 'Saved by Casy'}
+        subtitle={isSpanish ? 'Empleo, documentos y educación' : 'Jobs, documents & education'}
+      >
+        {(() => {
+          const saved = [
+            ...(userProfile?.recommendations?.recommendations || []),
+            ...(userProfile?.savedResources || []),
+          ].filter((r) => foldToTab(r.category) === 'employment');
+          return saved.length ? (
+            <CasyResources isSpanish={isSpanish} onDelete={removeCasyResource} resources={saved} />
+          ) : (
+            <Text style={styles.sectionSubtitle}>
+              {isSpanish
+                ? 'Cuando Casy guarde recursos de empleo, documentos o educación, aparecerán aquí.'
+                : 'When Casy saves jobs, documents, or education resources, they show up here.'}
+            </Text>
+          );
+        })()}
       </Collapsible>
 
       {/* Casy Notes - saved conversations for this tab */}

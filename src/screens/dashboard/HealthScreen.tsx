@@ -21,6 +21,7 @@ import { CasyEmergencyHelp } from '../../components/CasyEmergencyHelp';
 import { Collapsible } from '../../components/Collapsible';
 import { CasyNotesList } from '../../components/CasyNotesList';
 import { HomeLinkCard } from '../../components/HomeLinkCard';
+import { foldToTab } from '../../services/aiService';
 import { CategoryTodoList } from '../../components/CategoryTodoList';
 import { getHealthcareResources } from '../../services';
 import { Resource } from '../../types';
@@ -467,6 +468,29 @@ export const HealthScreen: React.FC<HealthScreenProps> = ({ navigation }) => {
         subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
       >
         <CasyCategoryPicks category="healthcare" isSpanish={isSpanish} />
+      </Collapsible>
+
+      {/* Saved by Casy: health + folded topics (food, benefits) live here */}
+      <Collapsible
+        icon="📌"
+        title={isSpanish ? 'Guardado por Casy' : 'Saved by Casy'}
+        subtitle={isSpanish ? 'Salud, comida y beneficios' : 'Health, food & benefits'}
+      >
+        {(() => {
+          const saved = [
+            ...(userProfile?.recommendations?.recommendations || []),
+            ...(userProfile?.savedResources || []),
+          ].filter((r) => foldToTab(r.category) === 'healthcare');
+          return saved.length ? (
+            <CasyResources isSpanish={isSpanish} onDelete={removeCasyResource} resources={saved} />
+          ) : (
+            <Text style={styles.sectionSubtitle}>
+              {isSpanish
+                ? 'Cuando Casy guarde recursos de salud, comida o beneficios, aparecerán aquí.'
+                : 'When Casy saves health, food, or benefits resources, they show up here.'}
+            </Text>
+          );
+        })()}
       </Collapsible>
 
       {/* Kept across all tabs: Need Help Now + My To-Dos + Casy Notes */}

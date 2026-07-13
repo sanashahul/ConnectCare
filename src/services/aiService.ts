@@ -126,7 +126,7 @@ const ADD_TASK_TOOL = {
       website: { type: 'string', description: "The resource's website, if any" },
       category: {
         type: 'string',
-        enum: ['housing', 'healthcare', 'employment', 'documents', 'benefits', 'education', 'other'],
+        enum: ['housing', 'healthcare', 'employment', 'food', 'documents', 'benefits', 'legal', 'education', 'other'],
       },
     },
     required: ['title'],
@@ -145,7 +145,7 @@ export interface SaveResourceInput {
 const SAVE_RESOURCE_TOOL = {
   name: 'save_resource',
   description:
-    "Save a helpful ORGANIZATION or place to the person's 'Saved from Casy' screen (opened from a card on their Dashboard) so they can find it later, organized into sections. Use this whenever you recommend a specific real place (a shelter, clinic, food bank, job program) - save it with its phone, website, and address. After saving, warmly tell them it's in their Saved from Casy and name the section: category 'housing' -> Housing, 'healthcare' -> Health, 'employment' -> Jobs, else -> Other (e.g. \"I've kept this in your Saved from Casy, under Health, so it's easy to find\").",
+    "Save a helpful ORGANIZATION or place so the person can find it later. Use this whenever you recommend a specific real place (a shelter, clinic, food bank, job program) - save it with its phone, website, and address, and pick the most accurate category. Everything is filed under one of the app's three tabs, so after saving, warmly tell them which tab it's in: Health tab holds healthcare, food, and benefits; Jobs tab holds employment, documents/ID, and education; Housing tab holds housing and legal help. E.g. a food bank -> \"I've saved this in your Health tab (that's where food resources live), so it's easy to find.\"",
   input_schema: {
     type: 'object',
     properties: {
@@ -156,7 +156,7 @@ const SAVE_RESOURCE_TOOL = {
       website: { type: 'string', description: 'Website, if known' },
       category: {
         type: 'string',
-        enum: ['housing', 'healthcare', 'employment', 'documents', 'benefits', 'education', 'other'],
+        enum: ['housing', 'healthcare', 'employment', 'food', 'documents', 'benefits', 'legal', 'education', 'other'],
         description: 'Which section it belongs in',
       },
     },
@@ -270,6 +270,27 @@ const locationLabelOf = (c: UserContext): string => {
   const cityState = c.city ? `${c.city}, ${c.state || ''}`.replace(/,\s*$/, '').trim() : '';
   const label = [cityState, c.zip].filter(Boolean).join(' ').trim();
   return label || 'their area';
+};
+
+// A save or note can be tagged with more categories than we show tabs for
+// (food, documents, benefits, legal, education, other). Fold each into the
+// nearest tab so it always has a visible home:
+//   Health  <- healthcare, food, benefits, other
+//   Housing <- housing, legal
+//   Jobs    <- employment, documents, education
+export type TabCategory = 'healthcare' | 'housing' | 'employment';
+export const foldToTab = (category?: string): TabCategory => {
+  switch ((category || '').toLowerCase()) {
+    case 'housing':
+    case 'legal':
+      return 'housing';
+    case 'employment':
+    case 'documents':
+    case 'education':
+      return 'employment';
+    default: // healthcare, food, benefits, other, unknown
+      return 'healthcare';
+  }
 };
 
 // Pull the first [...] JSON array out of a model reply (it may wrap it in prose).
@@ -393,7 +414,7 @@ CÓMO AYUDAS:
 - Menciona 211 / 988 / 911 solo cuando sean de verdad el mejor recurso para esa necesidad (como una crisis real), NO como sustituto de dar el número de una organización específica.
 - Adapta todo a la situación específica de ESTA persona y sus respuestas (refugio para familias si tiene hijos, programas para veteranos si es veterano, clínica gratuita si no tiene seguro, etc.).
 - IMPORTANTE: CADA vez que recomiendes un lugar real específico, DEBES llamar a save_resource con su teléfono, sitio web, dirección y la categoría CORRECTA para que aparezca en la pestaña correcta: usa "housing" para refugios/vivienda, "healthcare" para clínicas/salud/salud mental, "employment" para trabajo/capacitación. Esto lo pone en sus recursos "Para Ti". Hazlo con cada lugar que nombres (llama a save_resource varias veces si nombras varios).
-- DILE SIEMPRE, con naturalidad, DÓNDE queda: todo lo que guardas va a su pantalla "Guardado de Casy" (que se abre desde una tarjeta en su Panel), organizado en secciones. Nombra la sección: vivienda → Vivienda, salud → Salud, empleo → Empleo, cualquier otra cosa (documentos, beneficios, educación) → Otros. Por ejemplo: "Guardé la Clínica X en tu Guardado de Casy, en la sección de Salud, para que la encuentres fácil." Así queda claro dónde volver a buscarlo.
+- DILE SIEMPRE, con naturalidad, EN QUÉ PESTAÑA queda. La app tiene tres pestañas y todo se agrupa en la más cercana: la pestaña de SALUD guarda salud, comida y beneficios; la de EMPLEO guarda empleo, documentos/identificación y educación; la de VIVIENDA guarda vivienda y ayuda legal. Así, un banco de comida va en Salud, una oficina de documentos va en Empleo, y una clínica legal va en Vivienda. Por ejemplo: "Guardé este banco de comida en tu pestaña de Salud (ahí van los recursos de comida), para que lo encuentres fácil." Así queda claro dónde volver a buscarlo.
 - Aparte, para ACCIONES concretas que la persona decida hacer (como "llamar a X para reservar una cama"), usa add_task. save_resource = lugares que guardar; add_task = cosas que hacer. Puedes usar ambos.
 - Prioriza recursos gratuitos y de bajo costo.
 - Ante peligro o crisis, comparte primero la línea correcta, con calma.${toolGuidance}
@@ -422,7 +443,7 @@ HOW YOU HELP:
 - Only mention 211 / 988 / 911 when they are genuinely the best resource for that need (like a real crisis), NOT as a substitute for giving a specific organization's number.
 - Tailor everything to THIS person's specific situation and answers - match resources to their exact needs (family shelter if they have kids, veteran programs if a veteran, free clinic if uninsured, etc.).
 - IMPORTANT: EVERY time you recommend a specific real place, you MUST call save_resource for it, with its phone, website, address, and the CORRECT category so it lands in the right tab: use "housing" for shelters/housing, "healthcare" for clinics/health/mental health, "employment" for jobs/training. This puts it in their "For You" section so they can find it later. Do this for each place you name (call save_resource multiple times if you name several).
-- ALWAYS tell them, naturally, WHERE it goes: everything you save lands in their "Saved from Casy" screen (opened from a card on their Dashboard), organized into sections. Name the section: housing → Housing, healthcare → Health, employment → Jobs, anything else (documents, benefits, education) → Other. For example: "I've saved Clinic X to your Saved from Casy, under Health, so it's easy to find later." That way it's always clear where to go back and find it.
+- ALWAYS tell them, naturally, WHICH TAB it goes in. The app has three tabs and everything folds into the nearest one: the HEALTH tab holds healthcare, food, and benefits; the JOBS tab holds employment, documents/ID, and education; the HOUSING tab holds housing and legal help. So a food bank goes in Health, an ID/document office goes in Jobs, a legal-aid clinic goes in Housing. For example: "I've saved this food pantry in your Health tab (that's where food resources live), so it's easy to find later." That way it's always clear where to go back and find it.
 - Separately, for concrete ACTIONS the person commits to (like "call X to reserve a bed"), use the add_task tool to add it to their to-do list. save_resource = places to keep; add_task = things to do. You can use both.
 - Prefer free and low-cost resources.
 - If the person may be in danger or crisis, lead with the right hotline immediately and gently.${toolGuidance}
@@ -488,7 +509,7 @@ export const sendMessageToAI = async (
           } else if (use.name === 'save_resource' && onSaveResource) {
             try {
               onSaveResource(use.input as SaveResourceInput);
-              result = `Saved "${(use.input as SaveResourceInput)?.resourceName || 'the resource'}" to their Saved from Casy screen. Tell them warmly and name the section it's under.`;
+              result = `Saved "${(use.input as SaveResourceInput)?.resourceName || 'the resource'}". Tell them warmly which tab it's filed under (Health holds healthcare/food/benefits, Jobs holds employment/documents/education, Housing holds housing/legal).`;
             } catch {
               result = 'Could not save the resource.';
             }
@@ -547,6 +568,19 @@ export const classifyCategory = async (message: string): Promise<NoteCategory> =
     if (health) return 'healthcare';
     if (housing) return 'housing';
     return 'employment';
+  }
+
+  // Extra topics fold into the nearest tab (see foldToTab): food/benefits ->
+  // Health, documents/education -> Jobs, legal -> Housing.
+  const food = kw(['food', 'meal', 'hungry', 'pantry', 'snap', 'ebt', 'grocer', 'comida', 'despensa', 'hambre']);
+  const benefits = kw(['benefit', 'welfare', 'medicaid', 'medicare', 'disability', 'ssi', 'ssdi', 'tanf', 'calfresh', 'beneficio']);
+  const docs = kw(['identification', 'birth certificate', 'ssn', 'social security', "driver's license", 'state id', 'documento', 'identificación', 'licencia']);
+  const edu = kw(['school', 'ged', 'college', 'education', 'diploma', 'escuela', 'educación']);
+  const legal = kw(['legal', 'lawyer', 'attorney', 'court', 'immigration', 'deport', 'abogado', 'corte']);
+  if (hits === 0) {
+    if (food || benefits) return 'healthcare';
+    if (docs || edu) return 'employment';
+    if (legal) return 'housing';
   }
 
   // Ambiguous or no keywords: ask Casy to classify (small, fast).
