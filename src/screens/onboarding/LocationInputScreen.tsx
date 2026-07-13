@@ -29,7 +29,8 @@ type LocationInputScreenProps = {
 export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
   navigation,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isSpanish = i18n.language === 'es';
   const { dispatch } = useApp();
   const [location, setLocation] = useState<Location | null>(null);
   const [zipCode, setZipCode] = useState('');
@@ -98,35 +99,24 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
           <Text style={styles.title}>{t('onboarding.locationTitle')}</Text>
           <Text style={styles.subtitle}>{t('onboarding.locationSubtitle')}</Text>
 
-          {/* Location Detection */}
-          {!showZipInput && !location && (
-            <TouchableOpacity
-              style={styles.detectButton}
-              onPress={handleDetectLocation}
-              disabled={isDetecting}
-            >
-              {isDetecting ? (
-                <ActivityIndicator color="#2563EB" />
-              ) : (
-                <>
-                  <Text style={styles.detectIcon}>📍</Text>
-                  <Text style={styles.detectText}>{t('onboarding.detectLocation')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {/* Location Detected */}
-          {location && (
+          {location ? (
+            /* Confirmed location - ZIP shown clearly so they can verify it */
             <View style={styles.locationDetected}>
               <Text style={styles.locationIcon}>✓</Text>
               <View style={styles.locationInfo}>
-                <Text style={styles.locationLabel}>{t('onboarding.locationDetected')}</Text>
-                <Text style={styles.locationText}>
-                  {location.city && location.state
-                    ? `${location.city}, ${location.state}`
-                    : location.zipCode || 'Location set'}
+                <Text style={styles.locationLabel}>
+                  {isSpanish ? 'TU UBICACIÓN' : 'YOUR LOCATION'}
                 </Text>
+                <Text style={styles.locationText}>
+                  {location.city
+                    ? `${location.city}${location.state ? ', ' + location.state : ''}`
+                    : isSpanish ? 'Ubicación fijada' : 'Location set'}
+                </Text>
+                {!!location.zipCode && (
+                  <Text style={styles.locationZip}>
+                    {isSpanish ? 'Código postal' : 'ZIP'} {location.zipCode}
+                  </Text>
+                )}
               </View>
               <TouchableOpacity
                 onPress={() => {
@@ -134,41 +124,56 @@ export const LocationInputScreen: React.FC<LocationInputScreenProps> = ({
                   setShowZipInput(false);
                 }}
               >
-                <Text style={styles.changeLink}>Change</Text>
+                <Text style={styles.changeLink}>{isSpanish ? 'Cambiar' : 'Change'}</Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : (
+            <>
+              {/* ZIP entry - the clearest, most accurate way to set location */}
+              <Text style={styles.zipLabel}>
+                {isSpanish ? 'Ingresa tu código postal' : 'Enter your ZIP code'}
+              </Text>
+              <View style={styles.zipForm}>
+                <Input
+                  placeholder={t('onboarding.zipPlaceholder')}
+                  value={zipCode}
+                  onChangeText={(text) => {
+                    setZipCode(text.replace(/[^0-9]/g, '').slice(0, 5));
+                    setError('');
+                  }}
+                  keyboardType="numeric"
+                  maxLength={5}
+                />
+                <Button
+                  title={isSpanish ? 'Buscar' : 'Find'}
+                  onPress={handleZipCodeSubmit}
+                  disabled={zipCode.length < 5 || isDetecting}
+                  loading={isDetecting}
+                />
+              </View>
+              <Text style={styles.zipHint}>
+                {isSpanish
+                  ? 'Tu código postal nos da tu ubicación más exacta (mejor que el GPS).'
+                  : 'Your ZIP code gives us your most accurate location (more precise than GPS).'}
+              </Text>
 
-          {/* ZIP Code Input */}
-          {(showZipInput || (!location && !isDetecting)) && !location && (
-            <View style={styles.zipSection}>
-              {!showZipInput && (
-                <TouchableOpacity onPress={() => setShowZipInput(true)}>
-                  <Text style={styles.manualLink}>{t('onboarding.enterManually')}</Text>
-                </TouchableOpacity>
-              )}
-
-              {showZipInput && (
-                <View style={styles.zipForm}>
-                  <Input
-                    placeholder={t('onboarding.zipPlaceholder')}
-                    value={zipCode}
-                    onChangeText={(text) => {
-                      setZipCode(text.replace(/[^0-9]/g, '').slice(0, 5));
-                      setError('');
-                    }}
-                    keyboardType="numeric"
-                    maxLength={5}
-                  />
-                  <Button
-                    title="Find"
-                    onPress={handleZipCodeSubmit}
-                    disabled={zipCode.length < 5 || isDetecting}
-                    loading={isDetecting}
-                  />
-                </View>
-              )}
-            </View>
+              {/* GPS as a secondary option */}
+              <Text style={styles.orText}>{isSpanish ? '— o —' : '— or —'}</Text>
+              <TouchableOpacity
+                style={styles.detectButton}
+                onPress={handleDetectLocation}
+                disabled={isDetecting}
+              >
+                {isDetecting ? (
+                  <ActivityIndicator color="#2563EB" />
+                ) : (
+                  <>
+                    <Text style={styles.detectIcon}>📍</Text>
+                    <Text style={styles.detectText}>{t('onboarding.detectLocation')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </>
           )}
 
           {/* Error Message */}
@@ -280,6 +285,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#14532D',
+  },
+  locationZip: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0D9488',
+    marginTop: 4,
+  },
+  zipLabel: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  zipHint: {
+    fontSize: 13.5,
+    color: '#64748B',
+    marginTop: 10,
+    lineHeight: 19,
+  },
+  orText: {
+    fontSize: 14,
+    color: '#94A3B8',
+    textAlign: 'center',
+    fontWeight: '600',
+    marginVertical: 18,
   },
   changeLink: {
     color: '#16A34A',

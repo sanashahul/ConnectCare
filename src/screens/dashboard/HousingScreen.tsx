@@ -507,14 +507,6 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         subtitle={isSpanish ? 'Toca para ver' : 'Tap to view'}
       >
         <CasyCategoryPicks category="housing" isSpanish={isSpanish} />
-        <CasyResources
-          isSpanish={isSpanish}
-          onDelete={removeCasyResource}
-          resources={[
-            ...(userProfile?.recommendations?.recommendations || []).filter((r) => r.category === 'housing'),
-            ...(userProfile?.savedResources || []).filter((r) => r.category === 'housing'),
-          ]}
-        />
       </Collapsible>
 
       {/* Casy Notes - saved conversations for this tab */}
@@ -584,39 +576,6 @@ export const HousingScreen: React.FC<HousingScreenProps> = ({ navigation }) => {
         title={isSpanish ? 'Líneas de ayuda' : 'Helplines'}
         onPress={() => setActiveSection('help')}
       />
-
-      {/* Housing guides */}
-      <Text style={styles.moreTitle}>{isSpanish ? 'Guías de vivienda' : 'Housing guides'}</Text>
-      {HOUSING_FOR_YOU.map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.resourceCard}
-          onPress={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-        >
-          <View style={styles.resourceHeader}>
-            <View style={[styles.resourceIconContainer, { backgroundColor: `${item.color}20` }]}>
-              <Text style={styles.resourceIcon}>{item.icon}</Text>
-            </View>
-            <View style={styles.resourceInfo}>
-              <Text style={styles.resourceTitle}>{isSpanish ? item.titleEs : item.title}</Text>
-              <Text style={styles.resourceDescription}>
-                {isSpanish ? item.descriptionEs : item.description}
-              </Text>
-            </View>
-            <Text style={styles.expandIcon}>{expandedItem === item.id ? '▼' : '▶'}</Text>
-          </View>
-          {expandedItem === item.id && (
-            <View style={styles.resourceDetails}>
-              {(isSpanish ? item.detailsEs : item.details).map((detail, index) => (
-                <View key={index} style={styles.detailRow}>
-                  <Text style={styles.detailBullet}>•</Text>
-                  <Text style={styles.detailText}>{detail}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
     </View>
   );
 
