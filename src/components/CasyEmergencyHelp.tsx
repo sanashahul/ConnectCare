@@ -34,6 +34,7 @@ export const CasyEmergencyHelp: React.FC<Props> = ({ kind, isSpanish, situation 
     name: profile?.name,
     city: profile?.location?.city,
     state: profile?.location?.state,
+    zip: profile?.location?.zipCode,
     language: isSpanish ? 'es' : 'en',
     needs: profile?.selectedCategories,
     ageGroup: profile?.ageGroup,

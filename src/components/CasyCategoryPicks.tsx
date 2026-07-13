@@ -39,6 +39,7 @@ export const CasyCategoryPicks: React.FC<Props> = ({ category, isSpanish }) => {
     name: profile?.name,
     city: profile?.location?.city,
     state: profile?.location?.state,
+    zip: profile?.location?.zipCode,
     language: isSpanish ? 'es' : 'en',
     needs: profile?.selectedCategories,
     ageGroup: profile?.ageGroup,

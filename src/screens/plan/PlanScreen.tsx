@@ -176,6 +176,7 @@ export const PlanScreen: React.FC<PlanScreenProps> = ({ navigation }) => {
       name: profile?.name,
       city: loc?.city,
       state: loc?.state,
+      zip: loc?.zipCode,
       language: isSpanish ? 'es' : 'en',
       needs: profile?.selectedCategories,
       ageGroup: profile?.ageGroup,

@@ -37,6 +37,7 @@ export interface UserContext {
   name?: string;
   city?: string;
   state?: string;
+  zip?: string;
   language: 'en' | 'es';
   needs?: string[];
   ageGroup?: 'under18' | '18-24' | '25-54' | '55plus';
@@ -262,6 +263,15 @@ const extractText = (data: any): string => {
   return textBlock && typeof textBlock.text === 'string' ? textBlock.text.trim() : '';
 };
 
+// The clearest, most specific location string we have for the person, e.g.
+// "San Francisco, CA 94102". Casy uses this to give geographically accurate,
+// neighborhood-level recommendations instead of vague ones.
+const locationLabelOf = (c: UserContext): string => {
+  const cityState = c.city ? `${c.city}, ${c.state || ''}`.replace(/,\s*$/, '').trim() : '';
+  const label = [cityState, c.zip].filter(Boolean).join(' ').trim();
+  return label || 'their area';
+};
+
 // Pull the first [...] JSON array out of a model reply (it may wrap it in prose).
 const parseResourceArray = (text: string): SaveResourceInput[] => {
   try {
@@ -323,7 +333,7 @@ Include hotlines (211, 988, Runaway Safeline, etc.) only if the message presente
 const getSystemPrompt = (context: UserContext): string => {
   const isSpanish = context.language === 'es';
   const isMinor = context.isMinor || context.ageGroup === 'under18';
-  const location = context.city ? `${context.city}, ${context.state || ''}`.trim() : '';
+  const location = context.city ? locationLabelOf(context) : '';
   const needs = context.needs && context.needs.length ? context.needs.join(', ') : '';
   const answers = context.answersSummary ? context.answersSummary : '';
 
@@ -594,9 +604,7 @@ export const generatePersonalizedPlan = async (
     // knowledge already produces specific, real, local recommendations.
     const resourceData = '';
 
-    const locationLabel = context.city
-      ? `${context.city}, ${context.state || ''}`.trim()
-      : 'their area';
+    const locationLabel = locationLabelOf(context);
 
     const system = `You are Casy, an expert AI case manager. Build a personalized action plan for this person based on their questionnaire answers, grounded in the REAL resources provided. ${
       isSpanish ? 'Respond in Spanish.' : 'Respond in English.'
@@ -697,9 +705,7 @@ export const generateCategoryPicks = async (
 
   const isSpanish = context.language === 'es';
   const cat = CATEGORY_LABEL[category];
-  const locationLabel = context.city
-    ? `${context.city}, ${context.state || ''}`.trim()
-    : 'their area';
+  const locationLabel = locationLabelOf(context);
 
   try {
     const system = `You are Casy, an expert AI case manager. Recommend SPECIFIC real ${
@@ -812,9 +818,7 @@ export const generateEmergencyHelp = async (
 
   const isSpanish = context.language === 'es';
   const k = EMERGENCY_KIND[kind];
-  const locationLabel = context.city
-    ? `${context.city}, ${context.state || ''}`.trim()
-    : 'their area';
+  const locationLabel = locationLabelOf(context);
 
   try {
     const system = `You are Casy, an expert AI case manager helping someone who needs ${

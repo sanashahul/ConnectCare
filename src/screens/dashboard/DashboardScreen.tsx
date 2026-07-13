@@ -1124,6 +1124,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
   const [userInput, setUserInput] = useState('');
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [showAddTodo, setShowAddTodo] = useState(false);
+  const [showAllTodos, setShowAllTodos] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
   const [newTodoDescription, setNewTodoDescription] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<any>(null);
@@ -1159,6 +1160,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       name: userProfile?.name,
       city: loc?.city,
       state: loc?.state,
+      zip: loc?.zipCode,
       language: (isSpanish ? 'es' : 'en') as 'es' | 'en',
       needs: userProfile?.selectedCategories,
       ageGroup: userProfile?.ageGroup,
@@ -1919,11 +1921,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         ) : (
           <>
-            {list.slice(0, 6).map((todo) => renderTodoCard(todo))}
+            {(showAllTodos ? list : list.slice(0, 6)).map((todo) => renderTodoCard(todo))}
             {list.length > 6 && (
-              <Text style={styles.moreText}>
-                +{list.length - 6} {isSpanish ? 'más' : 'more'}
-              </Text>
+              <TouchableOpacity
+                style={styles.moreBtn}
+                onPress={() => setShowAllTodos((v) => !v)}
+              >
+                <Text style={styles.moreText}>
+                  {showAllTodos
+                    ? isSpanish ? '▲ Ver menos' : '▲ Show less'
+                    : `▼ +${list.length - 6} ${isSpanish ? 'más' : 'more'}`}
+                </Text>
+              </TouchableOpacity>
             )}
           </>
         )}
@@ -2972,10 +2981,17 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     color: '#94A3B8',
   },
+  moreBtn: {
+    marginTop: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+  },
   moreText: {
     fontSize: 14,
-    color: '#64748B',
-    marginTop: 12,
+    color: '#0D9488',
+    fontWeight: '800',
     textAlign: 'center',
   },
   todoItemContainer: {
