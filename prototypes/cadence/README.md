@@ -40,11 +40,15 @@ it — once per trigger, one at a time, always dismissible, never a modal:
   so the reviews can be cleared
 - three answers under 3.5 seconds → names it as recognition rather than recall,
   and offers to hold the grade buttons for a beat
-- 25 seconds on one card without flipping → offers the distinction it is testing
+- 25 seconds on one card without flipping → "do you want to chat about it?"
 - misses on both an aortic-stenosis and a HOCM card → offers the discriminator,
   because the blueprint tests them as a pair
 - four Easys in a row → offers to stretch those intervals and give the slots back
 - a session that ends with lapses → offers six cards on what actually slipped
+
+Most notices offer both a direct fix and "Let's chat", which opens him with a
+question rather than an answer — what did you think it was, which one do you
+reach for first — so the student talks first and he works from that.
 
 His face changes with what he sees (concerned, thinking, pleased), and
 Preferences → *Cade speaks up* sets whether he talks only when you are

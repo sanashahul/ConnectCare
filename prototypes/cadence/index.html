@@ -2599,6 +2599,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     BUD.hideT = setTimeout(hideNudge, opts.ms || 15000);
   }
 
+  function chatAbout(opener){
+    openCade();
+    bubble("ai", opener, "Cade");
+    $("askInput").focus();
+  }
+
   function budReset(){
     BUD.log = []; BUD.fired = {}; BUD.last = 0;
     clearTimeout(BUD.stuckT); hideNudge(); setMood("idle");
@@ -2611,8 +2617,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   function budStuck(){
     var c = curCard(); if (!c || S.shown) return;
     nudge("stuck",
-      "You have been on this one a while. Want the first line of the answer, or the distinction it is really testing?",
-      [{t:"Give me a nudge", f:function(){ aiCard("explain"); }}, {t:"I've got it"}],
+      "You have been sitting on this one a while. Do you want to chat about it?",
+      [{t:"Let's chat", f:function(){
+        chatAbout("What is catching — the mechanism, or which one it is pointing at? Tell me where you get stuck and I will start there, rather than just handing you the answer.");
+      }}, {t:"I've got it"}],
       {mood:"thinking", urgent:true});
   }
   function budRevealed(){ BUD.revealAt = Date.now(); clearTimeout(BUD.stuckT); }
@@ -2631,7 +2639,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       nudge("repeat_lapse",
         "That is twice on this card tonight. Usually that is the card's shape rather than the fact — this one asks for " +
         "two things in a single front. Want me to split it into one fact you can actually answer?",
-        [{t:"Rewrite it", f:function(){ aiCard("rewrite"); }}, {t:"Leave it"}],
+        [{t:"Rewrite it", f:function(){ aiCard("rewrite"); }},
+         {t:"Let's chat", f:function(){
+           chatAbout("Tell me what you thought the answer was. Where you went wrong usually tells me more than the right answer does.");
+         }}],
         {urgent:true});
       return;
     }
@@ -2643,7 +2654,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         "Three misses on <b>" + (tagOf(c) === "pharm" ? "antiarrhythmics" : tagOf(c)) +
         "</b> in the last few cards. New cards on top of that just bury the reviews. " +
         "Want me to park tonight's remaining new cards there and let you clear what is already due?",
-        [{t:"Park them", f:parkTopic.bind(null, c.d)}, {t:"Keep going"}],
+        [{t:"Park them", f:parkTopic.bind(null, c.d)},
+         {t:"Let's chat", f:function(){
+           chatAbout("What is going wrong with these — are the classes blurring into each other, or is it the clinical call at the end of the vignette?");
+         }}],
         {urgent:true});
       return;
     }
@@ -2666,9 +2680,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       nudge("confusion_pair",
         "You have missed an aortic stenosis card and a HOCM card tonight. Those two are written as a pair on the blueprint — " +
         "if one is shaky the other reads as the same vignette. Want the two-line discriminator?",
-        [{t:"Yes", f:function(){
+        [{t:"Show me", f:function(){
           say("<b>Carotid upstroke and preload.</b><br><br>AS: weak, late-peaking upstroke; standing and Valsalva drop preload, so the murmur gets <b>quieter</b> — less blood across a fixed valve.<br><br>HOCM: brisk, bifid upstroke; the same manoeuvres shrink the ventricle and worsen obstruction, so it gets <b>louder</b>.<br><br>Squatting reverses both. That is the whole distinction.");
-        }}, {t:"Later"}],
+        }},
+         {t:"Let's chat", f:function(){
+           chatAbout("Which one do you reach for first when a systolic murmur shows up in a vignette? Tell me your instinct and I will work from there.");
+         }}],
         {urgent:true});
       return;
     }
@@ -2728,7 +2745,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         " came back Again — mostly " + (tag === "pharm" ? "antiarrhythmics" : tag) +
         ". Those decay fastest in the first day. Six quick cards on it now is worth more than twenty tomorrow.",
         [{t:"Build me six", f:function(){ $("genLec").value = "phm41"; $("genN").value = 6; AI.genTarget = null; generateCards(); }},
-         {t:"Tomorrow"}],
+         {t:"Let's chat", f:function(){
+           chatAbout("What felt worst tonight? I would rather fix the thing you noticed than the thing the numbers noticed.");
+         }}],
         {urgent:true});
     }, 700);
   }
