@@ -8,7 +8,10 @@ build step and no network call.
 
 | Flow | Where |
 | --- | --- |
-| Setup conversation that designs the app (load, Step target, accent, theme, card size, density) | first run, and Preferences → Run setup again |
+| Welcome — what the product does, in three lines | first run |
+| A primer on spaced repetition with one card to actually try | first run, if you say you're new to Anki |
+| Importing the school's course deck: suspend, unsuspend, and name the gaps | first run |
+| Setup that designs the app (load, Step target, accent, theme, card size, density) | first run, and Preferences → Run setup again |
 | LMS connection and the nightly deck build | Canvas tab |
 | The school's course deck, cut into tonight's session | Decks tab |
 | Coverage of the week's objectives, and filling what the deck misses | Canvas tab |
@@ -88,6 +91,10 @@ call is ever made without a click.
   and appears under Ridgeline Exchange.
 - Only a slice of tonight's build is written out as real cards; the deck counts
   carry the remainder, and the congratulations screen says so.
+
+Setup forks on the welcome screen: "new to this" adds the primer step (seven
+steps), "I have used Anki for years" skips it (six). The primer's demo card is
+real — grade it and it explains what that grade just bought you.
 
 Ridgeline SOM, the student and the exchange decks are invented. The medical
 content, objective codes and scheduling behavior are real.

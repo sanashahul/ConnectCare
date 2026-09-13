@@ -233,8 +233,8 @@ h2{font-size:14px;font-weight:600;margin:0 0 8px}
 .row{display:flex;align-items:center;gap:12px;padding:10px 13px;border-bottom:1px solid var(--edge-soft)}
 .row:last-child{border-bottom:0}
 .row .lab{min-width:0}
-.row .lab b{display:block;font-weight:500}
-.row .lab span{display:block;font-size:12px;color:var(--text-2)}
+.row .lab > b{display:block;font-weight:500}
+.row .lab > span{display:block;font-size:12px;color:var(--text-2)}
 .row .ctl{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .row .val{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
 input[type=range]{accent-color:var(--accent);width:150px}
@@ -635,6 +635,39 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .cade[data-mood="concerned"]{color:var(--learn)}
 .cade[data-mood="pleased"]{color:var(--due)}
 
+/* ---------- welcome and the primer ---------- */
+.importlog{
+  list-style:none;margin:13px 0 0;padding:0;
+  font-family:var(--mono);font-size:11.5px;line-height:1.95;color:var(--text-2);
+}
+.importlog li{opacity:0}
+.importlog li[data-on="true"]{opacity:1;animation:fadein .25s ease both}
+.importlog b{color:var(--text);font-weight:600}
+.importlog .ok{color:var(--due)}
+.importlog .warn{color:var(--learn)}
+
+.whatwedo{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:11px}
+.whatwedo li{display:flex;gap:10px;font-size:13.5px;color:var(--text-2);line-height:1.55}
+.whatwedo li::before{content:"";flex:0 0 auto;width:3px;border-radius:2px;background:var(--accent);margin:3px 0}
+.whatwedo b{color:var(--text);font-weight:600}
+.askq{font-size:13.5px;font-weight:600;margin:0 0 9px}
+
+.demo{border:1px solid var(--edge);border-radius:8px;background:var(--page);padding:16px 16px 14px;text-align:center}
+.dlabel{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
+.dq{font-size:16px;line-height:1.45;margin:0 0 14px}
+.da{margin:0 0 14px}
+.dhr{height:1px;background:var(--edge);margin:0 0 12px}
+.da p{margin:0;font-size:15px;color:var(--text)}
+.dgrades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dnote{
+  margin:13px 0 0;font-size:12.5px;line-height:1.55;color:var(--text-2);
+  border-left:2px solid var(--accent);padding-left:10px;text-align:left;
+}
+.dnote b{color:var(--text)}
+.c-new{color:var(--new)}
+.c-learn{color:var(--learn)}
+.c-due{color:var(--due)}
+
 /* ---------- coverage of the week's objectives ---------- */
 .covrow{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid var(--edge-soft);font-size:13px}
 .covrow:last-child{border-bottom:0}
@@ -709,7 +742,59 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <div class="dots" id="dots"></div>
 
         <!-- 1 · school -->
-        <div class="step" data-step="0" data-on="true">
+        <div class="step" data-stepid="welcome" data-on="true">
+          <h1>You have 3,847 cards and about six hours. We pick tonight's 42.</h1>
+          <p class="lede">Cadence is spaced repetition that lives inside your course. It is the same proven method as Anki — you just never have to build, tag or manage anything.</p>
+          <ul class="whatwedo">
+            <li><span><b>Your school's deck, cut for today.</b> The cards for what you were actually taught this week, plus whatever is due from before.</span></li>
+            <li><span><b>The gaps filled in.</b> When a lecture covers something the deck has no cards for, we write those — and only those.</span></li>
+            <li><span><b>Someone to ask.</b> Cade sits in the corner, reads the same lectures you do, and notices when a card is not sticking.</span></li>
+          </ul>
+          <p class="askq">Have you used Anki before?</p>
+          <div class="choices">
+            <button type="button" class="choice" data-anki="no">
+              <span class="mark"></span>
+              <span class="txt"><b>New to this</b><span>Two minutes on how spaced repetition works, with one card to try</span></span>
+            </button>
+            <button type="button" class="choice" data-anki="yes">
+              <span class="mark"></span>
+              <span class="txt"><b>I have used Anki for years</b><span>Skip the basics — everything here works the way you expect</span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="step" data-stepid="primer">
+          <h1>The whole method, in one card.</h1>
+          <p class="lede">You answer from memory, then say how hard it was. That grade decides when you see it again. Everything else is bookkeeping — which is the part we do for you.</p>
+
+          <div class="demo" id="demo">
+            <p class="dlabel">Try it — answer in your head first</p>
+            <p class="dq">Which valve is most often affected in rheumatic heart disease?</p>
+            <div class="da" id="demoA" hidden>
+              <div class="dhr"></div>
+              <p>The <b>mitral valve</b> — antibodies against streptococcus cross-react with valve tissue.</p>
+            </div>
+            <button type="button" class="btn primary" id="demoShow">Show answer</button>
+            <div class="dgrades" id="demoGrades" hidden>
+              <button type="button" class="ansbtn" data-demo="1"><span class="iv">&lt;10m</span><span class="lb">Again</span></button>
+              <button type="button" class="ansbtn" data-demo="2"><span class="iv">2d</span><span class="lb">Hard</span></button>
+              <button type="button" class="ansbtn" data-demo="3"><span class="iv">6d</span><span class="lb">Good</span></button>
+              <button type="button" class="ansbtn" data-demo="4"><span class="iv">14d</span><span class="lb">Easy</span></button>
+            </div>
+            <p class="dnote" id="demoNote" hidden></p>
+          </div>
+
+          <div class="panel" style="margin-top:14px">
+            <div class="row">
+              <span class="lab"><b><span class="c-new">New</span> · <span class="c-learn">Learning</span> · <span class="c-due">Due</span></b><span>The three numbers on every deck. New is cards you have not met, learning is cards you just missed, due is cards the schedule says are about to fade.</span></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Suspended cards</b><span>Cards that exist but stay hidden. This is the important one: your school's deck covers the whole year, and we keep next month's cards suspended until the lecture that teaches them.</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" data-stepid="course">
           <h1>Where are you studying?</h1>
           <p class="lede">Cadence reads your course from the LMS, so it knows what was taught today. Nothing to set up after this.</p>
           <div class="choices" id="schoolChoices">
@@ -741,7 +826,38 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
 
         <!-- 2 · load -->
-        <div class="step" data-step="1">
+        <div class="step" data-stepid="deck">
+          <h1>Bring in your school's deck.</h1>
+          <p class="lede">Most schools have one — a shared deck for the whole course, usually thousands of cards covering material you have not reached yet. Import it once and it becomes the thing every night is cut from.</p>
+
+          <div class="dropzone" id="deckDrop" style="position:static;text-align:center">
+            <b>Drop the course deck here</b>
+            <span>.apkg or .anki2 — or pull the one published in this Canvas course</span>
+            <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center">
+              <button type="button" class="btn primary" id="deckImport">Import MED 231 course deck</button>
+              <button type="button" class="btn" id="deckSkip">I don't have one</button>
+            </div>
+          </div>
+          <ul class="importlog" id="deckLog">
+            <li>Read <b>3,847 cards</b> across 41 note types</li>
+            <li>Matched <b>3,612</b> of them to the 214 objectives in this course</li>
+            <li><b>2,914 suspended</b> — material your course has not taught yet</li>
+            <li><span class="ok">✓</span> <b>57 unsuspended</b> for this week's two lectures and what is due</li>
+            <li><span class="warn">!</span> <b>6 objectives</b> have no usable cards — Cade writes those, and only those</li>
+          </ul>
+
+          <h2 style="margin:18px 0 8px">What else should feed the nightly cut?</h2>
+          <div class="choices" id="srcChoices">
+            <button type="button" class="choice" data-src="step" aria-pressed="true">
+              <span class="mark"></span><span class="txt"><b>The national Step deck</b><span>28,400 cards, suspended until your course covers the tag</span></span><span class="badge">28.4k</span>
+            </button>
+            <button type="button" class="choice" data-src="exchange" aria-pressed="false">
+              <span class="mark"></span><span class="txt"><b>Ridgeline deck exchange</b><span>Decks written by students who took this block</span></span><span class="badge">31</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="step" data-stepid="load">
           <h1>How much can you hold on a normal day?</h1>
           <p class="lede">This is a starting point, not a contract. Cadence watches what you actually finish and adjusts.</p>
           <div class="panel">
@@ -768,7 +884,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
 
         <!-- 3 · step goal -->
-        <div class="step" data-step="2">
+        <div class="step" data-stepid="target">
           <h1>What's the Step 1 number?</h1>
           <p class="lede">The target sets how far past your block's objectives the nightly build reaches — and how fast the Step deck unsuspends.</p>
           <div class="panel">
@@ -788,7 +904,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
 
         <!-- 4 · design -->
-        <div class="step" data-step="3">
+        <div class="step" data-stepid="design">
           <h1>Now make it yours.</h1>
           <p class="lede">You will look at this screen for a thousand hours. Everything here changes live, and all of it stays editable in Preferences.</p>
           <div class="panel">
@@ -842,22 +958,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
 
         <!-- 5 · sources -->
-        <div class="step" data-step="4">
-          <h1>What should tonight's deck be made of?</h1>
-          <p class="lede">Most schools sit between a national Step deck and their own material. You can change the balance any night.</p>
-          <div class="choices" id="srcChoices">
-            <button type="button" class="choice" data-src="lectures" aria-pressed="true">
-              <span class="mark"></span><span class="txt"><b>My lectures, from Canvas</b><span>214 files found — sorted to objectives automatically</span></span><span class="badge">214</span>
-            </button>
-            <button type="button" class="choice" data-src="step" aria-pressed="true">
-              <span class="mark"></span><span class="txt"><b>The national Step deck</b><span>28,400 cards, suspended until your course covers the tag</span></span><span class="badge">28.4k</span>
-            </button>
-            <button type="button" class="choice" data-src="exchange" aria-pressed="false">
-              <span class="mark"></span><span class="txt"><b>Ridgeline deck exchange</b><span>decks written by students who took this block</span></span><span class="badge">31</span>
-            </button>
-          </div>
-        </div>
-
         <div class="wizfoot">
           <button type="button" class="btn skip" id="wizBack">Back</button>
           <button type="button" class="btn primary big" id="wizNext">Continue</button>
@@ -1559,23 +1659,85 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   $("examDate").addEventListener("change", function(){ S.exam = this.value; updatePace(); });
 
   /* ================= wizard ================= */
-  var STEPS = 5;
+  var STEP_IDS = ["welcome","primer","course","deck","load","target","design"];
+  function activeSteps(){
+    return STEP_IDS.filter(function(id){ return !(id === "primer" && S.knowsAnki); });
+  }
   function renderDots(){
-    $("dots").innerHTML = Array.apply(null, Array(STEPS)).map(function(_, i){
+    var n = activeSteps().length;
+    $("dots").innerHTML = Array.apply(null, Array(n)).map(function(_, i){
       return '<i data-on="' + (i === S.step) + '" data-done="' + (i < S.step) + '"></i>';
     }).join("");
   }
   function goStep(n){
-    S.step = Math.max(0, Math.min(STEPS - 1, n));
-    all(".step").forEach(function(s){ s.setAttribute("data-on", String(+s.getAttribute("data-step") === S.step)); });
+    var steps = activeSteps();
+    S.step = Math.max(0, Math.min(steps.length - 1, n));
+    var here = steps[S.step];
+    all(".step").forEach(function(el){
+      el.setAttribute("data-on", String(el.getAttribute("data-stepid") === here));
+    });
     renderDots();
     $("wizBack").style.visibility = S.step === 0 ? "hidden" : "visible";
-    $("wizNext").textContent = S.step === STEPS - 1 ? "Open Canvas" : "Continue";
+    $("wizNext").textContent = S.step === steps.length - 1 ? "Open Canvas" : "Continue";
+    $("wizNext").style.visibility = here === "welcome" ? "hidden" : "visible";
   }
   $("wizBack").addEventListener("click", function(){ goStep(S.step - 1); });
   $("wizNext").addEventListener("click", function(){
-    if (S.step < STEPS - 1){ goStep(S.step + 1); return; }
+    if (S.step < activeSteps().length - 1){ goStep(S.step + 1); return; }
     runConnect();
+  });
+
+  /* the fork on the welcome screen decides whether the primer is shown */
+  all("[data-anki]").forEach(function(b){
+    b.addEventListener("click", function(){
+      S.knowsAnki = b.getAttribute("data-anki") === "yes";
+      all("[data-anki]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+      goStep(1);
+    });
+  });
+
+  /* the primer's one card, so the method is shown rather than described */
+  var DEMO_NOTE = {
+    1:"You said <b>Again</b>. It comes back in under ten minutes, and again tomorrow — missing a card is not failure, it is the system finding what you actually need.",
+    2:"You said <b>Hard</b>. Two days. You got there, but slowly, so the gap stays short.",
+    3:"You said <b>Good</b>. Six days — and if you still have it then, about fifteen days after that, then a month, then three. That widening gap is the whole method.",
+    4:"You said <b>Easy</b>. Fourteen days, and it will widen faster. Cards you find easy stop competing for your evening."
+  };
+  if ($("demoShow")) $("demoShow").addEventListener("click", function(){
+    $("demoA").hidden = false;
+    $("demoShow").hidden = true;
+    $("demoGrades").hidden = false;
+  });
+  all("[data-demo]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var g = +b.getAttribute("data-demo");
+      $("demoNote").hidden = false;
+      $("demoNote").innerHTML = DEMO_NOTE[g] + "<br><br>That is all you ever do here: answer, then say how it felt. We decide what you see and when.";
+      all("[data-demo]").forEach(function(x){ x.disabled = true; });
+    });
+  });
+
+  /* importing the school's deck */
+  function runDeckImport(skipped){
+    var lis = all("#deckLog li");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lis.forEach(function(li, i){
+      li.setAttribute("data-on","false");
+      setTimeout(function(){ li.setAttribute("data-on","true"); }, reduce ? 0 : 360 * i);
+    });
+    setTimeout(function(){
+      S.deckIn = true;
+      $("deckImport").textContent = "Imported";
+      $("deckImport").disabled = true;
+    }, reduce ? 80 : 360 * lis.length + 160);
+  }
+  if ($("deckImport")) $("deckImport").addEventListener("click", function(){ runDeckImport(); });
+  if ($("deckSkip")) $("deckSkip").addEventListener("click", function(){
+    $("deckLog").innerHTML =
+      '<li data-on="true">No course deck — Cadence writes the whole night from your lecture slides instead.</li>' +
+      '<li data-on="true">Slower to start, and every card still carries the slide it came from.</li>';
+    $("deckSkip").textContent = "Fine by me";
+    $("deckSkip").disabled = true;
   });
   all("#schoolChoices .choice").forEach(function(b){
     b.addEventListener("click", function(){
