@@ -544,6 +544,88 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .ankibox li b{color:var(--text)}
 .ankibox li .ok{color:var(--due)}
 
+/* ---------- Cade: the assistant in the corner ---------- */
+.cade{
+  position:fixed;right:20px;bottom:70px;z-index:45;
+  width:52px;height:52px;padding:0;border:0;border-radius:50%;
+  background:none;color:var(--accent);
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));
+  transition:transform .16s ease;
+}
+.cade:hover{transform:translateY(-2px) scale(1.05)}
+.cade:active{transform:scale(.96)}
+.cade svg{width:52px;height:52px;display:block}
+.cade .eye{transform-box:fill-box;transform-origin:center;animation:blink 6.5s infinite}
+.cade .eye.r{animation-delay:.08s}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+.cade[data-state="thinking"] svg{animation:bob .9s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.cade .badge{
+  position:absolute;top:1px;right:1px;min-width:17px;height:17px;border-radius:9px;
+  background:var(--learn);color:#fff;font-size:10px;font-weight:700;line-height:17px;
+  border:2px solid var(--page);
+}
+.cade .badge[hidden]{display:none}
+.cade[hidden]{display:none !important}
+
+.cadepanel{
+  position:fixed;right:20px;bottom:132px;z-index:46;
+  width:372px;max-width:calc(100vw - 32px);
+  max-height:min(74vh,620px);
+  background:var(--page);border:1px solid var(--edge);border-radius:12px;
+  box-shadow:0 22px 54px -18px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:pop .16s ease both;
+}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.cadepanel[hidden]{display:none !important}
+.cadepanel > header{
+  display:flex;align-items:center;gap:8px;padding:9px 11px;
+  background:var(--sunk);border-bottom:1px solid var(--edge-soft);
+}
+.cadepanel > header b{font-size:13px}
+.cadepanel > header svg{width:22px;height:22px;color:var(--accent);flex:0 0 auto}
+.cadepanel > header .x{margin-left:auto;background:none;border:0;color:var(--dim);font-size:15px;line-height:1;padding:2px 4px}
+.cadepanel > header .x:hover{color:var(--text)}
+.cadepanel .thread{max-height:none;flex:1 1 auto;min-height:64px;overflow:auto}
+.cadepanel #genRow{flex:0 1 auto;min-height:0;overflow:auto}
+.cadepanel > header,.cadepanel .chiprow,.cadepanel .askform,.cadepanel .cadectx{flex:0 0 auto}
+.cadepanel .askform{padding:9px 10px}
+.cadepanel .chiprow{padding:0 10px 9px}
+.cadectx{
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--dim);padding:7px 12px 0;
+}
+@media (max-width:720px){
+  .cadepanel{right:8px;left:8px;bottom:124px;width:auto;max-height:min(70vh,540px)}
+  .cade{right:12px;bottom:64px}
+}
+
+/* ---------- coverage of the week's objectives ---------- */
+.covrow{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid var(--edge-soft);font-size:13px}
+.covrow:last-child{border-bottom:0}
+.covrow .lo{font-family:var(--mono);font-size:11px;color:var(--accent);flex:0 0 74px}
+.covrow .what{min-width:0;flex:1;color:var(--text)}
+.covrow .n{font-family:var(--mono);font-size:11.5px;color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.covrow .tag{font-family:var(--mono);font-size:10px;border-radius:3px;padding:1px 6px;white-space:nowrap}
+.covrow .tag[data-s="ok"]{color:var(--due);border:1px solid var(--due)}
+.covrow .tag[data-s="thin"]{color:var(--learn);border:1px solid var(--learn)}
+.covrow .tag[data-s="gap"]{color:#fff;background:var(--learn);border:1px solid var(--learn)}
+.covrow .tag[data-s="filled"]{color:var(--accent);border:1px solid var(--accent)}
+
+.cutline{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--text-2);
+  background:var(--sunk);border:1px solid var(--edge-soft);border-radius:5px;
+  padding:8px 11px;margin-bottom:12px;
+}
+.cutline b{color:var(--text);font-weight:600}
+.cutline .r{margin-left:auto;display:flex;gap:12px}
+.libchip{
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  border:1px solid var(--edge);border-radius:3px;padding:0 5px;flex:0 0 auto;
+}
+
 @media (max-width:720px){
   .app{border-left:0;border-right:0}
   .toolbar{justify-content:flex-start;overflow-x:auto}
@@ -576,7 +658,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <nav class="toolbar" id="toolbar" hidden>
     <button type="button" data-nav="decks" aria-current="page">Decks</button>
     <button type="button" data-nav="canvas">Canvas</button>
-    <button type="button" data-nav="ai">AI</button>
     <button type="button" data-nav="exchange">Exchange</button>
     <button type="button" data-nav="step">Step 1</button>
     <button type="button" data-nav="stats">Stats</button>
@@ -769,9 +850,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <!-- ================= DECKS ================= -->
   <section class="screen" data-screen="decks">
     <div class="pad"><div class="mid">
-      <div class="buildline">
-        <span>Built <b id="buildTime">6:04 AM</b> · <b id="buildTotal">57</b> cards from Friday's two lectures and what's due</span>
-        <span class="r"><button type="button" class="linkbtn" data-nav="canvas">what changed</button></span>
+      <div class="cutline">
+        <span><b id="buildTotal">57</b> cards cut from your course deck's <b>3,847</b> at <b id="buildTime">6:04 AM</b> — you didn't pick them, the week did</span>
+        <span class="r">
+          <button type="button" class="linkbtn" id="whyBtn">why these?</button>
+          <button type="button" class="linkbtn" data-nav="canvas">coverage</button>
+        </span>
       </div>
       <div class="decktools">
         <input type="search" id="deckFilter" placeholder="Filter decks, lectures or objectives" aria-label="Filter decks">
@@ -794,7 +878,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <button type="button" class="btn" data-nav="exchange">Get Shared</button>
         <button type="button" class="btn" id="rebuildBtn">Rebuild Today</button>
       </div>
-      <p class="note">Counts behave like Anki's: answering a new card moves it into learning, and a lapse sends a review card back. Nothing here is a static mockup.</p>
+      <p class="note">You never build a deck here. The school maintains one; Cadence cuts tonight's session out of it and writes the few cards it is missing.</p>
     </div></div>
   </section>
 
@@ -814,19 +898,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
       <p class="srcline" id="srcLine"></p>
     </div>
-    <section class="tutor" id="tutorPanel" hidden>
-      <div class="head">
-        <b>Tutor</b>
-        <span class="tiny">grounded in the lecture this card came from</span>
-        <button type="button" class="x" id="tutorClose" aria-label="Close tutor">✕</button>
-      </div>
-      <div class="tmsgs" id="tutorMsgs"></div>
-      <form class="tutorform" id="tutorForm">
-        <label for="tutorInput" style="position:absolute;left:-9999px">Ask about this card</label>
-        <input id="tutorInput" type="text" placeholder="Ask why, or ask for the version that sticks…" autocomplete="off">
-        <button type="submit" class="btn">Ask</button>
-      </form>
-    </section>
     <div class="revbar">
       <span class="morewrap">
         <button type="button" class="btn more" id="moreBtn" aria-haspopup="true" aria-expanded="false">More ▾</button>
@@ -886,6 +957,17 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
       </div>
       <div class="sect">
+        <h2>Coverage of this week's objectives</h2>
+        <div class="panel">
+          <div id="covRows"></div>
+          <div class="row">
+            <span class="lab"><b>Fill what the course deck misses</b><span id="covNote">Cade writes cards only for the objectives with no coverage — nothing duplicated.</span></span>
+            <span class="ctl"><button type="button" class="btn primary" id="fillBtn">Fill the gaps</button></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect">
         <h2>What Cadence changed on its own</h2>
         <div class="panel">
           <div class="row"><span class="lab"><b>Trimmed the deck from 60 to 42</b><span>You finish 89% of sessions started before 9pm and 41% after 11pm. A 60-card Sunday historically ends at 34.</span></span></div>
@@ -898,74 +980,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <div class="panel">
           <div class="row"><span class="lab"><b>Monday — Heart Failure I</b><span>CV-4.1 · slides posted Sunday 8pm · 18 cards will be built overnight</span></span><span class="ctl"><span class="tiny mono">tomorrow</span></span></div>
           <div class="row"><span class="lab"><b>Thursday — Block 3 midterm</b><span>Cadence front-loads reviews Tuesday and Wednesday, then stops new cards</span></span><span class="ctl"><span class="tiny mono">in 4 days</span></span></div>
-        </div>
-      </div>
-    </div></div>
-  </section>
-
-  <!-- ================= AI ================= -->
-  <section class="screen" data-screen="ai">
-    <div class="pad"><div class="wide">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
-        <h1 style="margin:0">Cadence AI</h1>
-        <span class="aistate" id="aiState" data-live="false"><i></i><span id="aiStateText">checking…</span></span>
-      </div>
-      <p class="muted" style="margin:0 0 18px">It has read your lectures, your objectives and your retention, so it answers in your course's vocabulary — and what it writes goes straight into tonight's deck.</p>
-
-      <div class="sect">
-        <div class="panel">
-          <header>Write cards from a lecture</header>
-          <div class="row">
-            <span class="lab"><b>Lecture</b><span>objectives come from the Canvas syllabus</span></span>
-            <span class="ctl">
-              <select id="genLec">
-                <option value="cv32">Valvular Heart Disease · CV-3.2</option>
-                <option value="phm41">Antiarrhythmics I · PHM-4.1</option>
-                <option value="ren24">Renal Transport · REN-2.4</option>
-              </select>
-              <input type="number" id="genN" min="2" max="8" value="4" aria-label="How many cards">
-              <button type="button" class="btn primary" id="genBtn">Write cards</button>
-            </span>
-          </div>
-          <div class="row" id="genRow" hidden>
-            <span class="lab" style="width:100%">
-              <div id="genOut"></div>
-              <div class="genfoot">
-                <button type="button" class="btn primary" id="genAdd">Add to tonight's deck</button>
-                <button type="button" class="btn" id="genAgain">Write different ones</button>
-                <span class="tiny" id="genNote"></span>
-              </div>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="sect">
-        <div class="panel">
-          <header>Your three weakest objectives this block</header>
-          <div id="weakRows"></div>
-          <div class="row">
-            <span class="lab"><b>Build a drill</b><span>six cards on the weakest objective, added to tonight</span></span>
-            <span class="ctl"><button type="button" class="btn" id="drillBtn">Drill my weak spot</button></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="sect">
-        <div class="panel">
-          <header>Ask anything about this block</header>
-          <div class="thread" id="aiThread"></div>
-          <div class="chiprow">
-            <button type="button" data-ask="Why do I keep mixing up aortic stenosis and HOCM?">Why do I mix up AS and HOCM?</button>
-            <button type="button" data-ask="Give me a two-minute summary of everything CV-3.2 expects me to know.">Two-minute CV-3.2 summary</button>
-            <button type="button" data-ask="I have four days until the block exam and antiarrhythmics are at 74%. What should I do tonight?">Four days to the exam — plan?</button>
-          </div>
-          <form class="askform" id="askForm">
-            <label for="askInput" style="position:absolute;left:-9999px">Ask Cadence AI</label>
-            <input id="askInput" type="text" placeholder="Ask about a drug, a murmur, or what to study tonight…" autocomplete="off">
-            <button type="submit" class="btn primary" id="askSend">Ask</button>
-            <button type="button" class="btn" id="askStop" hidden>Stop</button>
-          </form>
         </div>
       </div>
     </div></div>
@@ -1098,8 +1112,52 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <button type="submit" class="btn">Send</button>
   </form>
 
-  <p class="note">Prototype. Ridgeline SOM, the student and the exchange decks are invented; the medical content, the objective codes and the scheduling behavior are real.</p>
+  <p class="note" id="protoNote">Prototype. Ridgeline SOM, the student and the exchange decks are invented; the medical content, the objective codes and the scheduling behavior are real.</p>
 </div>
+
+<button type="button" class="cade" id="cadeBtn" hidden aria-label="Ask Cade" title="Ask Cade">
+  <svg viewBox="0 0 52 52" aria-hidden="true">
+    <circle cx="26" cy="26" r="23" fill="currentColor"></circle>
+    <circle cx="26" cy="26" r="23" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1.5"></circle>
+    <ellipse class="eye" cx="19" cy="23" rx="3" ry="3.8" fill="#fff"></ellipse>
+    <ellipse class="eye r" cx="33" cy="23" rx="3" ry="3.8" fill="#fff"></ellipse>
+    <path d="M18 33c3 3.2 13 3.2 16 0" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"></path>
+  </svg>
+  <span class="badge" id="cadeBadge" hidden>1</span>
+</button>
+
+<section class="cadepanel" id="cadePanel" hidden aria-label="Cade, your study assistant">
+  <header>
+    <svg viewBox="0 0 52 52" aria-hidden="true">
+      <circle cx="26" cy="26" r="23" fill="currentColor"></circle>
+      <ellipse cx="19" cy="23" rx="3" ry="3.8" fill="#fff"></ellipse>
+      <ellipse cx="33" cy="23" rx="3" ry="3.8" fill="#fff"></ellipse>
+      <path d="M18 33c3 3.2 13 3.2 16 0" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"></path>
+    </svg>
+    <b>Cade</b>
+    <span class="aistate" id="aiState" data-live="false"><i></i><span id="aiStateText">checking…</span></span>
+    <button type="button" class="x" id="cadeClose" aria-label="Close">✕</button>
+  </header>
+  <p class="cadectx" id="cadeCtx">looking at your decks</p>
+  <div class="thread" id="aiThread"></div>
+  <div id="genRow" hidden style="padding:0 11px 8px">
+    <div id="genOut"></div>
+    <div class="genfoot">
+      <button type="button" class="btn primary" id="genAdd">Add to tonight</button>
+      <button type="button" class="btn" id="genAgain">Different ones</button>
+    </div>
+    <p class="tiny" id="genNote" style="margin:6px 0 0"></p>
+  </div>
+  <input type="hidden" id="genLec" value="cv32">
+  <input type="hidden" id="genN" value="4">
+  <div class="chiprow" id="cadeChips"></div>
+  <form class="askform" id="askForm">
+    <label for="askInput" style="position:absolute;left:-9999px">Ask Cade</label>
+    <input id="askInput" type="text" placeholder="Ask Cade…" autocomplete="off">
+    <button type="submit" class="btn primary" id="askSend">Ask</button>
+    <button type="button" class="btn" id="askStop" hidden>Stop</button>
+  </form>
+</section>
 
 <div class="backdrop" id="backdrop" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
@@ -1207,14 +1265,14 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
   /* ================= decks ================= */
   var DECKS = [
-    {id:"med231", name:"MED 231 · Cardiovascular & Renal", open:true, kids:[
-      {id:"cv32", name:"Valvular Heart Disease", lo:"CV-3.2"},
-      {id:"phm41", name:"Antiarrhythmics I", lo:"PHM-4.1"},
-      {id:"ren24", name:"Renal Transport", lo:"REN-2.4"}
+    {id:"today", name:"Today", open:true, kids:[
+      {id:"cv32", name:"From Valvular Heart Disease", lo:"CV-3.2"},
+      {id:"phm41", name:"From Antiarrhythmics I", lo:"PHM-4.1"},
+      {id:"ren24", name:"Due from earlier weeks", lo:"REN-2.4"},
+      {id:"step", name:"Step 1 tags your course has covered", lo:"::cardio"}
     ]},
-    {id:"stepdeck", name:"Step 1 — unsuspended by tag", open:false, kids:[
-      {id:"step", name:"Cardiovascular", lo:"::cardio"}
-    ]},
+    {id:"library", name:"Ridgeline MED 231 course deck", open:false, kids:[], lib:"3,847 cards"},
+    {id:"national", name:"Step 1 — national deck", open:false, kids:[], lib:"28,400 · 2,914 live"},
     {id:"exchange", name:"Ridgeline Exchange", open:false, kids:[]}
   ];
 
@@ -1313,18 +1371,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     });
     $("toolbar").hidden = (name === "onboard" || name === "connect");
     $("cmdbar").hidden = $("toolbar").hidden;
+    $("cadeBtn").hidden = $("toolbar").hidden;
+    if ($("toolbar").hidden) closeCade();
     if (S.menuOpen) setMenu(false);
-    if (name !== "study"){ $("tutorPanel").hidden = true; }
-    if (name === "ai"){
-      paintAIState(); renderWeak();
-      if (!$("aiThread").childNodes.length){
-        bubble("ai",
-          "I have read the 214 files in this course shell, your objectives, and which cards you keep missing. Ask me anything about the block — or have me write cards and drop them straight into tonight's deck." +
-          (AI.fn ? "" : "<br><br><span class=\"err\">Live Claude is not available in this view, so answers come from what is written into the prototype.</span>"),
-          "Cadence AI");
-      }
-    }
+    if (name === "canvas") renderCoverage();
     if (name === "step") renderStep();
+    setCadeContext(name);
     if (name === "stats") renderHeat();
     if (name === "exchange") renderExchange();
     if (name !== "study") stopTimer();
@@ -1500,7 +1552,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     setTimeout(function(){
       renderDecks();
       show("decks");
-      toast("Built tonight's deck — " + (counts("med231").n + counts("med231").l + counts("med231").d + counts("stepdeck").n + counts("stepdeck").d) + " cards ready.");
+      toast("Tonight's " + totalTonight() + " cards are cut and waiting — you did not have to build anything.");
     }, stepMs * lis.length + (reduce ? 60 : 520));
   }
   $("redoWiz").addEventListener("click", function(){ goStep(0); show("onboard"); });
@@ -1571,6 +1623,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         '<td><span class="deckname">' +
           (d.kids.length ? '<button type="button" class="tw" data-tw="' + d.id + '" data-open="' + open + '" aria-label="Expand or collapse">▾</button>' : '<span class="tw"></span>') +
           '<button type="button" class="dname" data-study="' + d.id + '">' + d.name + "</button>" +
+          (d.lib ? '<span class="libchip">' + d.lib + "</span>" : "") +
         "</span></td>" +
         countCell(c.n,"new") + countCell(c.l,"learn") + countCell(c.d,"due") + retCell(d.id) +
         '<td class="g"><button type="button" class="gear" data-gear="' + d.id + '" aria-label="Options for ' + d.name + '">⚙</button></td></tr>';
@@ -1604,10 +1657,40 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       b.addEventListener("click", function(){ openDeckOptions(b.getAttribute("data-gear")); });
     });
   }
-  $("studyAll").addEventListener("click", function(){ startStudy("med231"); });
+  $("studyAll").addEventListener("click", function(){ startStudy("today"); });
   $("rebuildBtn").addEventListener("click", function(){
     toast("Rebuilt from Canvas — same 42 cards; nothing new posted since 6:04 AM.");
   });
+
+  /* ================= coverage of the week's objectives ================= */
+  var COVERAGE = [
+    {lo:"CV-3.2a", what:"Murmur timing, quality and radiation", n:42, s:"ok"},
+    {lo:"CV-3.2b", what:"Pressure versus volume overload", n:18, s:"ok"},
+    {lo:"CV-3.2c", what:"When a lesion becomes an operative indication", n:0, s:"gap", slides:11},
+    {lo:"PHM-4.1c", what:"Use-dependence and state-dependent binding", n:27, s:"ok"},
+    {lo:"PHM-4.1d", what:"Class III toxicity and monitoring", n:3, s:"thin", slides:6},
+    {lo:"PHM-4.1e", what:"CAST and prescribing after an infarct", n:0, s:"gap", slides:7}
+  ];
+  function gapRows(){ return COVERAGE.filter(function(c){ return c.s === "gap" || c.s === "thin"; }); }
+  function renderCoverage(){
+    var host = $("covRows"); if (!host) return;
+    var LAB = {ok:"covered", thin:"thin", gap:"gap", filled:"filled by Cade"};
+    host.innerHTML = COVERAGE.map(function(c){
+      return '<div class="covrow">' +
+        '<span class="lo">' + c.lo + "</span>" +
+        '<span class="what">' + c.what + "</span>" +
+        '<span class="n">' + (c.n === 0 ? "no cards" : c.n + " cards") + "</span>" +
+        '<span class="tag" data-s="' + c.s + '">' + LAB[c.s] + "</span>" +
+        "</div>";
+    }).join("");
+    var gaps = gapRows();
+    $("covNote").textContent = gaps.length
+      ? gaps.length + " objectives your lecturers spent " + gaps.reduce(function(a,c){ return a + (c.slides||0); }, 0) +
+        " slides on have no usable cards. Cade writes those and nothing else."
+      : "Every objective taught this week now has cards. Nothing was duplicated.";
+    $("fillBtn").disabled = !gaps.length;
+    $("fillBtn").textContent = gaps.length ? "Fill " + gaps.length + " gaps" : "No gaps left";
+  }
 
   /* ================= scheduler ================= */
   function fmtIvl(days){
@@ -1667,8 +1750,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("qText").contentEditable = "false";
     $("aText").contentEditable = "false";
     $("flagStrip").setAttribute("data-f", String(c.flag || 0));
-    $("tutorMsgs").innerHTML = "";
-    $("tutorPanel").hidden = true;
     $("srcLine").innerHTML = c.src.map(function(s, i){
       var isTag = s.indexOf("::") === 0;
       return '<span class="' + (isTag ? "tagchip" : "") + '">' + s + "</span>";
@@ -1742,7 +1823,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   }
   $("studyMore").addEventListener("click", function(){
     toast("Studying ahead pulls tomorrow's reviews forward — intervals shorten slightly.");
-    startStudy(S.deckId || "med231");
+    startStudy(S.deckId || "today");
   });
 
   document.addEventListener("keydown", function(e){
@@ -1754,7 +1835,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       if (S.editing){ editCard(); return; }
       if (!$("backdrop").hidden){ closeDialog(); return; }
       if (S.menuOpen){ setMenu(false); return; }
-      if (!$("tutorPanel").hidden){ $("tutorPanel").hidden = true; return; }
+      if (!$("cadePanel").hidden){ closeCade(); return; }
     }
     if (typing) return;
     if (e.key === "/" && !$("cmdbar").hidden){ e.preventDefault(); $("cmdInput").focus(); return; }
@@ -1764,14 +1845,14 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     if (!on) return;
     var name = on.getAttribute("data-screen");
     if (name === "onboard" && e.key === "Enter"){ e.preventDefault(); $("wizNext").click(); return; }
-    if (name === "decks" && (e.key === "s" || e.key === "Enter")){ e.preventDefault(); startStudy("med231"); return; }
+    if (name === "decks" && (e.key === "s" || e.key === "Enter")){ e.preventDefault(); startStudy("today"); return; }
     if (name !== "study") return;
     if (e.key === " " || e.key === "Enter"){
       e.preventDefault();
       if (!S.shown) reveal(); else answer(3);
     } else if (["1","2","3","4"].indexOf(e.key) > -1){
       e.preventDefault(); answer(+e.key);
-    } else if (e.key === "a"){ openTutor(); }
+    } else if (e.key === "a"){ aiCard("explain"); }
     else if (e.key === "r"){ aiCard("rewrite"); }
     else if (e.key === "m"){ aiCard("mnemonic"); }
     else if (e.key === "e"){ editCard(); }
@@ -1949,7 +2030,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       });
       rebuildNewLimit();
       addExchangeRow(d, Math.max(0, matched - slots), "queued · " + Math.max(0, matched - slots));
-      S.fresh = leaves.concat(["med231"]);
+      S.fresh = leaves.concat(["today"]);
       renderDecks(); updateBuildLine(); renderExchange();
       toast("<b>" + Math.min(slots, matched) + "</b> of tonight's new slots now come from " + d.name +
             " — " + Math.max(0, matched - slots) + " more start tomorrow." +
@@ -2230,7 +2311,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   all("[data-more]").forEach(function(b){
     b.addEventListener("click", function(){
       var k = b.getAttribute("data-more");
-      if (k === "tutor") openTutor();
+      if (k === "tutor") aiCard("explain");
       else if (k === "rewrite") aiCard("rewrite");
       else if (k === "mnemonic") aiCard("mnemonic");
       else if (k === "edit") editCard();
@@ -2264,61 +2345,101 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     }
     return {a:"This one came from " + c.src[0] + ". Ask me for the short version, why it is tested, or how it connects to what you lapsed on this week.", c:c.src.join(" · ")};
   }
-  function tmsg(who, html, cite){
-    var d = document.createElement("div");
-    d.className = "tmsg " + who;
-    d.innerHTML = html + (cite ? '<span class="cite">' + cite + "</span>" : "");
-    $("tutorMsgs").appendChild(d);
-    $("tutorMsgs").scrollTop = $("tutorMsgs").scrollHeight;
+  /* ================= Cade in the corner ================= */
+  function currentScreen(){
+    var on = document.querySelector('.screen[data-on="true"]');
+    return on ? on.getAttribute("data-screen") : "decks";
   }
-  function openTutor(){
-    setMenu(false);
-    var c = curCard(); if (!c) return;
-    $("tutorPanel").hidden = false;
-    if (!$("tutorMsgs").childNodes.length){
-      if (AI.fn) { aiCard("explain"); return; }
-      var t = tutorFor(c);
-      tmsg("them", t.a, t.c);
-    }
-    $("tutorInput").focus();
+  function openCade(){
+    $("cadePanel").hidden = false;
+    $("cadeBadge").hidden = true;
+    setCadeContext(currentScreen());
+    if (!$("aiThread").childNodes.length) greet();
+    $("askInput").focus();
   }
-  $("tutorClose").addEventListener("click", function(){ $("tutorPanel").hidden = true; });
-  $("tutorForm").addEventListener("submit", function(e){
-    e.preventDefault();
-    var v = $("tutorInput").value.trim(); if (!v) return;
-    tmsg("me", v.replace(/[<>]/g, ""));
-    $("tutorInput").value = "";
-    var c = curCard();
-    var low = v.toLowerCase();
-    if (AI.fn){
-      var holder = document.createElement("div");
-      holder.className = "tmsg them";
-      holder.innerHTML = '<span class="dots3">Thinking</span>';
-      $("tutorMsgs").appendChild(holder);
-      AI.fn(courseContext() + "\n\nThe student is looking at this card.\nFront: " + String(c.q).replace(/<[^>]+>/g, "") +
-            "\nBack: " + String(c.a).replace(/<[^>]+>/g, "") + "\n\nTheir question: " + v, {
-        modelTier:"default",
-        onText:function(pp){ holder.innerHTML = esc(pp.text); }
-      }).then(function(res){
-        holder.innerHTML = esc(res.text) + '<span class="cite">Cadence AI · ' + c.src.join(" · ") + "</span>";
-      }, function(e){
-        if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
-        holder.innerHTML = esc(e.text || "") + '<span class="cite">' + aiErr(e) + "</span>";
-      });
-      return;
-    }
-    var reply;
-    if (/short|simple|quick|tl;?dr|one sentence/.test(low)){
-      reply = {a:"Shortest version: <b>" + $("aText").textContent.split(/[.—]/)[0].trim() + "</b>. Everything else on the card is the reason.", c:"compressed from " + c.src[0]};
-    } else if (/test|exam|blueprint|high.?yield/.test(low)){
-      reply = {a:"On this block's blueprint it appears as a vignette, not a definition — you get a patient and have to name the lesion or the drug class. Last year it was tested twice.", c:"Block 3 blueprint · " + c.src[c.src.length - 1]};
-    } else if (/forget|lapse|again|keep missing/.test(low)){
-      reply = {a:"You have lapsed on this twice. That is the threshold where Cadence rewrites the card shorter and schedules it beside the card it keeps getting confused with, rather than a week apart.", c:"leech watch · " + c.src[0]};
-    } else {
-      reply = tutorFor(c);
-    }
-    setTimeout(function(){ tmsg("them", reply.a, reply.c); }, 260);
+  function closeCade(){ $("cadePanel").hidden = true; }
+  function greet(){
+    bubble("ai",
+      "I have read the course deck, the objectives your lecturers posted, and which cards you keep missing. " +
+      "I do not build decks — the school already has one. I cut tonight out of it and write the few cards it is missing." +
+      (AI.fn ? "" : '<br><br><span class="err">Live Claude is not available in this view, so answers come from what is written into the prototype.</span>'),
+      "Cade");
+  }
+  function say(html, label){ openCade(); return bubble("ai", html, label || "Cade"); }
+
+  var CHIPS = {
+    decks:[
+      {t:"Why these cards?", f:whyThese},
+      {t:"Cut tonight to 20", f:function(){ setLoad(20); renderDecks(); say("Cut to 20 new. Reviews are untouched — those are what actually hold the score, and dropping them is how people lose a month."); }},
+      {t:"More pharm, less valves", f:tiltPharm},
+      {t:"Where am I weakest?", f:function(){ say(weakSummary()); }}
+    ],
+    study:[
+      {t:"Explain this card", f:function(){ aiCard("explain"); }},
+      {t:"Rewrite it shorter", f:function(){ aiCard("rewrite"); }},
+      {t:"Mnemonic", f:function(){ aiCard("mnemonic"); }}
+    ],
+    canvas:[
+      {t:"What is missing this week?", f:function(){
+        var g = gapRows();
+        say("The course deck covers four of this week's six objectives well. It misses <b>" +
+            g.map(function(c){ return c.lo; }).join("</b> and <b>") + "</b> — " +
+            g.reduce(function(a,c){ return a + (c.slides||0); }, 0) + " slides of lecture with no usable cards.<br><br>I can write those and nothing else, so you never review a duplicate."); }},
+      {t:"Fill the gaps", f:function(){ fillGaps(); }}
+    ],
+    step:[
+      {t:"What unlocks next?", f:function(){ say("<b>::step::cardio::heart_failure</b> unlocks Monday with CV-4.1 — 174 cards.<br><br>Renal transport stays held: four lapses this week means new cards there would pile up behind cards you already cannot hold."); }},
+      {t:"Am I on pace?", f:function(){
+        var need = requiredPace();
+        say(S.newPerDay >= need
+          ? "Yes — " + S.newPerDay + " a day clears the blueprint before dedicated starts."
+          : "Not quite. You need <b>" + need + "</b> new a day for " + S.target + " and you are set to " + S.newPerDay +
+            ". That gap leaves roughly " + ((need - S.newPerDay) * (daysLeft() - 56)).toLocaleString() + " Step cards suspended on exam day."); }}
+    ],
+    exchange:[
+      {t:"Which deck is worth adding?", f:function(){ say("<b>Block 3 Exam Post-Mortem '25</b>. It was written from last year's blueprint after the exam and overlaps 78% with the objectives actually tested — a better signal than a star rating.<br><br>Drag it onto the panel and I will fold the matching cards into tonight."); }}
+    ],
+    stats:[{t:"Read my numbers", f:function(){ say("31-day streak, 89% retention, 14 seconds a card. The July gap is the week you were away — nothing was dumped on your return, it was spread over nine days.<br><br>Your weak point is not effort. It is pharmacology at 74%."); }}],
+    prefs:[{t:"Make it less grey", f:function(){
+      var pick = THEMES.slice(1)[Math.floor(Math.random() * (THEMES.length - 1))];
+      applyTheme(pick.k); say("Switched to <b>" + pick.name + "</b>. Every background here keeps card text above contrast minimums — a study app you squint at is one you skip."); }}]
+  };
+
+  function setCadeContext(screen){
+    var ctxText = {
+      decks:"looking at tonight's cut", study:"looking at the card on screen",
+      canvas:"looking at this week's objectives", step:"looking at your Step pacing",
+      exchange:"looking at the exchange", stats:"looking at your history", prefs:"looking at your settings"
+    }[screen] || "here when you need it";
+    if ($("cadeCtx")) $("cadeCtx").textContent = ctxText;
+    var chips = CHIPS[screen] || CHIPS.decks;
+    $("cadeChips").innerHTML = chips.map(function(c, i){ return '<button type="button" data-chip="' + i + '">' + c.t + "</button>"; }).join("");
+    all("#cadeChips [data-chip]").forEach(function(b){
+      b.addEventListener("click", function(){ chips[+b.getAttribute("data-chip")].f(); });
+    });
+  }
+
+  function whyThese(){
+    var c = counts("today");
+    say("Tonight is <b>" + (c.n + c.l + c.d) + "</b> cards out of the course deck's 3,847.<br><br>" +
+        "<b>" + c.n + " new</b> — only from objectives taught this week, capped at the " + S.newPerDay + " a day you set.<br>" +
+        "<b>" + c.d + " due</b> — scheduled by when you last got them right, not by what was taught.<br>" +
+        "<b>" + c.l + " learning</b> — cards you lapsed on, back before they decay.<br><br>" +
+        "Six valvular cards came out because you are at 92% there, and six antiarrhythmic went in because you are at 74% with the exam in four days.");
+  }
+
+  function tiltPharm(){
+    DECKOPT.cv32 = Math.max(2, Math.round(counts("cv32").n * 0.5));
+    DECKOPT.phm41 = null;
+    rebuildNewLimit(); renderDecks();
+    say("Done — valvular halved to " + counts("cv32").n + " new, and the slots went to antiarrhythmics (now " +
+        counts("phm41").n + ").<br><br>Your review load is unchanged. I only moved new cards, which is the only part of tonight that is actually a choice.");
+  }
+
+  $("cadeBtn").addEventListener("click", function(){
+    if ($("cadePanel").hidden) openCade(); else closeCade();
   });
+  $("cadeClose").addEventListener("click", closeCade);
 
   /* ================= command bar ================= */
   function runCommand(raw){
@@ -2367,14 +2488,15 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
     if (/\bundo\b/.test(low) && !did.length){ doUndo(); return; }
     if (/\b(unsuspend|unlock)\b/.test(low) && !did.length){ show("step"); $("unsusBtn").click(); return; }
-    if (/\b(study|review now|start)\b/.test(low) && !did.length){ startStudy("med231"); return; }
+    if (/\b(study|review now|start)\b/.test(low) && !did.length){ startStudy("today"); return; }
     if (/\b(why|explain|tutor|help me understand)\b/.test(low) && !did.length){
-      if (document.querySelector('.screen[data-on="true"]').getAttribute("data-screen") === "study"){ openTutor(); return; }
+      if (document.querySelector('.screen[data-on="true"]').getAttribute("data-screen") === "study"){ aiCard("explain"); return; }
       did.push("the tutor opens on a card — start a session first");
     }
-    if (!did.length && /\b(write|make|generate)\b.*\bcards?\b/.test(low)){ show("ai"); generateCards(); return; }
-    if (!did.length && /\b(ai|assistant|ask claude)\b/.test(low)){ show("ai"); $("askInput").focus(); return; }
-    var screens = {canvas:"canvas", exchange:"exchange", marketplace:"exchange", step:"step", stats:"stats", statistic:"stats", ai:"ai", pref:"prefs", setting:"prefs", deck:"decks"};
+    if (!did.length && /\b(write|make|generate)\b.*\bcards?\b/.test(low)){ fillGaps(); return; }
+    if (!did.length && /\b(cade|ai|assistant|ask claude)\b/.test(low)){ openCade(); return; }
+    if (!did.length && /\b(gap|missing|not covered)\b/.test(low)){ fillGaps(); return; }
+    var screens = {canvas:"canvas", exchange:"exchange", marketplace:"exchange", step:"step", stats:"stats", statistic:"stats", coverage:"canvas", pref:"prefs", setting:"prefs", deck:"decks"};
     if (!did.length){
       for (var sk in screens){
         if (low.indexOf(sk) > -1){ show(screens[sk]); did.push("opened " + screens[sk]); break; }
@@ -2526,8 +2648,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     AI.busy = on;
     $("askSend").disabled = on;
     $("askStop").hidden = !on;
-    $("genBtn").disabled = on;
-    $("drillBtn").disabled = on;
+    if ($("fillBtn")) $("fillBtn").disabled = on || !gapRows().length;
   }
   $("askStop").addEventListener("click", function(){ if (AI.ctl) AI.ctl.abort(); });
 
@@ -2555,7 +2676,13 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       return;
     }
     AI.ctl = new AbortController();
-    AI.turns.push({role:"user", content:q});
+    var ctx = "";
+    if (currentScreen() === "study" && curCard()){
+      var cc = curCard();
+      ctx = "\n\nThe student is looking at this card right now.\nFront: " + String(cc.q).replace(/<[^>]+>/g, "") +
+            "\nBack: " + String(cc.a).replace(/<[^>]+>/g, "");
+    }
+    AI.turns.push({role:"user", content:q + ctx});
     var input = [{role:"user", content:courseContext()}, {role:"assistant", content:"Understood. Ask away."}].concat(AI.turns);
     try {
       var res = await AI.fn(input, {
@@ -2585,9 +2712,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("askInput").value = "";
     askAI(v);
   });
-  all("[data-ask]").forEach(function(b){
-    b.addEventListener("click", function(){ askAI(b.getAttribute("data-ask")); });
-  });
+
 
   /* ================= write cards from a lecture ================= */
   var GEN_FALLBACK = {
@@ -2664,63 +2789,65 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       renderGen(GEN_FALLBACK[leaf].slice(0, n), aiErr(e) + " Showing the prototype's written cards instead.");
     } finally { aiBusy(false); }
   }
-  $("genBtn").addEventListener("click", generateCards);
   $("genAgain").addEventListener("click", generateCards);
 
+  function ensureGapDeck(){
+    var today = DECKS.filter(function(d){ return d.id === "today"; })[0];
+    if (!today.kids.filter(function(k){ return k.id === "gaps"; }).length){
+      today.kids.push({id:"gaps", name:"Written by Cade", lo:"not in the course deck"});
+      META.gaps = {ret:0, order:5, lapses:0, lec:"written by Cade", kw:"gap gaps written cade ai missing"};
+    }
+  }
   $("genAdd").addEventListener("click", function(){
-    var leaf = $("genLec").value;
+    var toGaps = AI.genTarget === "gaps";
+    var leaf = toGaps ? "gaps" : $("genLec").value;
     var keep = AI.gen.filter(function(c){ return c.keep; });
     if (!keep.length){ toast("Nothing kept — tap Keep on the cards you want."); return; }
-    var added = [];
+    if (toGaps) ensureGapDeck();
+    var added = [], filled = {};
     keep.forEach(function(c){
-      var card = {d:leaf, s:0, ivl:0, q:esc(c.front), a:esc(c.back),
-                  src:[LECS[leaf].name, "written by Cadence AI", c.lo || LECS[leaf].lo], ai:true};
+      var src = toGaps ? ["Written by Cade", "not in the course deck", c.lo || ""]
+                       : [LECS[leaf].name, "written by Cade", c.lo || LECS[leaf].lo];
+      var card = {d:leaf, s:0, ivl:0, q:esc(c.front), a:esc(c.back), src:src, ai:true};
       CARDS.push(card); added.push(card);
+      if (c.lo) filled[c.lo] = (filled[c.lo] || 0) + 1;
     });
-    pushUndo("AI cards", function(){
-      added.forEach(function(card){
-        var i = CARDS.indexOf(card); if (i > -1) CARDS.splice(i, 1);
-      });
+    var prevCov = COVERAGE.map(function(c){ return {s:c.s, n:c.n}; });
+    if (toGaps){
+      COVERAGE.forEach(function(c){ if (filled[c.lo]){ c.s = "filled"; c.n = c.n + filled[c.lo]; } });
+      renderCoverage();
+    }
+    pushUndo("Cade's cards", function(){
+      added.forEach(function(card){ var i = CARDS.indexOf(card); if (i > -1) CARDS.splice(i, 1); });
+      COVERAGE.forEach(function(c, i){ c.s = prevCov[i].s; c.n = prevCov[i].n; });
+      renderCoverage();
     });
-    S.fresh = [leaf, "med231"];
-    $("genRow").hidden = true; AI.gen = [];
+    S.fresh = [leaf, "today"];
+    $("genRow").hidden = true; AI.gen = []; AI.genTarget = null;
     renderDecks(); updateBuildLine();
-    toast("<b>" + keep.length + " cards</b> added to " + deckName(leaf) + " — they are in tonight's session.");
-    show("decks");
+    toast("<b>" + keep.length + " cards</b> added — " +
+      (toGaps ? "the objectives your course deck missed are covered now." : "they are in tonight's session."));
   });
 
   /* ================= weak spots and drills ================= */
-  function renderWeak(){
-    var LABEL = {phm41:"Antiarrhythmics I · PHM-4.1", ren24:"Renal Transport · REN-2.4", step:"Step deck · cardiovascular"};
+  function weakSummary(){
+    var LABEL = {phm41:"Antiarrhythmics I (PHM-4.1)", ren24:"Renal Transport (REN-2.4)", step:"the Step tags you have unlocked"};
     var rows = ["phm41","ren24","step"].map(function(k){
       var m = META[k], c = counts(k);
-      return '<div class="tagrow">' +
-        '<span class="tag">' + LABEL[k] + "</span>" +
-        '<span class="state" data-s="' + (m.ret < 80 ? "held" : "ready") + '">' + m.ret + "%</span>" +
-        '<span class="cnt">' + (m.lapses || 0) + " lapses · " + (c.n + c.l + c.d) + " scheduled tonight</span>" +
-        "</div>";
-    }).join("");
-    $("weakRows").innerHTML = rows;
+      return "<b>" + LABEL[k] + "</b> — " + m.ret + "% retention, " + (m.lapses || 0) + " lapses, " + (c.n + c.l + c.d) + " scheduled tonight.";
+    });
+    return "Weakest first:<br><br>" + rows.join("<br>") +
+      "<br><br>Antiarrhythmics is the one costing you points — it is on this block's exam in four days and on your Step blueprint.";
   }
-  $("drillBtn").addEventListener("click", async function(){
-    if (AI.busy) return;
-    $("genLec").value = "phm41";
-    $("genN").value = 6;
-    toast("Building six cards on antiarrhythmics — your weakest objective at 74%.");
-    await generateCards();
-  });
 
   /* ================= AI inside the reviewer ================= */
   async function aiCard(kind){
     setMenu(false);
-    var c = curCard(); if (!c) return;
-    $("tutorPanel").hidden = false;
+    var c = curCard();
+    if (!c){ say("Start a session and I will work on the card in front of you."); return; }
+    openCade();
     var label = kind === "rewrite" ? "Rewriting this card" : kind === "mnemonic" ? "Finding a mnemonic" : "Explaining";
-    var holder = document.createElement("div");
-    holder.className = "tmsg them";
-    holder.innerHTML = '<span class="dots3">' + label + "</span>";
-    $("tutorMsgs").appendChild(holder);
-
+    var holder = bubble("ai", '<span class="dots3">' + label + "</span>", "Cade");
     var plain = function(h){ return String(h).replace(/<[^>]+>/g, ""); };
     var ask =
       kind === "rewrite" ? "This card keeps being forgotten. Rewrite it so it tests ONE fact in the fewest words that still make it answerable. Reply as JSON only: {\"front\":\"…\",\"back\":\"…\"}"
@@ -2729,10 +2856,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
     if (!AI.fn){
       var t = tutorFor(c);
-      holder.innerHTML = (kind === "mnemonic"
-        ? "<b>Amiodarone deposits everywhere:</b> lungs, liver, thyroid, eyes, skin. Picture a drug that never leaves the building — 58-day half-life — so you check every room it can settle in.<br><br>For Class IC, remember <b>\"IC = I Cannot, post-MI\"</b>."
-        : kind === "rewrite" ? "Shorter version: <b>" + plain(c.a).split(/[.—]/)[0].trim() + "</b> — that is the fact; the rest was context." : t.a) +
-        '<span class="cite">prototype answer · live Claude unavailable in this view</span>';
+      holder.innerHTML = '<span class="who">Cade · prototype answer</span>' + (kind === "mnemonic"
+        ? "<b>Amiodarone deposits everywhere</b> — lungs, liver, thyroid, eyes, skin. Picture a drug that never leaves the building: a 58-day half-life, so you check every room it can settle in.<br><br>For Class IC: <b>\"IC = I Cannot, post-MI.\"</b>"
+        : kind === "rewrite" ? "Shorter version: <b>" + plain(c.a).split(/[.—]/)[0].trim() + "</b> — that is the fact; the rest was context."
+        : t.a);
       return;
     }
     try {
@@ -2742,21 +2869,80 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         c.q = esc(out.front); c.a = esc(out.back);
         pushUndo("rewrite", function(){ c.q = prevQ; c.a = prevA; renderCard(); });
         renderCard();
-        $("tutorPanel").hidden = false;
-        $("tutorMsgs").innerHTML = "";
-        tmsg("them", "Rewritten and saved to your collection. The old version is one undo away (⌘Z).", "Cadence AI · " + c.src[0]);
+        holder.innerHTML = '<span class="who">Cade</span>Rewritten and saved to your collection:<br><br><b>' +
+          esc(out.front) + "</b><br>" + esc(out.back) + "<br><br>The old version is one undo away (⌘Z).";
         return;
       }
       await AI.fn(courseContext() + "\n\nCard front: " + plain(c.q) + "\nCard back: " + plain(c.a) + "\n\n" + ask, {
         modelTier: kind === "mnemonic" ? "quick" : "default",
-        onText:function(pp){ holder.innerHTML = esc(pp.text); }
+        onText:function(pp){ holder.innerHTML = '<span class="who">Cade</span>' + esc(pp.text); }
       });
-      holder.innerHTML += '<span class="cite">Cadence AI · ' + c.src.join(" · ") + "</span>";
     } catch (e){
       if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
-      holder.innerHTML = esc(e.text || "") + '<span class="cite">' + aiErr(e) + "</span>";
+      holder.innerHTML = '<span class="who">Cade</span>' + esc(e.text || "") + '<span class="err"> ' + aiErr(e) + "</span>";
     }
   }
+
+  /* ================= filling what the course deck misses ================= */
+  var GAP_FALLBACK = {
+    "CV-3.2c":[
+      {front:"Asymptomatic severe aortic stenosis, valve area 0.8 cm². What single finding moves this patient to valve replacement?", back:"An ejection fraction below 50%, or symptoms provoked on exercise testing. Severity alone does not operate — the ventricle failing, or the patient declaring symptoms, does.", lo:"CV-3.2c"},
+      {front:"Name the two numbers that trigger surgery in asymptomatic chronic severe mitral regurgitation.", back:"EF at or below 60%, and left ventricular end-systolic dimension at or above 40 mm. Both mark occult dysfunction before the patient feels anything.", lo:"CV-3.2c"}
+    ],
+    "PHM-4.1d":[
+      {front:"Which two baseline studies are mandatory before starting amiodarone, and why each?", back:"Thyroid function, because the molecule is 37% iodine by weight; and pulmonary function with a chest film, because tissue deposition causes fibrosis. Both are repeated every six months.", lo:"PHM-4.1d"},
+      {front:"Why is sotalol usually started in hospital?", back:"It is a Class III with beta-blockade, and its QT prolongation is worst at slow rates — reverse use-dependence. The first few doses carry the torsades risk, so they are monitored.", lo:"PHM-4.1d"}
+    ],
+    "PHM-4.1e":[
+      {front:"State the CAST result in one sentence, and the prescribing rule that came out of it.", back:"Suppressing PVCs after myocardial infarction with encainide or flecainide increased mortality. Class IC agents are contraindicated in structural heart disease.", lo:"PHM-4.1e"},
+      {front:"A patient six months after an anterior MI needs rhythm control for atrial fibrillation. Which agent, and why not flecainide?", back:"Amiodarone, or dofetilide with monitoring. Flecainide's rate-dependent conduction slowing through scarred myocardium creates the reentry substrate CAST exposed.", lo:"PHM-4.1e"}
+    ]
+  };
+
+  async function fillGaps(){
+    var gaps = gapRows();
+    if (!gaps.length){ say("Nothing is missing this week — every objective your lecturers taught already has cards."); return; }
+    if (AI.busy) return;
+    openCade();
+    AI.genTarget = "gaps";
+    aiBusy(true);
+    var names = gaps.map(function(g){ return g.lo; }).join(", ");
+    var holder = bubble("ai", '<span class="dots3">Writing cards for ' + names + "</span>", "Cade");
+
+    function finish(cards, note){
+      holder.innerHTML = '<span class="who">Cade</span>The course deck has nothing usable for <b>' + names +
+        "</b>. Here is what I would add — keep the ones you want.";
+      renderGen(cards, note);
+    }
+    if (!AI.fn){
+      setTimeout(function(){
+        var out = [];
+        gaps.forEach(function(g){ out = out.concat(GAP_FALLBACK[g.lo] || []); });
+        finish(out, "Written into the prototype — live Claude is not available in this view.");
+        aiBusy(false);
+      }, 620);
+      return;
+    }
+    try {
+      var res = await AI.fn.json(
+        courseContext() + "\n\nThe school's course deck covers most of this week but has no usable cards for these objectives:\n" +
+        gaps.map(function(g){ return "- " + g.lo + ": " + g.what + " (" + (g.slides||0) + " slides of lecture, " + g.n + " cards in the deck)"; }).join("\n") +
+        "\n\nWrite exactly 2 flashcards for each of those objectives — no more, and nothing on any other objective, because everything else is already covered and duplicates cost the student time.\n" +
+        "Rules: one testable fact per card; a short clinical stem is better than a definition; the front must be answerable without seeing the back; no cloze; no numbering.\n" +
+        "Reply with JSON only: {\"cards\":[{\"front\":\"…\",\"back\":\"…\",\"lo\":\"CV-3.2c\"}]}",
+        {modelTier:"default"}
+      );
+      var cards = (res && res.cards) || [];
+      if (!cards.length) throw {code:"empty_completion"};
+      finish(cards, "Written by Claude just now, against " + names + " only.");
+    } catch (e){
+      if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
+      var out2 = [];
+      gaps.forEach(function(g){ out2 = out2.concat(GAP_FALLBACK[g.lo] || []); });
+      finish(out2, aiErr(e) + " Showing the prototype's written cards instead.");
+    } finally { aiBusy(false); }
+  }
+  if ($("fillBtn")) $("fillBtn").addEventListener("click", fillGaps);
 
   /* ================= bring your Anki collection ================= */
   function runAnkiImport(kind){
@@ -2791,6 +2977,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   updatePace();
   goStep(0);
   $("cmdbar").hidden = true;
+  $("cadeBtn").hidden = true;
+  $("whyBtn").addEventListener("click", whyThese);
+  renderCoverage();
   rebuildNewLimit();
   renderDecks();
   renderExchange();
