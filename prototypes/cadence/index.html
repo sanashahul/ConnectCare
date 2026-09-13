@@ -362,14 +362,107 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .barsx{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);font-family:var(--mono);margin-top:4px}
 
 /* ---------- toast ---------- */
+/* top-right: the bottom of the window belongs to the answer buttons */
 .toast{
-  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);
+  position:fixed;top:56px;right:18px;
   background:var(--text);color:var(--page);border-radius:5px;padding:8px 14px;font-size:13px;
-  box-shadow:0 6px 22px -8px rgba(0,0,0,.5);z-index:50;max-width:calc(100% - 30px);
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.55);z-index:50;max-width:min(360px,calc(100% - 36px));
+  animation:toastin .18s ease both;
 }
+@keyframes toastin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
 .toast[hidden]{display:none !important}
 
 .note{font-size:11.5px;color:var(--dim);text-align:center;padding:10px 16px 18px;line-height:1.6}
+
+/* ---------- deck tools ---------- */
+.decktools{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+.decktools input[type=search]{
+  flex:1;min-width:140px;background:var(--page);border:1px solid var(--edge);
+  border-radius:4px;padding:5px 9px;font-size:13px;
+}
+.decktools input[type=search]:focus{outline:none;border-color:var(--accent)}
+.decktools select{font-size:12.5px;padding:4px 6px}
+.decktools .linkbtn{font-size:12px;white-space:nowrap}
+.decktable td.ret{text-align:right;width:54px;font-family:var(--mono);font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.decktable td.ret[data-weak="true"]{color:var(--learn)}
+.decktable th.retcol{width:54px}
+.emptyrow td{color:var(--dim);font-size:13px;padding:16px 0;text-align:center}
+.decktable tr[data-fresh="true"] td{animation:flashrow 1.6s ease both}
+@keyframes flashrow{0%,40%{background:var(--accent-soft)}100%{background:transparent}}
+
+/* ---------- popup menu ---------- */
+.morewrap{position:relative;flex:0 0 auto}
+.menu{
+  position:absolute;bottom:calc(100% + 6px);left:0;min-width:206px;z-index:30;
+  background:var(--page);border:1px solid var(--edge);border-radius:6px;padding:4px;
+  box-shadow:0 12px 34px -14px rgba(0,0,0,.55);
+}
+.menu[hidden]{display:none !important}
+.menu button{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  background:none;border:0;padding:6px 9px;border-radius:4px;font-size:13px;
+}
+.menu button:hover{background:var(--accent-soft)}
+.menu .k{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.menu .sep{height:1px;background:var(--edge-soft);margin:4px 2px}
+.menu .flags{display:flex;gap:5px;padding:5px 9px 6px}
+.menu .flags button{width:19px;height:19px;border-radius:50%;padding:0;border:1px solid var(--edge)}
+.menu .flags button:hover{transform:scale(1.12)}
+
+/* ---------- card extras ---------- */
+.flagstrip{height:3px;width:96px;border-radius:2px;margin:0 auto 16px;background:transparent}
+.flagstrip[data-f="1"]{background:#D2453C}
+.flagstrip[data-f="2"]{background:#E08A1E}
+.flagstrip[data-f="3"]{background:#3E9B55}
+.flagstrip[data-f="4"]{background:#3B7DD8}
+.qtext[contenteditable="true"],.atext[contenteditable="true"]{
+  outline:1px dashed var(--accent);outline-offset:7px;border-radius:3px;
+}
+
+/* ---------- tutor ---------- */
+.tutor{border-top:1px solid var(--edge);background:var(--sunk);padding:12px 16px 14px}
+.tutor[hidden]{display:none !important}
+.tutor .head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.tutor .head b{font-size:12px;font-weight:600}
+.tutor .head .x{margin-left:auto;background:none;border:0;color:var(--dim);font-size:15px;line-height:1;padding:0 3px}
+.tmsgs{display:flex;flex-direction:column;gap:9px;max-height:190px;overflow:auto;margin-bottom:9px}
+.tmsg{font-size:13px;line-height:1.55;max-width:48em}
+.tmsg.them{color:var(--text)}
+.tmsg.me{color:var(--text-2);font-style:italic}
+.tmsg .cite{display:block;margin-top:4px;font-family:var(--mono);font-size:10.5px;color:var(--dim);font-style:normal}
+.tutorform{display:flex;gap:7px}
+.tutorform input{flex:1;min-width:0;background:var(--page);border:1px solid var(--edge);border-radius:4px;padding:6px 9px;font-size:13px}
+.tutorform input:focus{outline:none;border-color:var(--accent)}
+
+/* ---------- dialog ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(10,11,13,.44);display:grid;place-items:center;padding:18px;z-index:60}
+.backdrop[hidden]{display:none !important}
+.dialog{
+  width:100%;max-width:430px;background:var(--page);border:1px solid var(--edge);border-radius:8px;
+  box-shadow:0 24px 60px -22px rgba(0,0,0,.6);overflow:hidden;
+}
+.dialog > header{padding:11px 14px;background:var(--sunk);border-bottom:1px solid var(--edge-soft);font-size:13px;font-weight:600}
+.dialog .body{padding:2px 0}
+.dialog .foot{display:flex;justify-content:flex-end;gap:8px;padding:11px 13px;background:var(--sunk);border-top:1px solid var(--edge-soft)}
+
+/* ---------- import choice ---------- */
+.importask{margin-top:12px;border-top:1px solid var(--edge);padding-top:11px;text-align:left}
+.importask p{margin:0 0 9px;font-size:12.5px;color:var(--text)}
+.importask .btns{display:flex;gap:7px;flex-wrap:wrap}
+.importask .btn{font-size:12px;padding:5px 10px}
+
+/* ---------- command bar ---------- */
+.cmdbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bar);border-top:1px solid var(--edge)}
+.cmdbar[hidden]{display:none !important}
+.cmdbar .slash{font-family:var(--mono);font-size:10.5px;color:var(--dim);border:1px solid var(--edge);border-radius:3px;padding:1px 5px;flex:0 0 auto}
+.cmdbar input{
+  flex:1;min-width:0;background:var(--page);border:1px solid var(--edge);border-radius:4px;
+  padding:6px 10px;font-size:13px;
+}
+.cmdbar input:focus{outline:none;border-color:var(--accent)}
+.cmdbar .btn{padding:5px 11px;font-size:12.5px}
+.toast button.undo{background:none;border:0;color:#7FB3FF;text-decoration:underline;padding:0 0 0 11px;font-size:13px}
+:root[data-theme="dark"] .toast button.undo{color:var(--accent)}
 
 @media (max-width:720px){
   .app{border-left:0;border-right:0}
@@ -383,6 +476,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   .revbar .more{display:none}
   .qtext,.atext{font-size:18px}
   .pacegrid{gap:18px}
+  .decktools{gap:6px}
+  .menu{left:auto;right:0}
+  .toast{left:12px;right:12px;top:52px;max-width:none}
 }
 </style>
 
@@ -577,8 +673,20 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <span>Built <b id="buildTime">6:04 AM</b> · <b id="buildTotal">57</b> cards from Friday's two lectures and what's due</span>
         <span class="r"><button type="button" class="linkbtn" data-nav="canvas">what changed</button></span>
       </div>
+      <div class="decktools">
+        <input type="search" id="deckFilter" placeholder="Filter decks, lectures or objectives" aria-label="Filter decks">
+        <select id="deckSort" aria-label="Sort decks">
+          <option value="build">Tonight's order</option>
+          <option value="due">Most due first</option>
+          <option value="new">Most new first</option>
+          <option value="name">Name A–Z</option>
+          <option value="lecture">Lecture order</option>
+          <option value="weak">Weakest retention</option>
+        </select>
+        <button type="button" class="linkbtn" id="foldBtn">Collapse all</button>
+      </div>
       <table class="decktable">
-        <thead><tr><th>Deck</th><th>New</th><th>Learn</th><th>Due</th><th></th></tr></thead>
+        <thead><tr><th>Deck</th><th>New</th><th>Learn</th><th>Due</th><th class="retcol" hidden>Ret</th><th></th></tr></thead>
         <tbody id="deckBody"></tbody>
       </table>
       <div class="deckfoot">
@@ -598,6 +706,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <span class="timer" id="revTimer">0:00</span>
     </div>
     <div class="cardarea">
+      <div class="flagstrip" id="flagStrip" data-f="0"></div>
       <p class="qtext" id="qText"></p>
       <div id="ansWrap" hidden>
         <hr class="ansrule">
@@ -605,8 +714,42 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
       <p class="srcline" id="srcLine"></p>
     </div>
+    <section class="tutor" id="tutorPanel" hidden>
+      <div class="head">
+        <b>Tutor</b>
+        <span class="tiny">grounded in the lecture this card came from</span>
+        <button type="button" class="x" id="tutorClose" aria-label="Close tutor">✕</button>
+      </div>
+      <div class="tmsgs" id="tutorMsgs"></div>
+      <form class="tutorform" id="tutorForm">
+        <label for="tutorInput" style="position:absolute;left:-9999px">Ask about this card</label>
+        <input id="tutorInput" type="text" placeholder="Ask why, or ask for the version that sticks…" autocomplete="off">
+        <button type="submit" class="btn">Ask</button>
+      </form>
+    </section>
     <div class="revbar">
-      <button type="button" class="btn more" id="moreBtn">More ▾</button>
+      <span class="morewrap">
+        <button type="button" class="btn more" id="moreBtn" aria-haspopup="true" aria-expanded="false">More ▾</button>
+        <div class="menu" id="moreMenu" hidden role="menu">
+          <div class="flags" id="flagRow" aria-label="Flag card">
+            <button type="button" data-flag="1" style="background:#D2453C" aria-label="Red flag" title="Red"></button>
+            <button type="button" data-flag="2" style="background:#E08A1E" aria-label="Orange flag" title="Orange"></button>
+            <button type="button" data-flag="3" style="background:#3E9B55" aria-label="Green flag" title="Green"></button>
+            <button type="button" data-flag="4" style="background:#3B7DD8" aria-label="Blue flag" title="Blue"></button>
+            <button type="button" data-flag="0" style="background:transparent" aria-label="Clear flag" title="None"></button>
+          </div>
+          <div class="sep"></div>
+          <button type="button" role="menuitem" data-more="tutor">Ask the tutor<span class="k">a</span></button>
+          <button type="button" role="menuitem" data-more="edit">Edit card<span class="k">e</span></button>
+          <button type="button" role="menuitem" data-more="info">Card info<span class="k">i</span></button>
+          <div class="sep"></div>
+          <button type="button" role="menuitem" data-more="bury">Bury card<span class="k">-</span></button>
+          <button type="button" role="menuitem" data-more="suspend">Suspend card<span class="k">!</span></button>
+          <button type="button" role="menuitem" data-more="suspendtag">Suspend this tag</button>
+          <div class="sep"></div>
+          <button type="button" role="menuitem" data-more="undo">Undo<span class="k">⌘Z</span></button>
+        </div>
+      </span>
       <div class="answers" id="answers">
         <button type="button" class="btn big showbtn" id="showBtn">Show Answer <span class="k" style="margin-left:8px">space</span></button>
       </div>
@@ -773,7 +916,25 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     </div></div>
   </section>
 
+  <form class="cmdbar" id="cmdbar" hidden>
+    <span class="slash">/</span>
+    <label for="cmdInput" style="position:absolute;left:-9999px">Ask or change anything</label>
+    <input id="cmdInput" type="text" placeholder="Ask or change anything — try &quot;dark&quot;, &quot;40 cards a day&quot;, &quot;sort by weakest&quot;" autocomplete="off">
+    <button type="submit" class="btn">Send</button>
+  </form>
+
   <p class="note">Prototype. Ridgeline SOM, the student and the exchange decks are invented; the medical content, the objective codes and the scheduling behavior are real.</p>
+</div>
+
+<div class="backdrop" id="backdrop" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <header id="dlgTitle">Deck options</header>
+    <div class="body" id="dlgBody"></div>
+    <div class="foot">
+      <button type="button" class="btn" id="dlgCancel">Cancel</button>
+      <button type="button" class="btn primary" id="dlgSave">Save</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -799,7 +960,21 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     queue:[], qi:0, shown:false,
     t0:0, timer:null,
     unsuspended:47,
-    owned:{}
+    owned:{},
+    sort:"build", filter:"", folded:false, fresh:[],
+    undo:[], menuOpen:false, editing:false, pending:null
+  };
+
+  /* per-deck new/day overrides set in Deck options, and cards added on top of
+     the daily limit by an import the student chose to add to tonight */
+  var DECKOPT = {};
+  var EXTRA = {};
+
+  var META = {
+    cv32:{ret:92, order:1, lapses:3, lec:"Okonkwo · Friday 9:12 AM", kw:"cardio cardiology valve valves murmur murmurs stenosis regurgitation heart"},
+    phm41:{ret:74, order:2, lapses:11, lec:"Feld · Friday 2:40 PM", kw:"pharm pharmacology drugs antiarrhythmic amiodarone flecainide"},
+    ren24:{ret:81, order:3, lapses:6, lec:"Haddad · week 2", kw:"renal kidney nephron diuretic transport electrolytes"},
+    step:{ret:86, order:4, lapses:5, lec:"national deck · unsuspended by tag", kw:"step boards national anking usmle"}
   };
 
   var ACCENTS = [
@@ -881,13 +1056,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   var NEW_SHARE = {cv32:.40, phm41:.36, step:.24, ren24:0};
 
   function rebuildNewLimit(){
-    var left = S.newPerDay, keys = ["cv32","phm41","step"];
-    keys.forEach(function(k, i){
-      var want = (i === keys.length - 1) ? left : Math.round(S.newPerDay * NEW_SHARE[k]);
+    var keys = ["cv32","phm41","step"];
+    var fixed = keys.filter(function(k){ return DECKOPT[k] != null; });
+    var flex  = keys.filter(function(k){ return DECKOPT[k] == null; });
+    var spent = fixed.reduce(function(a,k){ return a + DECKOPT[k]; }, 0);
+    var left  = Math.max(0, S.newPerDay - spent);
+    var share = flex.reduce(function(a,k){ return a + NEW_SHARE[k]; }, 0) || 1;
+
+    fixed.forEach(function(k){
+      VIRT[k].n = Math.max(0, DECKOPT[k] - (BASE_NEW[k] || 0));
+    });
+    var budget = left;
+    flex.forEach(function(k, i){
+      var want = (i === flex.length - 1) ? left : Math.round(budget * NEW_SHARE[k] / share);
       want = Math.max(0, Math.min(left, want));
       left -= want;
-      var realNew = BASE_NEW[k] || 0;
-      VIRT[k].n = Math.max(0, want - realNew);
+      VIRT[k].n = Math.max(0, want - (BASE_NEW[k] || 0));
     });
     if (typeof renderDecks === "function") renderDecks();
     updateBuildLine();
@@ -922,11 +1106,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     var o = {n:0, l:0, d:0};
     leafIds(id).forEach(function(leaf){
       CARDS.forEach(function(c){
-        if (c.d !== leaf) return;
+        if (c.d !== leaf || c.out) return;
         if (c.s === 0) o.n++; else if (c.s === 1) o.l++; else o.d++;
       });
       var v = VIRT[leaf];
       if (v){ o.n += v.n; o.l += v.l; o.d += v.d; }
+      o.n += EXTRA[leaf] || 0;
     });
     return o;
   }
@@ -952,6 +1137,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       else b.removeAttribute("aria-current");
     });
     $("toolbar").hidden = (name === "onboard" || name === "connect");
+    $("cmdbar").hidden = $("toolbar").hidden;
+    if (S.menuOpen) setMenu(false);
+    if (name !== "study"){ $("tutorPanel").hidden = true; }
     if (name === "step") renderStep();
     if (name === "stats") renderHeat();
     if (name === "exchange") renderExchange();
@@ -1129,29 +1317,87 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   function countCell(v, k){
     return '<td class="n" data-k="' + k + '" data-z="' + (v === 0) + '">' + v + "</td>";
   }
+  function allocated(id){ var c = counts(id); return c.n; }
+
+  function retOf(id){
+    var leaves = leafIds(id).filter(function(l){ return META[l]; });
+    if (!leaves.length) return null;
+    var sum = leaves.reduce(function(a,l){ return a + META[l].ret; }, 0);
+    return Math.round(sum / leaves.length);
+  }
+  function orderOf(id){
+    var leaves = leafIds(id).filter(function(l){ return META[l]; });
+    if (!leaves.length) return 99;
+    return Math.min.apply(null, leaves.map(function(l){ return META[l].order; }));
+  }
+  function sortList(ids){
+    var k = S.sort;
+    if (k === "build") return ids;
+    return ids.slice().sort(function(a, b){
+      var ca = counts(a), cb = counts(b);
+      if (k === "due")  return cb.d - ca.d;
+      if (k === "new")  return cb.n - ca.n;
+      if (k === "name") return deckName(a).localeCompare(deckName(b));
+      if (k === "lecture") return orderOf(a) - orderOf(b);
+      if (k === "weak") return (retOf(a) == null ? 999 : retOf(a)) - (retOf(b) == null ? 999 : retOf(b));
+      return 0;
+    });
+  }
+  function matches(id){
+    if (!S.filter) return true;
+    var q = S.filter.toLowerCase();
+    var lo = "", lec = "";
+    DECKS.forEach(function(d){ d.kids.forEach(function(x){ if (x.id === id) lo = x.lo || ""; }); });
+    var kw = "";
+    if (META[id]){ lec = META[id].lec || ""; kw = META[id].kw || ""; }
+    return (deckName(id) + " " + lo + " " + lec + " " + kw).toLowerCase().indexOf(q) > -1;
+  }
+
   function renderDecks(){
-    var html = "";
-    DECKS.forEach(function(d){
+    var showRet = S.sort === "weak";
+    all(".retcol").forEach(function(th){ th.hidden = !showRet; });
+    var retCell = function(id){
+      if (!showRet) return "";
+      var r = retOf(id);
+      return '<td class="ret" data-weak="' + (r != null && r < 80) + '">' + (r == null ? "—" : r + "%") + "</td>";
+    };
+    var html = "", shown = 0;
+    var order = sortList(DECKS.map(function(d){ return d.id; }));
+    order.map(function(id){
+      return DECKS.filter(function(d){ return d.id === id; })[0];
+    }).forEach(function(d){
+      var kidsShown = d.kids.filter(function(k){ return matches(k.id); });
+      var selfMatch = matches(d.id);
+      if (!selfMatch && !kidsShown.length) return;
+      if (selfMatch && !S.filter) kidsShown = d.kids;
+      if (selfMatch && S.filter) kidsShown = d.kids;
+      shown++;
+
       var c = counts(d.id);
-      html += "<tr>" +
+      var open = S.filter ? true : d.open;
+      html += '<tr data-fresh="' + (S.fresh.indexOf(d.id) > -1) + '">' +
         '<td><span class="deckname">' +
-          (d.kids.length ? '<button type="button" class="tw" data-tw="' + d.id + '" data-open="' + d.open + '" aria-label="Collapse">▾</button>' : '<span class="tw"></span>') +
+          (d.kids.length ? '<button type="button" class="tw" data-tw="' + d.id + '" data-open="' + open + '" aria-label="Expand or collapse">▾</button>' : '<span class="tw"></span>') +
           '<button type="button" class="dname" data-study="' + d.id + '">' + d.name + "</button>" +
         "</span></td>" +
-        countCell(c.n,"new") + countCell(c.l,"learn") + countCell(c.d,"due") +
-        '<td class="g"><button type="button" class="gear" data-gear="' + d.id + '" aria-label="Options">⚙</button></td></tr>';
-      if (d.open) d.kids.forEach(function(k){
+        countCell(c.n,"new") + countCell(c.l,"learn") + countCell(c.d,"due") + retCell(d.id) +
+        '<td class="g"><button type="button" class="gear" data-gear="' + d.id + '" aria-label="Options for ' + d.name + '">⚙</button></td></tr>';
+
+      if (open) sortList(kidsShown.map(function(k){ return k.id; })).forEach(function(kid){
+        var k = d.kids.filter(function(x){ return x.id === kid; })[0];
         var kc = counts(k.id);
-        html += "<tr>" +
+        html += '<tr data-fresh="' + (S.fresh.indexOf(k.id) > -1) + '">' +
           '<td><span class="deckname child">' +
             '<button type="button" class="dname" data-study="' + k.id + '">' + k.name + "</button>" +
             '<span class="lo">' + k.lo + "</span>" +
           "</span></td>" +
-          countCell(kc.n,"new") + countCell(kc.l,"learn") + countCell(kc.d,"due") +
-          '<td class="g"><button type="button" class="gear" data-gear="' + k.id + '" aria-label="Options">⚙</button></td></tr>';
+          countCell(kc.n,"new") + countCell(kc.l,"learn") + countCell(kc.d,"due") + retCell(k.id) +
+          '<td class="g"><button type="button" class="gear" data-gear="' + k.id + '" aria-label="Options for ' + k.name + '">⚙</button></td></tr>';
       });
     });
+    if (!shown) html = '<tr class="emptyrow"><td colspan="6">No deck matches “' + S.filter + '”.</td></tr>';
     $("deckBody").innerHTML = html;
+    S.fresh = [];
 
     all("[data-tw]").forEach(function(b){
       b.addEventListener("click", function(){
@@ -1163,9 +1409,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       b.addEventListener("click", function(){ startStudy(b.getAttribute("data-study")); });
     });
     all("[data-gear]").forEach(function(b){
-      b.addEventListener("click", function(){
-        toast("Deck options for <b>" + deckName(b.getAttribute("data-gear")) + "</b> — new/day, review cap, burying, leech threshold.");
-      });
+      b.addEventListener("click", function(){ openDeckOptions(b.getAttribute("data-gear")); });
     });
   }
   $("studyAll").addEventListener("click", function(){ startStudy("med231"); });
@@ -1192,7 +1436,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   }
 
   function startStudy(id){
-    var cs = deckCards(id).filter(function(c){ return c.s === 0 || c.s === 1 || c.s === 2; });
+    var cs = deckCards(id).filter(function(c){ return !c.out; });
     if (!cs.length){ showCongrats(id, true); return; }
     /* Anki order: learning first, then reviews, then new */
     S.queue = cs.slice().sort(function(a,b){ return ({1:0,2:1,0:2})[a.s] - ({1:0,2:1,0:2})[b.s]; });
@@ -1227,6 +1471,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("aText").innerHTML = c.a;
     $("ansWrap").hidden = true;
     S.shown = false;
+    S.editing = false;
+    $("qText").contentEditable = "false";
+    $("aText").contentEditable = "false";
+    $("flagStrip").setAttribute("data-f", String(c.flag || 0));
+    $("tutorMsgs").innerHTML = "";
+    $("tutorPanel").hidden = true;
     $("srcLine").innerHTML = c.src.map(function(s, i){
       var isTag = s.indexOf("::") === 0;
       return '<span class="' + (isTag ? "tagchip" : "") + '">' + s + "</span>";
@@ -1258,6 +1508,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     if (!S.shown) return;
     var c = S.queue[S.qi];
     var iv = intervalsFor(c)[g-1];
+    var prev = {s:c.s, ivl:c.ivl, lapses:c.lapses, qi:S.qi};
+    pushUndo("answer", function(){
+      c.s = prev.s; c.ivl = prev.ivl; c.lapses = prev.lapses;
+      S.qi = prev.qi; S.shown = false;
+      show("study"); renderCard();
+    });
 
     if (c.s === 0){                       /* new → learning */
       c.s = 1;
@@ -1273,6 +1529,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
           (g === 1 && c.step ? " · leech watch: 2 lapses on this tag" : ""));
 
     S.qi++;
+    updateBuildLine();
     if (S.qi >= S.queue.length) showCongrats(S.deckId);
     else renderCard();
   }
@@ -1295,13 +1552,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     toast("Studying ahead pulls tomorrow's reviews forward — intervals shorten slightly.");
     startStudy(S.deckId || "med231");
   });
-  $("moreBtn").addEventListener("click", function(){
-    toast("Bury · Suspend · Flag · Mark · Edit card · Card info");
-  });
 
   document.addEventListener("keydown", function(e){
     var t = (e.target.tagName || "").toLowerCase();
-    if (t === "input" || t === "select" || t === "textarea") return;
+    var typing = (t === "input" || t === "select" || t === "textarea" || e.target.isContentEditable);
+
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !typing){ e.preventDefault(); doUndo(); return; }
+    if (e.key === "Escape"){
+      if (S.editing){ editCard(); return; }
+      if (!$("backdrop").hidden){ closeDialog(); return; }
+      if (S.menuOpen){ setMenu(false); return; }
+      if (!$("tutorPanel").hidden){ $("tutorPanel").hidden = true; return; }
+    }
+    if (typing) return;
+    if (e.key === "/" && !$("cmdbar").hidden){ e.preventDefault(); $("cmdInput").focus(); return; }
+    if (e.key === "?"){ toast("space flip · 1–4 grade · a tutor · e edit · i info · - bury · ! suspend · ⌘Z undo · / command bar"); return; }
+
     var on = document.querySelector('.screen[data-on="true"]');
     if (!on) return;
     var name = on.getAttribute("data-screen");
@@ -1313,27 +1579,74 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       if (!S.shown) reveal(); else answer(3);
     } else if (["1","2","3","4"].indexOf(e.key) > -1){
       e.preventDefault(); answer(+e.key);
-    } else if (e.key === "Escape"){ show("decks"); }
+    } else if (e.key === "a"){ openTutor(); }
+    else if (e.key === "e"){ editCard(); }
+    else if (e.key === "i"){ cardInfo(); }
+    else if (e.key === "-"){ dropCard("bury"); }
+    else if (e.key === "!"){ dropCard("suspend"); }
   });
 
   /* ================= exchange ================= */
   var EX = [
     {id:"e1", name:"Okonkwo Valves — M2 Companion", by:"Priya Raman, M2", n:214, r:"4.8", used:312,
      note:"Follows Dr. Okonkwo's slide order exactly, including the three murmurs she draws by hand on slide 19.",
-     sort:[["96","Valvular Heart Disease (CV-3.2)"],["47","Heart Failure — held until Monday's lecture"],["41","merged as duplicates of Step deck cards"],["30","no matching objective in this block — parked"]]},
+     into:{cv32:96},
+     log:[["96","→ Valvular Heart Disease (CV-3.2) — taught Friday"],
+          ["47","! Heart Failure — held until Monday's lecture"],
+          ["41","= merged as duplicates of Step deck cards"],
+          ["30","! no matching objective in this block — parked"]]},
+
     {id:"e2", name:"Renal Phys Tables, Rebuilt", by:"Dr. L. Haddad", n:96, r:"4.9", used:187, fac:true,
      note:"The syllabus transport tables as cloze cards, written from the course material rather than pulled from a Step deck.",
-     sort:[["71","Renal Transport (REN-2.4)"],["18","merged as duplicates"],["7","malformed cloze — flagged for you to fix"]]},
+     into:{ren24:71},
+     log:[["71","→ Renal Transport (REN-2.4)"],
+          ["18","= merged as duplicates"],
+          ["7","! malformed cloze — flagged for you to fix"]]},
+
     {id:"e3", name:"Block 3 Exam Post-Mortem '25", by:"Class of 2028 curriculum reps", n:143, r:"4.7", used:401,
      note:"Written from last year's blueprint after the exam. 78% overlap with the objectives actually tested.",
-     sort:[["62","Valvular Heart Disease (CV-3.2)"],["44","Antiarrhythmics I (PHM-4.1)"],["37","Renal Transport (REN-2.4)"]]},
+     into:{cv32:62, phm41:44, ren24:37},
+     log:[["62","→ Valvular Heart Disease (CV-3.2)"],
+          ["44","→ Antiarrhythmics I (PHM-4.1)"],
+          ["37","→ Renal Transport (REN-2.4)"]]},
+
     {id:"e4", name:"Antiarrhythmics, De-AnKing'd", by:"Marcus Feld, M2", n:61, r:"4.5", used:96,
      note:"Cuts the 40 national-deck cards this block never tests and keeps use-dependence, which it tests twice.",
-     sort:[["61","Antiarrhythmics I (PHM-4.1)"],["40","corresponding Step cards re-suspended to avoid doubling"]]},
+     into:{phm41:61},
+     log:[["61","→ Antiarrhythmics I (PHM-4.1)"],
+          ["40","! matching Step cards re-suspended so you don't see both"]]},
+
     {id:"e5", name:"Murmur Audio Drills", by:"Cardiology Interest Group", n:38, r:"4.6", used:154,
      note:"Audio on the front, lesion on the back — the only deck here with sound, so it is scheduled separately.",
-     sort:[["38","Valvular Heart Disease (CV-3.2) · audio subdeck"]]}
+     into:{cv32:38},
+     log:[["38","→ Valvular Heart Disease (CV-3.2) · audio subdeck"]]}
   ];
+
+  /* cards written out for decks the student can import, so an imported deck
+     really has content in tonight's session rather than only a count */
+  var EX_CARDS = {
+    e1:[{q:"From the M2 companion: which bedside finding separates a functional flow murmur from aortic stenosis?",
+         a:"A functional murmur is <span class='key'>early systolic, soft and position-dependent</span>, with a normal S2 and a brisk carotid upstroke. Holosystolic, radiating, or a diminished A2 is never functional.",
+         lo:"CV-3.2a"},
+        {q:"From the M2 companion: what does an S4 gallop in aortic stenosis represent?",
+         a:"Atrial contraction against a <span class='key'>stiff, hypertrophied ventricle</span> — impaired compliance from pressure overload. It disappears in atrial fibrillation, because there is no organized atrial kick.",
+         lo:"CV-3.2b"}],
+    e2:[{q:"From the rebuilt tables: which segment reabsorbs the largest fraction of filtered Na⁺, and by what mechanism?",
+         a:"The <span class='key'>proximal convoluted tubule</span>, about 65%, driven by the basolateral Na⁺/K⁺-ATPase creating the gradient for apical Na⁺/H⁺ exchange and Na⁺-coupled cotransport of glucose and amino acids.",
+         lo:"REN-2.4a"}],
+    e3:[{q:"From last year's blueprint: which valve lesion most often presents with an early diastolic decrescendo murmur at the left sternal border?",
+         a:"<span class='key'>Aortic regurgitation.</span> Look for the wide pulse pressure signs the exam loves — water-hammer pulse, head bobbing, and a femoral bruit.",
+         lo:"CV-3.2a"},
+        {q:"From last year's blueprint: which antiarrhythmic is safest in structural heart disease, and why?",
+         a:"<span class='key'>Amiodarone.</span> Unlike Class IC agents it does not raise mortality post-MI — the CAST finding — so it is the agent used when the ventricle is already scarred.",
+         lo:"PHM-4.1c"}],
+    e4:[{q:"De-AnKing'd: why does this block test use-dependence twice but never mention moricizine?",
+         a:"The blueprint follows the lecture, and Dr. Feld teaches <span class='key'>state-dependent binding</span> as the organizing principle. Moricizine appears only in the national deck, so those cards are suspended here.",
+         lo:"PHM-4.1c"}],
+    e5:[{q:"Audio drill: a harsh systolic murmur loudest at the apex, radiating to the axilla. What is it?",
+         a:"<span class='key'>Mitral regurgitation.</span> Holosystolic, constant through systole because the pressure gradient between ventricle and atrium never closes.",
+         lo:"CV-3.2a"}]
+  };
 
   function renderExchange(){
     $("exList").innerHTML = EX.map(function(d){
@@ -1376,42 +1689,120 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   function sortIn(id){
     var d = EX.filter(function(x){ return x.id === id; })[0];
     if (!d || S.owned[id]) return;
-    S.owned[id] = true;
     $("dropTitle").textContent = "Sorting " + d.name;
     $("dropSub").textContent = d.n + " cards · matching tags to MED 231 objectives";
+
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var rows = d.sort.map(function(s){
-      var cls = /held|parked|malformed|re-suspended/.test(s[1]) ? "warn" : /merged/.test(s[1]) ? "" : "ok";
-      return '<li><span class="' + cls + '">' + (cls === "ok" ? "→" : cls === "warn" ? "!" : "=") + "</span> <b>" + s[0] + "</b> " + s[1] + "</li>";
+    var rows = d.log.map(function(r){
+      var sym = r[1].charAt(0), rest = r[1].slice(2);
+      var cls = sym === "\u2192" ? "ok" : sym === "!" ? "warn" : "";
+      return '<li><span class="' + cls + '">' + sym + '</span> <b>' + r[0] + "</b> " + rest + "</li>";
     });
-    var live = d.sort.reduce(function(a, s){ return a + (/CV-|PHM-|REN-|audio/.test(s[1]) ? +s[0] : 0); }, 0);
-    rows.push('<li><span class="ok">✓</span> <b>' + live + "</b> cards added · " + Math.round(live * 0.09) + " due today</li>");
     $("sortLog").innerHTML = rows.join("");
     var lis = all("#sortLog li");
-    lis.forEach(function(li, i){ setTimeout(function(){ li.setAttribute("data-on","true"); }, reduce ? 0 : 380 * i); });
+    lis.forEach(function(li, i){ setTimeout(function(){ li.setAttribute("data-on","true"); }, reduce ? 0 : 340 * i); });
+
+    var matched = Object.keys(d.into).reduce(function(a, k){ return a + d.into[k]; }, 0);
+    var slots = slotsFor(d);
+    S.pending = id;
 
     setTimeout(function(){
-      /* the deck really lands in your collection */
-      var ex = DECKS.filter(function(x){ return x.id === "exchange"; })[0];
-      ex.open = true;
-      if (!ex.kids.filter(function(k){ return k.id === "ex_" + id; }).length){
-        ex.kids.push({id:"ex_" + id, name:d.name, lo:"imported"});
-        VIRT["ex_" + id] = {n:0, l:0, d:Math.max(0, Math.round(live * 0.09) - 2)};
-        CARDS.push({d:"ex_" + id, s:2, ivl:3,
-          q:"From " + d.name + ": which finding distinguishes a functional (flow) murmur from pathologic aortic stenosis at the bedside?",
-          a:"A functional murmur is <span class='key'>early systolic, soft, and position-dependent</span>, with a normal S2 and a brisk carotid upstroke. Anything holosystolic, radiating, or accompanied by a diminished A2 is not functional.",
-          src:[d.name, "imported", "CV-3.2a"]});
-        CARDS.push({d:"ex_" + id, s:2, ivl:2,
-          q:"From " + d.name + ": what does an S4 gallop in aortic stenosis represent?",
-          a:"Atrial contraction against a <span class='key'>stiff, hypertrophied ventricle</span>. It marks impaired compliance from pressure overload — and it disappears in atrial fibrillation, because there is no organized atrial kick.",
-          src:[d.name, "imported", "CV-3.2b"]});
+      var ask = document.createElement("div");
+      ask.className = "importask";
+      ask.innerHTML =
+        "<p><b>" + matched + "</b> cards match objectives your course has already taught. Tonight has <b>" + slots +
+        "</b> new slots left — fill them from this deck, or start it tomorrow?</p>" +
+        '<div class="btns">' +
+          '<button type="button" class="btn primary" data-imp="today">Use in tonight\'s deck</button>' +
+          '<button type="button" class="btn" data-imp="tomorrow">Start tomorrow</button>' +
+        "</div>";
+      $("sortLog").insertAdjacentElement("afterend", ask);
+      all("[data-imp]").forEach(function(b){
+        b.addEventListener("click", function(){ applyImport(id, b.getAttribute("data-imp")); });
+      });
+    }, reduce ? 60 : 340 * lis.length + 260);
+  }
+
+  /* how many of tonight's new slots the matched objectives still have open */
+  function slotsFor(d){
+    return Object.keys(d.into).reduce(function(a, k){ return a + counts(k).n; }, 0);
+  }
+
+  function applyImport(id, when){
+    var d = EX.filter(function(x){ return x.id === id; })[0];
+    if (!d || S.owned[id]) return;
+    S.owned[id] = true;
+    S.pending = null;
+
+    var ask = document.querySelector(".importask");
+    if (ask) ask.remove();
+
+    var leaves = Object.keys(d.into);
+    var matched = leaves.reduce(function(a, k){ return a + d.into[k]; }, 0);
+    var slots = slotsFor(d);
+
+    if (when === "today"){
+      /* Imported cards take tonight's remaining new slots rather than inflating
+         the night — the deck does not get bigger, it gets better sourced. The
+         rest queue behind the daily limit, exactly as Anki queues new cards. */
+      var used = 0;
+      (EX_CARDS[id] || []).forEach(function(c, i){
+        var leaf = leaves[i % leaves.length];
+        if (counts(leaf).n <= 0) return;
+        CARDS.push({d:leaf, s:0, ivl:0, q:c.q, a:c.a, src:[d.name, "imported", c.lo], imported:true});
+        BASE_NEW[leaf] = (BASE_NEW[leaf] || 0) + 1;
+        used++;
+      });
+      rebuildNewLimit();
+      addExchangeRow(d, Math.max(0, matched - slots), "queued · " + Math.max(0, matched - slots));
+      S.fresh = leaves.concat(["med231"]);
+      renderDecks(); updateBuildLine(); renderExchange();
+      toast("<b>" + Math.min(slots, matched) + "</b> of tonight's new slots now come from " + d.name +
+            " — " + Math.max(0, matched - slots) + " more start tomorrow." +
+            '<button type="button" class="undo" data-undoimp="' + id + '">Undo</button>');
+      wireUndoToast();
+    } else {
+      /* parked as its own deck, scheduled into tomorrow's build */
+      addExchangeRow(d, matched, "from tomorrow");
+      S.fresh = ["ex_" + id, "exchange"];
+      renderDecks(); updateBuildLine(); renderExchange();
+      toast("<b>" + matched + " cards</b> filed under Ridgeline Exchange — they enter the build tomorrow morning.");
+    }
+
+    $("dropTitle").textContent = "Drop a deck here";
+    $("dropSub").textContent = "or tap Add on any deck";
+  }
+
+  function addExchangeRow(d, remainder, label){
+    var ex = DECKS.filter(function(x){ return x.id === "exchange"; })[0];
+    ex.open = true;
+    if (!ex.kids.filter(function(k){ return k.id === "ex_" + d.id; }).length){
+      ex.kids.push({id:"ex_" + d.id, name:d.name, lo:label});
+      VIRT["ex_" + d.id] = {n:0, l:0, d:0};
+      META["ex_" + d.id] = {ret:0, order:9, lapses:0, lec:"imported from " + d.by, kw:"exchange imported " + d.by};
+    }
+  }
+
+  function undoImport(id){
+    var d = EX.filter(function(x){ return x.id === id; })[0];
+    if (!d || !S.owned[id]) return;
+    for (var i = CARDS.length - 1; i >= 0; i--){
+      if (CARDS[i].imported && CARDS[i].src[0] === d.name){
+        BASE_NEW[CARDS[i].d] = Math.max(0, (BASE_NEW[CARDS[i].d] || 0) - 1);
+        CARDS.splice(i, 1);
       }
-      renderDecks();
-      renderExchange();
-      $("dropTitle").textContent = "Drop a deck here";
-      $("dropSub").textContent = "or tap Add on any deck";
-      toast("<b>" + d.name + "</b> sorted in — " + Math.round(live * 0.09) + " due today. New cards enter tomorrow under your " + S.newPerDay + "/day limit.");
-    }, (reduce ? 100 : 380 * lis.length + 500));
+    }
+    var ex = DECKS.filter(function(x){ return x.id === "exchange"; })[0];
+    ex.kids = ex.kids.filter(function(k){ return k.id !== "ex_" + id; });
+    S.owned[id] = false;
+    rebuildNewLimit();
+    renderDecks(); updateBuildLine(); renderExchange();
+    toast("Import undone — " + d.name + " is back in the exchange.");
+  }
+
+  function wireUndoToast(){
+    var b = document.querySelector("[data-undoimp]");
+    if (b) b.addEventListener("click", function(){ undoImport(b.getAttribute("data-undoimp")); });
   }
 
   /* ================= step screen ================= */
@@ -1483,6 +1874,306 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("heat").innerHTML = out;
   }
 
+  /* ================= dialogs ================= */
+  var dlgSave = null;
+  function openDialog(opts){
+    $("dlgTitle").textContent = opts.title;
+    $("dlgBody").innerHTML = opts.body;
+    $("dlgSave").textContent = opts.saveLabel || "Save";
+    $("dlgSave").hidden = !opts.onSave;
+    $("dlgCancel").textContent = opts.onSave ? "Cancel" : "Close";
+    dlgSave = opts.onSave || null;
+    $("backdrop").hidden = false;
+    if (opts.wire) opts.wire();
+    var f = $("dlgBody").querySelector("input, select, button");
+    if (f) f.focus(); else $("dlgCancel").focus();
+  }
+  function closeDialog(){ $("backdrop").hidden = true; dlgSave = null; }
+  $("dlgCancel").addEventListener("click", closeDialog);
+  $("dlgSave").addEventListener("click", function(){ if (dlgSave) dlgSave(); closeDialog(); });
+  $("backdrop").addEventListener("mousedown", function(e){ if (e.target === $("backdrop")) closeDialog(); });
+
+  function openDeckOptions(id){
+    var isTree = leafIds(id).length > 1 || id === "exchange";
+    var cur = isTree ? S.newPerDay : (DECKOPT[id] != null ? DECKOPT[id] : counts(id).n);
+    var m = META[id] || {};
+    var ret = retOf(id);
+    openDialog({
+      title: "Deck options — " + deckName(id),
+      body:
+        '<div class="row"><span class="lab"><b>New cards/day</b><span>' +
+          (isTree ? "applies across this deck and its subdecks" : "overrides the split from your daily limit") +
+        '</span></span><span class="ctl"><input type="range" id="doNew" min="0" max="80" value="' + cur + '"><span class="val" id="doNewV">' + cur + '</span></span></div>' +
+        '<div class="row"><span class="lab"><b>Maximum reviews/day</b><span>reviews are what hold the score</span></span>' +
+          '<span class="ctl"><input type="number" id="doRev" min="20" max="600" step="10" value="' + S.revCap + '"></span></div>' +
+        '<div class="row"><span class="lab"><b>Leech threshold</b><span>lapses before a card is tagged and suspended</span></span>' +
+          '<span class="ctl"><input type="number" id="doLeech" min="3" max="12" value="8"></span></div>' +
+        '<div class="row"><span class="lab"><b>Bury related cards</b><span>siblings of a card you answer wait until tomorrow</span></span>' +
+          '<span class="ctl"><input type="checkbox" id="doBury" checked></span></div>' +
+        (ret != null ? '<div class="row"><span class="lab"><b>Retention</b><span>' +
+          (m.lec || "across this deck") + (m.lapses ? " · " + m.lapses + " lapses this block" : "") +
+          '</span></span><span class="ctl"><span class="val">' + ret + '%</span></span></div>' : ""),
+      wire: function(){
+        $("doNew").addEventListener("input", function(){ $("doNewV").textContent = this.value; });
+      },
+      onSave: function(){
+        var v = +$("doNew").value;
+        S.revCap = +$("doRev").value;
+        if (isTree){ setLoad(v); }
+        else { DECKOPT[id] = v; rebuildNewLimit(); }
+        S.fresh = [id];
+        renderDecks(); updateBuildLine();
+        toast("Deck options saved — <b>" + deckName(id) + "</b> now serves " + counts(id).n + " new a day.");
+      }
+    });
+  }
+
+  /* ================= undo ================= */
+  function pushUndo(label, fn){
+    S.undo.push({label:label, fn:fn});
+    if (S.undo.length > 30) S.undo.shift();
+  }
+  function doUndo(){
+    var u = S.undo.pop();
+    if (!u){ toast("Nothing to undo."); return; }
+    u.fn();
+    renderDecks(); updateBuildLine();
+    toast("Undid <b>" + u.label + "</b>.");
+  }
+
+  /* ================= more menu ================= */
+  function setMenu(open){
+    S.menuOpen = open;
+    $("moreMenu").hidden = !open;
+    $("moreBtn").setAttribute("aria-expanded", String(open));
+  }
+  $("moreBtn").addEventListener("click", function(e){ e.stopPropagation(); setMenu(!S.menuOpen); });
+  document.addEventListener("click", function(){ if (S.menuOpen) setMenu(false); });
+  $("moreMenu").addEventListener("click", function(e){ e.stopPropagation(); });
+
+  function curCard(){ return S.queue[S.qi]; }
+
+  function setFlag(n){
+    var c = curCard(); if (!c) return;
+    var prev = c.flag || 0;
+    c.flag = n;
+    $("flagStrip").setAttribute("data-f", String(n));
+    pushUndo("flag", function(){ c.flag = prev; $("flagStrip").setAttribute("data-f", String(prev)); });
+    setMenu(false);
+    toast(n ? "Flagged. Flagged cards can be filtered in Browse." : "Flag cleared.");
+  }
+  all("#flagRow button").forEach(function(b){
+    b.addEventListener("click", function(){ setFlag(+b.getAttribute("data-flag")); });
+  });
+
+  function dropCard(kind){
+    var c = curCard(); if (!c) return;
+    c.out = kind;
+    S.queue.splice(S.qi, 1);
+    pushUndo(kind === "bury" ? "bury" : "suspend", function(){
+      c.out = null; S.queue.splice(S.qi, 0, c);
+      show("study"); renderCard();
+    });
+    setMenu(false);
+    toast(kind === "bury"
+      ? "Buried — it comes back in tomorrow's build."
+      : "Suspended — it stays out until you unsuspend it.");
+    if (S.qi >= S.queue.length) showCongrats(S.deckId);
+    else renderCard();
+    updateBuildLine();
+  }
+
+  function suspendTag(){
+    var c = curCard(); if (!c) return;
+    var tag = c.src.filter(function(x){ return x.indexOf("::") === 0; })[0];
+    setMenu(false);
+    if (!tag){ toast("This card came from your own lectures, so it has no shared tag to suspend."); return; }
+    var hit = CARDS.filter(function(x){ return !x.out && x.src.indexOf(tag) > -1; });
+    var prevVirt = VIRT.step ? VIRT.step.n : 0;
+    hit.forEach(function(x){ x.out = "suspend"; });
+    if (VIRT.step) VIRT.step.n = 0;
+    S.queue = S.queue.filter(function(x){ return !x.out; });
+    if (S.qi >= S.queue.length) S.qi = Math.max(0, S.queue.length - 1);
+    pushUndo("suspend tag", function(){
+      hit.forEach(function(x){ x.out = null; });
+      if (VIRT.step) VIRT.step.n = prevVirt;
+      S.queue = deckCards(S.deckId).filter(function(x){ return !x.out; });
+    });
+    renderDecks(); updateBuildLine();
+    toast("Suspended <b>" + tag + "</b> — " + (hit.length + prevVirt) + " cards out of rotation.");
+    if (!S.queue.length) showCongrats(S.deckId); else renderCard();
+  }
+
+  function editCard(){
+    var c = curCard(); if (!c) return;
+    setMenu(false);
+    S.editing = !S.editing;
+    [$("qText"), $("aText")].forEach(function(el){ el.contentEditable = S.editing ? "true" : "false"; });
+    if (S.editing){ $("qText").focus(); toast("Editing — Escape saves."); }
+    else {
+      var prevQ = c.q, prevA = c.a;
+      c.q = $("qText").innerHTML; c.a = $("aText").innerHTML;
+      pushUndo("edit", function(){ c.q = prevQ; c.a = prevA; renderCard(); });
+      toast("Card saved to your collection.");
+    }
+  }
+
+  function cardInfo(){
+    var c = curCard(); if (!c) return;
+    setMenu(false);
+    var typeName = ["New","Learning","Review"][c.s];
+    openDialog({
+      title:"Card info",
+      body:
+        '<div class="row"><span class="lab"><b>Queue</b><span>' + deckName(c.d) + "</span></span><span class=\"ctl\"><span class=\"val\">" + typeName + "</span></span></div>" +
+        '<div class="row"><span class="lab"><b>Interval</b><span>next appearance if you answer Good</span></span><span class="ctl"><span class="val">' + fmtIvl(intervalsFor(c)[2]) + "</span></span></div>" +
+        '<div class="row"><span class="lab"><b>Lapses</b><span>' + ((c.lapses || 0) >= 2 ? "two or more — this card gets rewritten shorter" : "within the leech threshold") + '</span></span><span class="ctl"><span class="val">' + (c.lapses || 0) + "</span></span></div>" +
+        '<div class="row"><span class="lab"><b>Source</b><span>' + c.src.join(" · ") + "</span></span></div>" +
+        '<div class="row"><span class="lab"><b>Added</b><span>' + (c.imported ? "imported from the exchange" : c.step ? "unsuspended from the national deck" : "built from your lecture slides") + "</span></span></div>"
+    });
+  }
+
+  all("[data-more]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var k = b.getAttribute("data-more");
+      if (k === "tutor") openTutor();
+      else if (k === "edit") editCard();
+      else if (k === "info") cardInfo();
+      else if (k === "bury") dropCard("bury");
+      else if (k === "suspend") dropCard("suspend");
+      else if (k === "suspendtag") suspendTag();
+      else if (k === "undo"){ setMenu(false); doUndo(); }
+    });
+  });
+
+  /* ================= tutor ================= */
+  var TUTOR = [
+    {k:["carotid","aortic","crescendo"], a:"Timing first, then location, then what changes it. Mid-systolic and crescendo–decrescendo at the right second interspace with carotid radiation is aortic stenosis — the <b>upstroke</b> tells you severity.<br><br>Dr. Okonkwo tests the maneuver, not the murmur: standing drops preload, which quiets AS and worsens HOCM. That distinction was on last year's blueprint twice.", c:"Valvular Heart Disease · slides 14–19"},
+    {k:["rheumatic"], a:"Mitral, and the mechanism is the exam's real target: anti-streptococcal antibodies cross-react with valve glycoproteins. Type II hypersensitivity, commissural fusion, then the diastolic rumble with an opening snap.<br><br>Aortic can be involved too, but almost never alone — isolated aortic disease points somewhere else.", c:"::step::cardio::valvular"},
+    {k:["opening snap","s2"], a:"Think of it as a pressure readout. The higher the left atrial pressure, the sooner it exceeds ventricular pressure in diastole, so the valve opens earlier and the S2–OS gap narrows.<br><br>A short gap means severe. That is the whole card.", c:"Valvular Heart Disease · slide 31"},
+    {k:["ejection","regurgitation","55%"], a:"Because the ventricle has an escape route. In chronic MR blood leaves into the low-pressure atrium during systole, so EF overstates contractility.<br><br>The number to hold: EF ≤ 60%, or end-systolic dimension ≥ 40mm, in chronic severe MR is an operative indication even in someone who feels fine.", c:"Valvular Heart Disease · slide 41"},
+    {k:["use-dependence","class i","flecainide"], a:"Use-dependence means block builds with each depolarization, because the drug leaves the channel slowly. Class IC leaves slowest — the faster the rate, the more conduction slows.<br><br>That is the entire CAST story: fewer PVCs, more deaths, because rate-dependent slowing in a scarred ventricle sets up reentry.", c:"Antiarrhythmics I · slides 22–27"},
+    {k:["amiodarone","thyroid"], a:"Two iodine atoms per molecule, about 37% iodine by weight — that alone explains the thyroid panel. Lipophilicity plus a 58-day half-life explains the rest: it deposits, so you follow lungs, liver, eyes and skin.<br><br>Your slide 34 sets a stricter monitoring interval than the national deck's card. Follow the slide; the exam follows the slide.", c:"Antiarrhythmics I · slide 34"},
+    {k:["quinidine","qt"], a:"IA blocks Na⁺ <i>and</i> K⁺, so repolarization drags and the QT stretches — torsades risk. IC blocks Na⁺ only, so it widens QRS instead.<br><br>One sentence: IA lengthens QT, IC widens QRS, and both slow conduction.", c:"Antiarrhythmics I · slide 18"},
+    {k:["nkcc","diuretic","loop","transporter"], a:"Every diuretic question in this course is really a transporter question. Loops block NKCC2 in the thick ascending limb, which abolishes the lumen-positive potential driving paracellular Ca²⁺ and Mg²⁺ reabsorption.<br><br>So loops lose calcium and thiazides keep it. That single contrast covers most of what REN-2.4 tests.", c:"Renal Transport · handout p.4"},
+    {k:["syncope","survival"], a:"Symptom onset starts the clock: angina about five years, syncope about three, heart failure about two. Once symptoms appear, the gradient stops mattering — that is the indication for replacement.", c:"::step::cardio::valvular"},
+    {k:["valsalva","hocm","standing"], a:"Both maneuvers drop preload. A smaller ventricle brings the hypertrophied septum closer to the anterior mitral leaflet, worsening obstruction — HOCM gets louder.<br><br>Aortic stenosis gets quieter: less blood to push across a fixed valve. Squatting reverses both.", c:"::step::cardio::valvular"}
+  ];
+  function tutorFor(c){
+    var q = (c.q + " " + c.a).toLowerCase();
+    for (var i = 0; i < TUTOR.length; i++){
+      for (var j = 0; j < TUTOR[i].k.length; j++){
+        if (q.indexOf(TUTOR[i].k[j]) > -1) return TUTOR[i];
+      }
+    }
+    return {a:"This one came from " + c.src[0] + ". Ask me for the short version, why it is tested, or how it connects to what you lapsed on this week.", c:c.src.join(" · ")};
+  }
+  function tmsg(who, html, cite){
+    var d = document.createElement("div");
+    d.className = "tmsg " + who;
+    d.innerHTML = html + (cite ? '<span class="cite">' + cite + "</span>" : "");
+    $("tutorMsgs").appendChild(d);
+    $("tutorMsgs").scrollTop = $("tutorMsgs").scrollHeight;
+  }
+  function openTutor(){
+    setMenu(false);
+    var c = curCard(); if (!c) return;
+    $("tutorPanel").hidden = false;
+    if (!$("tutorMsgs").childNodes.length){
+      var t = tutorFor(c);
+      tmsg("them", t.a, t.c);
+    }
+    $("tutorInput").focus();
+  }
+  $("tutorClose").addEventListener("click", function(){ $("tutorPanel").hidden = true; });
+  $("tutorForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = $("tutorInput").value.trim(); if (!v) return;
+    tmsg("me", v.replace(/[<>]/g, ""));
+    $("tutorInput").value = "";
+    var c = curCard();
+    var low = v.toLowerCase();
+    var reply;
+    if (/short|simple|quick|tl;?dr|one sentence/.test(low)){
+      reply = {a:"Shortest version: <b>" + $("aText").textContent.split(/[.—]/)[0].trim() + "</b>. Everything else on the card is the reason.", c:"compressed from " + c.src[0]};
+    } else if (/test|exam|blueprint|high.?yield/.test(low)){
+      reply = {a:"On this block's blueprint it appears as a vignette, not a definition — you get a patient and have to name the lesion or the drug class. Last year it was tested twice.", c:"Block 3 blueprint · " + c.src[c.src.length - 1]};
+    } else if (/forget|lapse|again|keep missing/.test(low)){
+      reply = {a:"You have lapsed on this twice. That is the threshold where Cadence rewrites the card shorter and schedules it beside the card it keeps getting confused with, rather than a week apart.", c:"leech watch · " + c.src[0]};
+    } else {
+      reply = tutorFor(c);
+    }
+    setTimeout(function(){ tmsg("them", reply.a, reply.c); }, 260);
+  });
+
+  /* ================= command bar ================= */
+  function runCommand(raw){
+    var v = raw.trim(); if (!v) return;
+    var low = v.toLowerCase(), did = [];
+
+    if (/\b(dark|night)\b/.test(low)){ setTheme("dark"); did.push("dark theme"); }
+    else if (/\b(light|day)\b/.test(low)){ setTheme("light"); did.push("light theme"); }
+    else if (/\b(auto|system)\b/.test(low)){ setTheme("system"); did.push("following your system theme"); }
+
+    ACCENTS.forEach(function(a){
+      if (low.indexOf(a.k) > -1 || low.indexOf(a.name.toLowerCase()) > -1){ setAccent(a.k); did.push(a.name + " accent"); }
+    });
+    if (/bigger|larger/.test(low)){ setFont(Math.min(28, +$("fontRange").value + 2)); did.push("larger card text"); }
+    if (/smaller/.test(low)){ setFont(Math.max(16, +$("fontRange").value - 2)); did.push("smaller card text"); }
+
+    var cards = low.match(/(\d{1,3})\s*(?:new\s*)?(?:cards?|a day|per day|\/day|nightly)/);
+    if (cards){ setLoad(Math.max(5, Math.min(80, +cards[1]))); did.push("daily limit " + S.newPerDay); }
+    var tgt = low.match(/(?:target|aim|step|score|goal)\D{0,10}(2[0-7]\d)/);
+    if (tgt){ S.target = +tgt[1]; updatePace(); did.push("Step target " + S.target); }
+
+    var sortMap = {weak:"weak", retention:"weak", struggl:"weak", due:"due", new:"new", name:"name", alpha:"name", lecture:"lecture", order:"lecture", tonight:"build", build:"build"};
+    if (/\bsort\b/.test(low)){
+      for (var key in sortMap){
+        if (low.indexOf(key) > -1){
+          S.sort = sortMap[key]; $("deckSort").value = S.sort;
+          show("decks"); renderDecks(); did.push("decks sorted by " + $("deckSort").selectedOptions[0].text.toLowerCase());
+          break;
+        }
+      }
+    }
+    var find = low.match(/(?:find|filter|show me|search)\s+(.+)$/);
+    if (find){
+      S.filter = find[1].replace(/\s+decks?$/, "").trim();
+      $("deckFilter").value = S.filter;
+      show("decks"); renderDecks(); did.push('filtered decks by "' + S.filter + '"');
+    }
+
+    if (/\bundo\b/.test(low) && !did.length){ doUndo(); return; }
+    if (/\b(unsuspend|unlock)\b/.test(low) && !did.length){ show("step"); $("unsusBtn").click(); return; }
+    if (/\b(study|review now|start)\b/.test(low) && !did.length){ startStudy("med231"); return; }
+    if (/\b(why|explain|tutor|help me understand)\b/.test(low) && !did.length){
+      if (document.querySelector('.screen[data-on="true"]').getAttribute("data-screen") === "study"){ openTutor(); return; }
+      did.push("the tutor opens on a card — start a session first");
+    }
+    var screens = {canvas:"canvas", exchange:"exchange", marketplace:"exchange", step:"step", stats:"stats", statistic:"stats", pref:"prefs", setting:"prefs", deck:"decks"};
+    if (!did.length){
+      for (var sk in screens){
+        if (low.indexOf(sk) > -1){ show(screens[sk]); did.push("opened " + screens[sk]); break; }
+      }
+    }
+
+    if (did.length) toast("Done — " + did.join("; ") + ".");
+    else toast("I can change the theme, accent, text size, daily limit or Step target — or sort, filter, study, unsuspend and undo. Try “sort by weakest”.");
+  }
+  $("cmdbar").addEventListener("submit", function(e){
+    e.preventDefault(); runCommand($("cmdInput").value); $("cmdInput").value = "";
+  });
+
+  /* ================= deck tools ================= */
+  $("deckSort").addEventListener("change", function(){ S.sort = this.value; renderDecks(); });
+  $("deckFilter").addEventListener("input", function(){ S.filter = this.value.trim(); renderDecks(); });
+  $("foldBtn").addEventListener("click", function(){
+    S.folded = !S.folded;
+    DECKS.forEach(function(d){ d.open = !S.folded; });
+    this.textContent = S.folded ? "Expand all" : "Collapse all";
+    renderDecks();
+  });
+
   /* ================= boot ================= */
   var BASE_NEW = {};
   ["cv32","phm41","ren24","step"].forEach(function(k){
@@ -1493,6 +2184,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   setFont(20);
   updatePace();
   goStep(0);
+  $("cmdbar").hidden = true;
   rebuildNewLimit();
   renderDecks();
   renderExchange();
