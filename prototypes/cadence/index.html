@@ -1,0 +1,1500 @@
+<title>Cadence Desktop</title>
+<style>
+/* =========================================================================
+   Cadence — an Anki-shaped study client wired to the school's LMS.
+   Type: system UI stack on purpose. Anki uses the host OS font; anything
+   else immediately reads as a web page pretending to be an app.
+   ========================================================================= */
+:root{
+  --accent:#3B7DD8;
+  --accent-soft:rgba(59,125,216,.13);
+  --accent-line:rgba(59,125,216,.42);
+
+  --win:#F2F2F4;          /* window ground */
+  --bar:#E8E8EB;          /* toolbar */
+  --bar-2:#DEDEE2;
+  --page:#FFFFFF;         /* content sheet */
+  --sunk:#F6F6F8;
+  --edge:#D2D3D8;
+  --edge-soft:#E4E5E9;
+  --text:#1D1E21;
+  --text-2:#55575E;
+  --dim:#8A8C93;
+
+  --new:#3B7DD8;
+  --learn:#C2451D;
+  --due:#2E8B45;
+
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --win:#1B1C1F;
+    --bar:#26272B;
+    --bar-2:#2E3035;
+    --page:#212226;
+    --sunk:#1A1B1E;
+    --edge:#3A3C42;
+    --edge-soft:#303237;
+    --text:#E6E7EA;
+    --text-2:#A9ABB2;
+    --dim:#75777E;
+    --new:#6EA4EC;
+    --learn:#E8815C;
+    --due:#5FB97C;
+  }
+}
+:root[data-theme="dark"]{
+  --win:#1B1C1F;
+  --bar:#26272B;
+  --bar-2:#2E3035;
+  --page:#212226;
+  --sunk:#1A1B1E;
+  --edge:#3A3C42;
+  --edge-soft:#303237;
+  --text:#E6E7EA;
+  --text-2:#A9ABB2;
+  --dim:#75777E;
+  --new:#6EA4EC;
+  --learn:#E8815C;
+  --due:#5FB97C;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--win);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+/* ---------- window ---------- */
+.app{
+  max-width:940px;margin:0 auto;
+  min-height:100vh;
+  background:var(--page);
+  border-left:1px solid var(--edge);border-right:1px solid var(--edge);
+  display:flex;flex-direction:column;
+}
+.titlebar{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 14px;background:var(--bar-2);border-bottom:1px solid var(--edge);
+  font-size:12px;color:var(--text-2);
+}
+.titlebar .name{font-weight:600;color:var(--text)}
+.titlebar .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.syncdot{width:7px;height:7px;border-radius:50%;background:var(--due);display:inline-block}
+.syncdot[data-state="off"]{background:var(--dim)}
+
+/* ---------- toolbar (Anki's centered link row) ---------- */
+.toolbar{
+  display:flex;align-items:center;justify-content:center;gap:2px;
+  background:var(--bar);border-bottom:1px solid var(--edge);
+  padding:0 10px;position:relative;flex-wrap:wrap;
+}
+.toolbar button{
+  background:none;border:0;padding:9px 14px;color:var(--text-2);font-size:13px;
+  border-bottom:2px solid transparent;
+}
+.toolbar button:hover{color:var(--text);background:rgba(125,125,135,.12)}
+.toolbar button[aria-current="page"]{color:var(--text);font-weight:600;border-bottom-color:var(--accent)}
+.toolbar .sync{margin-left:auto;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;padding:9px 6px}
+.toolbar .sync svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7}
+.spin{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- screens ---------- */
+.screen{display:none;flex:1;flex-direction:column}
+.screen[data-on="true"]{display:flex}
+.pad{padding:26px 22px;flex:1}
+.mid{max-width:660px;margin:0 auto;width:100%}
+.wide{max-width:760px;margin:0 auto;width:100%}
+
+h1{font-size:19px;font-weight:600;margin:0 0 3px;letter-spacing:-.01em}
+h2{font-size:14px;font-weight:600;margin:0 0 8px}
+.muted{color:var(--text-2)}
+.tiny{font-size:12px;color:var(--dim)}
+.mono{font-family:var(--mono)}
+.sect{margin-bottom:26px}
+.hr{height:1px;background:var(--edge-soft);border:0;margin:18px 0}
+
+/* ---------- deck table ---------- */
+.decktable{width:100%;border-collapse:collapse;font-size:14px}
+.decktable thead th{
+  font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);
+  text-align:right;padding:0 0 6px;border-bottom:1px solid var(--edge);
+}
+.decktable thead th:first-child{text-align:left}
+.decktable td{padding:7px 0;border-bottom:1px solid var(--edge-soft);vertical-align:middle}
+.decktable tr:hover td{background:var(--sunk)}
+.decktable td.n{text-align:right;width:52px;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.decktable td.n[data-z="false"][data-k="new"]{color:var(--new)}
+.decktable td.n[data-z="false"][data-k="learn"]{color:var(--learn)}
+.decktable td.n[data-z="false"][data-k="due"]{color:var(--due)}
+.decktable td.g{width:28px;text-align:right}
+.deckname{display:flex;align-items:center;gap:5px;min-width:0}
+.deckname.child{padding-left:19px}
+.tw{
+  width:14px;height:14px;flex:0 0 auto;background:none;border:0;padding:0;color:var(--dim);
+  font-size:9px;line-height:14px;text-align:center;
+}
+.tw[data-open="false"]{transform:rotate(-90deg)}
+.deckname button.dname{background:none;border:0;padding:0;text-align:left;color:var(--text);font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deckname button.dname:hover{color:var(--accent)}
+.deckname .lo{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--edge);border-radius:3px;padding:0 4px;flex:0 0 auto}
+.gear{background:none;border:0;color:var(--dim);padding:2px 4px;font-size:13px;border-radius:4px}
+.gear:hover{background:var(--bar);color:var(--text)}
+
+.deckfoot{display:flex;justify-content:center;gap:8px;margin-top:24px;flex-wrap:wrap}
+.btn{
+  background:var(--bar);border:1px solid var(--edge);border-radius:5px;
+  padding:6px 13px;font-size:13px;color:var(--text);
+}
+.btn:hover{background:var(--bar-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.big{padding:9px 22px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
+
+.buildline{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:12px;color:var(--text-2);
+  background:var(--sunk);border:1px solid var(--edge-soft);border-radius:5px;
+  padding:7px 11px;margin-bottom:18px;
+}
+.buildline b{color:var(--text);font-weight:600}
+.buildline .r{margin-left:auto}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:12px}
+.linkbtn:hover{text-decoration:underline}
+
+/* ---------- reviewer ---------- */
+.revtop{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:8px 14px;border-bottom:1px solid var(--edge-soft);background:var(--sunk);
+  font-size:12px;color:var(--text-2);position:relative;flex-wrap:wrap;
+}
+.revtop .deck{font-weight:600;color:var(--text)}
+.counts{display:flex;gap:9px;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.counts b{font-weight:400}
+.counts .c-new{color:var(--new)}
+.counts .c-learn{color:var(--learn)}
+.counts .c-due{color:var(--due)}
+.counts .on{text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.revtop .timer{font-family:var(--mono);font-size:12px;color:var(--dim);position:absolute;right:14px}
+
+.cardarea{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:44px 24px;text-align:center;min-height:300px;
+}
+.qtext{font-size:20px;line-height:1.45;max-width:34em;margin:0}
+.ansrule{width:100%;height:1px;background:var(--edge);border:0;margin:24px auto}
+#ansWrap{width:100%;max-width:34em;display:flex;flex-direction:column;align-items:center}
+.atext{font-size:20px;line-height:1.5;max-width:34em;margin:0;color:var(--text)}
+.atext em{font-style:italic;color:var(--accent)}
+.atext .key{font-weight:600}
+:root[data-density="compact"] .cardarea{padding:26px 20px;min-height:230px}
+:root[data-cardstyle="boxed"] .qtext,
+:root[data-cardstyle="boxed"] .atext{
+  background:var(--sunk);border:1px solid var(--edge-soft);border-radius:7px;padding:18px 20px;
+}
+.srcline{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.srcline span{border:1px solid var(--edge);border-radius:3px;padding:1px 5px;margin:0 2px}
+.srcline .tagchip{color:var(--accent);border-color:var(--accent-line)}
+
+.revbar{border-top:1px solid var(--edge);background:var(--bar);padding:9px 14px;display:flex;align-items:center;gap:10px}
+.revbar .more{flex:0 0 auto}
+.answers{display:flex;gap:7px;justify-content:center;flex:1}
+.ansbtn{
+  background:var(--page);border:1px solid var(--edge);border-radius:5px;
+  min-width:92px;padding:5px 8px 6px;display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.ansbtn:hover{border-color:var(--accent);background:var(--accent-soft)}
+.ansbtn .iv{font-family:var(--mono);font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.ansbtn .lb{font-size:13px}
+.ansbtn[data-g="1"] .lb{color:var(--learn)}
+.ansbtn[data-g="3"] .lb{color:var(--due)}
+.ansbtn .k{font-family:var(--mono);font-size:9px;color:var(--dim);opacity:.75}
+.showbtn{min-width:200px;justify-content:center;align-items:center}
+
+/* ---------- congrats ---------- */
+.congrats{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:50px 24px;gap:8px}
+.congrats h1{font-size:22px}
+.congrats p{margin:0;color:var(--text-2);max-width:46ch}
+
+/* ---------- generic rows / panels ---------- */
+.panel{border:1px solid var(--edge);border-radius:6px;background:var(--page);overflow:hidden}
+.panel > header{padding:9px 13px;background:var(--sunk);border-bottom:1px solid var(--edge-soft);font-size:12px;font-weight:600}
+.row{display:flex;align-items:center;gap:12px;padding:10px 13px;border-bottom:1px solid var(--edge-soft)}
+.row:last-child{border-bottom:0}
+.row .lab{min-width:0}
+.row .lab b{display:block;font-weight:500}
+.row .lab span{display:block;font-size:12px;color:var(--text-2)}
+.row .ctl{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.row .val{font-family:var(--mono);font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--accent);width:150px}
+input[type=number],input[type=text],input[type=date],select{
+  background:var(--page);border:1px solid var(--edge);border-radius:4px;padding:4px 7px;font-size:13px;
+}
+input[type=number]{width:74px;font-family:var(--mono)}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+
+/* ---------- onboarding wizard ---------- */
+.wiz{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 22px 34px}
+.wizbox{width:100%;max-width:470px}
+.dots{display:flex;gap:5px;justify-content:center;margin-bottom:26px}
+.dots i{width:20px;height:3px;border-radius:2px;background:var(--edge)}
+.dots i[data-on="true"]{background:var(--accent)}
+.dots i[data-done="true"]{background:var(--accent-line)}
+.step{display:none}
+.step[data-on="true"]{display:block;animation:slidein .22s ease both}
+@keyframes slidein{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.step h1{font-size:21px;margin-bottom:5px;letter-spacing:-.015em}
+.step > p.lede{color:var(--text-2);margin:0 0 20px;font-size:13.5px}
+.choices{display:flex;flex-direction:column;gap:7px}
+.choice{
+  display:flex;align-items:center;gap:11px;text-align:left;width:100%;
+  background:var(--page);border:1px solid var(--edge);border-radius:6px;padding:11px 13px;
+}
+.choice:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+.choice[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.choice .mark{
+  width:15px;height:15px;border-radius:50%;border:1px solid var(--edge);flex:0 0 auto;display:grid;place-items:center;
+}
+.choice[aria-pressed="true"] .mark{border-color:var(--accent);background:var(--accent)}
+.choice[aria-pressed="true"] .mark::after{content:"";width:5px;height:5px;border-radius:50%;background:#fff}
+.choice .txt b{display:block;font-weight:500}
+.choice .txt span{display:block;font-size:12px;color:var(--text-2)}
+.choice .badge{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);flex:0 0 auto}
+
+.swatches{display:flex;gap:9px;flex-wrap:wrap}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;padding:0;position:relative}
+.sw[aria-pressed="true"]{border-color:var(--text)}
+.sw:hover{transform:scale(1.08)}
+.wizfoot{display:flex;align-items:center;gap:9px;margin-top:20px}
+.wizfoot .skip{margin-right:auto}
+
+.preview{
+  border:1px solid var(--edge);border-radius:6px;background:var(--sunk);
+  padding:13px;margin-top:13px;text-align:center;
+}
+.preview .pq{font-size:16px;margin:0 0 10px}
+.preview .prule{height:1px;background:var(--edge);margin:0 0 12px}
+.preview .pa{font-size:16px;margin:0;color:var(--text-2)}
+.preview .pbtns{display:flex;gap:5px;justify-content:center;margin-top:11px}
+.preview .pbtns i{
+  font-style:normal;font-size:10px;font-family:var(--mono);color:var(--dim);
+  border:1px solid var(--edge);border-radius:4px;padding:3px 9px;background:var(--page);
+}
+
+/* connecting animation */
+.connect{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:14px;padding:60px 20px;text-align:center}
+.connect .ring{width:34px;height:34px;border:2.5px solid var(--edge);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.connect ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:var(--text-2);text-align:left;min-width:280px}
+.connect li{padding:3px 0;opacity:0;font-family:var(--mono);font-size:12px}
+.connect li[data-on="true"]{opacity:1;animation:fadein .3s ease both}
+@keyframes fadein{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.connect li .ok{color:var(--due)}
+
+/* ---------- exchange ---------- */
+.exwrap{display:grid;grid-template-columns:1fr 250px;gap:18px;align-items:start}
+.exdeck{
+  border:1px solid var(--edge);border-radius:6px;background:var(--page);padding:11px 13px;
+  margin-bottom:9px;cursor:grab;
+}
+.exdeck:active{cursor:grabbing}
+.exdeck[data-drag="true"]{opacity:.45}
+.exdeck[data-owned="true"]{opacity:.6}
+.exdeck h3{margin:0;font-size:14px;font-weight:600}
+.exdeck .by{font-size:12px;color:var(--text-2);margin:1px 0 5px}
+.exdeck p{margin:0 0 7px;font-size:12.5px;color:var(--text-2)}
+.exdeck .foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.exdeck .stat{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.exdeck .fac{font-family:var(--mono);font-size:10px;color:var(--due);border:1px solid var(--due);border-radius:3px;padding:0 4px}
+.exdeck .grab{margin-left:auto;font-size:11px;color:var(--dim);font-family:var(--mono)}
+.exdeck .addbtn{margin-left:auto}
+
+.dropzone{
+  border:1.5px dashed var(--edge);border-radius:7px;background:var(--sunk);
+  padding:20px 14px;text-align:center;color:var(--text-2);font-size:13px;
+  position:sticky;top:14px;transition:background .15s,border-color .15s;
+}
+.dropzone b{display:block;color:var(--text);font-size:13.5px;margin-bottom:3px}
+.dropzone[data-over="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.sortlog{list-style:none;margin:12px 0 0;padding:0;text-align:left;font-family:var(--mono);font-size:11.5px;line-height:1.7}
+.sortlog li{opacity:0;color:var(--text-2)}
+.sortlog li[data-on="true"]{opacity:1;animation:fadein .25s ease both}
+.sortlog li b{color:var(--text);font-weight:600}
+.sortlog li .ok{color:var(--due)}
+.sortlog li .warn{color:var(--learn)}
+
+/* ---------- step pacing ---------- */
+.pacegrid{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:20px}
+.pacegrid div{display:flex;flex-direction:column}
+.pacegrid b{font-size:25px;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.pacegrid span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+.pacegrid b[data-tone="warn"]{color:var(--learn)}
+.pacegrid b[data-tone="ok"]{color:var(--due)}
+
+.tagrow{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid var(--edge-soft);font-size:13px}
+.tagrow:last-child{border-bottom:0}
+.tagrow .tag{font-family:var(--mono);font-size:11.5px;color:var(--accent);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tagrow .cnt{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tagrow .state{font-size:11.5px;font-family:var(--mono);white-space:nowrap}
+.tagrow .state[data-s="live"]{color:var(--due)}
+.tagrow .state[data-s="ready"]{color:var(--accent)}
+.tagrow .state[data-s="locked"]{color:var(--dim)}
+.tagrow .state[data-s="held"]{color:var(--learn)}
+
+.heat{display:grid;grid-template-rows:repeat(7,9px);grid-auto-flow:column;grid-auto-columns:9px;gap:2px;margin-top:6px;overflow-x:auto;padding-bottom:4px}
+.heat i{background:var(--edge-soft);border-radius:1.5px}
+.heat i[data-l="1"]{background:var(--accent);opacity:.28}
+.heat i[data-l="2"]{background:var(--accent);opacity:.5}
+.heat i[data-l="3"]{background:var(--accent);opacity:.74}
+.heat i[data-l="4"]{background:var(--accent)}
+.heatkey{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);margin-top:7px}
+.heatkey i{width:9px;height:9px;border-radius:1.5px;background:var(--edge-soft);display:inline-block}
+
+.bars{display:flex;align-items:flex-end;gap:3px;height:74px;margin-top:10px}
+.bars i{flex:1;background:var(--accent);opacity:.72;border-radius:1px 1px 0 0;min-height:2px}
+.bars i[data-f="true"]{opacity:.3}
+.barsx{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);font-family:var(--mono);margin-top:4px}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);
+  background:var(--text);color:var(--page);border-radius:5px;padding:8px 14px;font-size:13px;
+  box-shadow:0 6px 22px -8px rgba(0,0,0,.5);z-index:50;max-width:calc(100% - 30px);
+}
+.toast[hidden]{display:none !important}
+
+.note{font-size:11.5px;color:var(--dim);text-align:center;padding:10px 16px 18px;line-height:1.6}
+
+@media (max-width:720px){
+  .app{border-left:0;border-right:0}
+  .toolbar{justify-content:flex-start;overflow-x:auto}
+  .toolbar .sync{margin-left:0}
+  .exwrap{grid-template-columns:1fr}
+  .dropzone{position:static}
+  .answers{flex-wrap:wrap}
+  .ansbtn{min-width:0;flex:1}
+  .revbar{flex-direction:column;align-items:stretch}
+  .revbar .more{display:none}
+  .qtext,.atext{font-size:18px}
+  .pacegrid{gap:18px}
+}
+</style>
+
+<div class="app">
+
+  <div class="titlebar">
+    <span class="name">Cadence</span>
+    <span>— A. Oyelaran</span>
+    <span class="right">
+      <span class="syncdot" id="syncdot"></span>
+      <span id="synctext">Canvas · synced 6:04 AM</span>
+    </span>
+  </div>
+
+  <nav class="toolbar" id="toolbar" hidden>
+    <button type="button" data-nav="decks" aria-current="page">Decks</button>
+    <button type="button" data-nav="canvas">Canvas</button>
+    <button type="button" data-nav="exchange">Exchange</button>
+    <button type="button" data-nav="step">Step 1</button>
+    <button type="button" data-nav="stats">Stats</button>
+    <button type="button" data-nav="prefs">Preferences</button>
+    <button type="button" class="sync" id="syncbtn" title="Sync with Canvas">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.3"/><path d="M20 4v7h-7"/></svg>
+      Sync
+    </button>
+  </nav>
+
+  <!-- ================= ONBOARDING ================= -->
+  <section class="screen" data-screen="onboard" data-on="true">
+    <div class="wiz">
+      <div class="wizbox">
+        <div class="dots" id="dots"></div>
+
+        <!-- 1 · school -->
+        <div class="step" data-step="0" data-on="true">
+          <h1>Where are you studying?</h1>
+          <p class="lede">Cadence reads your course from the LMS, so it knows what was taught today. Nothing to set up after this.</p>
+          <div class="choices" id="schoolChoices">
+            <button type="button" class="choice" data-val="ridgeline" aria-pressed="true">
+              <span class="mark"></span>
+              <span class="txt"><b>Ridgeline SOM — MED 231</b><span>Cardiovascular &amp; Renal · block 3 of 8</span></span>
+              <span class="badge">Canvas</span>
+            </button>
+            <button type="button" class="choice" data-val="other" aria-pressed="false">
+              <span class="mark"></span>
+              <span class="txt"><b>Another course</b><span>Connect a different Canvas, Blackboard or Moodle shell</span></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2 · load -->
+        <div class="step" data-step="1">
+          <h1>How much can you hold on a normal day?</h1>
+          <p class="lede">This is a starting point, not a contract. Cadence watches what you actually finish and adjusts.</p>
+          <div class="panel">
+            <div class="row">
+              <span class="lab"><b>New cards a day</b><span id="loadEst">about 42 minutes including reviews</span></span>
+              <span class="ctl"><input type="range" id="loadRange" min="5" max="80" step="5" value="25"><span class="val" id="loadVal">25</span></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Maximum reviews a day</b><span>reviews are what actually keep the score</span></span>
+              <span class="ctl"><input type="number" id="revCap" min="50" max="500" step="10" value="200"></span>
+            </div>
+          </div>
+          <div class="choices" style="margin-top:9px">
+            <button type="button" class="choice" data-preset="light" aria-pressed="false">
+              <span class="mark"></span><span class="txt"><b>Keep it survivable</b><span>15 new a day — you have a clinical week coming</span></span><span class="badge">15</span>
+            </button>
+            <button type="button" class="choice" data-preset="standard" aria-pressed="true">
+              <span class="mark"></span><span class="txt"><b>Match my block</b><span>25 new a day covers this block's objectives on time</span></span><span class="badge">25</span>
+            </button>
+            <button type="button" class="choice" data-preset="heavy" aria-pressed="false">
+              <span class="mark"></span><span class="txt"><b>I'm behind and I know it</b><span>45 new a day — front-loads the Step deck</span></span><span class="badge">45</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 · step goal -->
+        <div class="step" data-step="2">
+          <h1>What's the Step 1 number?</h1>
+          <p class="lede">The target sets how far past your block's objectives the nightly build reaches — and how fast the Step deck unsuspends.</p>
+          <div class="panel">
+            <div class="row">
+              <span class="lab"><b>Target score</b><span id="targetNote">above the 2025 pass rate by a comfortable margin</span></span>
+              <span class="ctl"><input type="range" id="targetRange" min="200" max="270" step="1" value="252"><span class="val" id="targetVal">252</span></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Exam date</b><span>dedicated period starts eight weeks before</span></span>
+              <span class="ctl"><input type="date" id="examDate" value="2027-06-04"></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Required pace</b><span id="paceNote">unsuspending to hit every tested tag in time</span></span>
+              <span class="ctl"><span class="val" id="paceVal">—</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 · design -->
+        <div class="step" data-step="3">
+          <h1>Now make it yours.</h1>
+          <p class="lede">You will look at this screen for a thousand hours. Everything here changes live, and all of it stays editable in Preferences.</p>
+          <div class="panel">
+            <div class="row">
+              <span class="lab"><b>Accent</b><span>used for links, the active tab and the streak</span></span>
+              <span class="ctl swatches" id="swatches"></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Appearance</b><span>follows your system unless you pick</span></span>
+              <span class="ctl">
+                <select id="themeSel">
+                  <option value="system">Automatic</option>
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Card text</b><span>Anki's default is 20px — bigger helps at 11pm</span></span>
+              <span class="ctl"><input type="range" id="fontRange" min="16" max="28" step="1" value="20"><span class="val" id="fontVal">20px</span></span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Card style</b><span>plain text, or the question in a box</span></span>
+              <span class="ctl">
+                <select id="styleSel">
+                  <option value="plain">Plain</option>
+                  <option value="boxed">Boxed</option>
+                </select>
+              </span>
+            </div>
+            <div class="row">
+              <span class="lab"><b>Density</b><span>how much air around the card</span></span>
+              <span class="ctl">
+                <select id="densSel">
+                  <option value="comfortable">Comfortable</option>
+                  <option value="compact">Compact</option>
+                </select>
+              </span>
+            </div>
+          </div>
+          <div class="preview">
+            <p class="pq" id="pvQ">Which valve is most often affected in rheumatic heart disease?</p>
+            <div class="prule"></div>
+            <p class="pa" id="pvA">The mitral valve — molecular mimicry against valve glycoproteins.</p>
+            <div class="pbtns"><i>&lt;10m</i><i>1d</i><i>3d</i><i>5d</i></div>
+          </div>
+        </div>
+
+        <!-- 5 · sources -->
+        <div class="step" data-step="4">
+          <h1>What should tonight's deck be made of?</h1>
+          <p class="lede">Most schools sit between a national Step deck and their own material. You can change the balance any night.</p>
+          <div class="choices" id="srcChoices">
+            <button type="button" class="choice" data-src="lectures" aria-pressed="true">
+              <span class="mark"></span><span class="txt"><b>My lectures, from Canvas</b><span>214 files found — sorted to objectives automatically</span></span><span class="badge">214</span>
+            </button>
+            <button type="button" class="choice" data-src="step" aria-pressed="true">
+              <span class="mark"></span><span class="txt"><b>The national Step deck</b><span>28,400 cards, suspended until your course covers the tag</span></span><span class="badge">28.4k</span>
+            </button>
+            <button type="button" class="choice" data-src="exchange" aria-pressed="false">
+              <span class="mark"></span><span class="txt"><b>Ridgeline deck exchange</b><span>decks written by students who took this block</span></span><span class="badge">31</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="wizfoot">
+          <button type="button" class="btn skip" id="wizBack">Back</button>
+          <button type="button" class="btn primary big" id="wizNext">Continue</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONNECTING ================= -->
+  <section class="screen" data-screen="connect">
+    <div class="connect">
+      <div class="ring"></div>
+      <p class="muted" style="margin:0">Connecting to Canvas…</p>
+      <ul id="connectLog">
+        <li>Authorized MED 231 via LTI 1.3</li>
+        <li>Read 214 course files, 38 learning objectives</li>
+        <li>Matched Friday's slides → CV-3.2, PHM-4.1</li>
+        <li>Unsuspended 47 Step cards for covered tags</li>
+        <li><span class="ok">✓</span> Built tonight's deck — 42 cards</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= DECKS ================= -->
+  <section class="screen" data-screen="decks">
+    <div class="pad"><div class="mid">
+      <div class="buildline">
+        <span>Built <b id="buildTime">6:04 AM</b> · <b id="buildTotal">57</b> cards from Friday's two lectures and what's due</span>
+        <span class="r"><button type="button" class="linkbtn" data-nav="canvas">what changed</button></span>
+      </div>
+      <table class="decktable">
+        <thead><tr><th>Deck</th><th>New</th><th>Learn</th><th>Due</th><th></th></tr></thead>
+        <tbody id="deckBody"></tbody>
+      </table>
+      <div class="deckfoot">
+        <button type="button" class="btn primary big" id="studyAll">Study Now</button>
+        <button type="button" class="btn" data-nav="exchange">Get Shared</button>
+        <button type="button" class="btn" id="rebuildBtn">Rebuild Today</button>
+      </div>
+      <p class="note">Counts behave like Anki's: answering a new card moves it into learning, and a lapse sends a review card back. Nothing here is a static mockup.</p>
+    </div></div>
+  </section>
+
+  <!-- ================= REVIEWER ================= -->
+  <section class="screen" data-screen="study">
+    <div class="revtop">
+      <span class="deck" id="revDeck">Deck</span>
+      <span class="counts" id="revCounts"></span>
+      <span class="timer" id="revTimer">0:00</span>
+    </div>
+    <div class="cardarea">
+      <p class="qtext" id="qText"></p>
+      <div id="ansWrap" hidden>
+        <hr class="ansrule">
+        <p class="atext" id="aText"></p>
+      </div>
+      <p class="srcline" id="srcLine"></p>
+    </div>
+    <div class="revbar">
+      <button type="button" class="btn more" id="moreBtn">More ▾</button>
+      <div class="answers" id="answers">
+        <button type="button" class="btn big showbtn" id="showBtn">Show Answer <span class="k" style="margin-left:8px">space</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONGRATS ================= -->
+  <section class="screen" data-screen="congrats">
+    <div class="congrats">
+      <h1>Congratulations! You have finished this deck for now.</h1>
+      <p id="congratsBody"></p>
+      <div class="deckfoot" style="margin-top:18px">
+        <button type="button" class="btn primary" data-nav="decks">Back to Decks</button>
+        <button type="button" class="btn" id="studyMore">Study ahead</button>
+      </div>
+      <p class="tiny" style="margin-top:20px" id="congratsPace"></p>
+    </div>
+  </section>
+
+  <!-- ================= CANVAS ================= -->
+  <section class="screen" data-screen="canvas">
+    <div class="pad"><div class="wide">
+      <div class="sect">
+        <h1>MED 231 · Cardiovascular &amp; Renal</h1>
+        <p class="muted" style="margin:0 0 16px">Ridgeline SOM · block 3 of 8 · week 3 · connected via LTI 1.3</p>
+        <div class="panel">
+          <header>Today's build — Sunday, September 13</header>
+          <div class="row"><span class="lab"><b>Valvular Heart Disease</b><span>Okonkwo · 52 slides · 6 objectives · posted Friday 9:12 AM</span></span><span class="ctl"><span class="val" id="cvNew">14 new</span></span></div>
+          <div class="row"><span class="lab"><b>Antiarrhythmics I — Class I &amp; III</b><span>Feld · 38 slides · 4 objectives · posted Friday 2:40 PM</span></span><span class="ctl"><span class="val" id="phNew">12 new</span></span></div>
+          <div class="row"><span class="lab"><b>Step deck, tags now covered</b><span>::step::cardio::valvular and 2 more unsuspended this morning</span></span><span class="ctl"><span class="val" id="stNew">16 new</span></span></div>
+          <div class="row"><span class="lab"><b>Due from weeks 1–3</b><span>16 at interval, 4 lapsed twice or more</span></span><span class="ctl"><span class="val" id="dueTot">16 due</span></span></div>
+        </div>
+      </div>
+      <div class="sect">
+        <h2>What Cadence changed on its own</h2>
+        <div class="panel">
+          <div class="row"><span class="lab"><b>Trimmed the deck from 60 to 42</b><span>You finish 89% of sessions started before 9pm and 41% after 11pm. A 60-card Sunday historically ends at 34.</span></span></div>
+          <div class="row"><span class="lab"><b>Rewrote 11 skipped cards</b><span>All four-blank cloze from renal transport. They came back as single-blank cards.</span></span></div>
+          <div class="row"><span class="lab"><b>Swapped 6 valvular cards for 6 pharm</b><span>Valvular retention is 92%; pharmacology is 3 points behind your 252 pace.</span></span></div>
+        </div>
+      </div>
+      <div class="sect">
+        <h2>Coming up</h2>
+        <div class="panel">
+          <div class="row"><span class="lab"><b>Monday — Heart Failure I</b><span>CV-4.1 · slides posted Sunday 8pm · 18 cards will be built overnight</span></span><span class="ctl"><span class="tiny mono">tomorrow</span></span></div>
+          <div class="row"><span class="lab"><b>Thursday — Block 3 midterm</b><span>Cadence front-loads reviews Tuesday and Wednesday, then stops new cards</span></span><span class="ctl"><span class="tiny mono">in 4 days</span></span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ================= EXCHANGE ================= -->
+  <section class="screen" data-screen="exchange">
+    <div class="pad"><div class="wide">
+      <h1>Ridgeline deck exchange</h1>
+      <p class="muted" style="margin:0 0 18px">School-scoped, so nothing here is generic. Drag a deck onto the panel and Cadence sorts its cards into your subdecks by objective — duplicates against the Step deck get merged, not stacked.</p>
+      <div class="exwrap">
+        <div id="exList"></div>
+        <div>
+          <div class="dropzone" id="dropzone">
+            <b id="dropTitle">Drop a deck here</b>
+            <span id="dropSub">or tap Add on any deck</span>
+            <ul class="sortlog" id="sortLog"></ul>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ================= STEP ================= -->
+  <section class="screen" data-screen="step">
+    <div class="pad"><div class="wide">
+      <h1>Step 1 pacing</h1>
+      <p class="muted" style="margin:0 0 18px">The national deck stays suspended until your course covers the tag. That is the whole trick — you never see a card for material you have not been taught, and nothing is left buried by exam day.</p>
+
+      <div class="pacegrid">
+        <div><b id="pgTarget">252</b><span>Target</span></div>
+        <div><b id="pgProj" data-tone="warn">247</b><span>Projected</span></div>
+        <div><b id="pgDays">264</b><span>Days left</span></div>
+        <div><b id="pgNeed">47</b><span>Needed / day</span></div>
+        <div><b id="pgNow">25</b><span>Your setting</span></div>
+      </div>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Unsuspend queue — matched to what your course has taught</header>
+          <div id="tagRows"></div>
+          <div class="row">
+            <span class="lab"><b>Unsuspend everything ready</b><span id="unsusNote">3 tags covered by Friday's lectures, still suspended</span></span>
+            <span class="ctl"><button type="button" class="btn primary" id="unsusBtn">Unsuspend 47 cards</button></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <h2>Cards remaining vs. days remaining</h2>
+        <div class="bars" id="paceBars"></div>
+        <div class="barsx"><span>now</span><span>dedicated starts</span><span>exam</span></div>
+        <p class="tiny" style="margin-top:10px" id="paceProse"></p>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ================= STATS ================= -->
+  <section class="screen" data-screen="stats">
+    <div class="pad"><div class="wide">
+      <h1>Stats</h1>
+      <p class="muted" style="margin:0 0 18px">A year of reviews. The streak is 31 days — the gap in July is the week you were on a family emergency, which Cadence rescheduled around rather than dumping 900 cards on your return.</p>
+      <div class="panel" style="padding:14px 13px">
+        <div class="heat" id="heat" role="img" aria-label="Review heatmap for the past year"></div>
+        <div class="heatkey"><span>Less</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>More</span></div>
+      </div>
+      <div class="pacegrid" style="margin-top:22px">
+        <div><b>31</b><span>Day streak</span></div>
+        <div><b>89%</b><span>Retention</span></div>
+        <div><b>14s</b><span>Median / card</span></div>
+        <div><b>6,412</b><span>Cards seen</span></div>
+        <div><b>18m</b><span>Daily average</span></div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ================= PREFERENCES ================= -->
+  <section class="screen" data-screen="prefs">
+    <div class="pad"><div class="wide">
+      <h1>Preferences</h1>
+      <p class="muted" style="margin:0 0 18px">The same questions from setup, still answerable. Changes apply to tonight's build.</p>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Appearance</header>
+          <div class="row">
+            <span class="lab"><b>Accent</b><span>links, active tab, streak</span></span>
+            <span class="ctl swatches" id="swatches2"></span>
+          </div>
+          <div class="row">
+            <span class="lab"><b>Theme</b><span>automatic follows your system</span></span>
+            <span class="ctl"><select id="themeSel2"><option value="system">Automatic</option><option value="light">Light</option><option value="dark">Dark</option></select></span>
+          </div>
+          <div class="row">
+            <span class="lab"><b>Card text size</b><span>applies to the reviewer only</span></span>
+            <span class="ctl"><input type="range" id="fontRange2" min="16" max="28" step="1" value="20"><span class="val" id="fontVal2">20px</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Daily limits</header>
+          <div class="row">
+            <span class="lab"><b>New cards a day</b><span id="loadEst2">about 42 minutes including reviews</span></span>
+            <span class="ctl"><input type="range" id="loadRange2" min="5" max="80" step="5" value="25"><span class="val" id="loadVal2">25</span></span>
+          </div>
+          <div class="row">
+            <span class="lab"><b>Step 1 target</b><span id="targetNote2">sets how fast the Step deck unsuspends</span></span>
+            <span class="ctl"><input type="range" id="targetRange2" min="200" max="270" step="1" value="252"><span class="val" id="targetVal2">252</span></span>
+          </div>
+          <div class="row">
+            <span class="lab"><b>Rerun setup</b><span>the five questions, from the top</span></span>
+            <span class="ctl"><button type="button" class="btn" id="redoWiz">Run setup again</button></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <p class="note">Prototype. Ridgeline SOM, the student and the exchange decks are invented; the medical content, the objective codes and the scheduling behavior are real.</p>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var all = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  var root = document.documentElement;
+
+  /* ================= state ================= */
+  var S = {
+    step:0,
+    newPerDay:25,
+    revCap:200,
+    target:252,
+    exam:"2027-06-04",
+    accent:"blue",
+    sources:{lectures:true, step:true, exchange:false},
+    deckId:null,
+    queue:[], qi:0, shown:false,
+    t0:0, timer:null,
+    unsuspended:47,
+    owned:{}
+  };
+
+  var ACCENTS = [
+    {k:"blue",   hex:"#3B7DD8", name:"Anki blue"},
+    {k:"teal",   hex:"#1E8A83", name:"Teal"},
+    {k:"violet", hex:"#7A5AC9", name:"Violet"},
+    {k:"crimson",hex:"#C0392F", name:"Crimson"},
+    {k:"amber",  hex:"#B5801A", name:"Amber"},
+    {k:"forest", hex:"#2F7D4F", name:"Forest"}
+  ];
+
+  /* ================= cards ================= */
+  /* state: 0 new, 1 learning, 2 review. ivl in days for review cards. */
+  var CARDS = [
+    {d:"cv32", s:0, ivl:0, q:"Mid-systolic crescendo–decrescendo murmur at the right second interspace, radiating to the carotids. What is the lesion, and what does a delayed carotid upstroke add?",
+     a:"<span class='key'>Aortic stenosis.</span> <em>Pulsus parvus et tardus</em> — a weak, late-peaking carotid upstroke — marks severe AS, valve area under 1.0 cm². It also separates valvular AS from HOCM, where the upstroke is brisk and bifid.",
+     src:["Valvular Heart Disease","slide 14","CV-3.2a"]},
+
+    {d:"cv32", s:2, ivl:11, q:"In rheumatic heart disease, which valve is most often affected, and by what mechanism?",
+     a:"The <span class='key'>mitral valve</span>. Anti-streptococcal antibodies cross-react with valve glycoproteins — molecular mimicry, a type II hypersensitivity — producing commissural fusion, so you hear a diastolic rumble with an opening snap.",
+     src:["Step deck","::step::cardio::valvular","CV-3.2a"], step:true},
+
+    {d:"cv32", s:0, ivl:0, q:"An opening snap with a long diastolic rumble. What does a shortening S2–opening-snap interval tell you?",
+     a:"The <span class='key'>mitral stenosis is worsening</span>. Higher left atrial pressure forces the valve open earlier in diastole — the shorter the S2–OS interval, the more severe the stenosis.",
+     src:["Valvular Heart Disease","slide 31","CV-3.2a"]},
+
+    {d:"cv32", s:2, ivl:6, q:"A patient with chronic mitral regurgitation has an ejection fraction of 55%. Why is that concerning rather than reassuring?",
+     a:"In chronic MR the ventricle unloads into the low-pressure atrium, so EF runs <em>supranormal</em> while contractility is intact. An EF at or below 60% signals occult systolic dysfunction — an operative indication even in an asymptomatic patient.",
+     src:["Valvular Heart Disease","slide 41","CV-3.2b"]},
+
+    {d:"phm41", s:0, ivl:0, q:"Which Class I antiarrhythmic subclass shows the strongest use-dependence, and what does that predict clinically?",
+     a:"<span class='key'>Class IC</span> — flecainide, propafenone. They dissociate from the Na⁺ channel slowest, so block accumulates at high rates. That predicts both their use in rate-dependent AF and their <em>pro-arrhythmia after MI</em> — the CAST result.",
+     src:["Antiarrhythmics I","slide 22","PHM-4.1c"]},
+
+    {d:"phm41", s:1, ivl:0, q:"Why does amiodarone require thyroid and pulmonary monitoring?",
+     a:"Two iodine atoms per molecule, about <span class='key'>37% iodine by weight</span> — hypo- or hyperthyroidism. Its lipophilicity and ~58-day half-life drive deposition: pulmonary fibrosis, corneal microdeposits, blue-grey skin.",
+     src:["Antiarrhythmics I","slide 34","PHM-4.1d"]},
+
+    {d:"phm41", s:2, ivl:3, q:"Why is quinidine's effect on the QT interval different from flecainide's?",
+     a:"Quinidine is Class <span class='key'>IA</span> — it blocks Na⁺ channels <em>and</em> K⁺ channels, so repolarization slows and the QT lengthens, risking torsades. Flecainide is IC: Na⁺ block only, so it widens QRS without the same QT effect.",
+     src:["Antiarrhythmics I","slide 18","PHM-4.1b"]},
+
+    {d:"ren24", s:2, ivl:4, q:"Which diuretic acts on the Na⁺-K⁺-2Cl⁻ cotransporter, and what electrolyte consequence follows directly from that?",
+     a:"<span class='key'>Loop diuretics</span> — furosemide — block NKCC2 in the thick ascending limb. Losing the transporter abolishes the lumen-positive potential that drives paracellular Ca²⁺ and Mg²⁺ reabsorption, so you get <em>hypocalcemia and hypomagnesemia</em>, unlike thiazides.",
+     src:["Renal Transport","handout p.4","REN-2.4a"]},
+
+    {d:"step", s:0, ivl:0, q:"A 62-year-old with aortic stenosis develops syncope on exertion. What is the median survival without valve replacement?",
+     a:"About <span class='key'>3 years</span>. The classic triad sets the clock: angina ~5 years, syncope ~3, heart failure ~2. Symptom onset is the indication for replacement regardless of gradient.",
+     src:["Step deck","::step::cardio::valvular","unsuspended today"], step:true},
+
+    {d:"step", s:2, ivl:21, q:"Which murmur intensifies with standing and Valsalva, and why does that separate it from aortic stenosis?",
+     a:"<span class='key'>HOCM.</span> Both maneuvers drop preload; a smaller ventricle brings the hypertrophied septum closer to the anterior mitral leaflet, worsening outflow obstruction. Aortic stenosis gets <em>quieter</em> with less preload — less blood to push across a fixed valve.",
+     src:["Step deck","::step::cardio::valvular","CV-3.2a"], step:true}
+  ];
+
+  /* ================= decks ================= */
+  var DECKS = [
+    {id:"med231", name:"MED 231 · Cardiovascular & Renal", open:true, kids:[
+      {id:"cv32", name:"Valvular Heart Disease", lo:"CV-3.2"},
+      {id:"phm41", name:"Antiarrhythmics I", lo:"PHM-4.1"},
+      {id:"ren24", name:"Renal Transport", lo:"REN-2.4"}
+    ]},
+    {id:"stepdeck", name:"Step 1 — unsuspended by tag", open:false, kids:[
+      {id:"step", name:"Cardiovascular", lo:"::cardio"}
+    ]},
+    {id:"exchange", name:"Ridgeline Exchange", open:false, kids:[]}
+  ];
+
+  /* Tonight's build is bigger than the handful of cards written out for the
+     prototype. VIRT holds the remainder so the deck list shows true counts —
+     new cards are capped by the daily limit chosen during setup, exactly as
+     Anki caps them. Answering moves real cards between the three columns. */
+  var VIRT = {
+    cv32:{n:0,l:0,d:6},
+    phm41:{n:0,l:3,d:2},
+    ren24:{n:0,l:1,d:6},
+    step:{n:0,l:2,d:8}
+  };
+  var NEW_SHARE = {cv32:.40, phm41:.36, step:.24, ren24:0};
+
+  function rebuildNewLimit(){
+    var left = S.newPerDay, keys = ["cv32","phm41","step"];
+    keys.forEach(function(k, i){
+      var want = (i === keys.length - 1) ? left : Math.round(S.newPerDay * NEW_SHARE[k]);
+      want = Math.max(0, Math.min(left, want));
+      left -= want;
+      var realNew = BASE_NEW[k] || 0;
+      VIRT[k].n = Math.max(0, want - realNew);
+    });
+    if (typeof renderDecks === "function") renderDecks();
+    updateBuildLine();
+  }
+
+  function totalTonight(){
+    var t = 0;
+    DECKS.forEach(function(d){ var c = counts(d.id); t += c.n + c.l + c.d; });
+    return t;
+  }
+
+  function updateBuildLine(){
+    var el = $("buildTotal"); if (el) el.textContent = totalTonight();
+    var c1 = counts("cv32"), c2 = counts("phm41"), c3 = counts("step");
+    if ($("cvNew")) $("cvNew").textContent = c1.n + " new";
+    if ($("phNew")) $("phNew").textContent = c2.n + " new";
+    if ($("stNew")) $("stNew").textContent = c3.n + " new";
+    if ($("dueTot")) $("dueTot").textContent = (c1.d + c2.d + counts("ren24").d) + " due";
+  }
+
+  function deckCards(id){
+    var leaves = leafIds(id);
+    return CARDS.filter(function(c){ return leaves.indexOf(c.d) > -1; });
+  }
+  function leafIds(id){
+    for (var i=0;i<DECKS.length;i++){
+      if (DECKS[i].id === id) return DECKS[i].kids.map(function(k){ return k.id; });
+    }
+    return [id];
+  }
+  function counts(id){
+    var o = {n:0, l:0, d:0};
+    leafIds(id).forEach(function(leaf){
+      CARDS.forEach(function(c){
+        if (c.d !== leaf) return;
+        if (c.s === 0) o.n++; else if (c.s === 1) o.l++; else o.d++;
+      });
+      var v = VIRT[leaf];
+      if (v){ o.n += v.n; o.l += v.l; o.d += v.d; }
+    });
+    return o;
+  }
+  function deckName(id){
+    for (var i=0;i<DECKS.length;i++){
+      if (DECKS[i].id === id) return DECKS[i].name;
+      for (var j=0;j<DECKS[i].kids.length;j++) if (DECKS[i].kids[j].id === id) return DECKS[i].kids[j].name;
+    }
+    return "Deck";
+  }
+
+  /* ================= chrome ================= */
+  var toastT;
+  function toast(msg){
+    var t = $("toast"); t.innerHTML = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, 3000);
+  }
+
+  function show(name){
+    all(".screen").forEach(function(s){ s.setAttribute("data-on", s.getAttribute("data-screen") === name ? "true" : "false"); });
+    all("#toolbar button[data-nav]").forEach(function(b){
+      if (b.getAttribute("data-nav") === name) b.setAttribute("aria-current","page");
+      else b.removeAttribute("aria-current");
+    });
+    $("toolbar").hidden = (name === "onboard" || name === "connect");
+    if (name === "step") renderStep();
+    if (name === "stats") renderHeat();
+    if (name === "exchange") renderExchange();
+    if (name !== "study") stopTimer();
+  }
+  all("[data-nav]").forEach(function(b){
+    b.addEventListener("click", function(){ show(b.getAttribute("data-nav")); });
+  });
+
+  $("syncbtn").addEventListener("click", function(){
+    var svg = $("syncbtn").querySelector("svg");
+    svg.classList.add("spin");
+    $("synctext").textContent = "Canvas · syncing…";
+    setTimeout(function(){
+      svg.classList.remove("spin");
+      var now = new Date();
+      var h = now.getHours() % 12 || 12, m = String(now.getMinutes()).padStart(2,"0");
+      $("synctext").textContent = "Canvas · synced " + h + ":" + m + (now.getHours() < 12 ? " AM" : " PM");
+      toast("Up to date — no new material posted since 6:04 AM.");
+    }, 1100);
+  });
+
+  /* ================= appearance ================= */
+  function setAccent(k){
+    var a = ACCENTS.filter(function(x){ return x.k === k; })[0] || ACCENTS[0];
+    S.accent = k;
+    root.style.setProperty("--accent", a.hex);
+    root.style.setProperty("--accent-soft", hexA(a.hex, .13));
+    root.style.setProperty("--accent-line", hexA(a.hex, .42));
+    all(".sw").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-acc") === k)); });
+  }
+  function hexA(hex, a){
+    var n = parseInt(hex.slice(1), 16);
+    return "rgba(" + ((n>>16)&255) + "," + ((n>>8)&255) + "," + (n&255) + "," + a + ")";
+  }
+  function buildSwatches(hostId){
+    $(hostId).innerHTML = ACCENTS.map(function(a){
+      return '<button type="button" class="sw" data-acc="' + a.k + '" title="' + a.name + '" aria-label="' + a.name + '" style="background:' + a.hex + '"></button>';
+    }).join("");
+  }
+  buildSwatches("swatches"); buildSwatches("swatches2");
+  all(".sw").forEach(function(b){ b.addEventListener("click", function(){ setAccent(b.getAttribute("data-acc")); }); });
+
+  function setTheme(v){
+    if (v === "system") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", v);
+    $("themeSel").value = v; $("themeSel2").value = v;
+  }
+  $("themeSel").addEventListener("change", function(){ setTheme(this.value); });
+  $("themeSel2").addEventListener("change", function(){ setTheme(this.value); });
+
+  function setFont(px){
+    root.style.setProperty("--cardfs", px + "px");
+    $("qText").style.fontSize = px + "px";
+    $("aText").style.fontSize = px + "px";
+    $("pvQ").style.fontSize = Math.round(px * .8) + "px";
+    $("pvA").style.fontSize = Math.round(px * .8) + "px";
+    $("fontVal").textContent = px + "px"; $("fontVal2").textContent = px + "px";
+    $("fontRange").value = px; $("fontRange2").value = px;
+  }
+  $("fontRange").addEventListener("input", function(){ setFont(+this.value); });
+  $("fontRange2").addEventListener("input", function(){ setFont(+this.value); });
+  $("styleSel").addEventListener("change", function(){ root.setAttribute("data-cardstyle", this.value); });
+  $("densSel").addEventListener("change", function(){ root.setAttribute("data-density", this.value); });
+
+  /* ================= load / target ================= */
+  function minutesFor(n){ return Math.round(n * 0.42 + n * 2.1); }
+  function setLoad(n){
+    S.newPerDay = n;
+    $("loadVal").textContent = n; $("loadVal2").textContent = n;
+    $("loadRange").value = n; $("loadRange2").value = n;
+    var m = "about " + minutesFor(n) + " minutes including reviews";
+    $("loadEst").textContent = m; $("loadEst2").textContent = m;
+    all("[data-preset]").forEach(function(b){
+      var v = {light:15, standard:25, heavy:45}[b.getAttribute("data-preset")];
+      b.setAttribute("aria-pressed", String(v === n));
+    });
+    rebuildNewLimit();
+    updatePace();
+  }
+  $("loadRange").addEventListener("input", function(){ setLoad(+this.value); });
+  $("loadRange2").addEventListener("input", function(){ setLoad(+this.value); });
+  all("[data-preset]").forEach(function(b){
+    b.addEventListener("click", function(){ setLoad({light:15, standard:25, heavy:45}[b.getAttribute("data-preset")]); });
+  });
+  $("revCap").addEventListener("change", function(){ S.revCap = +this.value; });
+
+  function daysLeft(){
+    var ms = new Date(S.exam) - new Date("2026-09-13");
+    return Math.max(1, Math.round(ms / 86400000));
+  }
+  function requiredPace(){
+    /* every tag on the blueprint has to be unsuspended and matured before dedicated */
+    var remaining = 8000 + Math.round((S.target - 240) * 150);
+    return Math.max(5, Math.round(remaining / Math.max(1, daysLeft() - 56)));
+  }
+  function updatePace(){
+    var need = requiredPace(), d = daysLeft();
+    $("targetVal").textContent = S.target; $("targetVal2").textContent = S.target;
+    $("targetRange").value = S.target; $("targetRange2").value = S.target;
+    var note = S.target >= 262 ? "a top-decile score — the deck will run hot for nine months"
+             : S.target >= 245 ? "competitive for most residency specialties"
+             : "above the 2025 pass rate by a comfortable margin";
+    $("targetNote").textContent = note; $("targetNote2").textContent = note;
+    $("paceVal").textContent = need + " new/day";
+    $("paceNote").textContent = need > S.newPerDay
+      ? "your setting of " + S.newPerDay + " leaves " + ((need - S.newPerDay) * (d - 56)).toLocaleString() + " cards suspended on exam day"
+      : "your setting clears the blueprint with room to spare";
+    if ($("pgTarget")) {
+      $("pgTarget").textContent = S.target;
+      $("pgDays").textContent = d.toLocaleString();
+      $("pgNeed").textContent = need;
+      $("pgNow").textContent = S.newPerDay;
+      $("pgNow").setAttribute("data-tone", S.newPerDay >= need ? "ok" : "warn");
+      var proj = Math.max(200, Math.min(S.target, Math.round(S.target - (need - S.newPerDay) * 0.24)));
+      $("pgProj").textContent = proj;
+      $("pgProj").setAttribute("data-tone", proj >= S.target ? "ok" : "warn");
+    }
+  }
+  $("targetRange").addEventListener("input", function(){ S.target = +this.value; updatePace(); });
+  $("targetRange2").addEventListener("input", function(){ S.target = +this.value; updatePace(); });
+  $("examDate").addEventListener("change", function(){ S.exam = this.value; updatePace(); });
+
+  /* ================= wizard ================= */
+  var STEPS = 5;
+  function renderDots(){
+    $("dots").innerHTML = Array.apply(null, Array(STEPS)).map(function(_, i){
+      return '<i data-on="' + (i === S.step) + '" data-done="' + (i < S.step) + '"></i>';
+    }).join("");
+  }
+  function goStep(n){
+    S.step = Math.max(0, Math.min(STEPS - 1, n));
+    all(".step").forEach(function(s){ s.setAttribute("data-on", String(+s.getAttribute("data-step") === S.step)); });
+    renderDots();
+    $("wizBack").style.visibility = S.step === 0 ? "hidden" : "visible";
+    $("wizNext").textContent = S.step === STEPS - 1 ? "Open Canvas" : "Continue";
+  }
+  $("wizBack").addEventListener("click", function(){ goStep(S.step - 1); });
+  $("wizNext").addEventListener("click", function(){
+    if (S.step < STEPS - 1){ goStep(S.step + 1); return; }
+    runConnect();
+  });
+  all("#schoolChoices .choice").forEach(function(b){
+    b.addEventListener("click", function(){
+      all("#schoolChoices .choice").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      b.setAttribute("aria-pressed","true");
+    });
+  });
+  all("#srcChoices .choice").forEach(function(b){
+    b.addEventListener("click", function(){
+      var k = b.getAttribute("data-src");
+      S.sources[k] = !S.sources[k];
+      b.setAttribute("aria-pressed", String(S.sources[k]));
+    });
+  });
+
+  function runConnect(){
+    show("connect");
+    var lis = all("#connectLog li");
+    lis.forEach(function(li){ li.setAttribute("data-on","false"); });
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var stepMs = reduce ? 0 : 420;
+    lis.forEach(function(li, i){
+      setTimeout(function(){ li.setAttribute("data-on","true"); }, stepMs * i);
+    });
+    setTimeout(function(){
+      renderDecks();
+      show("decks");
+      toast("Built tonight's deck — " + (counts("med231").n + counts("med231").l + counts("med231").d + counts("stepdeck").n + counts("stepdeck").d) + " cards ready.");
+    }, stepMs * lis.length + (reduce ? 60 : 520));
+  }
+  $("redoWiz").addEventListener("click", function(){ goStep(0); show("onboard"); });
+
+  /* ================= deck list ================= */
+  function countCell(v, k){
+    return '<td class="n" data-k="' + k + '" data-z="' + (v === 0) + '">' + v + "</td>";
+  }
+  function renderDecks(){
+    var html = "";
+    DECKS.forEach(function(d){
+      var c = counts(d.id);
+      html += "<tr>" +
+        '<td><span class="deckname">' +
+          (d.kids.length ? '<button type="button" class="tw" data-tw="' + d.id + '" data-open="' + d.open + '" aria-label="Collapse">▾</button>' : '<span class="tw"></span>') +
+          '<button type="button" class="dname" data-study="' + d.id + '">' + d.name + "</button>" +
+        "</span></td>" +
+        countCell(c.n,"new") + countCell(c.l,"learn") + countCell(c.d,"due") +
+        '<td class="g"><button type="button" class="gear" data-gear="' + d.id + '" aria-label="Options">⚙</button></td></tr>';
+      if (d.open) d.kids.forEach(function(k){
+        var kc = counts(k.id);
+        html += "<tr>" +
+          '<td><span class="deckname child">' +
+            '<button type="button" class="dname" data-study="' + k.id + '">' + k.name + "</button>" +
+            '<span class="lo">' + k.lo + "</span>" +
+          "</span></td>" +
+          countCell(kc.n,"new") + countCell(kc.l,"learn") + countCell(kc.d,"due") +
+          '<td class="g"><button type="button" class="gear" data-gear="' + k.id + '" aria-label="Options">⚙</button></td></tr>';
+      });
+    });
+    $("deckBody").innerHTML = html;
+
+    all("[data-tw]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var d = DECKS.filter(function(x){ return x.id === b.getAttribute("data-tw"); })[0];
+        d.open = !d.open; renderDecks();
+      });
+    });
+    all("[data-study]").forEach(function(b){
+      b.addEventListener("click", function(){ startStudy(b.getAttribute("data-study")); });
+    });
+    all("[data-gear]").forEach(function(b){
+      b.addEventListener("click", function(){
+        toast("Deck options for <b>" + deckName(b.getAttribute("data-gear")) + "</b> — new/day, review cap, burying, leech threshold.");
+      });
+    });
+  }
+  $("studyAll").addEventListener("click", function(){ startStudy("med231"); });
+  $("rebuildBtn").addEventListener("click", function(){
+    toast("Rebuilt from Canvas — same 42 cards; nothing new posted since 6:04 AM.");
+  });
+
+  /* ================= scheduler ================= */
+  function fmtIvl(days){
+    if (days < 1) {
+      var mins = Math.round(days * 1440);
+      if (mins < 1) return "<1m";
+      return mins < 60 ? "<" + mins + "m" : "<" + Math.round(mins/60) + "h";
+    }
+    if (days < 30) return Math.round(days) + "d";
+    if (days < 365) return (days/30).toFixed(1) + "mo";
+    return (days/365).toFixed(1) + "y";
+  }
+  function intervalsFor(c){
+    if (c.s === 0) return [1/1440, 6/1440, 10/1440, 4];
+    if (c.s === 1) return [1/1440, 6/1440, 1, 4];
+    var i = Math.max(1, c.ivl);
+    return [10/1440, Math.max(1, Math.round(i * 1.2)), Math.max(2, Math.round(i * 2.5)), Math.max(3, Math.round(i * 3.5))];
+  }
+
+  function startStudy(id){
+    var cs = deckCards(id).filter(function(c){ return c.s === 0 || c.s === 1 || c.s === 2; });
+    if (!cs.length){ showCongrats(id, true); return; }
+    /* Anki order: learning first, then reviews, then new */
+    S.queue = cs.slice().sort(function(a,b){ return ({1:0,2:1,0:2})[a.s] - ({1:0,2:1,0:2})[b.s]; });
+    S.qi = 0; S.deckId = id; S.shown = false;
+    startTimer();
+    show("study");
+    renderCard();
+  }
+  function startTimer(){
+    S.t0 = Date.now();
+    stopTimer();
+    S.timer = setInterval(function(){
+      var s = Math.floor((Date.now() - S.t0) / 1000);
+      $("revTimer").textContent = Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+    }, 1000);
+  }
+  function stopTimer(){ if (S.timer) { clearInterval(S.timer); S.timer = null; } }
+
+  function renderCounts(cur){
+    var c = counts(S.deckId);
+    $("revCounts").innerHTML =
+      '<b class="c-new' + (cur === 0 ? " on" : "") + '">' + c.n + "</b>" +
+      '<b class="c-learn' + (cur === 1 ? " on" : "") + '">' + c.l + "</b>" +
+      '<b class="c-due' + (cur === 2 ? " on" : "") + '">' + c.d + "</b>";
+  }
+
+  function renderCard(){
+    if (S.qi >= S.queue.length){ showCongrats(S.deckId); return; }
+    var c = S.queue[S.qi];
+    $("revDeck").textContent = deckName(S.deckId);
+    $("qText").innerHTML = c.q;
+    $("aText").innerHTML = c.a;
+    $("ansWrap").hidden = true;
+    S.shown = false;
+    $("srcLine").innerHTML = c.src.map(function(s, i){
+      var isTag = s.indexOf("::") === 0;
+      return '<span class="' + (isTag ? "tagchip" : "") + '">' + s + "</span>";
+    }).join("");
+    renderCounts(c.s);
+    $("answers").innerHTML = '<button type="button" class="btn big showbtn" id="showBtn">Show Answer <span class="k" style="margin-left:8px">space</span></button>';
+    $("showBtn").addEventListener("click", reveal);
+  }
+
+  function reveal(){
+    if (S.shown || S.qi >= S.queue.length) return;
+    S.shown = true;
+    $("ansWrap").hidden = false;
+    var c = S.queue[S.qi];
+    var iv = intervalsFor(c);
+    var labels = ["Again","Hard","Good","Easy"];
+    $("answers").innerHTML = iv.map(function(d, i){
+      return '<button type="button" class="ansbtn" data-g="' + (i+1) + '">' +
+        '<span class="iv">' + fmtIvl(d) + "</span>" +
+        '<span class="lb">' + labels[i] + "</span>" +
+        '<span class="k">' + (i+1) + "</span></button>";
+    }).join("");
+    all(".ansbtn").forEach(function(b){
+      b.addEventListener("click", function(){ answer(+b.getAttribute("data-g")); });
+    });
+  }
+
+  function answer(g){
+    if (!S.shown) return;
+    var c = S.queue[S.qi];
+    var iv = intervalsFor(c)[g-1];
+
+    if (c.s === 0){                       /* new → learning */
+      c.s = 1;
+      if (g === 4){ c.s = 2; c.ivl = 4; }
+    } else if (c.s === 1){                /* learning */
+      if (g >= 3){ c.s = 2; c.ivl = g === 4 ? 4 : 1; }
+    } else {                              /* review */
+      if (g === 1){ c.s = 1; c.lapses = (c.lapses || 0) + 1; }
+      else c.ivl = Math.round(iv);
+    }
+
+    toast("<b>" + ["Again","Hard","Good","Easy"][g-1] + "</b> → " + fmtIvl(iv) +
+          (g === 1 && c.step ? " · leech watch: 2 lapses on this tag" : ""));
+
+    S.qi++;
+    if (S.qi >= S.queue.length) showCongrats(S.deckId);
+    else renderCard();
+  }
+
+  function showCongrats(id, empty){
+    stopTimer();
+    var c = counts(id);
+    var left = c.n + c.l + c.d;
+    $("congratsBody").innerHTML = empty
+      ? "There is nothing due in this deck right now. The next card is scheduled for tomorrow morning."
+      : "You answered " + S.queue.length + " cards — every card this prototype has written out for " +
+        deckName(id) + ". Tonight's real build has <b>" + left + "</b> more, and the counts above move with them.";
+    $("congratsPace").innerHTML = "At " + S.newPerDay + " new a day you are " +
+      (S.newPerDay >= requiredPace()
+        ? "<span style='color:var(--due)'>on pace</span> for " + S.target + "."
+        : "<span style='color:var(--learn)'>" + (requiredPace() - S.newPerDay) + " cards a day behind</span> your " + S.target + " target. Preferences → daily limits.");
+    show("congrats");
+  }
+  $("studyMore").addEventListener("click", function(){
+    toast("Studying ahead pulls tomorrow's reviews forward — intervals shorten slightly.");
+    startStudy(S.deckId || "med231");
+  });
+  $("moreBtn").addEventListener("click", function(){
+    toast("Bury · Suspend · Flag · Mark · Edit card · Card info");
+  });
+
+  document.addEventListener("keydown", function(e){
+    var t = (e.target.tagName || "").toLowerCase();
+    if (t === "input" || t === "select" || t === "textarea") return;
+    var on = document.querySelector('.screen[data-on="true"]');
+    if (!on) return;
+    var name = on.getAttribute("data-screen");
+    if (name === "onboard" && e.key === "Enter"){ e.preventDefault(); $("wizNext").click(); return; }
+    if (name === "decks" && (e.key === "s" || e.key === "Enter")){ e.preventDefault(); startStudy("med231"); return; }
+    if (name !== "study") return;
+    if (e.key === " " || e.key === "Enter"){
+      e.preventDefault();
+      if (!S.shown) reveal(); else answer(3);
+    } else if (["1","2","3","4"].indexOf(e.key) > -1){
+      e.preventDefault(); answer(+e.key);
+    } else if (e.key === "Escape"){ show("decks"); }
+  });
+
+  /* ================= exchange ================= */
+  var EX = [
+    {id:"e1", name:"Okonkwo Valves — M2 Companion", by:"Priya Raman, M2", n:214, r:"4.8", used:312,
+     note:"Follows Dr. Okonkwo's slide order exactly, including the three murmurs she draws by hand on slide 19.",
+     sort:[["96","Valvular Heart Disease (CV-3.2)"],["47","Heart Failure — held until Monday's lecture"],["41","merged as duplicates of Step deck cards"],["30","no matching objective in this block — parked"]]},
+    {id:"e2", name:"Renal Phys Tables, Rebuilt", by:"Dr. L. Haddad", n:96, r:"4.9", used:187, fac:true,
+     note:"The syllabus transport tables as cloze cards, written from the course material rather than pulled from a Step deck.",
+     sort:[["71","Renal Transport (REN-2.4)"],["18","merged as duplicates"],["7","malformed cloze — flagged for you to fix"]]},
+    {id:"e3", name:"Block 3 Exam Post-Mortem '25", by:"Class of 2028 curriculum reps", n:143, r:"4.7", used:401,
+     note:"Written from last year's blueprint after the exam. 78% overlap with the objectives actually tested.",
+     sort:[["62","Valvular Heart Disease (CV-3.2)"],["44","Antiarrhythmics I (PHM-4.1)"],["37","Renal Transport (REN-2.4)"]]},
+    {id:"e4", name:"Antiarrhythmics, De-AnKing'd", by:"Marcus Feld, M2", n:61, r:"4.5", used:96,
+     note:"Cuts the 40 national-deck cards this block never tests and keeps use-dependence, which it tests twice.",
+     sort:[["61","Antiarrhythmics I (PHM-4.1)"],["40","corresponding Step cards re-suspended to avoid doubling"]]},
+    {id:"e5", name:"Murmur Audio Drills", by:"Cardiology Interest Group", n:38, r:"4.6", used:154,
+     note:"Audio on the front, lesion on the back — the only deck here with sound, so it is scheduled separately.",
+     sort:[["38","Valvular Heart Disease (CV-3.2) · audio subdeck"]]}
+  ];
+
+  function renderExchange(){
+    $("exList").innerHTML = EX.map(function(d){
+      var owned = !!S.owned[d.id];
+      return '<article class="exdeck" draggable="' + (!owned) + '" data-ex="' + d.id + '" data-owned="' + owned + '">' +
+        "<h3>" + d.name + "</h3>" +
+        '<p class="by">' + d.by + (d.fac ? ' <span class="fac">faculty</span>' : "") + "</p>" +
+        "<p>" + d.note + "</p>" +
+        '<div class="foot">' +
+          '<span class="stat">' + d.n + " cards</span>" +
+          '<span class="stat">' + d.r + " ★</span>" +
+          '<span class="stat">' + d.used + " in a mix</span>" +
+          (owned ? '<span class="grab">in your collection</span>'
+                 : '<button type="button" class="btn addbtn" data-add="' + d.id + '">Add</button>') +
+        "</div></article>";
+    }).join("");
+
+    all("[data-ex]").forEach(function(el){
+      el.addEventListener("dragstart", function(e){
+        e.dataTransfer.setData("text/plain", el.getAttribute("data-ex"));
+        e.dataTransfer.effectAllowed = "copy";
+        el.setAttribute("data-drag","true");
+      });
+      el.addEventListener("dragend", function(){ el.setAttribute("data-drag","false"); });
+    });
+    all("[data-add]").forEach(function(b){
+      b.addEventListener("click", function(){ sortIn(b.getAttribute("data-add")); });
+    });
+  }
+
+  var dz = $("dropzone");
+  dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.setAttribute("data-over","true"); e.dataTransfer.dropEffect = "copy"; });
+  dz.addEventListener("dragleave", function(){ dz.setAttribute("data-over","false"); });
+  dz.addEventListener("drop", function(e){
+    e.preventDefault();
+    dz.setAttribute("data-over","false");
+    sortIn(e.dataTransfer.getData("text/plain"));
+  });
+
+  function sortIn(id){
+    var d = EX.filter(function(x){ return x.id === id; })[0];
+    if (!d || S.owned[id]) return;
+    S.owned[id] = true;
+    $("dropTitle").textContent = "Sorting " + d.name;
+    $("dropSub").textContent = d.n + " cards · matching tags to MED 231 objectives";
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var rows = d.sort.map(function(s){
+      var cls = /held|parked|malformed|re-suspended/.test(s[1]) ? "warn" : /merged/.test(s[1]) ? "" : "ok";
+      return '<li><span class="' + cls + '">' + (cls === "ok" ? "→" : cls === "warn" ? "!" : "=") + "</span> <b>" + s[0] + "</b> " + s[1] + "</li>";
+    });
+    var live = d.sort.reduce(function(a, s){ return a + (/CV-|PHM-|REN-|audio/.test(s[1]) ? +s[0] : 0); }, 0);
+    rows.push('<li><span class="ok">✓</span> <b>' + live + "</b> cards added · " + Math.round(live * 0.09) + " due today</li>");
+    $("sortLog").innerHTML = rows.join("");
+    var lis = all("#sortLog li");
+    lis.forEach(function(li, i){ setTimeout(function(){ li.setAttribute("data-on","true"); }, reduce ? 0 : 380 * i); });
+
+    setTimeout(function(){
+      /* the deck really lands in your collection */
+      var ex = DECKS.filter(function(x){ return x.id === "exchange"; })[0];
+      ex.open = true;
+      if (!ex.kids.filter(function(k){ return k.id === "ex_" + id; }).length){
+        ex.kids.push({id:"ex_" + id, name:d.name, lo:"imported"});
+        VIRT["ex_" + id] = {n:0, l:0, d:Math.max(0, Math.round(live * 0.09) - 2)};
+        CARDS.push({d:"ex_" + id, s:2, ivl:3,
+          q:"From " + d.name + ": which finding distinguishes a functional (flow) murmur from pathologic aortic stenosis at the bedside?",
+          a:"A functional murmur is <span class='key'>early systolic, soft, and position-dependent</span>, with a normal S2 and a brisk carotid upstroke. Anything holosystolic, radiating, or accompanied by a diminished A2 is not functional.",
+          src:[d.name, "imported", "CV-3.2a"]});
+        CARDS.push({d:"ex_" + id, s:2, ivl:2,
+          q:"From " + d.name + ": what does an S4 gallop in aortic stenosis represent?",
+          a:"Atrial contraction against a <span class='key'>stiff, hypertrophied ventricle</span>. It marks impaired compliance from pressure overload — and it disappears in atrial fibrillation, because there is no organized atrial kick.",
+          src:[d.name, "imported", "CV-3.2b"]});
+      }
+      renderDecks();
+      renderExchange();
+      $("dropTitle").textContent = "Drop a deck here";
+      $("dropSub").textContent = "or tap Add on any deck";
+      toast("<b>" + d.name + "</b> sorted in — " + Math.round(live * 0.09) + " due today. New cards enter tomorrow under your " + S.newPerDay + "/day limit.");
+    }, (reduce ? 100 : 380 * lis.length + 500));
+  }
+
+  /* ================= step screen ================= */
+  var TAGS = [
+    {t:"::step::cardio::valvular", n:142, s:"live", note:"unsuspended this morning — CV-3.2 taught Friday"},
+    {t:"::step::cardio::murmurs", n:88, s:"live", note:"unsuspended this morning"},
+    {t:"::step::pharm::antiarrhythmic", n:96, s:"ready", note:"PHM-4.1 taught Friday — 47 cards waiting"},
+    {t:"::step::cardio::heart_failure", n:174, s:"locked", note:"unlocks Monday with CV-4.1"},
+    {t:"::step::renal::transport", n:121, s:"held", note:"held — 4 lapses this week, no new cards until retention recovers"},
+    {t:"::step::biostats::study_design", n:31, s:"live", note:"not in any block until spring — drip-fed 4 a night"}
+  ];
+  function renderStep(){
+    updatePace();
+    $("tagRows").innerHTML = TAGS.map(function(t){
+      return '<div class="tagrow">' +
+        '<span class="tag">' + t.t + "</span>" +
+        '<span class="state" data-s="' + t.s + '">' + t.s + "</span>" +
+        '<span class="cnt">' + t.n + " cards · " + t.note + "</span>" +
+        "</div>";
+    }).join("");
+    var need = requiredPace(), gap = need - S.newPerDay, d = daysLeft();
+    $("paceProse").innerHTML = gap > 0
+      ? "At " + S.newPerDay + " new a day, <b>" + (gap * (d - 56)).toLocaleString() + "</b> Step cards are still suspended on exam day. Raising to " + need + " clears the blueprint before dedicated starts — that is where the missing points are."
+      : "At " + S.newPerDay + " new a day you clear the blueprint with " + Math.round((S.newPerDay - need) * (d - 56) / Math.max(1, S.newPerDay)) + " days of slack. Nothing is buried.";
+    var bars = "";
+    for (var i = 0; i < 40; i++){
+      var future = i > 27;
+      var h = Math.max(6, 68 - i * 1.5 + (i % 5) * 4);
+      bars += '<i style="height:' + h + '%" data-f="' + future + '"></i>';
+    }
+    $("paceBars").innerHTML = bars;
+  }
+  $("unsusBtn").addEventListener("click", function(){
+    var ready = TAGS.filter(function(t){ return t.s === "ready"; });
+    if (!ready.length){ toast("Nothing is ready — the next tag unlocks with Monday's lecture."); return; }
+    ready.forEach(function(t){ t.s = "live"; t.note = "unsuspended just now"; });
+    /* unsuspended Step cards really arrive in the deck list */
+    CARDS.push({d:"step", s:0, ivl:0,
+      q:"Which antiarrhythmic class prolongs the action potential by blocking K⁺ channels, and what ECG change follows?",
+      a:"<span class='key'>Class III</span> — amiodarone, sotalol, dofetilide. Blocking the rapid delayed-rectifier K⁺ current prolongs repolarization, so the <em>QT lengthens</em>; sotalol and dofetilide carry real torsades risk, amiodarone much less despite the QT.",
+      src:["Step deck","::step::pharm::antiarrhythmic","unsuspended just now"], step:true});
+    CARDS.push({d:"step", s:0, ivl:0,
+      q:"A patient on sotalol develops polymorphic VT with a twisting axis. What is the immediate treatment?",
+      a:"<span class='key'>IV magnesium sulfate</span>, then correct K⁺ and stop the drug. Torsades from Class III block is reverse use-dependent — it appears at slow rates, which is why bradycardia and hypokalemia are the setup.",
+      src:["Step deck","::step::pharm::antiarrhythmic","unsuspended just now"], step:true});
+    S.unsuspended += 47;
+    BASE_NEW.step += 2;
+    renderStep(); renderDecks(); updateBuildLine();
+    $("unsusNote").textContent = "All covered tags are live. Next unlock: Monday, with CV-4.1.";
+    $("unsusBtn").disabled = true;
+    $("unsusBtn").textContent = "Nothing suspended";
+    toast("Unsuspended <b>47 cards</b> across ::step::pharm::antiarrhythmic — they enter the queue under your " + S.newPerDay + "/day limit, starting tonight.");
+  });
+
+  /* ================= heatmap ================= */
+  function renderHeat(){
+    if ($("heat").childNodes.length) return;
+    var out = "", seed = 7;
+    function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    for (var i = 0; i < 371; i++){
+      var daysAgo = 371 - i;
+      var l;
+      if (daysAgo > 300) l = 0;
+      else if (daysAgo < 31) l = 3 + Math.round(rnd());
+      else if (daysAgo > 62 && daysAgo < 70) l = 0;
+      else l = Math.round(rnd() * 3.4);
+      out += '<i data-l="' + l + '"></i>';
+    }
+    $("heat").innerHTML = out;
+  }
+
+  /* ================= boot ================= */
+  var BASE_NEW = {};
+  ["cv32","phm41","ren24","step"].forEach(function(k){
+    BASE_NEW[k] = CARDS.filter(function(c){ return c.d === k && c.s === 0; }).length;
+  });
+  setAccent("blue");
+  setLoad(25);
+  setFont(20);
+  updatePace();
+  goStep(0);
+  rebuildNewLimit();
+  renderDecks();
+  renderExchange();
+})();
+</script>
