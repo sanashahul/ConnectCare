@@ -62,7 +62,11 @@
 }
 
 *{box-sizing:border-box}
-body{margin:0;background:var(--win);color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{
+  margin:0;background:var(--win);background-image:var(--wash,none);
+  background-repeat:no-repeat;background-attachment:fixed;
+  color:var(--text);font-family:var(--ui);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:var(--accent);text-decoration:none}
@@ -364,7 +368,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 /* ---------- toast ---------- */
 /* top-right: the bottom of the window belongs to the answer buttons */
 .toast{
-  position:fixed;top:56px;right:18px;
+  position:fixed;top:82px;right:18px;
   background:var(--text);color:var(--page);border-radius:5px;padding:8px 14px;font-size:13px;
   box-shadow:0 10px 26px -10px rgba(0,0,0,.55);z-index:50;max-width:min(360px,calc(100% - 36px));
   animation:toastin .18s ease both;
@@ -464,6 +468,82 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .toast button.undo{background:none;border:0;color:#7FB3FF;text-decoration:underline;padding:0 0 0 11px;font-size:13px}
 :root[data-theme="dark"] .toast button.undo{color:var(--accent)}
 
+/* ---------- theme gallery ---------- */
+.themes{display:flex;gap:7px;flex-wrap:wrap}
+.row.stackrow{flex-direction:column;align-items:stretch;gap:10px}
+.row.stackrow .ctl{margin-left:0}
+.theme{
+  width:48px;padding:0;border:2px solid transparent;border-radius:7px;overflow:hidden;
+  background:none;line-height:0;
+}
+.theme span{display:block;border:1px solid var(--edge);border-radius:5px;overflow:hidden}
+.theme i{display:block;height:9px}
+.theme u{display:block;height:23px;position:relative;text-decoration:none}
+.theme u::after{content:"";position:absolute;left:6px;top:7px;width:9px;height:9px;border-radius:50%}
+.theme em{
+  display:block;font-style:normal;font-size:9.5px;line-height:1.4;color:var(--dim);
+  text-align:center;margin-top:3px;letter-spacing:.02em;
+}
+.theme[aria-pressed="true"]{border-color:var(--accent)}
+.theme[aria-pressed="true"] em{color:var(--text)}
+
+/* ---------- AI screen ---------- */
+.aistate{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+  border:1px solid var(--edge);border-radius:999px;padding:2px 9px;color:var(--text-2);
+}
+.aistate i{width:6px;height:6px;border-radius:50%;background:var(--dim);display:inline-block}
+.aistate[data-live="true"] i{background:var(--due)}
+.aistate[data-live="true"]{border-color:var(--due);color:var(--due)}
+
+.thread{display:flex;flex-direction:column;gap:11px;padding:13px;max-height:330px;overflow:auto}
+.bubble{font-size:13.5px;line-height:1.6;max-width:52em}
+.bubble.me{
+  align-self:flex-end;background:var(--accent);color:#fff;border-radius:11px 11px 3px 11px;
+  padding:8px 12px;max-width:80%;
+}
+.bubble.ai{white-space:pre-wrap}
+.bubble.ai b{font-weight:600}
+.bubble .who{
+  display:block;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:3px;
+}
+.bubble.err,.bubble .err{color:var(--learn);font-size:12.5px}
+.dots3::after{content:"";animation:dots3 1.1s steps(4,end) infinite}
+@keyframes dots3{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+.askform{display:flex;gap:7px;padding:11px 13px;border-top:1px solid var(--edge-soft);background:var(--sunk)}
+.askform input{flex:1;min-width:0;background:var(--page);border:1px solid var(--edge);border-radius:5px;padding:7px 10px;font-size:13px}
+.askform input:focus{outline:none;border-color:var(--accent)}
+.chiprow{display:flex;gap:6px;flex-wrap:wrap;padding:0 13px 12px}
+.chiprow button{
+  background:none;border:1px solid var(--edge);border-radius:999px;padding:3px 10px;
+  font-size:12px;color:var(--text-2);
+}
+.chiprow button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------- generated cards ---------- */
+.gencard{
+  border:1px solid var(--edge);border-radius:6px;background:var(--page);padding:10px 12px;
+  display:flex;gap:11px;align-items:flex-start;margin-bottom:8px;
+}
+.gencard[data-keep="false"]{opacity:.42}
+.gencard .txt{min-width:0;flex:1}
+.gencard .q{font-size:13.5px;font-weight:500;margin:0}
+.gencard .a{font-size:12.5px;color:var(--text-2);margin:4px 0 0}
+.gencard .lo{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--edge);border-radius:3px;padding:0 4px;flex:0 0 auto;margin-top:2px}
+.gencard .keep{flex:0 0 auto;background:none;border:1px solid var(--edge);border-radius:5px;padding:3px 9px;font-size:12px}
+.gencard[data-keep="true"] .keep{border-color:var(--due);color:var(--due)}
+.genfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+
+/* ---------- anki import ---------- */
+.ankibox{border:1px solid var(--edge);border-radius:6px;background:var(--sunk);padding:13px;margin-top:11px}
+.ankibox ul{list-style:none;margin:9px 0 0;padding:0;font-family:var(--mono);font-size:11.5px;line-height:1.8;color:var(--text-2)}
+.ankibox li{opacity:0}
+.ankibox li[data-on="true"]{opacity:1;animation:fadein .25s ease both}
+.ankibox li b{color:var(--text)}
+.ankibox li .ok{color:var(--due)}
+
 @media (max-width:720px){
   .app{border-left:0;border-right:0}
   .toolbar{justify-content:flex-start;overflow-x:auto}
@@ -496,6 +576,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <nav class="toolbar" id="toolbar" hidden>
     <button type="button" data-nav="decks" aria-current="page">Decks</button>
     <button type="button" data-nav="canvas">Canvas</button>
+    <button type="button" data-nav="ai">AI</button>
     <button type="button" data-nav="exchange">Exchange</button>
     <button type="button" data-nav="step">Step 1</button>
     <button type="button" data-nav="stats">Stats</button>
@@ -526,6 +607,21 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
               <span class="mark"></span>
               <span class="txt"><b>Another course</b><span>Connect a different Canvas, Blackboard or Moodle shell</span></span>
             </button>
+          </div>
+          <div class="ankibox">
+            <b style="font-size:13px">Already use Anki?</b>
+            <p class="tiny" style="margin:3px 0 0;color:var(--text-2)">Bring the whole collection — decks, cards, and every review you have ever logged. Your intervals do not reset, so day one here is day 847 of your streak.</p>
+            <div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap">
+              <button type="button" class="btn" id="ankiImport">Import collection.anki2</button>
+              <button type="button" class="btn" id="ankiSync">Sync from AnkiWeb</button>
+            </div>
+            <ul id="ankiLog">
+              <li>Read collection.anki2 — 14,212 cards in 38 decks</li>
+              <li>Preserved 191,408 reviews · 847-day streak intact</li>
+              <li>Kept your FSRS parameters — no rescheduling shock</li>
+              <li>Matched 6,140 cards to MED 231 objectives</li>
+              <li><span class="ok">✓</span> Nothing reset. Suspended cards stayed suspended.</li>
+            </ul>
           </div>
         </div>
 
@@ -581,6 +677,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
           <h1>Now make it yours.</h1>
           <p class="lede">You will look at this screen for a thousand hours. Everything here changes live, and all of it stays editable in Preferences.</p>
           <div class="panel">
+            <div class="row stackrow">
+              <span class="lab"><b>Background</b><span>Anki is grey. This does not have to be.</span></span>
+              <span class="ctl themes" id="themes"></span>
+            </div>
             <div class="row">
               <span class="lab"><b>Accent</b><span>used for links, the active tab and the streak</span></span>
               <span class="ctl swatches" id="swatches"></span>
@@ -739,7 +839,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
             <button type="button" data-flag="0" style="background:transparent" aria-label="Clear flag" title="None"></button>
           </div>
           <div class="sep"></div>
-          <button type="button" role="menuitem" data-more="tutor">Ask the tutor<span class="k">a</span></button>
+          <button type="button" role="menuitem" data-more="tutor">Explain this card<span class="k">a</span></button>
+          <button type="button" role="menuitem" data-more="rewrite">Rewrite it shorter<span class="k">r</span></button>
+          <button type="button" role="menuitem" data-more="mnemonic">Give me a mnemonic<span class="k">m</span></button>
           <button type="button" role="menuitem" data-more="edit">Edit card<span class="k">e</span></button>
           <button type="button" role="menuitem" data-more="info">Card info<span class="k">i</span></button>
           <div class="sep"></div>
@@ -796,6 +898,74 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <div class="panel">
           <div class="row"><span class="lab"><b>Monday — Heart Failure I</b><span>CV-4.1 · slides posted Sunday 8pm · 18 cards will be built overnight</span></span><span class="ctl"><span class="tiny mono">tomorrow</span></span></div>
           <div class="row"><span class="lab"><b>Thursday — Block 3 midterm</b><span>Cadence front-loads reviews Tuesday and Wednesday, then stops new cards</span></span><span class="ctl"><span class="tiny mono">in 4 days</span></span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ================= AI ================= -->
+  <section class="screen" data-screen="ai">
+    <div class="pad"><div class="wide">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+        <h1 style="margin:0">Cadence AI</h1>
+        <span class="aistate" id="aiState" data-live="false"><i></i><span id="aiStateText">checking…</span></span>
+      </div>
+      <p class="muted" style="margin:0 0 18px">It has read your lectures, your objectives and your retention, so it answers in your course's vocabulary — and what it writes goes straight into tonight's deck.</p>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Write cards from a lecture</header>
+          <div class="row">
+            <span class="lab"><b>Lecture</b><span>objectives come from the Canvas syllabus</span></span>
+            <span class="ctl">
+              <select id="genLec">
+                <option value="cv32">Valvular Heart Disease · CV-3.2</option>
+                <option value="phm41">Antiarrhythmics I · PHM-4.1</option>
+                <option value="ren24">Renal Transport · REN-2.4</option>
+              </select>
+              <input type="number" id="genN" min="2" max="8" value="4" aria-label="How many cards">
+              <button type="button" class="btn primary" id="genBtn">Write cards</button>
+            </span>
+          </div>
+          <div class="row" id="genRow" hidden>
+            <span class="lab" style="width:100%">
+              <div id="genOut"></div>
+              <div class="genfoot">
+                <button type="button" class="btn primary" id="genAdd">Add to tonight's deck</button>
+                <button type="button" class="btn" id="genAgain">Write different ones</button>
+                <span class="tiny" id="genNote"></span>
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Your three weakest objectives this block</header>
+          <div id="weakRows"></div>
+          <div class="row">
+            <span class="lab"><b>Build a drill</b><span>six cards on the weakest objective, added to tonight</span></span>
+            <span class="ctl"><button type="button" class="btn" id="drillBtn">Drill my weak spot</button></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="panel">
+          <header>Ask anything about this block</header>
+          <div class="thread" id="aiThread"></div>
+          <div class="chiprow">
+            <button type="button" data-ask="Why do I keep mixing up aortic stenosis and HOCM?">Why do I mix up AS and HOCM?</button>
+            <button type="button" data-ask="Give me a two-minute summary of everything CV-3.2 expects me to know.">Two-minute CV-3.2 summary</button>
+            <button type="button" data-ask="I have four days until the block exam and antiarrhythmics are at 74%. What should I do tonight?">Four days to the exam — plan?</button>
+          </div>
+          <form class="askform" id="askForm">
+            <label for="askInput" style="position:absolute;left:-9999px">Ask Cadence AI</label>
+            <input id="askInput" type="text" placeholder="Ask about a drug, a murmur, or what to study tonight…" autocomplete="off">
+            <button type="submit" class="btn primary" id="askSend">Ask</button>
+            <button type="button" class="btn" id="askStop" hidden>Stop</button>
+          </form>
         </div>
       </div>
     </div></div>
@@ -862,6 +1032,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <div class="heat" id="heat" role="img" aria-label="Review heatmap for the past year"></div>
         <div class="heatkey"><span>Less</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>More</span></div>
       </div>
+      <p class="tiny" id="statsNote" hidden style="margin:10px 0 0">Includes 191,408 reviews imported from your Anki collection — the streak and every interval came across untouched.</p>
       <div class="pacegrid" style="margin-top:22px">
         <div><b>31</b><span>Day streak</span></div>
         <div><b>89%</b><span>Retention</span></div>
@@ -881,6 +1052,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div class="sect">
         <div class="panel">
           <header>Appearance</header>
+          <div class="row stackrow">
+            <span class="lab"><b>Background</b><span>the whole app, not just the card</span></span>
+            <span class="ctl themes" id="themes2"></span>
+          </div>
           <div class="row">
             <span class="lab"><b>Accent</b><span>links, active tab, streak</span></span>
             <span class="ctl swatches" id="swatches2"></span>
@@ -1140,6 +1315,15 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("cmdbar").hidden = $("toolbar").hidden;
     if (S.menuOpen) setMenu(false);
     if (name !== "study"){ $("tutorPanel").hidden = true; }
+    if (name === "ai"){
+      paintAIState(); renderWeak();
+      if (!$("aiThread").childNodes.length){
+        bubble("ai",
+          "I have read the 214 files in this course shell, your objectives, and which cards you keep missing. Ask me anything about the block — or have me write cards and drop them straight into tonight's deck." +
+          (AI.fn ? "" : "<br><br><span class=\"err\">Live Claude is not available in this view, so answers come from what is written into the prototype.</span>"),
+          "Cadence AI");
+      }
+    }
     if (name === "step") renderStep();
     if (name === "stats") renderHeat();
     if (name === "exchange") renderExchange();
@@ -1163,13 +1347,20 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   });
 
   /* ================= appearance ================= */
-  function setAccent(k){
-    var a = ACCENTS.filter(function(x){ return x.k === k; })[0] || ACCENTS[0];
-    S.accent = k;
-    root.style.setProperty("--accent", a.hex);
-    root.style.setProperty("--accent-soft", hexA(a.hex, .13));
-    root.style.setProperty("--accent-line", hexA(a.hex, .42));
-    all(".sw").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-acc") === k)); });
+  function setAccent(k, isHex){
+    var hex = k, key = k;
+    if (isHex){
+      var known = ACCENTS.filter(function(x){ return x.hex.toLowerCase() === String(k).toLowerCase(); })[0];
+      key = known ? known.k : null;
+    } else {
+      var a = ACCENTS.filter(function(x){ return x.k === k; })[0] || ACCENTS[0];
+      hex = a.hex; key = a.k;
+    }
+    S.accent = key;
+    root.style.setProperty("--accent", hex);
+    root.style.setProperty("--accent-soft", hexA(hex, .13));
+    root.style.setProperty("--accent-line", hexA(hex, .42));
+    all(".sw").forEach(function(b){ b.setAttribute("aria-pressed", String(key && b.getAttribute("data-acc") === key)); });
   }
   function hexA(hex, a){
     var n = parseInt(hex.slice(1), 16);
@@ -1184,6 +1375,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   all(".sw").forEach(function(b){ b.addEventListener("click", function(){ setAccent(b.getAttribute("data-acc")); }); });
 
   function setTheme(v){
+    if (S.theme && S.theme !== "graphite"){ applyTheme("graphite"); }
     if (v === "system") root.removeAttribute("data-theme");
     else root.setAttribute("data-theme", v);
     $("themeSel").value = v; $("themeSel2").value = v;
@@ -1566,7 +1758,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     }
     if (typing) return;
     if (e.key === "/" && !$("cmdbar").hidden){ e.preventDefault(); $("cmdInput").focus(); return; }
-    if (e.key === "?"){ toast("space flip · 1–4 grade · a tutor · e edit · i info · - bury · ! suspend · ⌘Z undo · / command bar"); return; }
+    if (e.key === "?"){ toast("space flip · 1–4 grade · a explain · r rewrite · m mnemonic · e edit · i info · - bury · ! suspend · ⌘Z undo · / command bar"); return; }
 
     var on = document.querySelector('.screen[data-on="true"]');
     if (!on) return;
@@ -1580,6 +1772,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     } else if (["1","2","3","4"].indexOf(e.key) > -1){
       e.preventDefault(); answer(+e.key);
     } else if (e.key === "a"){ openTutor(); }
+    else if (e.key === "r"){ aiCard("rewrite"); }
+    else if (e.key === "m"){ aiCard("mnemonic"); }
     else if (e.key === "e"){ editCard(); }
     else if (e.key === "i"){ cardInfo(); }
     else if (e.key === "-"){ dropCard("bury"); }
@@ -2037,6 +2231,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     b.addEventListener("click", function(){
       var k = b.getAttribute("data-more");
       if (k === "tutor") openTutor();
+      else if (k === "rewrite") aiCard("rewrite");
+      else if (k === "mnemonic") aiCard("mnemonic");
       else if (k === "edit") editCard();
       else if (k === "info") cardInfo();
       else if (k === "bury") dropCard("bury");
@@ -2080,6 +2276,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     var c = curCard(); if (!c) return;
     $("tutorPanel").hidden = false;
     if (!$("tutorMsgs").childNodes.length){
+      if (AI.fn) { aiCard("explain"); return; }
       var t = tutorFor(c);
       tmsg("them", t.a, t.c);
     }
@@ -2093,6 +2290,23 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("tutorInput").value = "";
     var c = curCard();
     var low = v.toLowerCase();
+    if (AI.fn){
+      var holder = document.createElement("div");
+      holder.className = "tmsg them";
+      holder.innerHTML = '<span class="dots3">Thinking</span>';
+      $("tutorMsgs").appendChild(holder);
+      AI.fn(courseContext() + "\n\nThe student is looking at this card.\nFront: " + String(c.q).replace(/<[^>]+>/g, "") +
+            "\nBack: " + String(c.a).replace(/<[^>]+>/g, "") + "\n\nTheir question: " + v, {
+        modelTier:"default",
+        onText:function(pp){ holder.innerHTML = esc(pp.text); }
+      }).then(function(res){
+        holder.innerHTML = esc(res.text) + '<span class="cite">Cadence AI · ' + c.src.join(" · ") + "</span>";
+      }, function(e){
+        if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
+        holder.innerHTML = esc(e.text || "") + '<span class="cite">' + aiErr(e) + "</span>";
+      });
+      return;
+    }
     var reply;
     if (/short|simple|quick|tl;?dr|one sentence/.test(low)){
       reply = {a:"Shortest version: <b>" + $("aText").textContent.split(/[.—]/)[0].trim() + "</b>. Everything else on the card is the reason.", c:"compressed from " + c.src[0]};
@@ -2115,6 +2329,14 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     else if (/\b(light|day)\b/.test(low)){ setTheme("light"); did.push("light theme"); }
     else if (/\b(auto|system)\b/.test(low)){ setTheme("system"); did.push("following your system theme"); }
 
+    THEMES.forEach(function(t){
+      if (t.k !== "graphite" && low.indexOf(t.k) > -1){ applyTheme(t.k); did.push(t.name + " background"); }
+    });
+    if (!did.length && /\b(fun|colou?rful|bright|pretty|cheer|surprise|random)\b/.test(low)){
+      var pick = THEMES.slice(1)[Math.floor(Math.random() * (THEMES.length - 1))];
+      applyTheme(pick.k); did.push(pick.name + " background");
+    }
+    if (/\b(plain|boring|default|grey|gray|graphite)\b/.test(low)){ applyTheme("graphite"); did.push("back to graphite"); }
     ACCENTS.forEach(function(a){
       if (low.indexOf(a.k) > -1 || low.indexOf(a.name.toLowerCase()) > -1){ setAccent(a.k); did.push(a.name + " accent"); }
     });
@@ -2150,7 +2372,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       if (document.querySelector('.screen[data-on="true"]').getAttribute("data-screen") === "study"){ openTutor(); return; }
       did.push("the tutor opens on a card — start a session first");
     }
-    var screens = {canvas:"canvas", exchange:"exchange", marketplace:"exchange", step:"step", stats:"stats", statistic:"stats", pref:"prefs", setting:"prefs", deck:"decks"};
+    if (!did.length && /\b(write|make|generate)\b.*\bcards?\b/.test(low)){ show("ai"); generateCards(); return; }
+    if (!did.length && /\b(ai|assistant|ask claude)\b/.test(low)){ show("ai"); $("askInput").focus(); return; }
+    var screens = {canvas:"canvas", exchange:"exchange", marketplace:"exchange", step:"step", stats:"stats", statistic:"stats", ai:"ai", pref:"prefs", setting:"prefs", deck:"decks"};
     if (!did.length){
       for (var sk in screens){
         if (low.indexOf(sk) > -1){ show(screens[sk]); did.push("opened " + screens[sk]); break; }
@@ -2174,11 +2398,393 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     renderDecks();
   });
 
+  /* ================= fun backgrounds ================= */
+  var THEMES = [
+    {k:"graphite", name:"Graphite", accent:"#3B7DD8", vars:null},
+    {k:"mango", name:"Mango", accent:"#C2511B", vars:{
+      win:"#FBF1E4", bar:"#F6E4CC", "bar-2":"#F1D8B6", page:"#FFFCF7", sunk:"#FAF2E7",
+      edge:"#E7CFAC", "edge-soft":"#F1E1CA", text:"#2A1C0C", "text-2":"#6A5231", dim:"#9B8158",
+      wash:"radial-gradient(900px 380px at 18% -130px, #FFD59B 0%, rgba(255,213,155,0) 72%)"}},
+    {k:"blueberry", name:"Blueberry", accent:"#4257C9", vars:{
+      win:"#EEF1FB", bar:"#E2E8F8", "bar-2":"#D6DFF4", page:"#FFFFFF", sunk:"#F4F6FD",
+      edge:"#C9D4EF", "edge-soft":"#DEE5F6", text:"#141A2E", "text-2":"#4C5679", dim:"#838CAC",
+      wash:"radial-gradient(900px 380px at 82% -140px, #C9D6FF 0%, rgba(201,214,255,0) 72%)"}},
+    {k:"matcha", name:"Matcha", accent:"#3F7D4A", vars:{
+      win:"#EEF4EC", bar:"#E1EDDE", "bar-2":"#D4E5D0", page:"#FCFEFB", sunk:"#F3F8F1",
+      edge:"#C6DCC1", "edge-soft":"#DEEBDA", text:"#16210F", "text-2":"#4A5B41", dim:"#7E9074",
+      wash:"radial-gradient(820px 360px at 28% -120px, #CFE9C7 0%, rgba(207,233,199,0) 72%)"}},
+    {k:"bubblegum", name:"Bubblegum", accent:"#C2367B", vars:{
+      win:"#FDEFF4", bar:"#FAE1EA", "bar-2":"#F6D3E0", page:"#FFFAFC", sunk:"#FCF1F5",
+      edge:"#F0C7D8", "edge-soft":"#F8DEE8", text:"#2B1220", "text-2":"#6E4457", dim:"#A5798B",
+      wash:"radial-gradient(900px 380px at 72% -130px, #FFC9DE 0%, rgba(255,201,222,0) 72%)"}},
+    {k:"lavender", name:"Lavender", accent:"#6B45C7", vars:{
+      win:"#F2EFFB", bar:"#E8E2F8", "bar-2":"#DDD4F3", page:"#FDFCFF", sunk:"#F6F3FC",
+      edge:"#D0C5EE", "edge-soft":"#E4DDF6", text:"#1D1630", "text-2":"#554A78", dim:"#8B7FAE",
+      wash:"radial-gradient(900px 380px at 24% -130px, #D9CCFF 0%, rgba(217,204,255,0) 72%)"}},
+    {k:"midnight", name:"Midnight", accent:"#6E9BFF", dark:true, vars:{
+      win:"#0E1523", bar:"#16203A", "bar-2":"#1D2A48", page:"#141D33", sunk:"#0B1120",
+      edge:"#2A3A5E", "edge-soft":"#213050", text:"#E4E9F5", "text-2":"#9DAAC7", dim:"#6E7C9B",
+      "new":"#7FA8FF", learn:"#F0906B", due:"#5FC08A",
+      wash:"radial-gradient(1000px 400px at 50% -170px, #1E2E52 0%, rgba(30,46,82,0) 72%)"}},
+    {k:"neon", name:"Neon", accent:"#00D0B4", dark:true, vars:{
+      win:"#0B0C10", bar:"#14161C", "bar-2":"#1B1E26", page:"#101218", sunk:"#08090D",
+      edge:"#262A35", "edge-soft":"#1D212A", text:"#E9ECF2", "text-2":"#A0A7B6", dim:"#6B7383",
+      "new":"#55C8FF", learn:"#FF7A59", due:"#3DDC97",
+      wash:"radial-gradient(860px 360px at 78% -150px, #123039 0%, rgba(18,48,57,0) 72%)"}}
+  ];
+
+  function applyTheme(k){
+    var t = THEMES.filter(function(x){ return x.k === k; })[0] || THEMES[0];
+    S.theme = k;
+    var keys = ["win","bar","bar-2","page","sunk","edge","edge-soft","text","text-2","dim","new","learn","due","wash"];
+    keys.forEach(function(n){ root.style.removeProperty("--" + n); });
+    if (t.vars){
+      Object.keys(t.vars).forEach(function(n){ root.style.setProperty("--" + n, t.vars[n]); });
+      /* a fun theme is a deliberate look, so it wins over the system setting */
+      root.setAttribute("data-theme", t.dark ? "dark" : "light");
+      $("themeSel").value = t.dark ? "dark" : "light";
+      $("themeSel2").value = $("themeSel").value;
+    }
+    setAccent(t.accent, true);
+    all(".theme").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-theme-k") === k)); });
+  }
+  function buildThemes(hostId){
+    var host = $(hostId); if (!host) return;
+    host.innerHTML = THEMES.map(function(t){
+      var v = t.vars || {win:"#EFF0F2", bar:"#E8E8EB", page:"#FFFFFF"};
+      return '<button type="button" class="theme" data-theme-k="' + t.k + '" aria-pressed="false" title="' + t.name + '">' +
+        '<span style="background:' + v.page + '">' +
+          '<i style="background:' + v.bar + '"></i>' +
+          '<u style="background:' + v.page + '"><span style="position:absolute;left:6px;top:7px;width:9px;height:9px;border-radius:50%;background:' + t.accent + '"></span></u>' +
+        "</span><em>" + t.name + "</em></button>";
+    }).join("");
+    all("#" + hostId + " .theme").forEach(function(b){
+      b.addEventListener("click", function(){ applyTheme(b.getAttribute("data-theme-k")); });
+    });
+  }
+
+  /* ================= AI plumbing ================= */
+  var AI = {fn:null, checked:false, turns:[], busy:false, ctl:null, gen:[]};
+
+  function paintAIState(){
+    var live = !!AI.fn;
+    var el = $("aiState"); if (!el) return;
+    el.setAttribute("data-live", String(live));
+    $("aiStateText").textContent = !AI.checked ? "checking…"
+      : live ? "live · answers from Claude"
+      : "offline · prototype answers";
+  }
+  if (window.claude && window.claude.use){
+    window.claude.use("sample").then(function(fn){
+      AI.fn = fn || null; AI.checked = true; paintAIState();
+    }, function(){ AI.checked = true; paintAIState(); });
+  } else { AI.checked = true; }
+
+  var LECS = {
+    cv32:{name:"Valvular Heart Disease", lo:"CV-3.2", obj:"murmur timing, quality and radiation for AS, MR, MS and AR; hemodynamics of pressure versus volume overload; when a lesion becomes an operative indication"},
+    phm41:{name:"Antiarrhythmics I — Class I & III", lo:"PHM-4.1", obj:"state-dependent binding and use-dependence across Class IA/IB/IC; the CAST result; Class III mechanism, QT effects and amiodarone toxicity monitoring"},
+    ren24:{name:"Renal Transport", lo:"REN-2.4", obj:"segmental Na+ handling along the nephron; the transporters each diuretic class blocks; the electrolyte consequences that follow from each transporter"}
+  };
+
+  function courseContext(){
+    var c1 = META.cv32, c2 = META.phm41, c3 = META.ren24;
+    return "You are the study assistant built into Cadence, a spaced-repetition app used by a second-year medical student at Ridgeline School of Medicine.\n" +
+      "Course: MED 231 Cardiovascular & Renal, block 3 of 8, week 3. Block exam in 4 days.\n" +
+      "Lectures this week: Valvular Heart Disease (CV-3.2, Dr Okonkwo) and Antiarrhythmics I: Class I & III (PHM-4.1, Dr Feld). Earlier: Renal Transport (REN-2.4, Dr Haddad).\n" +
+      "This student's retention: valvular " + c1.ret + "%, antiarrhythmics " + c2.ret + "% (" + c2.lapses + " lapses this block), renal " + c3.ret + "%, national Step deck 86%.\n" +
+      "Step 1 target " + S.target + ", exam " + S.exam + ". Daily limit " + S.newPerDay + " new cards.\n" +
+      "Answer like a sharp senior tutor: concrete, exam-relevant, plain sentences, no preamble, no flattery, no bullet-point padding. " +
+      "Use the vocabulary of these lectures. Keep it under 130 words unless asked for more.";
+  }
+
+  var AI_ERR = {
+    not_granted:"You declined Claude for this page, so I am using the answers written into the prototype.",
+    sampling_disabled:"Claude is not available on this account — using the prototype's written answers.",
+    not_declared:"Live AI is not enabled for this page.",
+    capability_disabled:"Live AI is not available in this view.",
+    capability_removed:"This viewer is too old for that call.",
+    rate_limited:"Too many questions at once. Give it a minute and ask again.",
+    session_expired:"Sign in to Claude again to keep asking.",
+    refused:"Claude declined that one. Try asking it differently.",
+    empty_completion:"Nothing came back. Ask for a bit less.",
+    invalid_json:"The reply came back malformed — try writing the cards again.",
+    prompt_too_large:"That was too much to send at once.",
+    cancelled:""
+  };
+  function aiErr(e){ return AI_ERR[e && e.code] != null ? AI_ERR[e.code] : "That request failed on the way to Claude. Try again in a moment."; }
+
+  /* ================= ask anything ================= */
+  function bubble(who, html, label){
+    var d = document.createElement("div");
+    d.className = "bubble " + who;
+    d.innerHTML = (label ? '<span class="who">' + label + "</span>" : "") + html;
+    $("aiThread").appendChild(d);
+    $("aiThread").scrollTop = $("aiThread").scrollHeight;
+    return d;
+  }
+  function aiBusy(on){
+    AI.busy = on;
+    $("askSend").disabled = on;
+    $("askStop").hidden = !on;
+    $("genBtn").disabled = on;
+    $("drillBtn").disabled = on;
+  }
+  $("askStop").addEventListener("click", function(){ if (AI.ctl) AI.ctl.abort(); });
+
+  function cannedAnswer(q){
+    var low = q.toLowerCase();
+    for (var i = 0; i < TUTOR.length; i++){
+      for (var j = 0; j < TUTOR[i].k.length; j++){
+        if (low.indexOf(TUTOR[i].k[j]) > -1) return TUTOR[i].a.replace(/<br><br>/g, "\n\n").replace(/<[^>]+>/g, "");
+      }
+    }
+    return "Antiarrhythmics are your weak spot this block — 74% retention and 11 lapses, against 92% on valvular. With the exam in four days, tonight is better spent on Class I use-dependence and amiodarone monitoring than on more murmur cards.";
+  }
+
+  async function askAI(q){
+    if (AI.busy) return;
+    bubble("me", q.replace(/[<>]/g, ""));
+    var out = bubble("ai", '<span class="dots3">Thinking</span>', "Cadence AI");
+    aiBusy(true);
+
+    if (!AI.fn){
+      setTimeout(function(){
+        out.innerHTML = '<span class="who">Cadence AI · prototype answer</span>' + cannedAnswer(q).replace(/\n/g, "<br>");
+        aiBusy(false);
+      }, 420);
+      return;
+    }
+    AI.ctl = new AbortController();
+    AI.turns.push({role:"user", content:q});
+    var input = [{role:"user", content:courseContext()}, {role:"assistant", content:"Understood. Ask away."}].concat(AI.turns);
+    try {
+      var res = await AI.fn(input, {
+        cache:false,
+        signal:AI.ctl.signal,
+        onText:function(p){ out.innerHTML = '<span class="who">Cadence AI</span>' + esc(p.text); }
+      });
+      AI.turns.push({role:"assistant", content:res.text});
+      out.innerHTML = '<span class="who">Cadence AI</span>' + esc(res.text);
+    } catch (e){
+      AI.turns.pop();
+      if (e.code === "cancelled"){ out.innerHTML = '<span class="who">Cadence AI</span>' + esc(e.text || "") + '<span class="bubble err"> — stopped.</span>'; }
+      else if (e.code === "not_granted" || e.code === "sampling_disabled"){
+        AI.fn = null; paintAIState();
+        out.innerHTML = '<span class="who">Cadence AI · prototype answer</span>' + cannedAnswer(q).replace(/\n/g, "<br>");
+      } else {
+        out.innerHTML = '<span class="who">Cadence AI</span><span class="err">' + aiErr(e) + "</span>";
+      }
+    } finally { aiBusy(false); AI.ctl = null; }
+  }
+  function esc(t){
+    return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  $("askForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = $("askInput").value.trim(); if (!v) return;
+    $("askInput").value = "";
+    askAI(v);
+  });
+  all("[data-ask]").forEach(function(b){
+    b.addEventListener("click", function(){ askAI(b.getAttribute("data-ask")); });
+  });
+
+  /* ================= write cards from a lecture ================= */
+  var GEN_FALLBACK = {
+    cv32:[
+      {front:"A 68-year-old has syncope on exertion and a late-peaking systolic murmur. What does the timing of the peak tell you?", back:"The later the peak, the more severe the stenosis — a late-peaking murmur with a soft or absent A2 indicates severe aortic stenosis.", lo:"CV-3.2a"},
+      {front:"Why does chronic aortic regurgitation produce a wide pulse pressure?", back:"Regurgitant flow back into the ventricle drops diastolic pressure while the enlarged stroke volume raises systolic pressure — hence the water-hammer pulse.", lo:"CV-3.2b"},
+      {front:"Which chamber change distinguishes chronic pressure overload from chronic volume overload?", back:"Pressure overload (AS, hypertension) causes concentric hypertrophy — sarcomeres added in parallel. Volume overload (MR, AR) causes eccentric hypertrophy — sarcomeres in series, so the chamber dilates.", lo:"CV-3.2b"},
+      {front:"A mid-systolic click followed by a late systolic murmur. What is it, and what moves the click earlier?", back:"Mitral valve prolapse. Anything that shrinks the ventricle — standing, Valsalva — moves the click earlier and lengthens the murmur.", lo:"CV-3.2a"}
+    ],
+    phm41:[
+      {front:"Rank Class IA, IB and IC by how fast they dissociate from the sodium channel, and name the clinical consequence.", back:"IB fastest, IA intermediate, IC slowest. Slow dissociation means block accumulates at high rates — so IC is the most pro-arrhythmic in a scarred ventricle.", lo:"PHM-4.1c"},
+      {front:"Why is lidocaine effective in ischemic ventricular arrhythmias but useless in atrial fibrillation?", back:"Class IB binds preferentially to inactivated channels, which predominate in depolarized ischemic ventricular tissue. Healthy atrial tissue spends little time inactivated, so there is nothing to bind.", lo:"PHM-4.1b"},
+      {front:"What ECG change do Class III agents produce, and which patients are at risk from it?", back:"QT prolongation from K⁺ channel blockade. Risk rises with bradycardia, hypokalemia and hypomagnesemia — reverse use-dependence means the danger is at slow rates.", lo:"PHM-4.1d"},
+      {front:"Which single trial result should change how you prescribe flecainide after a myocardial infarction?", back:"CAST — suppressing PVCs with Class IC after MI increased mortality. Fewer ectopics, worse outcome.", lo:"PHM-4.1c"}
+    ],
+    ren24:[
+      {front:"Which transporter do thiazides block, and why does that raise serum calcium?", back:"The Na⁺/Cl⁻ cotransporter in the distal convoluted tubule. Lower intracellular Na⁺ drives basolateral Na⁺/Ca²⁺ exchange, increasing calcium reabsorption.", lo:"REN-2.4a"},
+      {front:"Why does a loop diuretic cause hypocalcemia while a thiazide does not?", back:"Blocking NKCC2 abolishes the lumen-positive potential that drives paracellular Ca²⁺ and Mg²⁺ reabsorption in the thick ascending limb.", lo:"REN-2.4a"},
+      {front:"Which nephron segment reabsorbs the largest fraction of filtered sodium?", back:"The proximal convoluted tubule — roughly 65%, powered by the basolateral Na⁺/K⁺-ATPase.", lo:"REN-2.4b"},
+      {front:"How does spironolactone differ mechanistically from amiloride, despite both sparing potassium?", back:"Spironolactone antagonizes the mineralocorticoid receptor; amiloride blocks the epithelial sodium channel directly. Same net effect, different target — and only spironolactone causes gynecomastia.", lo:"REN-2.4c"}
+    ]
+  };
+
+  function renderGen(cards, note){
+    AI.gen = cards.map(function(c){ return {front:c.front, back:c.back, lo:c.lo, keep:true}; });
+    $("genRow").hidden = false;
+    $("genOut").innerHTML = AI.gen.map(function(c, i){
+      return '<div class="gencard" data-keep="true" data-i="' + i + '">' +
+        '<div class="txt"><p class="q">' + esc(c.front) + '</p><p class="a">' + esc(c.back) + "</p></div>" +
+        '<span class="lo">' + esc(c.lo || "") + "</span>" +
+        '<button type="button" class="keep">Keep</button>' +
+      "</div>";
+    }).join("");
+    $("genNote").textContent = note || "";
+    all("#genOut .gencard").forEach(function(el){
+      el.querySelector(".keep").addEventListener("click", function(){
+        var i = +el.getAttribute("data-i");
+        AI.gen[i].keep = !AI.gen[i].keep;
+        el.setAttribute("data-keep", String(AI.gen[i].keep));
+        el.querySelector(".keep").textContent = AI.gen[i].keep ? "Keep" : "Dropped";
+      });
+    });
+  }
+
+  async function generateCards(){
+    if (AI.busy) return;
+    var leaf = $("genLec").value, n = Math.max(2, Math.min(8, +$("genN").value || 4));
+    var lec = LECS[leaf];
+    aiBusy(true);
+    $("genRow").hidden = false;
+    $("genOut").innerHTML = '<p class="muted dots3" style="margin:0">Reading ' + lec.name + " and writing " + n + " cards</p>";
+    $("genNote").textContent = "";
+
+    if (!AI.fn){
+      setTimeout(function(){
+        renderGen(GEN_FALLBACK[leaf].slice(0, n), "Written into the prototype — live Claude is not available in this view.");
+        aiBusy(false);
+      }, 620);
+      return;
+    }
+    try {
+      var out = await AI.fn.json(
+        courseContext() + "\n\nWrite exactly " + n + " new flashcards for the lecture \"" + lec.name + "\" (" + lec.lo + ").\n" +
+        "Objectives to cover: " + lec.obj + ".\n" +
+        "Rules: one testable fact per card; the front must be answerable without seeing the back; prefer a short clinical stem over a definition; no cloze deletions; no numbering; do not repeat a card the student already has on murmur timing or amiodarone toxicity.\n" +
+        "Reply with JSON only, no prose: {\"cards\":[{\"front\":\"…\",\"back\":\"…\",\"lo\":\"" + lec.lo + "a\"}]}",
+        {modelTier:"default"}
+      );
+      var cards = (out && out.cards) || [];
+      if (!cards.length) throw {code:"empty_completion"};
+      renderGen(cards.slice(0, n), "Written by Claude just now, against " + lec.lo + ".");
+    } catch (e){
+      if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
+      renderGen(GEN_FALLBACK[leaf].slice(0, n), aiErr(e) + " Showing the prototype's written cards instead.");
+    } finally { aiBusy(false); }
+  }
+  $("genBtn").addEventListener("click", generateCards);
+  $("genAgain").addEventListener("click", generateCards);
+
+  $("genAdd").addEventListener("click", function(){
+    var leaf = $("genLec").value;
+    var keep = AI.gen.filter(function(c){ return c.keep; });
+    if (!keep.length){ toast("Nothing kept — tap Keep on the cards you want."); return; }
+    var added = [];
+    keep.forEach(function(c){
+      var card = {d:leaf, s:0, ivl:0, q:esc(c.front), a:esc(c.back),
+                  src:[LECS[leaf].name, "written by Cadence AI", c.lo || LECS[leaf].lo], ai:true};
+      CARDS.push(card); added.push(card);
+    });
+    pushUndo("AI cards", function(){
+      added.forEach(function(card){
+        var i = CARDS.indexOf(card); if (i > -1) CARDS.splice(i, 1);
+      });
+    });
+    S.fresh = [leaf, "med231"];
+    $("genRow").hidden = true; AI.gen = [];
+    renderDecks(); updateBuildLine();
+    toast("<b>" + keep.length + " cards</b> added to " + deckName(leaf) + " — they are in tonight's session.");
+    show("decks");
+  });
+
+  /* ================= weak spots and drills ================= */
+  function renderWeak(){
+    var LABEL = {phm41:"Antiarrhythmics I · PHM-4.1", ren24:"Renal Transport · REN-2.4", step:"Step deck · cardiovascular"};
+    var rows = ["phm41","ren24","step"].map(function(k){
+      var m = META[k], c = counts(k);
+      return '<div class="tagrow">' +
+        '<span class="tag">' + LABEL[k] + "</span>" +
+        '<span class="state" data-s="' + (m.ret < 80 ? "held" : "ready") + '">' + m.ret + "%</span>" +
+        '<span class="cnt">' + (m.lapses || 0) + " lapses · " + (c.n + c.l + c.d) + " scheduled tonight</span>" +
+        "</div>";
+    }).join("");
+    $("weakRows").innerHTML = rows;
+  }
+  $("drillBtn").addEventListener("click", async function(){
+    if (AI.busy) return;
+    $("genLec").value = "phm41";
+    $("genN").value = 6;
+    toast("Building six cards on antiarrhythmics — your weakest objective at 74%.");
+    await generateCards();
+  });
+
+  /* ================= AI inside the reviewer ================= */
+  async function aiCard(kind){
+    setMenu(false);
+    var c = curCard(); if (!c) return;
+    $("tutorPanel").hidden = false;
+    var label = kind === "rewrite" ? "Rewriting this card" : kind === "mnemonic" ? "Finding a mnemonic" : "Explaining";
+    var holder = document.createElement("div");
+    holder.className = "tmsg them";
+    holder.innerHTML = '<span class="dots3">' + label + "</span>";
+    $("tutorMsgs").appendChild(holder);
+
+    var plain = function(h){ return String(h).replace(/<[^>]+>/g, ""); };
+    var ask =
+      kind === "rewrite" ? "This card keeps being forgotten. Rewrite it so it tests ONE fact in the fewest words that still make it answerable. Reply as JSON only: {\"front\":\"…\",\"back\":\"…\"}"
+      : kind === "mnemonic" ? "Give one memorable mnemonic or image for this card, then one line on how to use it. Under 60 words."
+      : "Explain this card the way a senior resident would at the bedside: why the answer is what it is, and the single distinction the exam tests. Under 120 words.";
+
+    if (!AI.fn){
+      var t = tutorFor(c);
+      holder.innerHTML = (kind === "mnemonic"
+        ? "<b>Amiodarone deposits everywhere:</b> lungs, liver, thyroid, eyes, skin. Picture a drug that never leaves the building — 58-day half-life — so you check every room it can settle in.<br><br>For Class IC, remember <b>\"IC = I Cannot, post-MI\"</b>."
+        : kind === "rewrite" ? "Shorter version: <b>" + plain(c.a).split(/[.—]/)[0].trim() + "</b> — that is the fact; the rest was context." : t.a) +
+        '<span class="cite">prototype answer · live Claude unavailable in this view</span>';
+      return;
+    }
+    try {
+      if (kind === "rewrite"){
+        var out = await AI.fn.json(courseContext() + "\n\nCard front: " + plain(c.q) + "\nCard back: " + plain(c.a) + "\n\n" + ask, {modelTier:"quick"});
+        var prevQ = c.q, prevA = c.a;
+        c.q = esc(out.front); c.a = esc(out.back);
+        pushUndo("rewrite", function(){ c.q = prevQ; c.a = prevA; renderCard(); });
+        renderCard();
+        $("tutorPanel").hidden = false;
+        $("tutorMsgs").innerHTML = "";
+        tmsg("them", "Rewritten and saved to your collection. The old version is one undo away (⌘Z).", "Cadence AI · " + c.src[0]);
+        return;
+      }
+      await AI.fn(courseContext() + "\n\nCard front: " + plain(c.q) + "\nCard back: " + plain(c.a) + "\n\n" + ask, {
+        modelTier: kind === "mnemonic" ? "quick" : "default",
+        onText:function(pp){ holder.innerHTML = esc(pp.text); }
+      });
+      holder.innerHTML += '<span class="cite">Cadence AI · ' + c.src.join(" · ") + "</span>";
+    } catch (e){
+      if (e.code === "not_granted" || e.code === "sampling_disabled"){ AI.fn = null; paintAIState(); }
+      holder.innerHTML = esc(e.text || "") + '<span class="cite">' + aiErr(e) + "</span>";
+    }
+  }
+
+  /* ================= bring your Anki collection ================= */
+  function runAnkiImport(kind){
+    var box = $("ankiLog");
+    var lis = all("#ankiLog li");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    lis.forEach(function(li, i){
+      li.setAttribute("data-on","false");
+      setTimeout(function(){ li.setAttribute("data-on","true"); }, reduce ? 0 : 340 * i);
+    });
+    setTimeout(function(){
+      S.ankiImported = true;
+      var note = $("statsNote");
+      if (note) note.hidden = false;
+      toast("<b>14,212 cards</b> and 191,408 reviews came across. Your intervals did not move.");
+    }, reduce ? 80 : 340 * lis.length + 200);
+  }
+  $("ankiImport").addEventListener("click", function(){ runAnkiImport("file"); });
+  $("ankiSync").addEventListener("click", function(){ runAnkiImport("sync"); });
+
   /* ================= boot ================= */
   var BASE_NEW = {};
   ["cv32","phm41","ren24","step"].forEach(function(k){
     BASE_NEW[k] = CARDS.filter(function(c){ return c.d === k && c.s === 0; }).length;
   });
+  buildThemes("themes"); buildThemes("themes2");
+  applyTheme("graphite");
+  paintAIState();
   setAccent("blue");
   setLoad(25);
   setFont(20);

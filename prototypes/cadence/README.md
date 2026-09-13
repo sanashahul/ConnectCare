@@ -15,12 +15,30 @@ build step and no network call.
 | Tutor grounded in the lecture a card came from | `a` in the reviewer, or More → Ask the tutor |
 | School deck exchange, drag-to-sort, imports that join tonight's deck | Exchange tab |
 | Step 1 pacing and tag-matched unsuspending | Step 1 tab |
-| Command bar — change settings, sort, filter, navigate, undo | bottom of the window, or `/` |
+| Command bar — change settings, themes, sort, filter, navigate, undo | bottom of the window, or `/` |
+| AI: ask about the block, write cards into tonight's deck, drill a weak spot | AI tab |
+| AI in the reviewer: explain, rewrite shorter, mnemonic | `a` / `r` / `m`, or the More menu |
+| Fun backgrounds — eight full palettes, chrome and wash | setup step 4, Preferences, or the command bar |
+| Bring an existing Anki collection with its review history | setup step 1 |
 
 ## Keyboard
 
 `space` flip · `1`–`4` grade · `a` tutor · `e` edit · `i` card info · `-` bury ·
-`!` suspend · `⌘Z`/`Ctrl+Z` undo · `/` command bar · `?` shortcut list
+`a` explain · `r` rewrite · `m` mnemonic · `!` suspend · `⌘Z`/`Ctrl+Z` undo ·
+`/` command bar · `?` shortcut list
+
+## The AI layer
+
+Published as an Artifact, the page declares the `sample` capability and really
+calls Claude on the viewer's account: the chat streams, card generation returns
+JSON that becomes real cards in tonight's deck, and explain/rewrite/mnemonic run
+against the card on screen. Every prompt carries the course context — lectures,
+objectives, the student's per-deck retention and lapse counts, their Step target.
+
+Opened as a local file, or when a viewer declines, `claude.use("sample")`
+resolves null and every feature falls back to answers written into the
+prototype. The pill next to the AI heading says which mode is running, and no
+call is ever made without a click.
 
 ## Notes on fidelity
 
