@@ -546,7 +546,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
 /* ---------- Cade: the assistant in the corner ---------- */
 .cade{
-  position:fixed;right:20px;bottom:70px;z-index:45;
+  position:fixed;right:20px;bottom:98px;z-index:45;
   width:52px;height:52px;padding:0;border:0;border-radius:50%;
   background:none;color:var(--accent);
   filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));
@@ -569,7 +569,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .cade[hidden]{display:none !important}
 
 .cadepanel{
-  position:fixed;right:20px;bottom:132px;z-index:46;
+  position:fixed;right:20px;bottom:160px;z-index:46;
   width:372px;max-width:calc(100vw - 32px);
   max-height:min(74vh,620px);
   background:var(--page);border:1px solid var(--edge);border-radius:12px;
@@ -597,9 +597,43 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   color:var(--dim);padding:7px 12px 0;
 }
 @media (max-width:720px){
-  .cadepanel{right:8px;left:8px;bottom:124px;width:auto;max-height:min(70vh,540px)}
-  .cade{right:12px;bottom:64px}
+  .cadepanel{right:8px;left:8px;bottom:152px;width:auto;max-height:min(66vh,520px)}
+  .nudge{right:8px;left:8px;bottom:152px;width:auto}
+  .cade{right:12px;bottom:92px}
 }
+
+/* ---------- Cade speaking up ---------- */
+.nudge{
+  position:fixed;right:20px;bottom:160px;z-index:47;
+  width:306px;max-width:calc(100vw - 32px);
+  background:var(--page);border:1px solid var(--accent);border-radius:12px;
+  box-shadow:0 18px 44px -16px rgba(0,0,0,.5);
+  padding:12px 13px 11px;
+  animation:nudgein .22s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.nudge[hidden]{display:none !important}
+@keyframes nudgein{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.nudge::after{
+  content:"";position:absolute;right:26px;bottom:-7px;width:12px;height:12px;
+  background:var(--page);border-right:1px solid var(--accent);border-bottom:1px solid var(--accent);
+  transform:rotate(45deg);
+}
+.nudge p{margin:0 0 9px;font-size:13px;line-height:1.55;padding-right:14px}
+.nudge p b{font-weight:600}
+.nudge .acts{display:flex;gap:7px;flex-wrap:wrap}
+.nudge .acts button{
+  background:var(--bar);border:1px solid var(--edge);border-radius:6px;
+  padding:5px 11px;font-size:12.5px;
+}
+.nudge .acts button.go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.nudge .acts button:hover{filter:brightness(1.06)}
+.nudge .nx{
+  position:absolute;top:7px;right:8px;background:none;border:0;color:var(--dim);
+  font-size:13px;line-height:1;padding:2px 3px;
+}
+.nudge .nx:hover{color:var(--text)}
+.cade[data-mood="concerned"]{color:var(--learn)}
+.cade[data-mood="pleased"]{color:var(--due)}
 
 /* ---------- coverage of the week's objectives ---------- */
 .covrow{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid var(--edge-soft);font-size:13px}
@@ -1097,6 +1131,16 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
             <span class="ctl"><input type="range" id="targetRange2" min="200" max="270" step="1" value="252"><span class="val" id="targetVal2">252</span></span>
           </div>
           <div class="row">
+            <span class="lab"><b>Cade speaks up</b><span id="budNote">only when something in your answers says he should</span></span>
+            <span class="ctl">
+              <select id="budMode">
+                <option value="struggle">When I'm struggling</option>
+                <option value="always">Whenever he notices</option>
+                <option value="never">Never — I'll ask</option>
+              </select>
+            </span>
+          </div>
+          <div class="row">
             <span class="lab"><b>Rerun setup</b><span>the five questions, from the top</span></span>
             <span class="ctl"><button type="button" class="btn" id="redoWiz">Run setup again</button></span>
           </div>
@@ -1125,6 +1169,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   </svg>
   <span class="badge" id="cadeBadge" hidden>1</span>
 </button>
+
+<div class="nudge" id="nudge" hidden role="status" aria-live="polite">
+  <button type="button" class="nx" id="nudgeX" aria-label="Dismiss">✕</button>
+  <p id="nudgeText"></p>
+  <div class="acts" id="nudgeActs"></div>
+</div>
 
 <section class="cadepanel" id="cadePanel" hidden aria-label="Cade, your study assistant">
   <header>
@@ -1374,6 +1424,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     $("cadeBtn").hidden = $("toolbar").hidden;
     if ($("toolbar").hidden) closeCade();
     if (S.menuOpen) setMenu(false);
+    if (name !== "study"){ clearTimeout(BUD.stuckT); hideNudge(); }
     if (name === "canvas") renderCoverage();
     if (name === "step") renderStep();
     setCadeContext(name);
@@ -1551,6 +1602,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     });
     setTimeout(function(){
       renderDecks();
+      BUD.pending = "One thing before you start: pharmacology is at <b>74%</b> with " + META.phm41.lapses +
+        " lapses, and the block exam is in four days. Tonight's cut already leans that way. " +
+        "If you only get ten minutes, do the antiarrhythmic reviews and leave the new cards — reviews are what hold the score.";
+      $("cadeBadge").hidden = false;
       show("decks");
       toast("Tonight's " + totalTonight() + " cards are cut and waiting — you did not have to build anything.");
     }, stepMs * lis.length + (reduce ? 60 : 520));
@@ -1717,6 +1772,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     S.queue = cs.slice().sort(function(a,b){ return ({1:0,2:1,0:2})[a.s] - ({1:0,2:1,0:2})[b.s]; });
     S.qi = 0; S.deckId = id; S.shown = false;
     startTimer();
+    budReset();
     show("study");
     renderCard();
   }
@@ -1755,6 +1811,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       return '<span class="' + (isTag ? "tagchip" : "") + '">' + s + "</span>";
     }).join("");
     renderCounts(c.s);
+    budCardShown();
     $("answers").innerHTML = '<button type="button" class="btn big showbtn" id="showBtn">Show Answer <span class="k" style="margin-left:8px">space</span></button>';
     $("showBtn").addEventListener("click", reveal);
   }
@@ -1762,6 +1819,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   function reveal(){
     if (S.shown || S.qi >= S.queue.length) return;
     S.shown = true;
+    budRevealed();
     $("ansWrap").hidden = false;
     var c = S.queue[S.qi];
     var iv = intervalsFor(c);
@@ -1775,6 +1833,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     all(".ansbtn").forEach(function(b){
       b.addEventListener("click", function(){ answer(+b.getAttribute("data-g")); });
     });
+    if (S.slow){
+      all(".ansbtn").forEach(function(b){ b.disabled = true; });
+      setTimeout(function(){ all(".ansbtn").forEach(function(b){ b.disabled = false; }); }, 1400);
+    }
   }
 
   function answer(g){
@@ -1782,7 +1844,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     var c = S.queue[S.qi];
     var iv = intervalsFor(c)[g-1];
     var prev = {s:c.s, ivl:c.ivl, lapses:c.lapses, qi:S.qi};
+    var reAdded = false;
     pushUndo("answer", function(){
+      if (reAdded){
+        var idx = S.queue.lastIndexOf(c);
+        if (idx > prev.qi) S.queue.splice(idx, 1);
+      }
       c.s = prev.s; c.ivl = prev.ivl; c.lapses = prev.lapses;
       S.qi = prev.qi; S.shown = false;
       show("study"); renderCard();
@@ -1798,9 +1865,14 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       else c.ivl = Math.round(iv);
     }
 
+    if (g === 1){
+      S.queue.splice(Math.min(S.queue.length, S.qi + 4), 0, c);
+      reAdded = true;
+    }
     toast("<b>" + ["Again","Hard","Good","Easy"][g-1] + "</b> → " + fmtIvl(iv) +
           (g === 1 && c.step ? " · leech watch: 2 lapses on this tag" : ""));
 
+    budAnswered(c, g);
     S.qi++;
     updateBuildLine();
     if (S.qi >= S.queue.length) showCongrats(S.deckId);
@@ -1813,8 +1885,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     var left = c.n + c.l + c.d;
     $("congratsBody").innerHTML = empty
       ? "There is nothing due in this deck right now. The next card is scheduled for tomorrow morning."
-      : "You answered " + S.queue.length + " cards — every card this prototype has written out for " +
+      : "You answered " + (BUD.log.length || S.queue.length) + " cards — every card this prototype has written out for " +
         deckName(id) + ". Tonight's real build has <b>" + left + "</b> more, and the counts above move with them.";
+    budFinished();
     $("congratsPace").innerHTML = "At " + S.newPerDay + " new a day you are " +
       (S.newPerDay >= requiredPace()
         ? "<span style='color:var(--due)'>on pace</span> for " + S.target + "."
@@ -2364,6 +2437,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       "I do not build decks — the school already has one. I cut tonight out of it and write the few cards it is missing." +
       (AI.fn ? "" : '<br><br><span class="err">Live Claude is not available in this view, so answers come from what is written into the prototype.</span>'),
       "Cade");
+    if (BUD.pending){ bubble("ai", BUD.pending, "Cade · before you start"); BUD.pending = null; }
   }
   function say(html, label){ openCade(); return bubble("ai", html, label || "Cade"); }
 
@@ -2377,7 +2451,18 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     study:[
       {t:"Explain this card", f:function(){ aiCard("explain"); }},
       {t:"Rewrite it shorter", f:function(){ aiCard("rewrite"); }},
-      {t:"Mnemonic", f:function(){ aiCard("mnemonic"); }}
+      {t:"Mnemonic", f:function(){ aiCard("mnemonic"); }},
+      {t:"How am I doing?", f:function(){
+        var n = BUD.log.length;
+        if (!n){ say("You are one card in — ask me again in a few and I will have something real to tell you."); return; }
+        var good = BUD.log.filter(function(e){ return e.g >= 3; }).length;
+        var fast = BUD.log.filter(function(e){ return e.ms < 3500; }).length;
+        var med = BUD.log.map(function(e){ return e.ms; }).sort(function(a,b){ return a-b; })[Math.floor(n/2)];
+        say("<b>" + n + "</b> cards in, <b>" + Math.round(good/n*100) + "%</b> answered well, median <b>" +
+            (med > 9000 ? "—" : (Math.round(med/100)/10) + "s") + "</b> a card." +
+            (fast >= 3 ? "<br><br>" + fast + " of them came back in under three seconds, which is usually recognition rather than recall."
+                       : "<br><br>Your pace is where it should be — slow enough to actually retrieve."));
+      }}
     ],
     canvas:[
       {t:"What is missing this week?", f:function(){
@@ -2440,6 +2525,224 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     if ($("cadePanel").hidden) openCade(); else closeCade();
   });
   $("cadeClose").addEventListener("click", closeCade);
+
+  /* ================= Cade noticing things ==================
+     He only speaks when something in the actual answers earns it: a repeat
+     lapse, a run of misses in one topic, answers too fast to be recall, a
+     card you have been staring at. One at a time, once each per session,
+     always dismissible, and never a modal. */
+  var BUD = {log:[], fired:{}, last:0, mode:"struggle", shownAt:0, revealAt:0, stuckT:null, hideT:null, moodT:null};
+
+  var MOUTH = {
+    idle:"M18 33c3 3.2 13 3.2 16 0",
+    thinking:"M19 34h14",
+    concerned:"M18 35c3 -3.2 13 -3.2 16 0",
+    pleased:"M17 32c3.5 4.8 14.5 4.8 18 0"
+  };
+  function setMood(m, holdMs){
+    var btn = $("cadeBtn"); if (!btn) return;
+    m = m || "idle";
+    btn.setAttribute("data-mood", m);
+    var mouth = btn.querySelector("path");
+    if (mouth) mouth.setAttribute("d", MOUTH[m] || MOUTH.idle);
+    Array.prototype.forEach.call(btn.querySelectorAll(".eye"), function(e){
+      e.setAttribute("ry", m === "pleased" ? "1.8" : "3.8");
+    });
+    clearTimeout(BUD.moodT);
+    if (m !== "idle") BUD.moodT = setTimeout(function(){ setMood("idle"); }, holdMs || 7000);
+  }
+
+  function hideNudge(){ $("nudge").hidden = true; clearTimeout(BUD.hideT); }
+  $("nudgeX").addEventListener("click", function(){ hideNudge(); setMood("idle"); });
+
+  function nudge(id, html, actions, opts){
+    opts = opts || {};
+    if (BUD.mode === "never") return;
+    if (BUD.mode === "struggle" && opts.chatty) return;
+    if (BUD.fired[id]) return;
+    var now = Date.now();
+    if (!opts.urgent && now - BUD.last < 35000) return;
+    BUD.fired[id] = true;
+    BUD.last = now;
+    setMood(opts.mood || "concerned", 9000);
+
+    if (!$("cadePanel").hidden){
+      var b = bubble("ai", html, "Cade");
+      if (actions && actions.length){
+        var wrap = document.createElement("div");
+        wrap.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
+        actions.forEach(function(a, i){
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn" + (i === 0 ? " primary" : "");
+          btn.style.cssText = "font-size:12px;padding:4px 10px";
+          btn.textContent = a.t;
+          btn.addEventListener("click", function(){ wrap.remove(); if (a.f) a.f(); });
+          wrap.appendChild(btn);
+        });
+        b.appendChild(wrap);
+      }
+      return;
+    }
+    $("nudgeText").innerHTML = html;
+    $("nudgeActs").innerHTML = "";
+    (actions || []).forEach(function(a, i){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      if (i === 0) btn.className = "go";
+      btn.textContent = a.t;
+      btn.addEventListener("click", function(){ hideNudge(); if (a.f) a.f(); });
+      $("nudgeActs").appendChild(btn);
+    });
+    $("nudge").hidden = false;
+    clearTimeout(BUD.hideT);
+    BUD.hideT = setTimeout(hideNudge, opts.ms || 15000);
+  }
+
+  function budReset(){
+    BUD.log = []; BUD.fired = {}; BUD.last = 0;
+    clearTimeout(BUD.stuckT); hideNudge(); setMood("idle");
+  }
+  function budCardShown(){
+    BUD.shownAt = Date.now(); BUD.revealAt = 0;
+    clearTimeout(BUD.stuckT);
+    BUD.stuckT = setTimeout(budStuck, 25000);
+  }
+  function budStuck(){
+    var c = curCard(); if (!c || S.shown) return;
+    nudge("stuck",
+      "You have been on this one a while. Want the first line of the answer, or the distinction it is really testing?",
+      [{t:"Give me a nudge", f:function(){ aiCard("explain"); }}, {t:"I've got it"}],
+      {mood:"thinking", urgent:true});
+  }
+  function budRevealed(){ BUD.revealAt = Date.now(); clearTimeout(BUD.stuckT); }
+
+  function tagOf(c){ return c.tag || (c.d === "phm41" ? "pharm" : c.d === "ren24" ? "renal" : "valves"); }
+
+  function budAnswered(c, g){
+    var ms = BUD.revealAt ? Date.now() - BUD.revealAt : 9999;
+    BUD.log.push({c:c, g:g, ms:ms, tag:tagOf(c)});
+    clearTimeout(BUD.stuckT);
+    var log = BUD.log, n = log.length;
+
+    /* the same card missed twice tonight */
+    var misses = log.filter(function(e){ return e.c === c && e.g === 1; }).length;
+    if (misses >= 2){
+      nudge("repeat_lapse",
+        "That is twice on this card tonight. Usually that is the card's shape rather than the fact — this one asks for " +
+        "two things in a single front. Want me to split it into one fact you can actually answer?",
+        [{t:"Rewrite it", f:function(){ aiCard("rewrite"); }}, {t:"Leave it"}],
+        {urgent:true});
+      return;
+    }
+
+    /* three misses in one topic */
+    var recent = log.slice(-6).filter(function(e){ return e.g <= 2 && e.tag === tagOf(c); });
+    if (recent.length >= 3){
+      nudge("topic_run",
+        "Three misses on <b>" + (tagOf(c) === "pharm" ? "antiarrhythmics" : tagOf(c)) +
+        "</b> in the last few cards. New cards on top of that just bury the reviews. " +
+        "Want me to park tonight's remaining new cards there and let you clear what is already due?",
+        [{t:"Park them", f:parkTopic.bind(null, c.d)}, {t:"Keep going"}],
+        {urgent:true});
+      return;
+    }
+
+    /* answering faster than recall takes */
+    var fast = log.slice(-4).filter(function(e){ return e.ms < 3500; });
+    if (n >= 4 && fast.length >= 3){
+      var avg = Math.round(fast.reduce(function(a,e){ return a + e.ms; }, 0) / fast.length / 100) / 10;
+      nudge("too_fast",
+        "You are averaging <b>" + avg + " seconds</b> a card. That is recognising the card, not recalling the answer — " +
+        "it feels productive and it is the most common way retention quietly drops. Want me to hold the buttons for a beat so you actually answer first?",
+        [{t:"Hold them", f:function(){ S.slow = true; toast("Answer buttons will wait a moment after you flip."); }}, {t:"I'm fine"}]);
+      return;
+    }
+
+    /* mixing up the pair the exam tests together */
+    var missedValve = log.some(function(e){ return e.g === 1 && /stenosis|murmur|valve/i.test(String(e.c.q)); });
+    var missedHocm  = log.some(function(e){ return e.g === 1 && /HOCM|Valsalva|standing/i.test(String(e.c.q)); });
+    if (missedValve && missedHocm){
+      nudge("confusion_pair",
+        "You have missed an aortic stenosis card and a HOCM card tonight. Those two are written as a pair on the blueprint — " +
+        "if one is shaky the other reads as the same vignette. Want the two-line discriminator?",
+        [{t:"Yes", f:function(){
+          say("<b>Carotid upstroke and preload.</b><br><br>AS: weak, late-peaking upstroke; standing and Valsalva drop preload, so the murmur gets <b>quieter</b> — less blood across a fixed valve.<br><br>HOCM: brisk, bifid upstroke; the same manoeuvres shrink the ventricle and worsen obstruction, so it gets <b>louder</b>.<br><br>Squatting reverses both. That is the whole distinction.");
+        }}, {t:"Later"}],
+        {urgent:true});
+      return;
+    }
+
+    /* a run of easies means the cut is too soft */
+    var easies = log.slice(-4).filter(function(e){ return e.g === 4; });
+    if (easies.length >= 4){
+      nudge("easy_run",
+        "Four Easys in a row. These are below where you are — they are spending slots that pharmacology needs. Stretch their intervals?",
+        [{t:"Stretch them", f:function(){
+          var k = 0;
+          BUD.log.forEach(function(e){ if (e.g === 4 && e.c.ivl){ e.c.ivl = Math.round(e.c.ivl * 1.6); k++; } });
+          renderDecks(); updateBuildLine();
+          toast("Stretched " + k + " intervals — those cards come back later, not tomorrow.");
+        }}, {t:"Leave it"}],
+        {mood:"pleased"});
+      return;
+    }
+
+    /* quiet encouragement, only for people who asked for it */
+    if (n === Math.ceil(S.queue.length / 2)){
+      var good = log.filter(function(e){ return e.g >= 3; }).length;
+      nudge("halfway",
+        "Halfway. <b>" + Math.round(good / n * 100) + "%</b> so far, and you have not skipped one — that is the part that compounds.",
+        [], {chatty:true, mood:"pleased", ms:7000});
+    }
+  }
+
+  function parkTopic(deckId){
+    var parked = [];
+    for (var i = S.queue.length - 1; i > S.qi; i--){
+      var c = S.queue[i];
+      if (c.d === deckId && c.s === 0){ c.out = "bury"; parked.push(c); S.queue.splice(i, 1); }
+    }
+    var v = VIRT[deckId];
+    var prevN = v ? v.n : 0;
+    if (v) v.n = 0;
+    pushUndo("park " + deckName(deckId), function(){
+      parked.forEach(function(c){ c.out = null; S.queue.push(c); });
+      if (v) v.n = prevN;
+    });
+    renderDecks(); updateBuildLine();
+    toast("Parked " + (parked.length + prevN) + " new cards in " + deckName(deckId) + " — reviews only from here.");
+  }
+
+  function budFinished(){
+    clearTimeout(BUD.stuckT);
+    var lapses = BUD.log.filter(function(e){ return e.g === 1; });
+    if (!lapses.length){
+      setMood("pleased", 9000);
+      return;
+    }
+    var tag = lapses[lapses.length - 1].tag;
+    setTimeout(function(){
+      nudge("session_end",
+        "You finished, but <b>" + lapses.length + "</b> card" + (lapses.length > 1 ? "s" : "") +
+        " came back Again — mostly " + (tag === "pharm" ? "antiarrhythmics" : tag) +
+        ". Those decay fastest in the first day. Six quick cards on it now is worth more than twenty tomorrow.",
+        [{t:"Build me six", f:function(){ $("genLec").value = "phm41"; $("genN").value = 6; AI.genTarget = null; generateCards(); }},
+         {t:"Tomorrow"}],
+        {urgent:true});
+    }, 700);
+  }
+
+  if ($("budMode")) $("budMode").addEventListener("change", function(){
+    BUD.mode = this.value;
+    $("budNote").textContent = this.value === "never"
+      ? "he stays quiet until you open him"
+      : this.value === "always"
+      ? "including the good news, not only the problems"
+      : "only when something in your answers says he should";
+    toast(this.value === "never" ? "Cade will stay quiet." : "Cade will speak up " + (this.value === "always" ? "whenever he notices something." : "when you are struggling."));
+  });
+
 
   /* ================= command bar ================= */
   function runCommand(raw){

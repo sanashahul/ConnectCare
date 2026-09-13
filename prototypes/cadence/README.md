@@ -19,6 +19,7 @@ build step and no network call.
 | Step 1 pacing and tag-matched unsuspending | Step 1 tab |
 | Command bar — change settings, themes, sort, filter, navigate, undo | bottom of the window, or `/` |
 | Cade, the assistant in the corner — context-aware on every screen | the face, bottom right |
+| Cade noticing you struggle and offering a fix, unprompted | during a session |
 | Cade on a card: explain, rewrite shorter, mnemonic | `a` / `r` / `m`, or the More menu |
 | Fun backgrounds — eight full palettes, chrome and wash | setup step 4, Preferences, or the command bar |
 | Bring an existing Anki collection with its review history | setup step 1 |
@@ -28,6 +29,26 @@ build step and no network call.
 `space` flip · `1`–`4` grade · `a` tutor · `e` edit · `i` card info · `-` bury ·
 `a` explain · `r` rewrite · `m` mnemonic · `!` suspend · `⌘Z`/`Ctrl+Z` undo ·
 `/` command bar · `?` shortcut list
+
+## What Cade notices
+
+He watches the session, not the clock, and only speaks when the answers earn
+it — once per trigger, one at a time, always dismissible, never a modal:
+
+- the same card missed twice tonight → offers to split it into one fact
+- three misses in one topic → offers to park that topic's remaining new cards
+  so the reviews can be cleared
+- three answers under 3.5 seconds → names it as recognition rather than recall,
+  and offers to hold the grade buttons for a beat
+- 25 seconds on one card without flipping → offers the distinction it is testing
+- misses on both an aortic-stenosis and a HOCM card → offers the discriminator,
+  because the blueprint tests them as a pair
+- four Easys in a row → offers to stretch those intervals and give the slots back
+- a session that ends with lapses → offers six cards on what actually slipped
+
+His face changes with what he sees (concerned, thinking, pleased), and
+Preferences → *Cade speaks up* sets whether he talks only when you are
+struggling, whenever he notices anything, or never.
 
 ## The AI layer
 
