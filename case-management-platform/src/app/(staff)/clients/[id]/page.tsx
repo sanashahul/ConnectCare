@@ -6,7 +6,7 @@ import { ClientCode, NeedChips } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass, smallButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
-import { displayName, getClientForUser } from "@/lib/clients";
+import { displayName, getClientForUser, SOURCE_LABELS } from "@/lib/clients";
 import { decryptString } from "@/lib/crypto";
 import { caseManagers } from "@/lib/followups";
 import { CONTACT_TYPES, needLabel, PLAN_STATUSES } from "@/lib/options";
@@ -69,7 +69,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               <Row label="Name" value={displayName(p)} />
               <Row label="Phone" value={p.phone && `${p.phone}${p.okToLeaveMessage === false ? " (no messages)" : ""}`} />
               <Row label="Email" value={p.email} />
-              <Row label="Where to find" value={p.howToReach} />
+              <Row label="Best place to reach" value={p.howToReach} />
               <Row label="Age" value={p.ageRange} />
               <Row label="Language" value={p.language} />
               <Row label="Insurance" value={p.insurance} />
@@ -79,9 +79,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 value={[p.hasVehicle && "Has vehicle", p.hasPets && "Has pet", p.hasChildren && "Has children"].filter(Boolean).join(", ")}
               />
               <Row label="Outreach site" value={p.outreachSite} />
-              {client.urgent && <Row label="Urgent" value={p.urgentDetails || "Yes"} />}
+              <Row label={client.urgent ? "Needs help today" : "Most urgent need"} value={p.urgentDetails || (client.urgent ? "Yes" : undefined)} />
               <Row label="Notes from intake" value={p.otherInfo} />
-              <Row label="Source" value={client.source === "public_form" ? `Public form${p.filledOutBy === "helper" ? " (filled by a helper)" : ""}` : "Added by staff"} />
+              <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? " (filled by a helper)" : ""}`} />
               {p.consentAt && <Row label="Consent" value={`Agreed ${formatDate(p.consentAt)}`} />}
             </dl>
           </Card>

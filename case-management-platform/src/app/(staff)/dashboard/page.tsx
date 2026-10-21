@@ -2,9 +2,9 @@ import Link from "next/link";
 import { count, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { ClientRow } from "@/components/client-row";
-import { buttonClass, Card, EmptyState, PageHeader, secondaryButtonClass } from "@/components/ui";
+import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { listClientsForUser } from "@/lib/clients";
+import { listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
 import { caseManagers, followUpsFor, todayIso } from "@/lib/followups";
 import { needLabel } from "@/lib/options";
 
@@ -30,6 +30,7 @@ export default async function DashboardPage() {
         actions={<Link href="/clients/new" className={buttonClass}>+ New client</Link>}
       />
       {supervisor && <SupervisorPanels />}
+      {supervisor && <NewRequests requests={active.filter((c) => c.status === "new")} />}
       <Card title={supervisor ? "Your own follow-ups this week" : "Follow-ups and urgent clients"}>
         {due.length === 0 ? (
           <EmptyState>Nothing due in the next 7 days.</EmptyState>
@@ -46,6 +47,31 @@ export default async function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function NewRequests({ requests }: { requests: Awaited<ReturnType<typeof listClientsForUser>> }) {
+  const newest = [...requests].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 8);
+  return (
+    <Card title="New requests" actions={<Link href="/intake-queue" className="text-sm text-brand-700 underline">Assign in intake queue →</Link>}>
+      {newest.length === 0 ? (
+        <EmptyState>No new requests. Google Form and website submissions appear here.</EmptyState>
+      ) : (
+        <ul className="-mx-3 divide-y divide-stone-100">
+          {newest.map((c) => (
+            <li key={c.id}>
+              <Link href={`/clients/${c.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-3 hover:bg-stone-50">
+                <span className="font-mono font-semibold tracking-wide text-stone-900">{c.clientCode}</span>
+                {c.urgent && <Badge tone="red">Needs help today</Badge>}
+                <Badge tone={c.source === "google_form" ? "blue" : "gray"}>{SOURCE_LABELS[c.source]}</Badge>
+                <span className="min-w-0 flex-1 truncate text-sm text-stone-700">{c.profile.urgentDetails}</span>
+                <span className="text-xs text-stone-500">{formatDate(c.createdAt)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
 

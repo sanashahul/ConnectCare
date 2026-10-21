@@ -19,7 +19,7 @@ import {
 
 export const roleEnum = pgEnum("role", ["supervisor", "case_manager"]);
 export const clientStatusEnum = pgEnum("client_status", ["new", "active", "closed"]);
-export const intakeSourceEnum = pgEnum("intake_source", ["public_form", "staff"]);
+export const intakeSourceEnum = pgEnum("intake_source", ["public_form", "staff", "google_form"]);
 export const contactTypeEnum = pgEnum("contact_type", ["in_person", "phone", "text", "outreach_site", "other"]);
 export const planStatusEnum = pgEnum("plan_status", ["todo", "referred", "connected", "done", "unable"]);
 
@@ -62,6 +62,8 @@ export const clients = pgTable(
     clientCode: text("client_code").notNull().unique(),
     status: clientStatusEnum("status").notNull().default("new"),
     source: intakeSourceEnum("source").notNull(),
+    // Google Form response id, so a resent submission never creates a duplicate client.
+    externalId: text("external_id").unique(),
     assignedToId: uuid("assigned_to_id").references(() => users.id),
     county: text("county"),
     city: text("city"),

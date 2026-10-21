@@ -38,6 +38,12 @@ export function withProfile(row: ClientRow): ClientWithProfile {
 
 type NewClient = Omit<typeof schema.clients.$inferInsert, "id" | "clientCode">;
 
+export const SOURCE_LABELS: Record<string, string> = {
+  public_form: "Website form",
+  google_form: "Google Form",
+  staff: "Added by staff",
+};
+
 /** Inserts a client with a fresh random ID, retrying on the rare collision. */
 export async function insertClient(values: NewClient) {
   for (let attempt = 0; ; attempt++) {

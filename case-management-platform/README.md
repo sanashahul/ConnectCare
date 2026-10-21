@@ -4,7 +4,7 @@ A web app for street-medicine case managers working with people experiencing hom
 
 It does five things:
 
-1. **Intake.** A public form (`/intake`) anyone can fill out on a phone: the guest, a volunteer, or staff at an outreach site. It replaces a Google Form plus spreadsheet.
+1. **Intake.** People ask for help through a **Google Form** (name, email, best place to contact, most urgent need), or through the app's own form at `/intake`. Either way, the request goes straight into the app with a client ID. Google Form setup: [google-apps-script/README.md](google-apps-script/README.md).
 2. **Assignment.** New requests land in the supervisor's **Intake queue**. The supervisor assigns each guest to a case manager, and the whole record moves with them.
 3. **Case work.** For each client, case managers keep a profile, a **contact log** (notes, needs discussed, follow-up dates), and a **care plan** (steps linked to resources, tracked as To do → Referred → Connected → Done).
 4. **Resources.** A searchable **directory** of 87 vetted resources built from the team's five guides. The app matches resources to each client's needs, area, language, and insurance, and lists the gaps it can't fill.
@@ -25,7 +25,8 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 
 | Who | Where | What |
 |---|---|---|
-| Guest or volunteer | `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. Only a first name is required. |
+| Guest or volunteer | The Google Form or `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. |
+| Supervisor | **Dashboard** → New requests | Sees the newest requests by ID, with their source and most urgent need. |
 | Supervisor | **Intake queue** | Sees new requests by client ID (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
 | Case manager | **Dashboard** | Sees follow-ups due this week and urgent clients. |
 | Case manager | Client → **Contact log** | Logs each conversation, the needs discussed, and a follow-up date. |

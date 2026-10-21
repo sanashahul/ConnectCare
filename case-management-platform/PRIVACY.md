@@ -50,17 +50,23 @@ This document describes what the software does. It is not legal advice. Before u
   - Unverified suggestions stay off printouts until a case manager records how they checked them.
 - **Caveat on de-identification.** County plus a detailed need profile is *not* the same as HIPAA "Safe Harbor" de-identification, because a county is a geographic area smaller than a state. Confirm with your privacy office that the AI account you use is covered by an approved agreement (for example, a BAA or your institution's approved AI service).
 
-## Why not Google Forms and a spreadsheet?
+## Google Form intake
 
-The first plan was a Google Form that feeds a spreadsheet, which a supervisor then sorts. That would put a second, unencrypted copy of every guest's information in a Google account:
+The Google Form ([setup guide](google-apps-script/README.md)) is built so that Google holds client information for as short a time as possible:
 
-- The copy would sit outside the app's access rules and audit log.
-- It would be easy to share by accident and hard to delete completely.
-- Google services are usually not approved for health information unless your institution's agreement with Google covers them.
+- **No spreadsheet.** Responses go straight from the form to the app, not into a Google Sheet.
+- **Deleted after delivery.** The app saves each response to its encrypted database, then the script deletes it from Google Forms. If delivery fails, the response stays only until the next retry (every 15 minutes).
+- **Signed delivery.** Every submission is signed with a shared secret and a timestamp. The app rejects anything unsigned, tampered with, or more than five minutes old. Resending the same response never creates a duplicate client.
+- **Endpoint off by default.** The app accepts Google Form submissions only when `GOOGLE_FORM_WEBHOOK_SECRET` is set.
+- **Consent required.** Submissions without the consent box checked are refused.
+- **Confirmation email.** The email the person receives contains only their request number and crisis lines. It does not repeat what they wrote.
 
-The built-in form and intake queue do the same job, and the data never leaves the protected database.
+What remains with Google:
 
-If you must keep a Google Form, use only an institution-managed Google Workspace that is approved for this data. Import the responses into the app, then delete them from Google.
+- Responses exist in Google Forms for seconds, or longer if the app is down.
+- Each confirmation email is sent from the script owner's Gmail, so a copy of it, containing an email address and a request number, stays in that account's Sent folder.
+- Use an institution-managed Google Workspace account whose agreement with Google covers this kind of data.
+- Never link the form to a Sheet, and never turn on response notification emails.
 
 ## Go-live checklist
 
@@ -81,6 +87,7 @@ Work through these with your privacy and security offices before entering real c
 - [ ] **Incident plan.** Decide who to call if a device is lost or you suspect a breach.
 - [ ] **Minors.** Decide how to handle intake from people under 18 (consent and mandated reporting).
 - [ ] **Public form.** Put the public form behind your organization's domain, so guests can recognize it as yours.
+- [ ] **Google Form.** If you use it, confirm the Google Workspace account is approved for this data, and that the form is not linked to a Sheet.
 
 ## Known limits
 
