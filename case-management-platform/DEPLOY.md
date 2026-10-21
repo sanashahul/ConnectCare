@@ -87,6 +87,10 @@ Nobody can sign up on their own; accounts are created by a supervisor. The very 
 
 From now on, signing in takes your password plus the current code from your phone.
 
+When everything is done, **Setup check** looks like this. The AI line turns green once the Anthropic key is set:
+
+![Setup check page](docs/screenshots/setup-check.png)
+
 ---
 
 ## Part 5: Add your case managers (10 minutes)
