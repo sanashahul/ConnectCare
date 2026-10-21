@@ -1,6 +1,8 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { DatabaseError } from "pg";
 import { db, schema } from "@/db";
 import { canAccessClient } from "./access";
+import { generateClientCode } from "./client-code";
 import type { CurrentUser } from "./auth";
 import { decryptJson, encryptJson } from "./crypto";
 
@@ -32,6 +34,24 @@ export const encryptProfile = (p: ClientProfile) => encryptJson(p);
 
 export function withProfile(row: ClientRow): ClientWithProfile {
   return { ...row, profile: decryptJson<ClientProfile>(row.profileEnc) };
+}
+
+type NewClient = Omit<typeof schema.clients.$inferInsert, "id" | "clientCode">;
+
+/** Inserts a client with a fresh random ID, retrying on the rare collision. */
+export async function insertClient(values: NewClient) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const [row] = await db
+        .insert(schema.clients)
+        .values({ ...values, clientCode: generateClientCode() })
+        .returning({ id: schema.clients.id, clientCode: schema.clients.clientCode });
+      return row;
+    } catch (err) {
+      const unique = err instanceof DatabaseError && err.code === "23505" && err.constraint?.includes("client_code");
+      if (!unique || attempt >= 5) throw err;
+    }
+  }
 }
 
 export function displayName(p: ClientProfile) {

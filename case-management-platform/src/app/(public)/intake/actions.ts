@@ -1,9 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { db, schema } from "@/db";
 import { audit, requestIp } from "@/lib/audit";
-import { encryptProfile } from "@/lib/clients";
+import { encryptProfile, insertClient } from "@/lib/clients";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -27,18 +26,15 @@ export async function submitIntake(_: IntakeState, form: FormData): Promise<Inta
   if (parsed.data.filledOutBy === "staff") parsed.data.filledOutBy = "helper";
 
   const cols = toClientColumns(parsed.data);
-  const [row] = await db
-    .insert(schema.clients)
-    .values({
-      source: "public_form",
-      status: "new",
-      county: cols.county,
-      city: cols.city,
-      needs: cols.needs,
-      urgent: cols.urgent,
-      profileEnc: encryptProfile({ ...cols.profile, consentAt: new Date().toISOString() }),
-    })
-    .returning({ id: schema.clients.id });
+  const row = await insertClient({
+    source: "public_form",
+    status: "new",
+    county: cols.county,
+    city: cols.city,
+    needs: cols.needs,
+    urgent: cols.urgent,
+    profileEnc: encryptProfile({ ...cols.profile, consentAt: new Date().toISOString() }),
+  });
   await audit({ action: "intake.submitted", clientId: row.id, detail: { source: "public_form" } });
-  redirect("/intake/thanks");
+  redirect(`/intake/thanks?id=${row.clientCode}`);
 }

@@ -99,6 +99,7 @@ export default async function PrintPage({ params, searchParams }: {
         <header className="mb-3 border-b border-black pb-2">
           <h1 className="text-xl font-bold">Resources for you{showName ? `, ${client.profile.firstName}` : ""}</h1>
           <p className="text-xs">Prepared {formatDate(new Date())} by your case manager, {user.name.split(" ")[0]}. Hours change, so call before you go.</p>
+          <p className="text-xs">Your client ID: <strong className="font-mono">{client.clientCode}</strong> (mention it when you contact the outreach team)</p>
         </header>
         <section className="mb-3 grid grid-cols-2 gap-2 rounded border border-black p-2 sm:grid-cols-5">
           <div><p className="font-bold">911</p><p className="text-xs">Emergency</p></div>

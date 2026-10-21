@@ -25,8 +25,8 @@ export function AiPanel({ clientId, enabled, payload, resourceNames }: {
     return (
       <Card title="AI planning assistant">
         <p className="text-sm text-stone-600">
-          The AI assistant is turned off. A supervisor can turn it on after your privacy office approves the AI vendor
-          agreement (see PRIVACY.md). Directory matching above works without it.
+          The AI assistant is not available: the server has no AI key set up, or it was turned off with
+          AI_ENABLED=false (see README.md). Directory matching works without it.
         </p>
       </Card>
     );

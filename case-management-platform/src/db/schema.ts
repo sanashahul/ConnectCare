@@ -58,6 +58,8 @@ export const clients = pgTable(
   "clients",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    // Short ID staff use in place of the client's name (see src/lib/client-code.ts).
+    clientCode: text("client_code").notNull().unique(),
     status: clientStatusEnum("status").notNull().default("new"),
     source: intakeSourceEnum("source").notNull(),
     assignedToId: uuid("assigned_to_id").references(() => users.id),

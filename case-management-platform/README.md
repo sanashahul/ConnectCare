@@ -10,6 +10,8 @@ It does five things:
 4. **Resources.** A searchable **directory** of 87 vetted resources built from the team's five guides. The app matches resources to each client's needs, area, language, and insurance, and lists the gaps it can't fill.
 5. **AI help and printouts.** An optional **AI assistant** drafts a plan and suggests resources to fill gaps. Anything outside the vetted directory is marked **unverified** until a case manager checks it. A **one-page resource sheet** prints only what applies to the client.
 
+**Clients are identified by ID.** Every client gets a short random ID such as `CC-7K3PM`. Dashboards, lists, the intake queue, and the audit log show the ID, never the name. The name is visible only inside the client's own record. Guests see their ID after submitting the form, and it is printed on their resource sheet, so they can mention it when they contact the team.
+
 Who sees what:
 
 - **Case managers** see only the clients assigned to them.
@@ -24,7 +26,7 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 | Who | Where | What |
 |---|---|---|
 | Guest or volunteer | `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. Only a first name is required. |
-| Supervisor | **Intake queue** | Sees new requests (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
+| Supervisor | **Intake queue** | Sees new requests by client ID (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
 | Case manager | **Dashboard** | Sees follow-ups due this week and urgent clients. |
 | Case manager | Client → **Contact log** | Logs each conversation, the needs discussed, and a follow-up date. |
 | Case manager | Client → **Find resources & plan** | Sees matched resources per need and the gaps. Adds resources to the plan. Optionally asks the AI for a draft plan. |
@@ -65,9 +67,9 @@ npm run build
 - **Where the guides disagree:** [data/RESOURCE_CONFLICTS.md](data/RESOURCE_CONFLICTS.md) lists every conflict, and the affected entries show a "Guides disagree: check" badge until a supervisor confirms them.
 - **Bulk changes:** edit `data/resources.json` and run `npm run db:seed-resources`. This adds new entries and leaves existing ones alone. Use `-- --overwrite` to replace existing entries from the file, which discards edits made in the app.
 
-## Turning on the AI assistant
+## The AI assistant
 
-The assistant is **off by default**. Turn it on only after your privacy office approves it (see PRIVACY.md). Then set `AI_ENABLED=true` and `ANTHROPIC_API_KEY` in the server environment.
+The assistant is **on** as soon as `ANTHROPIC_API_KEY` is set in the server environment. Set `AI_ENABLED=false` to turn it off.
 
 The assistant receives:
 
@@ -75,7 +77,7 @@ The assistant receives:
 - the public resource directory;
 - an optional question, with names, phone numbers, emails, dates, and addresses removed.
 
-It never receives names, contact details, intake free text, or case notes. Staff can see the exact list of what is sent before they press the button. The assistant can search the web to fill gaps; set `AI_WEB_SEARCH=false` to prevent that.
+It never receives names, client IDs, contact details, intake free text, or case notes. Staff can see the exact list of what is sent before they press the button. The assistant can search the web to fill gaps; set `AI_WEB_SEARCH=false` to prevent that.
 
 ## Deploying
 

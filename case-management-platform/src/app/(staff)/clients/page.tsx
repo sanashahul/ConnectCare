@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ClientRow } from "@/components/client-row";
 import { buttonClass, Card, EmptyState, inputClass, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
+import { normalizeClientCode } from "@/lib/client-code";
 import { displayName, listClientsForUser } from "@/lib/clients";
 import { caseManagers, followUpsFor, todayIso } from "@/lib/followups";
 import { NEEDS } from "@/lib/options";
@@ -18,8 +19,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     assignedToId: supervisor && sp.cm ? sp.cm : undefined,
   });
   const q = (sp.q ?? "").trim().toLowerCase();
+  const code = q ? normalizeClientCode(q) : "";
+  // Search by ID (full or partial), or by name for staff who remember it.
   const filtered = clients.filter(
-    (c) => (!q || displayName(c.profile).toLowerCase().includes(q)) && (!sp.need || c.needs.includes(sp.need)),
+    (c) =>
+      (!q || c.clientCode.startsWith(code) || displayName(c.profile).toLowerCase().includes(q)) &&
+      (!sp.need || c.needs.includes(sp.need)),
   );
   const followUps = await followUpsFor(filtered.map((c) => c.id));
   const cms = supervisor ? await caseManagers() : [];
@@ -34,7 +39,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       />
       <Card>
         <form className="mb-4 flex flex-wrap items-end gap-2">
-          <input name="q" defaultValue={sp.q} placeholder="Search by name" className={`${inputClass} max-w-xs`} />
+          <input name="q" defaultValue={sp.q} placeholder="Client ID (CC-…) or name" className={`${inputClass} max-w-xs`} />
           <select name="status" defaultValue={status} className={`${inputClass} w-auto`}>
             <option value="open">Open</option>
             <option value="closed">Closed</option>

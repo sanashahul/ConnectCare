@@ -10,8 +10,9 @@ import type { Resource } from "./resource-types";
 
 export const MODEL = "claude-opus-5-5";
 
+/** On by default once an API key is configured; set AI_ENABLED=false to turn it off. */
 export function aiEnabled() {
-  return process.env.AI_ENABLED === "true" && !!process.env.ANTHROPIC_API_KEY;
+  return process.env.AI_ENABLED !== "false" && !!process.env.ANTHROPIC_API_KEY;
 }
 
 export type AiProfile = {

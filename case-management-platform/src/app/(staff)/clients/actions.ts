@@ -8,7 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
-import { displayName, encryptProfile, getClientForUser } from "@/lib/clients";
+import { displayName, encryptProfile, getClientForUser, insertClient } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
 import { CONTACT_TYPES, NEED_KEYS, PLAN_STATUSES } from "@/lib/options";
@@ -49,20 +49,17 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
   const cols = toClientColumns({ ...parsed.data, filledOutBy: "staff" });
   // Case managers own the clients they add. Supervisors' new clients go to the intake queue.
   const assignToSelf = user.role === "case_manager";
-  const [row] = await db
-    .insert(schema.clients)
-    .values({
-      source: "staff",
-      status: assignToSelf ? "active" : "new",
-      assignedToId: assignToSelf ? user.id : null,
-      assignedAt: assignToSelf ? new Date() : null,
-      county: cols.county,
-      city: cols.city,
-      needs: cols.needs,
-      urgent: cols.urgent,
-      profileEnc: encryptProfile(cols.profile),
-    })
-    .returning({ id: schema.clients.id });
+  const row = await insertClient({
+    source: "staff",
+    status: assignToSelf ? "active" : "new",
+    assignedToId: assignToSelf ? user.id : null,
+    assignedAt: assignToSelf ? new Date() : null,
+    county: cols.county,
+    city: cols.city,
+    needs: cols.needs,
+    urgent: cols.urgent,
+    profileEnc: encryptProfile(cols.profile),
+  });
   await audit({ userId: user.id, action: "client.created", clientId: row.id });
   redirect(`/clients/${row.id}`);
 }

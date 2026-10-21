@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { displayName, type ClientWithProfile } from "@/lib/clients";
+import type { ClientWithProfile } from "@/lib/clients";
 import { needLabel } from "@/lib/options";
 import { Badge, formatDate } from "./ui";
 
@@ -12,6 +12,11 @@ export function NeedChips({ needs, max = 4 }: { needs: string[]; max?: number })
   );
 }
 
+/** Lists and dashboards identify clients by ID, not name. */
+export function ClientCode({ code, className = "" }: { code: string; className?: string }) {
+  return <span className={`font-mono font-semibold tracking-wide text-stone-900 ${className}`}>{code}</span>;
+}
+
 export function ClientRow({ client, followUp, assignee, today }: {
   client: ClientWithProfile;
   followUp?: string;
@@ -22,7 +27,7 @@ export function ClientRow({ client, followUp, assignee, today }: {
   return (
     <li>
       <Link href={`/clients/${client.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-3 hover:bg-stone-50">
-        <span className="min-w-40 font-medium text-stone-900">{displayName(client.profile)}</span>
+        <ClientCode code={client.clientCode} className="min-w-28" />
         {client.urgent && <Badge tone="red">Urgent</Badge>}
         {client.status === "closed" && <Badge>Closed</Badge>}
         {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}

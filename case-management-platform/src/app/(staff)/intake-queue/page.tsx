@@ -1,7 +1,7 @@
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader } from "@/components/ui";
-import { NeedChips } from "@/components/client-row";
+import { ClientCode, NeedChips } from "@/components/client-row";
 import { requireSupervisor } from "@/lib/auth";
-import { displayName, listClientsForUser } from "@/lib/clients";
+import { listClientsForUser } from "@/lib/clients";
 import { caseManagers } from "@/lib/followups";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
@@ -31,7 +31,7 @@ export default async function IntakeQueuePage() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/clients/${c.id}`} className="font-semibold text-stone-900 hover:underline">{displayName(c.profile)}</Link>
+                    <Link href={`/clients/${c.id}`} className="hover:underline"><ClientCode code={c.clientCode} /></Link>
                     {c.urgent && <Badge tone="red">Urgent</Badge>}
                     <Badge>{c.source === "public_form" ? "Public form" : "Added by staff"}</Badge>
                   </div>

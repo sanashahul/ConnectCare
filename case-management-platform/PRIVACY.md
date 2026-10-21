@@ -12,6 +12,8 @@ This document describes what the software does. It is not legal advice. Before u
 - **Consent before saving.** The public form must be consented to before it saves anything, and the date of consent is stored with the record.
 - **Printouts carry little.** Resource sheets leave out the last name, contact details, and notes. Even the first name is off by default, in case the sheet is lost.
 
+- **IDs, not names.** Every client gets a random ID (for example `CC-7K3PM`). It is random rather than numbered in order, so it reveals nothing about how many people are served or when someone joined. Dashboards, lists, the intake queue, and the audit log show only the ID. The name appears only inside the client's own record, which only their case manager and supervisors can open.
+
 ### Lock it up
 - **Encrypted fields.** Names, contact details, intake answers, case notes, and care-plan text are encrypted with AES-256-GCM before they reach the database. A copy of the database alone does not reveal them; the key (`DATA_ENCRYPTION_KEY`) is also needed. Keep the key in a secret manager, separate from database backups.
 - **What stays readable.** The database stores in plain text only what is needed for sorting and counting: case status, assigned case manager, city or county, need categories, and the urgent flag.
@@ -38,15 +40,15 @@ This document describes what the software does. It is not legal advice. Before u
 - **What the log contains.** Each entry says who did it, when, and to which record. It never contains names or note text. Supervisors can read the log in the app.
 
 ### AI assistant
-- **Off by default.** `AI_ENABLED=false`.
+- **On when configured.** It runs whenever `ANTHROPIC_API_KEY` is set; `AI_ENABLED=false` turns it off.
 - **What it receives.** Only de-identified fields: county, need categories, age range, language, insurance type, sleeping situation, and four yes/no flags. It also gets the public resource directory and an optional question. The question is scrubbed of names, phone numbers, emails, dates, and street addresses.
-- **What it never receives.** Names, contact details, intake free text, and case notes.
+- **What it never receives.** Names, client IDs, contact details, intake free text, and case notes.
 - **Transparency.** Staff see the exact list of what will be sent before every request.
 - **Its suggestions are checked:**
   - It may only reference vetted resources by their ID; IDs it makes up are dropped.
   - Anything from outside the directory is labeled **unverified**.
   - Unverified suggestions stay off printouts until a case manager records how they checked them.
-- **Caveat on de-identification.** County plus a detailed need profile is *not* the same as HIPAA "Safe Harbor" de-identification, because a county is a geographic area smaller than a state. Treat AI requests as needing an approved vendor agreement (for example, a BAA or your institution's approved AI service) before turning the assistant on.
+- **Caveat on de-identification.** County plus a detailed need profile is *not* the same as HIPAA "Safe Harbor" de-identification, because a county is a geographic area smaller than a state. Confirm with your privacy office that the AI account you use is covered by an approved agreement (for example, a BAA or your institution's approved AI service).
 
 ## Why not Google Forms and a spreadsheet?
 
@@ -69,7 +71,7 @@ Work through these with your privacy and security offices before entering real c
 - [ ] **Key management.** Store `DATA_ENCRYPTION_KEY` in a secret manager. Decide who can access it, and record how to recover it. If the key is lost, the encrypted data cannot be recovered.
 - [ ] **Consent wording.** Have the consent wording on the intake form (`src/lib/intake.ts`, `CONSENT_TEXT`) reviewed. Promise only what the organization can keep.
 - [ ] **Retention.** Decide how long closed cases are kept, then delete them on that schedule. The app can delete individual clients; a scheduled job can be added.
-- [ ] **AI.** Get approval for the AI vendor agreement before setting `AI_ENABLED=true`.
+- [ ] **AI.** Confirm the AI account (`ANTHROPIC_API_KEY`) is covered by an approved vendor agreement.
 - [ ] **Training.** Train staff on these rules:
   - Do not type identifying details into the AI question box or into resource problem reports.
   - Do not share temporary passwords by email or text.
