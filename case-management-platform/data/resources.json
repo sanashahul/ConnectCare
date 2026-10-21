@@ -1,0 +1,2994 @@
+[
+  {
+    "id": "helping-hands-sunnyvale-application-help",
+    "name": "Helping Hands (application and ID help)",
+    "categories": [
+      "benefits",
+      "phone_id_documents"
+    ],
+    "description": "Helping Hands assists with Medi-Cal, CalFresh, and General Assistance applications and ID cards.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-663-1812"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no address or hours."
+  },
+  {
+    "id": "san-mateo-county-human-services-east-palo-alto",
+    "name": "Medi-Cal, CalFresh, and cash aid (San Mateo County Human Services)",
+    "categories": [
+      "benefits"
+    ],
+    "description": "San Mateo County Human Services office in East Palo Alto. Medi-Cal (health coverage), CalFresh (food benefits), and General Assistance (cash aid).",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "2415 University Ave, East Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-363-4175"
+      },
+      {
+        "label": "Alternate",
+        "number": "800-223-8383"
+      }
+    ],
+    "web": "BenefitsCal.com",
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "santa-clara-county-social-services-benefits",
+    "name": "Medi-Cal, CalFresh, and cash aid (Santa Clara County Social Services)",
+    "categories": [
+      "benefits"
+    ],
+    "description": "Santa Clara County Social Services handles Medi-Cal (health coverage), CalFresh (food benefits), and General Assistance (cash aid).",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-758-3800"
+      }
+    ],
+    "web": "BenefitsCal.com",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Milpitas guide: Hope for the Unhoused volunteers assist with applications. Sunnyvale guide: Helping Hands assists with applications and ID cards (408-663-1812)."
+  },
+  {
+    "id": "st-anthonys-menlo-park-clothing",
+    "name": "St. Anthony's (free clothing)",
+    "categories": [
+      "clothing"
+    ],
+    "description": "Distributes clothing weekly: Wednesdays 10 to 11 am (women and children) and Thursdays (men).",
+    "county": "San Mateo",
+    "city": "Menlo Park",
+    "address": "3500 Middlefield Rd, Menlo Park",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-365-9664"
+      }
+    ],
+    "web": null,
+    "hours": "Wednesdays 10 to 11 am (women and children); Thursdays (men)",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "988-suicide-crisis-line",
+    "name": "988 Suicide and Crisis Line",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "Suicide and mental health crisis line. Call or text, any time. Spanish available.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Call or text",
+        "number": "988"
+      }
+    ],
+    "web": null,
+    "hours": "Any time",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "WeHOPE (East Palo Alto)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "'Spanish available' is stated in the Mountain View and San Jose guides."
+  },
+  {
+    "id": "behavioral-health-urgent-care-bhuc",
+    "name": "Behavioral Health Urgent Care (BHUC)",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "Walk-in crisis clinic for people uninsured or on Medi-Cal: screening, crisis intervention, short-term treatment, medication refills. Open every day.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "2221 Enborg Lane",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-885-7855"
+      }
+    ],
+    "web": null,
+    "hours": "Every day, 8 am to 7 pm",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [],
+    "eligibility": "Uninsured or on Medi-Cal",
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "momentum-crisis-stabilization-unit",
+    "name": "Momentum Crisis Stabilization Unit",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "Voluntary alternative to the ER for adults 18 and over in a mental health crisis who do not need medical detox. Up to 24 hours with meals, showers, and clinical support. TRUST can provide transport.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "101 Jose Figueres Ave, Suite 50, San Jose",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-207-0560, ext. 1"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in, 24 hours",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Adults 18+ in a mental health crisis who do not need medical detox",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "starvista-crisis-line",
+    "name": "StarVista crisis line",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "San Mateo County crisis line. 24-hour crisis counseling. Mobile crisis team available.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-579-0350"
+      }
+    ],
+    "web": null,
+    "hours": "24 hours (any time)",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "trust-mobile-crisis-team",
+    "name": "TRUST mobile crisis team",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "Mobile crisis team, 24 hours, comes to you. Spanish available. TRUST can provide transport to the Momentum Crisis Stabilization Unit.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-596-7290"
+      }
+    ],
+    "web": null,
+    "hours": "24 hours",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "foothill-college-dental-hygiene-clinic",
+    "name": "Foothill College Dental Hygiene Clinic",
+    "categories": [
+      "dental"
+    ],
+    "description": "Low-cost cleanings by supervised students; appointments are limited.",
+    "county": "Santa Clara",
+    "city": "Los Altos Hills",
+    "address": "12345 El Monte Rd, Los Altos Hills",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-949-7335"
+      }
+    ],
+    "web": null,
+    "hours": "Mon, Wed, Thu 9 to 12; Tue 1:30 to 4:30",
+    "walkIn": false,
+    "cost": "low_cost",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "cora-domestic-violence-hotline",
+    "name": "CORA domestic violence hotline",
+    "categories": [
+      "domestic_violence",
+      "shelter",
+      "crisis"
+    ],
+    "description": "24-hour domestic violence hotline and confidential shelter.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-300-1080"
+      }
+    ],
+    "web": null,
+    "hours": "Any time",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "ywca-24-hour-line",
+    "name": "YWCA 24-hour line",
+    "categories": [
+      "domestic_violence",
+      "crisis"
+    ],
+    "description": "24-hour line for domestic violence, sexual assault, or trafficking.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-572-2782"
+      }
+    ],
+    "web": null,
+    "hours": "Any time",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "emergency-911",
+    "name": "911 Emergency",
+    "categories": [
+      "emergency"
+    ],
+    "description": "Police, fire, or medical. Ask for a mental health crisis clinician or CIT officer. For a medical emergency, call 911.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Emergency",
+        "number": "911"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "WeHOPE (East Palo Alto)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Mountain View and San Jose guides say to ask for a mental health crisis clinician or CIT officer; Milpitas, East Palo Alto, and Sunnyvale guides say 'Police, fire, or medical'."
+  },
+  {
+    "id": "el-camino-health-emergency-room",
+    "name": "El Camino Health (emergency room)",
+    "categories": [
+      "emergency",
+      "medical"
+    ],
+    "description": "Emergency room. For a medical emergency, call 911.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "2500 Grant Rd, Mountain View",
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "regional-medical-center-emergency-room",
+    "name": "Regional Medical Center (emergency room)",
+    "categories": [
+      "emergency",
+      "medical"
+    ],
+    "description": "Emergency room. For a medical emergency, call 911.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "225 N Jackson Ave, San Jose",
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "stanford-hospital-emergency-room",
+    "name": "Stanford Hospital (emergency room)",
+    "categories": [
+      "emergency",
+      "medical"
+    ],
+    "description": "Emergency room. For a medical emergency, call 911.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "500 Pasteur Dr, Palo Alto",
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "valley-medical-center-emergency-room",
+    "name": "Valley Medical Center (emergency room)",
+    "categories": [
+      "emergency",
+      "medical"
+    ],
+    "description": "Emergency room. For a medical emergency, call 911.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "751 S Bascom Ave, San Jose",
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "csa-food-pantry-mountain-view",
+    "name": "CSA food pantry",
+    "categories": [
+      "food"
+    ],
+    "description": "Groceries for Mountain View residents through Community Services Agency.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "435 San Antonio Rd, Mountain View",
+    "phones": [],
+    "web": null,
+    "hours": "Mon and Fri 2 to 4 pm; Thu 11:30 am to 1 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Mountain View residents",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "ecumenical-hunger-program",
+    "name": "Ecumenical Hunger Program (EHP)",
+    "categories": [
+      "food",
+      "clothing"
+    ],
+    "description": "Food boxes, no-cook food bags for people without a kitchen, hot lunch, clothing (clothes closet), blankets, and household items.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "2411 Pulgas Ave, East Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-323-7781"
+      }
+    ],
+    "web": null,
+    "hours": "Food pickup Mon to Thu, 9 am to 12 pm and 2 to 5 pm; hot lunch Mon to Thu, 12 to 1 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "hopes-corner-mountain-view",
+    "name": "Hope's Corner",
+    "categories": [
+      "food",
+      "showers_hygiene",
+      "laundry",
+      "restrooms_wifi"
+    ],
+    "description": "Free hot breakfast and bag lunch. Free showers and laundry for unhoused guests; sign-up during the meal, first come, first served. Restrooms with hand-washing open 24 hours.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "748 Mercy St, Mountain View",
+    "phones": [],
+    "web": null,
+    "hours": "Meals: Mon and Wed 8 to 9 am; Sat 8 to 10 am. Showers and laundry: Mon and Wed 8:30 am to 12 pm; Sat 8:30 am to 2 pm. Restrooms: 24 hours",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Showers and laundry for unhoused guests",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-goodwill-san-jose",
+    "name": "Loaves & Fishes free meals (Goodwill, San Jose)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Goodwill, 1080 N 7th St",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-922-9085"
+      }
+    ],
+    "web": null,
+    "hours": "Mondays 3 to 4 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-jerry-larson-foodbasket",
+    "name": "Loaves & Fishes free meals (Jerry Larson FoodBasket)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Jerry Larson FoodBasket, 1043 Garland Ave",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-922-9085"
+      }
+    ],
+    "web": null,
+    "hours": "Fridays 1 to 2 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-east-palo-alto",
+    "name": "Loaves & Fishes free meals (Los Robles / McNair Academy)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals, packed to go.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "Los Robles / McNair Academy, 2033 Pulgas Ave, East Palo Alto",
+    "phones": [],
+    "web": null,
+    "hours": "Mondays, 2 to 3 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-mountain-view-high-school",
+    "name": "Loaves & Fishes free meals (Mountain View High School)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals, packed to go.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "Mountain View High School, 3535 Truman Ave",
+    "phones": [],
+    "web": null,
+    "hours": "Thursdays, 3:30 to 4:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-piedmont-hills",
+    "name": "Loaves & Fishes free meals (Piedmont Hills High School)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared hot meal.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Piedmont Hills High School, 1377 Piedmont Rd, San Jose",
+    "phones": [],
+    "web": null,
+    "hours": "Mon to Fri 4 to 5 pm (hot meal)",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-sunnyvale",
+    "name": "Loaves & Fishes free meals (San Miguel Elementary)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals, packed to go.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "San Miguel Elementary, 777 San Miguel Ave, Sunnyvale",
+    "phones": [],
+    "web": null,
+    "hours": "Tuesdays, 3:30 to 4:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "loaves-and-fishes-milpitas",
+    "name": "Loaves & Fishes free meals (Weller Elementary, Milpitas)",
+    "categories": [
+      "food"
+    ],
+    "description": "Free prepared meals.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "Weller Elementary, 345 Boulder St, Milpitas",
+    "phones": [],
+    "web": null,
+    "hours": "Mondays 3:30 to 4:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Milpitas site closes for summer break through August 30, 2026."
+  },
+  {
+    "id": "milpitas-food-pantry",
+    "name": "Milpitas Food Pantry",
+    "categories": [
+      "food"
+    ],
+    "description": "Free groceries for residents of Milpitas and Alviso. Photo ID and proof of residence requested.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "1440 S Main St, Milpitas",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-946-5564"
+      }
+    ],
+    "web": null,
+    "hours": "Tue, Thu, Sat, 9 am to 12 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Residents of Milpitas and Alviso; photo ID and proof of residence requested",
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "our-daily-bread-sunnyvale",
+    "name": "Our Daily Bread",
+    "categories": [
+      "food"
+    ],
+    "description": "Free hot lunch and grocery bags, open to anyone. Across from Washington Park, near the library.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "St. Thomas Episcopal Church, 231 Sunset Ave",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-736-4108"
+      }
+    ],
+    "web": null,
+    "hours": "Mon, Wed, Fri, 11 am to 12:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Open to anyone",
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "reaching-out-center",
+    "name": "Reaching Out Center",
+    "categories": [
+      "food",
+      "other"
+    ],
+    "description": "Food and basic necessities.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-267-4691"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri 9 am to 5 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no address."
+  },
+  {
+    "id": "sacred-heart-community-service",
+    "name": "Sacred Heart Community Service",
+    "categories": [
+      "food",
+      "clothing"
+    ],
+    "description": "Food pantry with no-cook bags for people without a kitchen, plus a clothes closet.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1381 S First St",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-278-2160"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Thu 9 am to 4 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "second-harvest-food-connection",
+    "name": "Second Harvest Food Connection",
+    "categories": [
+      "food"
+    ],
+    "description": "Lists free grocery and hot meal sites by ZIP code. English, Spanish, Vietnamese, Chinese, Tagalog.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-984-3663"
+      },
+      {
+        "label": "Text GETFOOD",
+        "number": "408-455-5181"
+      }
+    ],
+    "web": "shfb.org/get-food",
+    "hours": "Mon to Fri, 8 am to 5 pm (phone)",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "English",
+      "Spanish",
+      "Vietnamese",
+      "Chinese",
+      "Tagalog"
+    ],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "WeHOPE (East Palo Alto)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Text GETFOOD to 408-455-5181. The East Palo Alto guide lists only the 800 number."
+  },
+  {
+    "id": "wehope-family-harvest",
+    "name": "WeHOPE Family Harvest",
+    "categories": [
+      "food"
+    ],
+    "description": "Free boxes of groceries with fresh food, with Second Harvest.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "1854 Bay Rd",
+    "phones": [],
+    "web": null,
+    "hours": "Every Tuesday, 11:30 am to 1 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "community-services-agency-mountain-view",
+    "name": "Community Services Agency (CSA)",
+    "categories": [
+      "housing",
+      "benefits",
+      "transit",
+      "restrooms_wifi"
+    ],
+    "description": "Homeless case management, housing search help, benefits and transit help, and one-time financial assistance. Restrooms with hand-washing open 24 hours.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "204 Stierlin Rd, Mountain View",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-968-0836"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri 9 am to 4 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Office hours Mon to Fri 9 am to 4 pm; restrooms open 24 hours (per the Mountain View guide's showers section)."
+  },
+  {
+    "id": "santa-clara-county-office-of-supportive-housing",
+    "name": "County Office of Supportive Housing",
+    "categories": [
+      "housing"
+    ],
+    "description": "Santa Clara County Office of Supportive Housing runs the housing programs.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-278-6400"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "santa-clara-county-homelessness-prevention-line",
+    "name": "Homelessness Prevention line",
+    "categories": [
+      "housing",
+      "legal"
+    ],
+    "description": "Covers rent assistance and legal support for people at risk of losing housing.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-926-8885"
+      }
+    ],
+    "web": "preventhomelessness.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People at risk of losing housing",
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Mountain View and San Jose guides mention rent assistance only; Milpitas and Sunnyvale guides add legal support and the website."
+  },
+  {
+    "id": "milpitas-outreach-team-wehope",
+    "name": "Milpitas outreach team",
+    "categories": [
+      "housing"
+    ],
+    "description": "The City of Milpitas partners with WeHOPE for street outreach, housing assessments, and case management in Milpitas. Email: housing@milpitas.gov.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-586-5322"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "sunnyvale-community-services",
+    "name": "Sunnyvale Community Services",
+    "categories": [
+      "housing",
+      "food",
+      "benefits"
+    ],
+    "description": "Emergency rent and utility assistance, case workers, referrals, and food for Sunnyvale residents. Food program: weekly groceries for enrolled Sunnyvale households, plus a pantry for unhoused community members. Enrollment at the front desk or by phone.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "1160 Kern Ave, Sunnyvale",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-738-4321"
+      }
+    ],
+    "web": null,
+    "hours": "Office: Mon to Fri, 9 to 12 and 12:30 to 4. Food program: Wednesdays, 9 am to 6 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Sunnyvale residents; food pantry also open to unhoused community members",
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "wehope-outreach-sunnyvale",
+    "name": "WeHOPE outreach in Sunnyvale",
+    "categories": [
+      "housing",
+      "medical"
+    ],
+    "description": "City-contracted outreach workers for housing assessments, housing resources, and health services.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": null,
+    "phones": [
+      {
+        "label": "Mon to Fri",
+        "number": "650-629-4290"
+      },
+      {
+        "label": "Sat and Sun",
+        "number": "650-942-1926"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 9 am to 1 pm (650-629-4290); Sat and Sun, 9 am to 1 pm (650-942-1926)",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "gardner-comprecare-health-center",
+    "name": "Gardner / CompreCare Health Center",
+    "categories": [
+      "medical",
+      "dental",
+      "mental_health",
+      "housing"
+    ],
+    "description": "Medical and dental care in English, Spanish, and Vietnamese. Psychiatric care (by referral), housing, and case management. Call first.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "195 E Virginia St",
+    "phones": [
+      {
+        "label": "Medical",
+        "number": "408-457-7100"
+      },
+      {
+        "label": "Dental",
+        "number": "408-457-7101"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri 8 am to 5 pm; Saturday dental",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "English",
+      "Spanish",
+      "Vietnamese"
+    ],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Psychiatric care is by referral."
+  },
+  {
+    "id": "mayview-community-health-center-mountain-view",
+    "name": "MayView Community Health Center",
+    "categories": [
+      "medical",
+      "mental_health"
+    ],
+    "description": "Primary care and behavioral health on a sliding scale ($10 to $40 if uninsured), many languages. Second site: 270 Grant Ave, Palo Alto. Call first.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "900 Miramonte Ave, 2nd Floor, Mountain View",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-965-3323"
+      }
+    ],
+    "web": null,
+    "hours": "Mon and Fri 8 to 5; Tue to Thu 8 am to 7 pm; 2nd and 4th Sat 9 to 4",
+    "walkIn": false,
+    "cost": "sliding_scale",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "north-county-mobile-health-center-hopes-corner",
+    "name": "North County Mobile Health Center (Valley Homeless Healthcare Program)",
+    "categories": [
+      "medical",
+      "mental_health"
+    ],
+    "description": "Free medical care, psychiatry, and social work for people experiencing homelessness in Santa Clara County. The mobile clinic visits Hope's Corner in Mountain View on the days listed. First come, first served. A street medicine team can also be requested by referral.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "Hope's Corner, 748 Mercy St, Mountain View",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "888-334-1000"
+      }
+    ],
+    "web": null,
+    "hours": "2nd Wed 8:30 to 11:30 am; 1st Thu 9:30 am to 12 pm; 2nd and 4th Thu 9:30 am to 4 pm",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "peninsula-healthcare-connection",
+    "name": "Peninsula Healthcare Connection",
+    "categories": [
+      "medical",
+      "mental_health",
+      "substance_use"
+    ],
+    "description": "Free clinic for people experiencing homelessness. Insurance not required. Medical care, counseling, psychiatric medication, substance use treatment.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "33 Encina Ave, #103, Palo Alto, CA 94301",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-853-0321"
+      }
+    ],
+    "web": "peninsulahcc.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness",
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "ravenswood-family-health-east-palo-alto",
+    "name": "Ravenswood Family Health Network",
+    "categories": [
+      "medical",
+      "dental",
+      "vision_hearing",
+      "mental_health",
+      "benefits"
+    ],
+    "description": "Community clinic near WeHOPE. Primary care, dental, eye care, counseling, pharmacy. Serves patients regardless of insurance or immigration status. Sliding scale fees ($20 to $50); accepts Medi-Cal. Call first.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "1885 Bay Rd, East Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-7400"
+      },
+      {
+        "label": "Medi-Cal sign-up help (1842 Bay Rd)",
+        "number": "650-330-7416"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Thu 8 am to 7 pm (Tue from 9:30); Fri 8 to 5; Sat 8 to 1",
+    "walkIn": false,
+    "cost": "sliding_scale",
+    "acceptsMediCal": true,
+    "languages": [
+      "English",
+      "Spanish",
+      "Mandarin",
+      "Tongan",
+      "Samoan"
+    ],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [
+      {
+        "field": "name",
+        "values": [
+          {
+            "value": "Ravenswood Family Health Center",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "Ravenswood Family Health Network",
+            "source": "WeHOPE (East Palo Alto)"
+          }
+        ]
+      }
+    ],
+    "notes": "Medi-Cal sign-up help is at 1842 Bay Rd. Languages and 'call first' come from the Mountain View guide."
+  },
+  {
+    "id": "ravenswood-mayview-clinic-palo-alto",
+    "name": "Ravenswood MayView clinic",
+    "categories": [
+      "medical",
+      "dental",
+      "vision_hearing",
+      "mental_health"
+    ],
+    "description": "Community clinic. Primary care, counseling, eye care, dental. Serves patients regardless of insurance status. Sliding scale fees.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "270 Grant Ave, Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-327-8717"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": null,
+    "cost": "sliding_scale",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [
+      {
+        "field": "name",
+        "values": [
+          {
+            "value": "MayView Community Health Center (listed as its second site)",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "Ravenswood MayView clinic",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "650-965-3323 (MayView main number; no separate number given for 270 Grant Ave)",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "650-327-8717",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      }
+    ],
+    "notes": "The Mountain View guide lists 270 Grant Ave only as the second site of MayView Community Health Center; main field values come from the Sunnyvale guide, which lists this site directly. Verify name and phone."
+  },
+  {
+    "id": "rotacare-free-clinic-san-jose",
+    "name": "RotaCare Free Clinic, San Jose",
+    "categories": [
+      "medical"
+    ],
+    "description": "Free medical care, no insurance required.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "100 Oak St",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-715-3088"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in, Wednesdays 5 to 9 pm",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "valley-health-center-milpitas",
+    "name": "Valley Health Center Milpitas",
+    "categories": [
+      "medical",
+      "dental",
+      "vision_hearing",
+      "mental_health"
+    ],
+    "description": "County clinic across from the library. Primary care for adults and children, dental, eye care, behavioral health, pharmacy. Accepts Medi-Cal. Financial assistance programs for uninsured patients.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "143 N Main St, Milpitas",
+    "phones": [
+      {
+        "label": "Appointments",
+        "number": "888-334-1000"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "valley-health-center-sunnyvale",
+    "name": "Valley Health Center Sunnyvale",
+    "categories": [
+      "medical",
+      "dental",
+      "mental_health"
+    ],
+    "description": "County clinic. Primary care for adults and children, dental, behavioral health, pharmacy. Accepts Medi-Cal. Financial assistance programs for uninsured patients.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "660 S Fair Oaks Ave, Sunnyvale",
+    "phones": [
+      {
+        "label": "Appointments",
+        "number": "888-334-1000"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "valley-homeless-healthcare-program-alexian",
+    "name": "Valley Homeless Healthcare Program",
+    "categories": [
+      "medical",
+      "mental_health"
+    ],
+    "description": "Free primary and urgent care, mental health care, and social work for people experiencing homelessness, no referral needed. Clinics, medical buses, a street medicine team, a teen van, a gender clinic, and mobile units. Walk-in visits are first come, first served.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Valley Health Center at Alexian, 2101 Alexian Dr, Suite D, San Jose",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-885-5000"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in, Mon to Fri 8:30 am to 5 pm",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness",
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "408-885-5000",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "888-334-1000",
+            "source": "Hope for the Unhoused (Milpitas)"
+          },
+          {
+            "value": "888-334-1000",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "hours",
+        "values": [
+          {
+            "value": "Walk in, Mon to Fri 8:30 am to 5 pm",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "Mon to Fri 8 am to 5 pm",
+            "source": "Hope for the Unhoused (Milpitas)"
+          },
+          {
+            "value": "Mon to Fri 8 to 5",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      }
+    ],
+    "notes": "Main field values from the San Jose guide, which lists this site directly. Milpitas and Sunnyvale guides give 888-334-1000 (the county appointment line) and an 8 am opening. Verify."
+  },
+  {
+    "id": "washington-neighborhood-clinic",
+    "name": "Washington Neighborhood Clinic",
+    "categories": [
+      "medical"
+    ],
+    "description": "Clinic at the same address as RotaCare Free Clinic (100 Oak St), on weekdays.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "100 Oak St",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-295-0980"
+      }
+    ],
+    "web": null,
+    "hours": "Weekdays",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Mentioned within the RotaCare entry of the San Jose guide; no further detail given."
+  },
+  {
+    "id": "act-for-mental-health",
+    "name": "ACT for Mental Health",
+    "categories": [
+      "mental_health"
+    ],
+    "description": "Sliding-scale counseling for uninsured and low-income residents. Support groups including a Spanish-speaking group. Call first.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "441 Park Ave, 2nd Floor",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-287-2640"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri 9 am to 6 pm",
+    "walkIn": false,
+    "cost": "sliding_scale",
+    "acceptsMediCal": null,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": "Uninsured and low-income residents",
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "santa-clara-county-behavioral-health-call-center",
+    "name": "County Behavioral Health Call Center",
+    "categories": [
+      "mental_health",
+      "substance_use"
+    ],
+    "description": "Santa Clara County referral line for counseling, psychiatry, detox, treatment, and crisis teams, for Medi-Cal, Medicare, or uninsured residents. Press 2 for referrals; a clinician calls back in 3 to 5 business days. Some clinics only take referrals from this line. Spanish available. For a crisis any time, call 988.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-704-0900"
+      }
+    ],
+    "web": "bhsd.sccgov.org",
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": "Medi-Cal, Medicare, or uninsured Santa Clara County residents",
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [
+      {
+        "field": "name",
+        "values": [
+          {
+            "value": "County Behavioral Health Call Center",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "County Behavioral Health Call Center",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "County mental health and substance use line",
+            "source": "Hope for the Unhoused (Milpitas)"
+          },
+          {
+            "value": "County mental health and substance use line",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "hours",
+        "values": [
+          {
+            "value": "24 hours",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "24 hours",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "Mon to Fri, 8 am to 5 pm",
+            "source": "Hope for the Unhoused (Milpitas)"
+          },
+          {
+            "value": "Mon to Fri, 8 am to 5 pm",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "description",
+        "values": [
+          {
+            "value": "Referral line for Medi-Cal, Medicare, or uninsured residents. Press 2 for referrals; a clinician calls back in 3 to 5 business days. Some clinics only take referrals from this line. Spanish available.",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "Referral line for Medi-Cal, Medicare, or uninsured residents. Press 2 for referrals; a clinician calls back in 3 to 5 business days. Some clinics only take referrals from this line. Spanish available.",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "One number for counseling, psychiatry, detox, treatment, and crisis teams in Santa Clara County. For a crisis any time, call 988.",
+            "source": "Hope for the Unhoused (Milpitas)"
+          },
+          {
+            "value": "One number for counseling, psychiatry, detox, treatment, and crisis teams in Santa Clara County. For a crisis any time, call 988.",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      }
+    ],
+    "notes": "Guides disagree on hours (24 hours vs Mon to Fri 8 am to 5 pm); the narrower hours are shown in the main field until verified. San Mateo County residents, including East Palo Alto, use 800-686-0101 instead."
+  },
+  {
+    "id": "gronowski-center",
+    "name": "Gronowski Center",
+    "categories": [
+      "mental_health"
+    ],
+    "description": "Sliding-scale counseling and therapy for all ages, a few blocks from Hope's Corner. Includes La Clinica Latina (Spanish) and a clinic for LGBTQ+ needs. Care by supervised doctoral trainees. Call first.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "1172 Castro St, Mountain View",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-961-9300"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Thu 9 am to 8 pm; Fri 9 to 4; Sat 10 to 2",
+    "walkIn": false,
+    "cost": "sliding_scale",
+    "acceptsMediCal": null,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": "All ages",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "la-selva-community-clinic",
+    "name": "La Selva Community Clinic",
+    "categories": [
+      "mental_health",
+      "substance_use"
+    ],
+    "description": "Free therapy and psychiatry for uninsured adults, English or Spanish (Medi-Cal accepted for therapy). Psychiatry is evenings, often virtual. Call first.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "4139 El Camino Way, Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-617-8350"
+      },
+      {
+        "label": "Text",
+        "number": "650-484-1428"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 9 am to 4 pm",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [
+      "English",
+      "Spanish"
+    ],
+    "eligibility": "Uninsured adults (Mountain View guide); adults with serious mental health or substance use conditions (Sunnyvale guide)",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "Call: 650-617-8350; Text: 650-484-1428",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "Call: 650-323-1401",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "description",
+        "values": [
+          {
+            "value": "Free therapy and psychiatry for uninsured adults, English or Spanish (Medi-Cal accepted for therapy). Psychiatry is evenings, often virtual. Call first.",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "For adults with serious mental health or substance use conditions. Outpatient care and peer support. English and Spanish, in person or by phone.",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      },
+      {
+        "field": "eligibility",
+        "values": [
+          {
+            "value": "Uninsured adults",
+            "source": "Hope's Corner (Mountain View)"
+          },
+          {
+            "value": "Adults with serious mental health or substance use conditions",
+            "source": "Helping Hands (Sunnyvale Library)"
+          }
+        ]
+      }
+    ],
+    "notes": "Neither guide is more site-specific; main phone/description taken from the Mountain View guide. Hours (Mon to Fri, 9 am to 4 pm) appear only in the Sunnyvale guide; Mountain View guide gives no hours and says psychiatry is evenings. Free cost and Medi-Cal (therapy) are stated only in the Mountain View guide. Verify by phone."
+  },
+  {
+    "id": "ravenswood-counseling",
+    "name": "Ravenswood counseling",
+    "categories": [
+      "mental_health"
+    ],
+    "description": "Counseling and short-term therapy, English and Spanish.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-7441"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "English",
+      "Spanish"
+    ],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no address or hours."
+  },
+  {
+    "id": "roots-south-bay-clinic",
+    "name": "Roots South Bay Clinic",
+    "categories": [
+      "mental_health",
+      "housing",
+      "employment"
+    ],
+    "description": "Wednesday walk-in hours for people experiencing homelessness. Housing, re-entry, and job training support, and connection to behavioral health care.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1898 The Alameda, Suite B",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-490-4710"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in on Wednesdays",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness",
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "san-mateo-county-access-line",
+    "name": "San Mateo County ACCESS line",
+    "categories": [
+      "mental_health",
+      "substance_use"
+    ],
+    "description": "Assessment and referral for counseling, psychiatry, detox, and substance use treatment. Serves Medi-Cal and uninsured residents. For San Mateo County residents, including East Palo Alto.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-686-0101"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 8 am to 5 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": true,
+    "languages": [],
+    "eligibility": "San Mateo County residents (including East Palo Alto) on Medi-Cal or uninsured",
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "ujima-adult-and-family-services",
+    "name": "Ujima Adult and Family Services",
+    "categories": [
+      "mental_health",
+      "crisis"
+    ],
+    "description": "Medication support, 24-hour crisis intervention, case management, and therapy. Centered on the Black and African American community. Call first.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1898 The Alameda",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-928-1700"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri 8 am to 5 pm",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "zephyr-self-help-center",
+    "name": "Zephyr Self-Help Center",
+    "categories": [
+      "mental_health",
+      "employment"
+    ],
+    "description": "Drop-in peer support and skills groups, plus a computer lab for job applications. English and Spanish.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1075 E Santa Clara St (rear of building)",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-792-2140"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in, Mon to Fri 9 am to 4 pm",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "English",
+      "Spanish"
+    ],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "211",
+    "name": "211",
+    "categories": [
+      "other",
+      "shelter"
+    ],
+    "description": "Find any service. Free, 24 hours a day. If a number on a guide is out of date, 211 can provide a current one. In San Mateo County, 211 is the way to reach the county Coordinated Entry list for shelter placement, and the after-hours contact for Samaritan House and WeHOPE safe parking.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "211"
+      }
+    ],
+    "web": null,
+    "hours": "24 hours a day",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "WeHOPE (East Palo Alto)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Listed in the emergency strip of the Milpitas, East Palo Alto, and Sunnyvale guides; Mountain View and San Jose guides mention it in the footer."
+  },
+  {
+    "id": "humane-society-pet-pantry-milpitas",
+    "name": "Pet food: Humane Society Pet Pantry",
+    "categories": [
+      "pets"
+    ],
+    "description": "Free pet food for county residents with financial need, while supplies last.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "901 Ames Ave, Milpitas",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-262-2133, ext. 110"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "County residents with financial need",
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "united-effort-organization",
+    "name": "The United Effort Organization (at Hope's Corner)",
+    "categories": [
+      "phone_id_documents",
+      "benefits",
+      "housing"
+    ],
+    "description": "Help with IDs, phones, public benefits, and housing navigation, on site during meals.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "Hope's Corner, 748 Mercy St, Mountain View",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-996-9607"
+      }
+    ],
+    "web": "theunitedeffort.org",
+    "hours": "Wed 8 to 9 am; Sat 8:30 to 10:30 am",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "milpitas-library",
+    "name": "Milpitas Library",
+    "categories": [
+      "restrooms_wifi"
+    ],
+    "description": "Restrooms, water, free Wi-Fi, computers, phone charging.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "160 N Main St, Milpitas",
+    "phones": [],
+    "web": null,
+    "hours": "Open every day from 10 am (closes 7 pm; 9 pm Mon to Thu)",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "sunnyvale-public-library",
+    "name": "Sunnyvale Public Library",
+    "categories": [
+      "restrooms_wifi"
+    ],
+    "description": "Restrooms, water, free Wi-Fi, computers, phone charging.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "665 W Olive Ave, Sunnyvale",
+    "phones": [],
+    "web": null,
+    "hours": "Mon to Thu 10 am to 9 pm; Fri and Sat 10 to 6; Sun 1 to 6",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "amigos-de-guadalupe-safe-parking",
+    "name": "Amigos de Guadalupe safe parking",
+    "categories": [
+      "safe_parking"
+    ],
+    "description": "Overnight parking with case management.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-341-6080"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no address or hours."
+  },
+  {
+    "id": "move-mountain-view-safe-parking",
+    "name": "Move Mountain View safe parking",
+    "categories": [
+      "safe_parking"
+    ],
+    "description": "For people living in a car or RV. Move Mountain View operates staffed overnight safe parking lots with restrooms.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-861-0181"
+      }
+    ],
+    "web": "movemv.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guides do not list lot addresses."
+  },
+  {
+    "id": "wehope-safe-parking",
+    "name": "WeHOPE safe parking",
+    "categories": [
+      "safe_parking"
+    ],
+    "description": "For people living in a car or RV. WeHOPE operates a safe parking program. Information through WeHOPE or 211.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "WeHOPE",
+        "number": "650-330-8000"
+      },
+      {
+        "label": "211",
+        "number": "211"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no lot address."
+  },
+  {
+    "id": "here4you-hotline",
+    "name": "Here4You Hotline",
+    "categories": [
+      "shelter",
+      "housing"
+    ],
+    "description": "Referrals to emergency shelters and housing waitlists in Santa Clara County.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-385-2400"
+      }
+    ],
+    "web": null,
+    "hours": "9 am to 7 pm, every day",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "lifemoves-haven-family-house",
+    "name": "LifeMoves Haven Family House",
+    "categories": [
+      "shelter",
+      "families"
+    ],
+    "description": "Shelter and services for families with children.",
+    "county": "San Mateo",
+    "city": "Menlo Park",
+    "address": "260 Van Buren Rd, Menlo Park",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-325-8719"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Families with children",
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "salvation-army-emmanuel-house",
+    "name": "Salvation Army Emmanuel House",
+    "categories": [
+      "shelter",
+      "food",
+      "showers_hygiene"
+    ],
+    "description": "Nightly men's shelter with dinner and showers.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-282-1175"
+      }
+    ],
+    "web": null,
+    "hours": "Nightly",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Men",
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide gives no address."
+  },
+  {
+    "id": "samaritan-house-south",
+    "name": "Samaritan House South",
+    "categories": [
+      "shelter",
+      "housing",
+      "food",
+      "benefits"
+    ],
+    "description": "Core Service Agency for East Palo Alto and Menlo Park. Entry point for San Mateo County shelter and housing programs, plus food, rent, and utility assistance. After hours, 211.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": "2396 University Ave, East Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-294-4312"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 9 to 12 and 1 to 5",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "East Palo Alto and Menlo Park",
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "united-effort-shelter-list",
+    "name": "Searchable shelter list (The United Effort)",
+    "categories": [
+      "shelter"
+    ],
+    "description": "Searchable shelter list online.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "theunitedeffort.org/resources/shelter",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "wehope-shelter-east-palo-alto",
+    "name": "WeHOPE shelter",
+    "categories": [
+      "shelter",
+      "food"
+    ],
+    "description": "Beds for single adults, dinner, and case management. Most placements come through the county Coordinated Entry list, reached by calling 211.",
+    "county": "San Mateo",
+    "city": "East Palo Alto",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-8000"
+      }
+    ],
+    "web": null,
+    "hours": "Entry 4:30 pm every day, dinner 7 pm",
+    "walkIn": false,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Single adults",
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Guide lists it as 'here' (the WeHOPE East Palo Alto site) without a street address."
+  },
+  {
+    "id": "dignity-on-wheels-milpitas",
+    "name": "Dignity on Wheels (WeHOPE) - Milpitas Sunday stop",
+    "categories": [
+      "showers_hygiene",
+      "laundry"
+    ],
+    "description": "Free showers, laundry, and hygiene supplies from a mobile trailer. Case management referrals available.",
+    "county": "Santa Clara",
+    "city": "Milpitas",
+    "address": "S Main St, Milpitas",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-8000"
+      }
+    ],
+    "web": "wehope.org/dow-schedule",
+    "hours": "Sundays, 11 am to 3:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "dignity-on-wheels-rotating-sites",
+    "name": "Dignity on Wheels (WeHOPE) - rotating sites",
+    "categories": [
+      "showers_hygiene",
+      "laundry"
+    ],
+    "description": "Dignity on Wheels (WeHOPE) runs showers and laundry at rotating sites.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-8000"
+      }
+    ],
+    "web": "wehope.org/dow-schedule",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "General schedule line as listed in the San Jose guide; no specific San Jose stop is given."
+  },
+  {
+    "id": "dignity-on-wheels-sunnyvale",
+    "name": "Dignity on Wheels (WeHOPE) - Sunnyvale Saturday stop",
+    "categories": [
+      "showers_hygiene",
+      "laundry",
+      "restrooms_wifi"
+    ],
+    "description": "Free showers, laundry, restrooms, and hygiene supplies from a mobile trailer. Case management referrals available.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "Library lot by Charles Street Gardens",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-8000"
+      }
+    ],
+    "web": "wehope.org/dow-schedule",
+    "hours": "Saturdays, 8 am to 12:30 pm",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "dignity-on-wheels-east-palo-alto",
+    "name": "Dignity on Wheels (WeHOPE) - Thursday stop (East Palo Alto guide)",
+    "categories": [
+      "showers_hygiene",
+      "laundry"
+    ],
+    "description": "Free showers, laundry, and hygiene supplies from a mobile trailer. First come, first served.",
+    "county": "San Mateo",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-330-8000"
+      }
+    ],
+    "web": "wehope.org/dow-schedule",
+    "hours": "Thursdays, 2 to 4 pm",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Stops change; see wehope.org/dow-schedule. Guide gives no stop address."
+  },
+  {
+    "id": "lifemoves-opportunity-center",
+    "name": "LifeMoves Opportunity Center",
+    "categories": [
+      "showers_hygiene",
+      "laundry",
+      "food",
+      "clothing",
+      "phone_id_documents"
+    ],
+    "description": "Drop-in center for single adults: showers, laundry, food, clothing, mail, case management.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "33 Encina Ave, Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-853-8672"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 8 am to 4 pm",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Single adults",
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Mail service listed; categorized under phone_id_documents."
+  },
+  {
+    "id": "peninsula-bible-church-showers",
+    "name": "Peninsula Bible Church showers",
+    "categories": [
+      "showers_hygiene"
+    ],
+    "description": "Free showers. Online sign-up; walk-ins as space allows.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "3505 Middlefield Rd, Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-494-3840"
+      }
+    ],
+    "web": null,
+    "hours": "Mon, Wed, Fri 8 to 10:30 am; Sun 4 to 6 pm",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "showers-to-the-people-san-jose-catholic-worker",
+    "name": "Showers to the People (San Jose Catholic Worker)",
+    "categories": [
+      "showers_hygiene",
+      "clothing"
+    ],
+    "description": "Free mobile showers, clothing, and toiletries, no sign-up. Columbus Park (Coleman Ave, next to Guadalupe Gardens) on the 2nd and 4th Thursday of the month.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Columbus Park (Coleman Ave, next to Guadalupe Gardens)",
+    "phones": [
+      {
+        "label": "Current times",
+        "number": "408-297-8330"
+      }
+    ],
+    "web": null,
+    "hours": "2nd and 4th Thursday of the month",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Call 408-297-8330 for current times."
+  },
+  {
+    "id": "santa-clara-county-free-naloxone",
+    "name": "Free naloxone (Narcan)",
+    "categories": [
+      "substance_use"
+    ],
+    "description": "Naloxone reverses an opioid overdose. Free pickup sites and treatment options listed online.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "odfree.santaclaracounty.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope for the Unhoused (Milpitas)",
+      "Helping Hands (Sunnyvale Library)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "511-transit-info",
+    "name": "511 transit information",
+    "categories": [
+      "transit"
+    ],
+    "description": "Live transit times. Also available on Google Maps.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "511"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Mountain View guide directions: Mountain View Transit Center (Caltrain, light rail, buses) is a 10 minute walk from Hope's Corner. Gronowski: walk up Castro St. La Selva and MayView: VTA 22 or Rapid 522 on El Camino Real. allcove and Ravenswood: Caltrain north. San Jose guide directions (from Guadalupe Gardens): VTA Route 60 on Coleman Ave (free from airport stops). Downtown clinics: Route 60 to Metro/Airport Station, then light rail, or a 30 minute walk. Roots and Ujima: 25 minute walk or Route 23. BHUC: 3 miles west by bus."
+  },
+  {
+    "id": "vta-bus-and-light-rail",
+    "name": "Bus and light rail (VTA)",
+    "categories": [
+      "transit"
+    ],
+    "description": "Santa Clara County bus and light rail. Clipper START offers reduced fares for low-income riders.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-321-2300"
+      }
+    ],
+    "web": "vta.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Phone from the Milpitas guide; vta.org from the Mountain View and San Jose guides."
+  },
+  {
+    "id": "samtrans-and-caltrain",
+    "name": "Bus and train (SamTrans and Caltrain)",
+    "categories": [
+      "transit"
+    ],
+    "description": "SamTrans and Caltrain. Clipper START offers reduced fares for low-income riders.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-660-4287"
+      }
+    ],
+    "web": "caltrain.com",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": "Phone from the East Palo Alto guide; caltrain.com from the Mountain View guide."
+  },
+  {
+    "id": "clipper-start-reduced-fares",
+    "name": "Clipper START reduced fares",
+    "categories": [
+      "transit"
+    ],
+    "description": "Clipper START offers reduced transit fares for low-income riders.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "clipperstartcard.com",
+    "hours": null,
+    "walkIn": null,
+    "cost": "low_cost",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Low-income riders",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)",
+      "Hope for the Unhoused (Milpitas)",
+      "Neighborhood Hands (San Jose)",
+      "WeHOPE (East Palo Alto)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "costco-mountain-view-hearing",
+    "name": "Costco Mountain View (hearing test)",
+    "categories": [
+      "vision_hearing"
+    ],
+    "description": "Free hearing test, no membership required.",
+    "county": "Santa Clara",
+    "city": "Mountain View",
+    "address": "1000 N Rengstorff Ave",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-988-1841"
+      }
+    ],
+    "web": null,
+    "hours": "Daily from 9 am",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "allcove-palo-alto",
+    "name": "allcove Palo Alto",
+    "categories": [
+      "youth",
+      "mental_health",
+      "medical",
+      "substance_use"
+    ],
+    "description": "Free drop-in center for young people: mental health, physical and sexual health, substance use and peer support, help with school or work. No referral or insurance needed. Spanish available.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "2741 Middlefield Rd, Palo Alto",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "650-798-6330"
+      }
+    ],
+    "web": null,
+    "hours": "Walk in, Mon to Fri 10 am to 7 pm; Sat 10 to 2",
+    "walkIn": true,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [
+      "Spanish"
+    ],
+    "eligibility": "Ages 12 to 25",
+    "isHotline": false,
+    "sources": [
+      "Hope's Corner (Mountain View)"
+    ],
+    "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  }
+]

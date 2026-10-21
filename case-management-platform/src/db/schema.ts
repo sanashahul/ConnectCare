@@ -1,0 +1,149 @@
+import {
+  bigserial,
+  boolean,
+  date,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+// Columns ending in "Enc" hold AES-256-GCM ciphertext (see src/lib/crypto.ts).
+// Everything identifying or narrative about a client lives in an Enc column.
+// Plaintext columns are limited to what the app needs to filter and count:
+// status, assignment, coarse location, and need categories.
+
+export const roleEnum = pgEnum("role", ["supervisor", "case_manager"]);
+export const clientStatusEnum = pgEnum("client_status", ["new", "active", "closed"]);
+export const intakeSourceEnum = pgEnum("intake_source", ["public_form", "staff"]);
+export const contactTypeEnum = pgEnum("contact_type", ["in_person", "phone", "text", "outreach_site", "other"]);
+export const planStatusEnum = pgEnum("plan_status", ["todo", "referred", "connected", "done", "unable"]);
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull(),
+  role: roleEnum("role").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
+  totpSecretEnc: text("totp_secret_enc"),
+  totpEnabled: boolean("totp_enabled").notNull().default(false),
+  totpLastStep: integer("totp_last_step"),
+  failedLogins: integer("failed_logins").notNull().default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    // SHA-256 of the cookie token, so a database leak does not leak live sessions.
+    id: text("id").primaryKey(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    // "password" = password checked, waiting on 2FA. "full" = signed in.
+    stage: text("stage", { enum: ["password", "full"] }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
+
+export const clients = pgTable(
+  "clients",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    status: clientStatusEnum("status").notNull().default("new"),
+    source: intakeSourceEnum("source").notNull(),
+    assignedToId: uuid("assigned_to_id").references(() => users.id),
+    county: text("county"),
+    city: text("city"),
+    needs: text("needs").array().notNull().default([]),
+    urgent: boolean("urgent").notNull().default(false),
+    // Encrypted JSON: see ClientProfile in src/lib/clients.ts
+    profileEnc: text("profile_enc").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    assignedAt: timestamp("assigned_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+  },
+  (t) => [index("clients_assigned_idx").on(t.assignedToId), index("clients_status_idx").on(t.status)],
+);
+
+export const notes = pgTable(
+  "notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").notNull().references(() => users.id),
+    contactDate: date("contact_date").notNull(),
+    contactType: contactTypeEnum("contact_type").notNull(),
+    needsAddressed: text("needs_addressed").array().notNull().default([]),
+    bodyEnc: text("body_enc").notNull(),
+    followUpDate: date("follow_up_date"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("notes_client_idx").on(t.clientId)],
+);
+
+export const planItems = pgTable(
+  "plan_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+    createdById: uuid("created_by_id").notNull().references(() => users.id),
+    need: text("need").notNull(),
+    resourceId: text("resource_id").references(() => resources.id),
+    // Encrypted JSON: { title, details?, suggestion? } - see PlanItemBody in src/lib/plan.ts
+    bodyEnc: text("body_enc").notNull(),
+    status: planStatusEnum("status").notNull().default("todo"),
+    dueDate: date("due_date"),
+    // AI suggestions that are not in the vetted directory start unverified and are
+    // kept off printouts until a case manager confirms them.
+    aiSuggested: boolean("ai_suggested").notNull().default(false),
+    verified: boolean("verified").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("plan_client_idx").on(t.clientId)],
+);
+
+export const resources = pgTable("resources", {
+  id: text("id").primaryKey(),
+  // Shape: Resource in src/lib/resource-types.ts. Public information, not encrypted.
+  data: jsonb("data").notNull(),
+  active: boolean("active").notNull().default(true),
+  lastVerified: date("last_verified"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedById: uuid("updated_by_id").references(() => users.id),
+});
+
+export const resourceFlags = pgTable("resource_flags", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  resourceId: text("resource_id").notNull().references(() => resources.id, { onDelete: "cascade" }),
+  reportedById: uuid("reported_by_id").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  resolved: boolean("resolved").notNull().default(false),
+  resolvedById: uuid("resolved_by_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Append-only. Never store client names, contact info, or note text here.
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+    userId: uuid("user_id").references(() => users.id),
+    action: text("action").notNull(),
+    clientId: uuid("client_id"),
+    detail: jsonb("detail"),
+    ip: text("ip"),
+  },
+  (t) => [index("audit_at_idx").on(t.at), index("audit_client_idx").on(t.clientId)],
+);
