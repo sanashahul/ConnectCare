@@ -153,6 +153,25 @@ function compactResource(r: Resource) {
   };
 }
 
+/** Tiny request to confirm the API key and model work. Sends no client data. */
+export async function testAiConnection(): Promise<{ ok: boolean; message: string }> {
+  if (!process.env.ANTHROPIC_API_KEY) return { ok: false, message: "ANTHROPIC_API_KEY is not set." };
+  try {
+    const response = await new Anthropic().messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      output_config: { effort: "low" },
+      messages: [{ role: "user", content: "Reply with the single word OK." }],
+    });
+    return { ok: true, message: `Connected (${response.model}).` };
+  } catch (err) {
+    if (err instanceof Anthropic.AuthenticationError) return { ok: false, message: "The API key was rejected. Check ANTHROPIC_API_KEY." };
+    if (err instanceof Anthropic.PermissionDeniedError) return { ok: false, message: "This API key cannot use the model. Check your Anthropic account." };
+    if (err instanceof Anthropic.APIError) return { ok: false, message: `The AI service returned an error (${err.status}).` };
+    return { ok: false, message: "Could not reach the AI service." };
+  }
+}
+
 export type AiResult = { ok: true; plan: AiPlan; searched: boolean } | { ok: false; error: string };
 
 export async function draftPlanWithAi(input: {

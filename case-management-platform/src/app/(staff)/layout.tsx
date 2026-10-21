@@ -11,7 +11,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
     ...(supervisor ? [{ href: "/intake-queue", label: "Intake queue" }] : []),
     { href: "/clients", label: supervisor ? "All clients" : "My clients" },
     { href: "/resources", label: "Resources" },
-    ...(supervisor ? [{ href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }] : []),
+    ...(supervisor ? [{ href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }, { href: "/setup", label: "Setup check" }] : []),
   ];
   return (
     <div className="min-h-screen">

@@ -1,0 +1,42 @@
+# One-click hosting on Render (render.com) for case-management-platform/.
+# In Render: New + → Blueprint → pick this repository. See case-management-platform/DEPLOY.md.
+services:
+  - type: web
+    name: connectcare
+    runtime: node
+    rootDir: case-management-platform
+    plan: starter
+    region: oregon
+    buildCommand: npm ci --include=dev && npm run build
+    preDeployCommand: npm run db:migrate && npm run db:seed-resources
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: connectcare-db
+          property: connectionString
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true
+      - key: GOOGLE_FORM_WEBHOOK_SECRET
+        generateValue: true
+      - key: TOTP_ISSUER
+        value: ConnectCare
+      - key: SESSION_IDLE_MINUTES
+        value: "30"
+      - key: AI_ENABLED
+        value: "true"
+      - key: AI_WEB_SEARCH
+        value: "true"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+databases:
+  - name: connectcare-db
+    plan: basic-256mb
+    region: oregon
+    databaseName: connectcare
+    user: connectcare
+    postgresMajorVersion: "16"

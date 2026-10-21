@@ -1,16 +1,30 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 // AES-256-GCM field encryption. Ciphertext format: "v1.<iv>.<tag>.<data>" (base64url parts).
 // The "v1" prefix leaves room for key rotation: add a v2 key and re-encrypt on read/write.
 
 const VERSION = "v1";
 
+const MIN_KEY_CHARS = 32;
+
 function key(): Buffer {
   const raw = process.env.DATA_ENCRYPTION_KEY;
   if (!raw) throw new Error("DATA_ENCRYPTION_KEY is not set");
   const buf = Buffer.from(raw, "base64");
-  if (buf.length !== 32) throw new Error("DATA_ENCRYPTION_KEY must be 32 bytes, base64-encoded");
-  return buf;
+  if (buf.length === 32) return buf;
+  // Hosts that generate secrets for you (e.g. Render) may not produce exactly 32 base64 bytes.
+  // Any long random value works: derive the 256-bit key from it.
+  if (raw.length < MIN_KEY_CHARS) throw new Error(`DATA_ENCRYPTION_KEY must be at least ${MIN_KEY_CHARS} characters`);
+  return createHash("sha256").update(raw).digest();
+}
+
+export function encryptionKeyConfigured(): boolean {
+  try {
+    key();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function encryptString(plaintext: string): string {

@@ -19,6 +19,15 @@ test("encryption round-trips and hides plaintext", () => {
   assert.notEqual(encryptString("same"), encryptString("same"), "random IV per value");
 });
 
+test("a long non-base64 key (as some hosts generate) still works", () => {
+  const saved = process.env.DATA_ENCRYPTION_KEY;
+  process.env.DATA_ENCRYPTION_KEY = "kq9Zr-generated_by_host_value_that_is_long_enough_123";
+  assert.equal(decryptString(encryptString("hello")), "hello");
+  process.env.DATA_ENCRYPTION_KEY = "too-short";
+  assert.throws(() => encryptString("hello"));
+  process.env.DATA_ENCRYPTION_KEY = saved;
+});
+
 test("tampered ciphertext is rejected", () => {
   const enc = encryptString("secret note");
   const parts = enc.split(".");
