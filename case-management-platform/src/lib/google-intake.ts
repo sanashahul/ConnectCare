@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { ClientProfile } from "./clients";
-import { CITIES, countyForCity, NEEDS } from "./options";
+import { CITIES, countyForCity, DISABILITY_ANSWERS, LANGUAGES, NEEDS } from "./options";
 
 // Receives Google Form submissions sent by google-apps-script/Code.gs.
 // The script signs each request with a shared secret: HMAC-SHA256 over "<timestamp>.<body>".
@@ -34,12 +34,18 @@ export const GooglePayloadSchema = z.object({
   submittedAt: z.string().max(50).optional(),
   answers: z.object({
     name: z.string().trim().min(1, "Name is required").max(120),
+    pronouns: text(40),
+    language: text(60),
+    lgbtqCare: text(20),
+    disability: text(30),
+    accessNeeds: text(1000),
     email: text(200),
     contact: z.string().trim().min(1, "Best place to contact is required").max(500),
     urgentNeed: z.string().trim().min(1, "Urgent need is required").max(2000),
     helpToday: text(20),
     needs: z.array(z.string().max(100)).max(30).optional().default([]),
     area: text(100),
+    otherInfo: text(1500),
     consent: z.boolean(),
   }),
 });
@@ -78,12 +84,21 @@ export function mapGooglePayload(p: GooglePayload) {
   const city = CITIES.find((c) => c.city.toLowerCase() === a.area.toLowerCase())?.city ?? null;
   const [firstName, ...rest] = a.name.split(/\s+/);
   const email = z.string().email().safeParse(a.email).success ? a.email : undefined;
+  // "Other" answers come through as what the person typed.
+  const knownLanguage = LANGUAGES.find((l) => l.toLowerCase() === a.language.toLowerCase());
   const profile: ClientProfile = {
     firstName,
     lastName: rest.join(" ") || undefined,
+    pronouns: a.pronouns || undefined,
+    language: knownLanguage ?? (a.language ? "Other" : undefined),
+    languageOther: !knownLanguage && a.language ? a.language : undefined,
+    lgbtqCare: /^y/i.test(a.lgbtqCare),
+    disability: DISABILITY_ANSWERS.find((d) => d.toLowerCase() === a.disability.toLowerCase()),
+    accessNeeds: a.accessNeeds || undefined,
     email,
     howToReach: a.contact,
     urgentDetails: a.urgentNeed,
+    otherInfo: a.otherInfo || undefined,
     filledOutBy: "self",
     consentAt: p.submittedAt && !Number.isNaN(Date.parse(p.submittedAt)) ? new Date(p.submittedAt).toISOString() : new Date().toISOString(),
   };

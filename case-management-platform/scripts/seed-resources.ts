@@ -6,8 +6,11 @@ import { Pool } from "pg";
 import * as schema from "../src/db/schema";
 import type { Resource } from "../src/lib/resource-types";
 
-// Loads data/resources.json. New ids are inserted. Existing ids are left alone unless
-// --overwrite is passed, so edits made in the app are not lost.
+// Loads data/resources.json:
+//   - new ids are inserted;
+//   - existing entries nobody has touched in the app (no updated_by) are refreshed from the file,
+//     so new sources or flagged conflicts reach the live directory;
+//   - entries edited, verified, or archived in the app are left alone (unless --overwrite).
 
 async function main() {
   const overwrite = process.argv.includes("--overwrite");
@@ -26,13 +29,17 @@ async function main() {
   for (const r of items) {
     const values = { id: r.id, data: r, lastVerified: r.lastVerified, active: true };
     const q = db.insert(schema.resources).values(values);
-    const res = overwrite
-      ? await q.onConflictDoUpdate({ target: schema.resources.id, set: { data: r, lastVerified: r.lastVerified, updatedAt: sql`now()` } })
-      : await q.onConflictDoNothing();
+    const res = await q.onConflictDoUpdate({
+      target: schema.resources.id,
+      set: { data: r, lastVerified: r.lastVerified, updatedAt: sql`now()` },
+      setWhere: overwrite
+        ? undefined
+        : sql`${schema.resources.updatedById} is null and ${schema.resources.data} is distinct from excluded.data`,
+    });
     n += res.rowCount ?? 0;
   }
   await pool.end();
-  console.log(`${n} of ${items.length} resources ${overwrite ? "inserted or updated" : "inserted (existing ones kept)"}.`);
+  console.log(`${n} of ${items.length} resources inserted or refreshed${overwrite ? "" : " (entries edited in the app were kept)"}.`);
 }
 
 main().catch((e) => {

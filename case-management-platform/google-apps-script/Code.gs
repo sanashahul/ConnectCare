@@ -22,12 +22,18 @@ var FORM_TITLE = "Ask for help: Outreach Team";
 // Question titles. Keep these in sync with what the server expects (src/lib/google-intake.ts).
 var Q = {
   name: "Your name",
+  pronouns: "Your pronouns",
   email: "Email",
   contact: "Best place or way to contact you",
+  language: "Preferred language",
   urgentNeed: "What do you need most urgently?",
   helpToday: "Do you need help today?",
   needs: "What else can we help with?",
+  lgbtqCare: "Would you like LGBTQ+ affirming care?",
+  disability: "Do you have a disability, or need any accommodations?",
+  accessNeeds: "If yes, what would help us support you?",
   area: "Which area are you in?",
+  otherInfo: "Anything else you'd like us to know?",
   consent: "Consent",
 };
 
@@ -49,6 +55,12 @@ var NEED_CHOICES = [
   "Safety (violence or abuse)",
   "Pet care",
 ];
+
+// Must match LANGUAGES in src/lib/options.ts ("Other" lets people type their language).
+var LANGUAGE_CHOICES = ["English", "Spanish", "Vietnamese", "Chinese", "Tagalog"];
+
+// Must match DISABILITY_ANSWERS in src/lib/options.ts.
+var DISABILITY_CHOICES = ["Yes", "No", "Prefer not to say"];
 
 // Must match CITIES in src/lib/options.ts.
 var AREA_CHOICES = [
@@ -79,6 +91,7 @@ function setup() {
   var formId = props.getProperty("FORM_ID");
   if (formId) {
     form = FormApp.openById(formId);
+    addMissingQuestions_(form); // forms made by an older version of this script
   } else {
     form = buildForm_();
     props.setProperty("FORM_ID", form.getId());
@@ -117,6 +130,7 @@ function buildForm_() {
   }
 
   form.addTextItem().setTitle(Q.name).setHelpText("First name or nickname is fine.").setRequired(true);
+  addPronouns_(form);
   form
     .addTextItem()
     .setTitle(Q.email)
@@ -127,6 +141,7 @@ function buildForm_() {
     .setTitle(Q.contact)
     .setHelpText("A phone number, or where and when we can usually find you (for example: Hope's Corner on Thursday mornings).")
     .setRequired(true);
+  addLanguage_(form);
   form
     .addParagraphTextItem()
     .setTitle(Q.urgentNeed)
@@ -136,11 +151,75 @@ function buildForm_() {
   today.setChoices([today.createChoice("Yes"), today.createChoice("No")]);
   var needs = form.addCheckboxItem().setTitle(Q.needs);
   needs.setChoices(NEED_CHOICES.map(function (c) { return needs.createChoice(c); }));
+  addLgbtqCare_(form);
+  addDisability_(form);
+  addAccessNeeds_(form);
   var area = form.addListItem().setTitle(Q.area);
   area.setChoices(AREA_CHOICES.map(function (c) { return area.createChoice(c); }));
+  addOtherInfo_(form);
   var consent = form.addCheckboxItem().setTitle(Q.consent).setRequired(true);
   consent.setChoices([consent.createChoice(CONSENT_TEXT)]);
   return form;
+}
+
+function addPronouns_(form) {
+  return form.addTextItem().setTitle(Q.pronouns).setHelpText("Optional. For example: she/her, he/him, they/them.");
+}
+
+function addLanguage_(form) {
+  var item = form.addMultipleChoiceItem().setTitle(Q.language);
+  item.setChoices(LANGUAGE_CHOICES.map(function (c) { return item.createChoice(c); })).showOtherOption(true);
+  return item;
+}
+
+function addLgbtqCare_(form) {
+  var item = form
+    .addMultipleChoiceItem()
+    .setTitle(Q.lgbtqCare)
+    .setHelpText("Optional. Only the case management team will see your answer.");
+  item.setChoices([item.createChoice("Yes"), item.createChoice("No")]);
+  return item;
+}
+
+function addDisability_(form) {
+  var item = form.addMultipleChoiceItem().setTitle(Q.disability).setHelpText("Optional.");
+  item.setChoices(DISABILITY_CHOICES.map(function (c) { return item.createChoice(c); }));
+  return item;
+}
+
+function addAccessNeeds_(form) {
+  return form
+    .addParagraphTextItem()
+    .setTitle(Q.accessNeeds)
+    .setHelpText("Optional. For example: wheelchair access, ASL interpreter, large print, help filling out forms.");
+}
+
+function addOtherInfo_(form) {
+  return form
+    .addParagraphTextItem()
+    .setTitle(Q.otherInfo)
+    .setHelpText("Optional. Share only what you are comfortable with. Please don't include Social Security numbers.");
+}
+
+/** Adds questions introduced after the form was first created, keeping Consent last. */
+function addMissingQuestions_(form) {
+  var titles = form.getItems().map(function (i) { return i.getTitle(); });
+  var has = function (t) { return titles.indexOf(t) !== -1; };
+  var place = function (item, afterTitle) {
+    var items = form.getItems();
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].getTitle() === afterTitle) {
+        form.moveItem(item.getIndex(), i + 1);
+        return;
+      }
+    }
+  };
+  if (!has(Q.pronouns)) place(addPronouns_(form), Q.name);
+  if (!has(Q.language)) place(addLanguage_(form), Q.contact);
+  if (!has(Q.lgbtqCare)) place(addLgbtqCare_(form), Q.needs);
+  if (!has(Q.disability)) place(addDisability_(form), Q.lgbtqCare);
+  if (!has(Q.accessNeeds)) place(addAccessNeeds_(form), Q.disability);
+  if (!has(Q.otherInfo)) place(addOtherInfo_(form), Q.area);
 }
 
 /** Trigger: runs on every form submission. */
@@ -196,17 +275,26 @@ function deliver_(response) {
 }
 
 function toPayload_(response) {
-  var answers = { name: "", email: "", contact: "", urgentNeed: "", helpToday: "", needs: [], area: "", consent: false };
+  var answers = {
+    name: "", pronouns: "", email: "", contact: "", language: "", urgentNeed: "", helpToday: "",
+    needs: [], lgbtqCare: "", disability: "", accessNeeds: "", area: "", otherInfo: "", consent: false,
+  };
   response.getItemResponses().forEach(function (ir) {
     var title = ir.getItem().getTitle();
     var value = ir.getResponse();
     if (title === Q.name) answers.name = String(value);
+    else if (title === Q.pronouns) answers.pronouns = String(value);
+    else if (title === Q.language) answers.language = String(value);
+    else if (title === Q.lgbtqCare) answers.lgbtqCare = String(value);
+    else if (title === Q.disability) answers.disability = String(value);
+    else if (title === Q.accessNeeds) answers.accessNeeds = String(value);
     else if (title === Q.email) answers.email = String(value);
     else if (title === Q.contact) answers.contact = String(value);
     else if (title === Q.urgentNeed) answers.urgentNeed = String(value);
     else if (title === Q.helpToday) answers.helpToday = String(value);
     else if (title === Q.needs) answers.needs = [].concat(value).map(String);
     else if (title === Q.area) answers.area = String(value);
+    else if (title === Q.otherInfo) answers.otherInfo = String(value);
     else if (title === Q.consent) answers.consent = [].concat(value).length > 0;
   });
   return {

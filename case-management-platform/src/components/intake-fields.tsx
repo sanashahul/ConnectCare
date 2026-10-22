@@ -1,4 +1,4 @@
-import { AGE_RANGES, CITIES, INSURANCE, LANGUAGES, NEEDS, OUTREACH_SITES, SLEEPING } from "@/lib/options";
+import { AGE_RANGES, CITIES, DISABILITY_ANSWERS, INSURANCE, INTAKE_NEEDS, LANGUAGES, OUTREACH_SITES, SLEEPING } from "@/lib/options";
 import type { ClientProfile } from "@/lib/clients";
 import { inputClass, labelClass } from "./ui";
 
@@ -48,6 +48,10 @@ export function IntakeFields({ mode, defaults = {}, errors = {} }: {
         <div>
           <label className={labelClass} htmlFor="lastName">Last name <span className="font-normal text-stone-500">(optional)</span></label>
           <input id="lastName" name="lastName" maxLength={60} defaultValue={defaults.lastName} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="pronouns">Pronouns <span className="font-normal text-stone-500">(optional)</span></label>
+          <input id="pronouns" name="pronouns" maxLength={40} placeholder="e.g. she/her, he/him, they/them" defaultValue={defaults.pronouns} className={inputClass} />
         </div>
         <div>
           <label className={labelClass} htmlFor="ageRange">Age</label>
@@ -107,7 +111,7 @@ export function IntakeFields({ mode, defaults = {}, errors = {} }: {
       <fieldset>
         <legend className="text-sm font-semibold text-stone-900">What help {you ? "do you" : "do they"} need? <span className="font-normal text-stone-500">Check all that apply.</span></legend>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {NEEDS.map((n) => (
+          {INTAKE_NEEDS.map((n) => (
             <label key={n.key} className="flex items-center gap-2 rounded-md border border-stone-200 bg-white px-3 py-2 text-sm hover:bg-stone-50">
               <input type="checkbox" name="needs" value={n.key} defaultChecked={defaults.needs?.includes(n.key)} /> {n.label}
             </label>
@@ -121,8 +125,20 @@ export function IntakeFields({ mode, defaults = {}, errors = {} }: {
           <label className="flex items-center gap-2"><input type="checkbox" name="hasVehicle" defaultChecked={defaults.hasVehicle} /> Has a car or RV</label>
           <label className="flex items-center gap-2"><input type="checkbox" name="hasPets" defaultChecked={defaults.hasPets} /> Has a pet</label>
           <label className="flex items-center gap-2"><input type="checkbox" name="hasChildren" defaultChecked={defaults.hasChildren} /> Has children with {you ? "you" : "them"}</label>
+          <label className="flex items-center gap-2"><input type="checkbox" name="lgbtqCare" defaultChecked={defaults.lgbtqCare} /> {you ? "I would" : "Would"} like LGBTQ+ affirming care</label>
         </div>
       </fieldset>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass} htmlFor="disability">{you ? "Do you have" : "Do they have"} a disability, or need any accommodations?</label>
+          <Select name="disability" options={DISABILITY_ANSWERS} defaultValue={defaults.disability} placeholder="Optional" />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="accessNeeds">If yes, what would help?</label>
+          <input id="accessNeeds" name="accessNeeds" maxLength={1000} placeholder="e.g. wheelchair access, ASL interpreter, large print" defaultValue={defaults.accessNeeds} className={inputClass} />
+        </div>
+      </div>
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
         <label className="flex items-center gap-2 text-sm font-medium text-amber-900">

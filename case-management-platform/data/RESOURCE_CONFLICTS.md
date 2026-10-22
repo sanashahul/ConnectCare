@@ -22,3 +22,20 @@ Generated from the five community resource guides (all marked "Checked August 20
 | | note | Neither guide is more site-specific; main phone/description taken from the Mountain View guide. Hours (Mon to Fri, 9 am to 4 pm) appear only in the Sunnyvale guide; Mountain View guide gives no hours and says psychiatry is evenings. Free cost and Medi-Cal (therapy) are stated only in the Mountain View guide. Verify by phone. |
 
 Values shown in resources.json: Valley Homeless Healthcare Program uses the San Jose guide (408-885-5000; walk in Mon to Fri 8:30 am to 5 pm). Ravenswood MayView clinic uses the Sunnyvale guide (650-327-8717). La Selva uses the Mountain View guide (650-617-8350, text 650-484-1428). County Behavioral Health Call Center shows Mon to Fri, 8 am to 5 pm until the 24-hour claim is confirmed. Ravenswood (1885 Bay Rd) uses the East Palo Alto guide name.
+
+## From the SCC Resource Guide (Sep 2026)
+
+Conflicts found when adding the Stanford Medicine Outreach Program's Santa Clara County Resource Guide (September 2026). Main fields in `resources.json` were not changed; the new guide's values are recorded in each entry's `conflicts` so the "Guides disagree" warning shows until someone calls to confirm.
+
+| Organization | Field | Value per guide |
+|---|---|---|
+| Homelessness Prevention line (408-926-8885) | description | Hope's Corner (Mountain View), Hope for the Unhoused (Milpitas), Neighborhood Hands (San Jose), Helping Hands (Sunnyvale Library): Homelessness Prevention line: rent assistance and legal support for people at risk of losing housing.<br>SCC Resource Guide (Sep 2026): Homelessness Prevention System (HPS): one-time or short-term financial assistance (rent, deposit, utilities), legal support, and case management for households at risk of losing housing. No longer restricted by ZIP code.<br>SCC Resource Guide (Sep 2026): Family Shelter Waiting List Hotline (same number): families with children must call daily 10 to 11 am to remain on the shared shelter waiting list. Also given as the access line for the HomeFirst Family Shelters. |
+| | note | The same number is described as two different services. The new HomeFirst Family Shelters entry also lists 408-926-8885 as its waiting-list line. Call to confirm whether this number reaches both. |
+| Valley Homeless Healthcare Program (Valley Health Center at Alexian, 2101 Alexian Dr, Suite D, San Jose) | phones | Neighborhood Hands (San Jose): 408-885-5000<br>Hope for the Unhoused (Milpitas): 888-334-1000<br>Helping Hands (Sunnyvale Library): 888-334-1000<br>SCC Resource Guide (Sep 2026): 408-792-5121 (Alexian clinic) |
+| | note | The SCC guide lists 408-885-5000 as the Santa Clara Valley Medical Center main number (751 S. Bascom Ave), not VHHP. |
+| County Behavioral Health Call Center (800-704-0900) | hours | Hope's Corner (Mountain View): 24 hours<br>Neighborhood Hands (San Jose): 24 hours<br>Hope for the Unhoused (Milpitas): Mon to Fri, 8 am to 5 pm<br>Helping Hands (Sunnyvale Library): Mon to Fri, 8 am to 5 pm<br>SCC Resource Guide (Sep 2026): 24/7 (Access Line) |
+| Sacred Heart Community Service (1381 S First St, San Jose) | phones | Neighborhood Hands (San Jose): 408-278-2160<br>SCC Resource Guide (Sep 2026): 408-283-6114 (Food Pantry); 408-916-5053 (Clothes Closet) |
+| 211 | phones | Hope's Corner (Mountain View), Hope for the Unhoused (Milpitas), Neighborhood Hands (San Jose), WeHOPE (East Palo Alto), Helping Hands (Sunnyvale Library): 211<br>SCC Resource Guide (Sep 2026): 211; or text your ZIP code to 898211 |
+| | note | Not a contradiction: the SCC guide adds a text option. Confirm before adding it to the main phone list. |
+| Law Foundation of Silicon Valley (4 North Second St, San Jose), new entry | phones | SCC Resource Guide (Sep 2026), Legal Aid section: 408-280-2424 (Housing Program intake)<br>SCC Resource Guide (Sep 2026), Immigration Services section: 408-280-2420 |
+| | note | The same guide gives two numbers that differ by one digit. Both are shown on the entry until one is confirmed. |

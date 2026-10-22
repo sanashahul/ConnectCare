@@ -10,8 +10,29 @@ import { requireSupervisor, requireUser } from "@/lib/auth";
 import { RESOURCE_CATEGORIES, type Resource } from "@/lib/resource-types";
 import { getResource, insertDirectoryResource } from "@/lib/resources";
 import { todayIso } from "@/lib/followups";
+import { displayName, getClientForUser } from "@/lib/clients";
+import { addPlanItem } from "../clients/actions";
 
 export type ResourceFormState = { error?: string; ok?: boolean } | undefined;
+
+export type AssignState = { error?: string; ok?: boolean; clientId?: string; clientName?: string } | undefined;
+
+/** Puts this resource on a client's plan as a To do step. Case managers: their clients; supervisors: anyone. */
+export async function assignResource(resourceId: string, _: AssignState, form: FormData): Promise<AssignState> {
+  const user = await requireUser();
+  const clientId = String(form.get("clientId") ?? "");
+  const client = await getClientForUser(user, clientId);
+  if (!client) return { error: "Choose one of your clients." };
+  if (!(await getResource(resourceId))) return { error: "That resource no longer exists." };
+  const planForm = new FormData();
+  planForm.set("need", String(form.get("need") ?? ""));
+  planForm.set("resourceId", resourceId);
+  planForm.set("title", String(form.get("title") ?? ""));
+  planForm.set("dueDate", String(form.get("dueDate") ?? ""));
+  const result = await addPlanItem(client.id, undefined, planForm);
+  if (result?.error) return { error: result.error };
+  return { ok: true, clientId: client.id, clientName: displayName(client.profile) };
+}
 
 export async function flagResource(resourceId: string, _: ResourceFormState, form: FormData): Promise<ResourceFormState> {
   const user = await requireUser();

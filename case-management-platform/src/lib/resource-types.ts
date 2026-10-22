@@ -43,6 +43,7 @@ export const RESOURCE_CATEGORIES: { key: string; label: string }[] = [
   { key: "domestic_violence", label: "Domestic violence" },
   { key: "youth", label: "Youth" },
   { key: "families", label: "Families" },
+  { key: "lgbtq", label: "LGBTQ+ affirming" },
   { key: "legal", label: "Legal" },
   { key: "employment", label: "Employment" },
   { key: "phone_id_documents", label: "Phone, ID & documents" },

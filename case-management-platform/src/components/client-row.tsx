@@ -21,6 +21,7 @@ export function ClientLabel({ client, className = "" }: { client: ClientWithProf
   return (
     <span className={`inline-flex items-baseline gap-2 ${className}`}>
       <span className="font-semibold text-stone-900">{displayName(client.profile)}</span>
+      {client.profile.pronouns && <span className="text-xs text-stone-500">({client.profile.pronouns})</span>}
       <span className="font-mono text-xs text-stone-400">{client.clientCode}</span>
     </span>
   );

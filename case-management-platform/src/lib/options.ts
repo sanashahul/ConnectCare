@@ -16,7 +16,12 @@ export const NEEDS = [
   { key: "legal", label: "Legal help", resourceCategories: ["legal"] },
   { key: "safety", label: "Safety (violence or abuse)", resourceCategories: ["domestic_violence"] },
   { key: "pets", label: "Pet care", resourceCategories: ["pets"] },
+  // Asked as its own question and stored encrypted in the profile (not in the plaintext needs list).
+  { key: "lgbtq", label: "LGBTQ+ affirming care", resourceCategories: ["lgbtq"] },
 ] as const;
+
+/** Needs shown as intake checkboxes (LGBTQ+ care is asked separately). */
+export const INTAKE_NEEDS = NEEDS.filter((n) => n.key !== "lgbtq");
 
 export type NeedKey = (typeof NEEDS)[number]["key"];
 export const NEED_KEYS = NEEDS.map((n) => n.key) as NeedKey[];
@@ -53,6 +58,8 @@ export const OUTREACH_SITES = [
 export const AGE_RANGES = ["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Prefer not to say"] as const;
 
 export const LANGUAGES = ["English", "Spanish", "Vietnamese", "Chinese", "Tagalog", "Other"] as const;
+
+export const DISABILITY_ANSWERS = ["Yes", "No", "Prefer not to say"] as const;
 
 export const INSURANCE = ["Medi-Cal", "Medicare", "Private insurance", "None", "Not sure"] as const;
 

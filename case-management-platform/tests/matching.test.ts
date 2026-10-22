@@ -47,6 +47,11 @@ test("youth-only programs are excluded for older adults", () => {
   assert.ok(m.matches.every((x) => !x.resource.categories.includes("youth")));
 });
 
+test("LGBTQ+ affirming care finds tagged resources", () => {
+  const [m] = matchResources(resources, { city: "San Jose", county: "Santa Clara", needs: ["lgbtq"] }, 10);
+  assert.ok(m.matches.some((x) => x.resource.id === "lgbtq-youth-space" || x.resource.id === "gronowski-center"));
+});
+
 test("printout header numbers exist for each county", () => {
   for (const county of ["Santa Clara", "San Mateo", null]) {
     const nums = emergencyNumbers(resources, county);
@@ -64,7 +69,7 @@ test("intake requires a first name and validates needs", () => {
   const res = readIntakeForm(f);
   assert.equal(res.success, false);
   const ok = IntakeSchema.safeParse({
-    firstName: "Sam", needs: ["food"], urgent: false, filledOutBy: "self", hasVehicle: false, hasPets: false, hasChildren: false,
+    firstName: "Sam", needs: ["food"], urgent: false, filledOutBy: "self", hasVehicle: false, hasPets: false, hasChildren: false, lgbtqCare: false,
   });
   assert.equal(ok.success, true);
 });

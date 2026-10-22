@@ -8,7 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
-import { displayName, encryptProfile, getClientForUser, insertClient } from "@/lib/clients";
+import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
 import { CONTACT_TYPES, NEED_KEYS, NEEDS, PLAN_STATUSES } from "@/lib/options";
@@ -354,12 +354,12 @@ export async function runAiPlanner(clientId: string, question: string): Promise<
   const { user, client } = await clientOr404(clientId);
   if (!aiEnabled()) return { ok: false, error: "The AI assistant is turned off for this site." };
   if (!(await rateLimit(`ai:${user.id}`, 20, 60 * 60_000))) return { ok: false, error: "AI limit reached for this hour." };
-  if (client.needs.length === 0) return { ok: false, error: "Add at least one need to the client profile first." };
+  if (matchingNeeds(client).length === 0) return { ok: false, error: "Add at least one need to the client profile first." };
 
   const p = client.profile;
   const profile: AiProfile = {
     county: client.county,
-    needs: client.needs,
+    needs: matchingNeeds(client),
     ageRange: p.ageRange ?? null,
     language: p.language ?? null,
     insurance: p.insurance ?? null,

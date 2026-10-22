@@ -70,7 +70,7 @@ npm run build
 
 - **Day to day:** supervisors edit resources in the app. Saving marks an entry as verified today. Entries not verified in 90 days are flagged.
 - **Where the guides disagree:** [data/RESOURCE_CONFLICTS.md](data/RESOURCE_CONFLICTS.md) lists every conflict, and the affected entries show a "Guides disagree: check" badge until a supervisor confirms them.
-- **Bulk changes:** edit `data/resources.json` and run `npm run db:seed-resources`. This adds new entries and leaves existing ones alone. Use `-- --overwrite` to replace existing entries from the file, which discards edits made in the app.
+- **Bulk changes:** edit `data/resources.json` and deploy (or run `npm run db:seed-resources`). New entries are added, and entries nobody has edited in the app are refreshed from the file. Entries a supervisor edited, verified, or archived in the app are left alone. Use `-- --overwrite` to replace everything from the file.
 
 ## The AI assistant
 

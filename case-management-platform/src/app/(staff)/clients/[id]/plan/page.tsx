@@ -4,7 +4,7 @@ import { ResourceSummary } from "@/components/resource-card";
 import { Badge, Card, EmptyState, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { aiEnabled, describeAiPayload } from "@/lib/ai";
 import { requireUser } from "@/lib/auth";
-import { displayName, getClientForUser } from "@/lib/clients";
+import { displayName, getClientForUser, matchingNeeds } from "@/lib/clients";
 import { needLabel } from "@/lib/options";
 import { matchResources } from "@/lib/resource-match";
 import { getActiveResources } from "@/lib/resources";
@@ -24,7 +24,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   const matches = matchResources(resources, {
     city: client.city,
     county: client.county,
-    needs: client.needs,
+    needs: matchingNeeds(client),
     language: p.language,
     insurance: p.insurance,
     ageRange: p.ageRange,
@@ -33,7 +33,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   });
   const payload = describeAiPayload({
     county: client.county,
-    needs: client.needs,
+    needs: matchingNeeds(client),
     ageRange: p.ageRange ?? null,
     language: p.language ?? null,
     insurance: p.insurance ?? null,
