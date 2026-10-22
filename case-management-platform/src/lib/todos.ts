@@ -1,13 +1,12 @@
 import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { db, schema } from "@/db";
-import type { CurrentUser } from "./auth";
 import { displayName, type ClientProfile } from "./clients";
 import { decryptJson, decryptString } from "./crypto";
 import { needLabel } from "./options";
 import { decryptPlanBody } from "./plan";
 
 // One to-do list per staff member, combining:
-//   - open plan steps (To do / Referred) for clients assigned to them
+//   - unfinished plan steps (To do / Referred / Connected) for clients assigned to them
 //   - each client's latest follow-up date from the contact log
 //   - their own tasks
 // Items are grouped by priority (Urgent, High, Medium). Within a group the order is theirs to arrange
@@ -25,13 +24,19 @@ export type TodoItem = {
   clientName?: string;
   clientCode?: string;
   need?: string;
+  /** Plan steps only: where the step stands. */
+  status?: "todo" | "referred" | "connected";
   dueDate?: string;
   urgent?: boolean;
 };
 
+/** Plan step statuses that still belong on the to-do list. */
+export const OPEN_PLAN_STATUSES = ["todo", "referred", "connected"] as const;
+
 export const TODO_KEY_PATTERN = /^(task:[0-9a-f-]{36}|plan:[0-9a-f-]{36}|followup:[0-9a-f-]{36}:\d{4}-\d{2}-\d{2})$/;
 
-export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
+/** The to-do list for one staff member (also used, read-only, when a supervisor views it). */
+export async function todoItemsFor(user: { id: string }): Promise<TodoItem[]> {
   const myClients = await db
     .select({ id: schema.clients.id, code: schema.clients.clientCode, urgent: schema.clients.urgent, profileEnc: schema.clients.profileEnc })
     .from(schema.clients)
@@ -48,7 +53,7 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
     const plan = await db
       .select()
       .from(schema.planItems)
-      .where(and(inArray(schema.planItems.clientId, clientIds), inArray(schema.planItems.status, ["todo", "referred"])));
+      .where(and(inArray(schema.planItems.clientId, clientIds), inArray(schema.planItems.status, [...OPEN_PLAN_STATUSES])));
     for (const p of plan) {
       const c = clientById.get(p.clientId)!;
       items.push({
@@ -59,6 +64,7 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
         clientName: c.name,
         clientCode: c.code,
         need: needLabel(p.need),
+        status: p.status as TodoItem["status"],
         dueDate: p.dueDate ?? undefined,
         urgent: c.urgent,
         createdAt: p.createdAt.getTime(),

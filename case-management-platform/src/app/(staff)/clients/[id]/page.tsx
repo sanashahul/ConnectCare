@@ -9,10 +9,11 @@ import { requireUser } from "@/lib/auth";
 import { displayName, getClientForUser, SOURCE_LABELS } from "@/lib/clients";
 import { decryptString } from "@/lib/crypto";
 import { caseManagers } from "@/lib/followups";
-import { CONTACT_TYPES, needLabel, PLAN_STATUSES } from "@/lib/options";
+import { CONTACT_TYPES, needLabel } from "@/lib/options";
 import { decryptPlanBody } from "@/lib/plan";
 import { assignClient, deleteClient, setClientStatus, updatePlanItem } from "../actions";
 import { AddPlanItemForm, NoteForm } from "./forms";
+import { StatusSelect } from "./status-select";
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -171,14 +172,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                         )}
                         {item.body.details && <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{item.body.details}</p>}
                       </div>
-                      <form action={updatePlanItem} className="flex items-center gap-1">
-                        <input type="hidden" name="itemId" value={item.id} />
-                        <input type="hidden" name="intent" value="status" />
-                        <select name="status" defaultValue={item.status} className="rounded border border-stone-300 px-1 py-1 text-xs">
-                          {PLAN_STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-                        </select>
-                        <button className={smallButtonClass}>Update</button>
-                      </form>
+                      <StatusSelect itemId={item.id} status={item.status} action={updatePlanItem} />
                     </div>
                     {!item.verified && (
                       <form action={updatePlanItem} className="mt-2 flex flex-wrap items-center gap-2">
