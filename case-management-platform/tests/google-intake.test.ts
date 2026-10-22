@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
 import { GooglePayloadSchema, inferNeeds, mapGooglePayload, signPayload, verifySignature } from "../src/lib/google-intake";
-import { CITIES, INTAKE_NEEDS, LANGUAGES } from "../src/lib/options";
+import { CITIES, DISABILITY_ANSWERS, INTAKE_NEEDS, LANGUAGES } from "../src/lib/options";
 import { CONSENT_TEXT } from "../src/lib/intake";
 
 const SECRET = "x".repeat(40);
@@ -59,6 +59,9 @@ test("pronouns, language, and LGBTQ+ care map from the form", () => {
   assert.equal(a.profile.lgbtqCare, true);
   const d = mapGooglePayload(GooglePayloadSchema.parse({ responseId: "r", answers: { ...base, otherInfo: "I have a service dog." } }));
   assert.equal(d.profile.otherInfo, "I have a service dog.");
+  const e = mapGooglePayload(GooglePayloadSchema.parse({ responseId: "r", answers: { ...base, disability: "Yes", accessNeeds: "Wheelchair access" } }));
+  assert.equal(e.profile.disability, "Yes");
+  assert.equal(e.profile.accessNeeds, "Wheelchair access");
   const b = mapGooglePayload(GooglePayloadSchema.parse({ responseId: "r", answers: { ...base, language: "Amharic", lgbtqCare: "No" } }));
   assert.equal(b.profile.language, "Other");
   assert.equal(b.profile.languageOther, "Amharic");
@@ -75,6 +78,7 @@ test("Apps Script choices and consent match the app", () => {
   vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
   assert.deepEqual([...(ctx.NEED_CHOICES as string[])], INTAKE_NEEDS.map((n) => n.label));
   assert.deepEqual([...(ctx.LANGUAGE_CHOICES as string[])], LANGUAGES.filter((l) => l !== "Other"));
+  assert.deepEqual([...(ctx.DISABILITY_CHOICES as string[])], [...DISABILITY_ANSWERS]);
   assert.deepEqual([...(ctx.AREA_CHOICES as string[])], CITIES.map((c) => c.city));
   assert.equal(ctx.CONSENT_TEXT, CONSENT_TEXT);
 });

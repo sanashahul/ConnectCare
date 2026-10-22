@@ -21,6 +21,10 @@ export type ClientProfile = {
   languageOther?: string;
   /** Would like LGBTQ+ affirming care. Kept encrypted, never in the plaintext needs list. */
   lgbtqCare?: boolean;
+  /** "Yes" | "No" | "Prefer not to say". Encrypted like the rest of the profile. */
+  disability?: string;
+  /** Accommodations that would help (wheelchair access, ASL, large print...). */
+  accessNeeds?: string;
   insurance?: string;
   outreachSite?: string;
   urgentDetails?: string;

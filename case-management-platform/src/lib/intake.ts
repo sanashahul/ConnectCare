@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AGE_RANGES, CITIES, INSURANCE, LANGUAGES, NEED_KEYS, OUTREACH_SITES, SLEEPING, countyForCity } from "./options";
+import { AGE_RANGES, CITIES, DISABILITY_ANSWERS, INSURANCE, LANGUAGES, NEED_KEYS, OUTREACH_SITES, SLEEPING, countyForCity } from "./options";
 import type { ClientProfile } from "./clients";
 
 // Shared by the public form and the staff "new client" form.
@@ -33,6 +33,8 @@ export const IntakeSchema = z.object({
   hasPets: z.boolean(),
   hasChildren: z.boolean(),
   lgbtqCare: z.boolean(),
+  disability: optionalEnum(DISABILITY_ANSWERS),
+  accessNeeds: optionalText(1000),
 });
 export type IntakeInput = z.infer<typeof IntakeSchema>;
 
@@ -61,6 +63,8 @@ export function readIntakeForm(form: FormData) {
     hasPets: form.get("hasPets") === "on",
     hasChildren: form.get("hasChildren") === "on",
     lgbtqCare: form.get("lgbtqCare") === "on",
+    disability: s("disability"),
+    accessNeeds: s("accessNeeds"),
   });
 }
 
@@ -84,6 +88,8 @@ export function toClientColumns(input: IntakeInput) {
     hasPets: input.hasPets,
     hasChildren: input.hasChildren,
     lgbtqCare: input.lgbtqCare,
+    disability: input.disability,
+    accessNeeds: input.accessNeeds,
     filledOutBy: input.filledOutBy,
   };
   return {

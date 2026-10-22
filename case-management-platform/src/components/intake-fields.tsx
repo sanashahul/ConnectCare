@@ -1,4 +1,4 @@
-import { AGE_RANGES, CITIES, INSURANCE, INTAKE_NEEDS, LANGUAGES, OUTREACH_SITES, SLEEPING } from "@/lib/options";
+import { AGE_RANGES, CITIES, DISABILITY_ANSWERS, INSURANCE, INTAKE_NEEDS, LANGUAGES, OUTREACH_SITES, SLEEPING } from "@/lib/options";
 import type { ClientProfile } from "@/lib/clients";
 import { inputClass, labelClass } from "./ui";
 
@@ -128,6 +128,17 @@ export function IntakeFields({ mode, defaults = {}, errors = {} }: {
           <label className="flex items-center gap-2"><input type="checkbox" name="lgbtqCare" defaultChecked={defaults.lgbtqCare} /> {you ? "I would" : "Would"} like LGBTQ+ affirming care</label>
         </div>
       </fieldset>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass} htmlFor="disability">{you ? "Do you have" : "Do they have"} a disability, or need any accommodations?</label>
+          <Select name="disability" options={DISABILITY_ANSWERS} defaultValue={defaults.disability} placeholder="Optional" />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="accessNeeds">If yes, what would help?</label>
+          <input id="accessNeeds" name="accessNeeds" maxLength={1000} placeholder="e.g. wheelchair access, ASL interpreter, large print" defaultValue={defaults.accessNeeds} className={inputClass} />
+        </div>
+      </div>
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
         <label className="flex items-center gap-2 text-sm font-medium text-amber-900">

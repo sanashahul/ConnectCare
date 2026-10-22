@@ -59,6 +59,8 @@ export const AGE_RANGES = ["Under 18", "18-24", "25-34", "35-44", "45-54", "55-6
 
 export const LANGUAGES = ["English", "Spanish", "Vietnamese", "Chinese", "Tagalog", "Other"] as const;
 
+export const DISABILITY_ANSWERS = ["Yes", "No", "Prefer not to say"] as const;
+
 export const INSURANCE = ["Medi-Cal", "Medicare", "Private insurance", "None", "Not sure"] as const;
 
 export const SLEEPING = [

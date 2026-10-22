@@ -80,6 +80,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               <Row label="Pronouns" value={p.pronouns} />
               <Row label="Preferred language" value={languageLabel(p)} />
               <Row label="LGBTQ+ care" value={p.lgbtqCare ? "Would like LGBTQ+ affirming care" : undefined} />
+              <Row label="Disability" value={p.disability} />
+              <Row label="Accommodations" value={p.accessNeeds} />
               <Row label="Insurance" value={p.insurance} />
               <Row label="Staying" value={p.sleeping} />
               <Row

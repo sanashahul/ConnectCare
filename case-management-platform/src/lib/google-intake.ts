@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { ClientProfile } from "./clients";
-import { CITIES, countyForCity, LANGUAGES, NEEDS } from "./options";
+import { CITIES, countyForCity, DISABILITY_ANSWERS, LANGUAGES, NEEDS } from "./options";
 
 // Receives Google Form submissions sent by google-apps-script/Code.gs.
 // The script signs each request with a shared secret: HMAC-SHA256 over "<timestamp>.<body>".
@@ -37,6 +37,8 @@ export const GooglePayloadSchema = z.object({
     pronouns: text(40),
     language: text(60),
     lgbtqCare: text(20),
+    disability: text(30),
+    accessNeeds: text(1000),
     email: text(200),
     contact: z.string().trim().min(1, "Best place to contact is required").max(500),
     urgentNeed: z.string().trim().min(1, "Urgent need is required").max(2000),
@@ -91,6 +93,8 @@ export function mapGooglePayload(p: GooglePayload) {
     language: knownLanguage ?? (a.language ? "Other" : undefined),
     languageOther: !knownLanguage && a.language ? a.language : undefined,
     lgbtqCare: /^y/i.test(a.lgbtqCare),
+    disability: DISABILITY_ANSWERS.find((d) => d.toLowerCase() === a.disability.toLowerCase()),
+    accessNeeds: a.accessNeeds || undefined,
     email,
     howToReach: a.contact,
     urgentDetails: a.urgentNeed,
