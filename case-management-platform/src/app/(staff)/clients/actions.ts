@@ -89,28 +89,40 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
   redirect(`/clients/${id}`);
 }
 
-export async function assignClient(form: FormData) {
+export type AssignClientState = { ok?: boolean; error?: string; assigneeId?: string; assigneeName?: string } | undefined;
+
+/** Supervisors assign (or reassign / unassign) a client. Returns a result so the form can confirm the save. */
+export async function assignClient(_prev: AssignClientState, form: FormData): Promise<AssignClientState> {
   const user = await requireSupervisor();
-  const clientId = String(form.get("clientId"));
+  const clientId = String(form.get("clientId") ?? "");
   const assigneeId = String(form.get("assigneeId") ?? "");
+  const fromQueue = form.get("from") === "queue";
+  if (!z.string().uuid().safeParse(clientId).success) return { error: "This client could not be found. Refresh the page and try again." };
   const client = await getClientForUser(user, clientId);
-  if (!client) notFound();
+  if (!client) return { error: "This client could not be found. They may have been deleted." };
+  if (fromQueue && !assigneeId) return { error: "Choose a case manager first." };
   const assignee = assigneeId
-    ? await db.query.users.findFirst({ where: and(eq(schema.users.id, assigneeId), eq(schema.users.active, true)) })
+    ? await db.query.users.findFirst({
+        where: and(eq(schema.users.id, assigneeId), eq(schema.users.active, true), eq(schema.users.role, "case_manager")),
+      })
     : null;
-  if (assigneeId && !assignee) return;
-  await db
-    .update(schema.clients)
-    .set({
-      assignedToId: assignee?.id ?? null,
-      assignedAt: assignee ? new Date() : null,
-      status: assignee ? (client.status === "closed" ? "closed" : "active") : "new",
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.clients.id, clientId));
-  await audit({ userId: user.id, action: "client.assigned", clientId, detail: { assigneeId: assignee?.id ?? null } });
-  revalidatePath("/intake-queue");
-  revalidatePath(`/clients/${clientId}`);
+  if (assigneeId && !assignee) return { error: "That case manager's account is no longer active. Refresh the page and pick someone else." };
+
+  if ((assignee?.id ?? null) !== client.assignedToId) {
+    await db
+      .update(schema.clients)
+      .set({
+        assignedToId: assignee?.id ?? null,
+        assignedAt: assignee ? new Date() : null,
+        status: assignee ? (client.status === "closed" ? "closed" : "active") : "new",
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.clients.id, clientId));
+    await audit({ userId: user.id, action: "client.assigned", clientId, detail: { assigneeId: assignee?.id ?? null } });
+  }
+  for (const path of ["/intake-queue", `/clients/${clientId}`, "/clients", "/dashboard", "/team"]) revalidatePath(path);
+  if (fromQueue) redirect(`/intake-queue?assigned=${clientId}`);
+  return { ok: true, assigneeId: assignee?.id ?? "", assigneeName: assignee?.name };
 }
 
 export async function setClientStatus(form: FormData) {

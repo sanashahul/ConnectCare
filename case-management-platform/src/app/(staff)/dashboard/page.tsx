@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, inArray, max } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { ClientLabel } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
@@ -19,7 +19,11 @@ export default async function DashboardPage() {
 
   const active = await listClientsForUser(user, { statuses: ["active", "new"] });
   const mine = active.filter((c) => c.assignedToId === user.id && c.status === "active");
-  const [todos, threads] = await Promise.all([todoItemsFor(user), listThreads(user, { resolved: false, limit: 5 })]);
+  const [todos, threads, views] = await Promise.all([
+    todoItemsFor(user),
+    listThreads(user, { resolved: false, limit: 5 }),
+    lastViewed(user.id, mine.map((c) => c.id)),
+  ]);
 
   // Today: overdue first, then due today, then other urgent items. Kept short on purpose.
   const rank = (i: TodoItem) => (i.dueDate && i.dueDate < today ? 0 : i.dueDate === today ? 1 : 2);
@@ -32,11 +36,13 @@ export default async function DashboardPage() {
   const cards: ClientCard[] = mine.map((c) => {
     const items = todos.filter((t) => t.clientId === c.id);
     const next = items[0];
+    const seen = views.get(c.id);
     return {
       id: c.id,
       name: displayName(c.profile),
       pronouns: c.profile.pronouns,
       urgent: c.urgent,
+      isNew: !!c.assignedAt && (!seen || seen < c.assignedAt),
       next: next?.text,
       nextDue: next?.dueDate,
       open: items.length,
@@ -46,6 +52,7 @@ export default async function DashboardPage() {
   cards.sort(
     (a, b) =>
       Number(b.urgent || b.overdue > 0) - Number(a.urgent || a.overdue > 0) ||
+      Number(b.isNew) - Number(a.isNew) ||
       (a.nextDue ?? "9999").localeCompare(b.nextDue ?? "9999") ||
       a.name.localeCompare(b.name),
   );
@@ -206,4 +213,15 @@ async function SupervisorPanels() {
       </Card>
     </div>
   );
+}
+
+/** When this user last opened each client, so newly assigned clients they haven't looked at yet stand out. */
+async function lastViewed(userId: string, clientIds: string[]) {
+  if (clientIds.length === 0) return new Map<string, Date>();
+  const rows = await db
+    .select({ clientId: schema.auditLog.clientId, at: max(schema.auditLog.at) })
+    .from(schema.auditLog)
+    .where(and(eq(schema.auditLog.userId, userId), eq(schema.auditLog.action, "client.viewed"), inArray(schema.auditLog.clientId, clientIds)))
+    .groupBy(schema.auditLog.clientId);
+  return new Map(rows.filter((r) => r.clientId && r.at).map((r) => [r.clientId!, r.at!]));
 }

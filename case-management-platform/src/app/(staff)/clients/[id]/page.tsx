@@ -8,10 +8,11 @@ import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { displayName, getClientForUser, languageLabel, matchingNeeds, SOURCE_LABELS } from "@/lib/clients";
 import { decryptString } from "@/lib/crypto";
-import { caseManagers } from "@/lib/followups";
+import { caseManagerOptions } from "@/lib/followups";
+import { AssignCaseManager } from "@/components/assign-case-manager";
 import { CONTACT_TYPES, needLabel } from "@/lib/options";
 import { decryptPlanBody } from "@/lib/plan";
-import { assignClient, deleteClient, setClientStatus, updatePlanItem } from "../actions";
+import { deleteClient, setClientStatus, updatePlanItem } from "../actions";
 import { AddPlanItemForm, NoteForm } from "./forms";
 import { StatusSelect } from "./status-select";
 
@@ -38,7 +39,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const resourceName = new Map(resourceRows.map((r) => [r.id, (r.data as { name: string }).name]));
   const plan = planRows.map((r) => ({ ...r, body: decryptPlanBody(r.bodyEnc) }));
   const unverified = plan.filter((i) => !i.verified).length;
-  const cms = supervisor ? await caseManagers() : [];
+  const cms = supervisor ? await caseManagerOptions() : [];
 
   return (
     <div className="space-y-5">
@@ -69,6 +70,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-1">
+          {supervisor && (
+            <Card title="Case manager">
+              <AssignCaseManager clientId={id} current={client.assignedToId} caseManagers={cms} variant="client" />
+            </Card>
+          )}
           <Card title="Profile">
             <NeedChips needs={matchingNeeds(client)} max={20} />
             <dl className="mt-3 space-y-2 text-sm">
@@ -97,19 +103,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </Card>
 
           <Card title="Case">
-            {supervisor && (
-              <form action={assignClient} className="mb-3 flex items-end gap-2">
-                <input type="hidden" name="clientId" value={id} />
-                <label className="flex-1 text-sm">
-                  <span className="mb-1 block text-stone-700">Case manager</span>
-                  <select name="assigneeId" defaultValue={client.assignedToId ?? ""} className="w-full rounded-md border border-stone-300 px-2 py-2 text-sm">
-                    <option value="">Unassigned</option>
-                    {cms.map((cm) => <option key={cm.id} value={cm.id}>{cm.name}</option>)}
-                  </select>
-                </label>
-                <button className={secondaryButtonClass}>Save</button>
-              </form>
-            )}
             {client.status !== "new" && (
               <form action={setClientStatus}>
                 <input type="hidden" name="clientId" value={id} />

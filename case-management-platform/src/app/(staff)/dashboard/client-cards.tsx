@@ -6,6 +6,8 @@ export type ClientCard = {
   name: string;
   pronouns?: string;
   urgent: boolean;
+  /** Assigned to this case manager and not opened by them since. */
+  isNew: boolean;
   next?: string;
   nextDue?: string;
   open: number;
@@ -27,6 +29,7 @@ export function ClientCards({ cards, today }: { cards: ClientCard[]; today: stri
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-stone-900">{c.name}</span>
               {c.pronouns && <span className="text-xs text-stone-500">({c.pronouns})</span>}
+              {c.isNew && <Badge tone="blue">New</Badge>}
               {c.urgent && <Badge tone="red">Urgent</Badge>}
               {c.overdue > 0 && <Badge tone="red">{c.overdue} overdue</Badge>}
             </div>
