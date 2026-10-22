@@ -18,12 +18,15 @@ The script creates the form for you, with these questions:
 
 | Question | Required | Goes to |
 |---|---|---|
-| Your name | Yes | Client name (seen only inside the client record) |
+| Your name | Yes | Client name |
+| Your pronouns | No | Shown next to their name for staff |
 | Email | No | Client email; the request number is emailed here |
 | Best place or way to contact you | Yes | "Best place to reach" |
+| Preferred language | No | Preferred language (choices plus "Other"); used to match resources in their language |
 | What do you need most urgently? | Yes | "Most urgent need"; also used to fill in need categories automatically |
 | Do you need help today? | No | "Yes" marks the request as urgent |
 | What else can we help with? | No | Need categories |
+| Would you like LGBTQ+ affirming care? | No | "Yes" adds LGBTQ+ affirming resources to their matches. Stored encrypted. |
 | Which area are you in? | No | City and county, used for resource matching |
 | Consent | Yes | Consent date. Submissions without consent are refused. |
 
@@ -58,7 +61,7 @@ Set the output as `GOOGLE_FORM_WEBHOOK_SECRET` in the server's environment, then
    - **Share this link** goes to the form people fill out. Put it on flyers as a QR code, or text it.
    - **Edit the form here** lets you change colors, a logo, or wording.
 
-Running `setup` again is safe. It reuses the same form and resets the triggers.
+Running `setup` again is safe. It reuses the same form, resets the triggers, and adds any questions that newer versions of the script introduced (for example pronouns, preferred language, and LGBTQ+ care). Your existing questions and settings are kept.
 
 ### 4. Test it
 

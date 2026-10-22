@@ -13,6 +13,7 @@ const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
 export const IntakeSchema = z.object({
   firstName: z.string().trim().min(1, "Please enter a first name or nickname.").max(60),
   lastName: optionalText(60),
+  pronouns: optionalText(40),
   ageRange: optionalEnum(AGE_RANGES),
   phone: optionalText(30),
   email: z.union([z.literal(""), z.string().trim().email("That email doesn't look right.").max(120)]).optional(),
@@ -20,7 +21,7 @@ export const IntakeSchema = z.object({
   okToLeaveMessage: z.enum(["yes", "no", ""]).optional(),
   city: optionalEnum(CITIES.map((c) => c.city) as unknown as readonly [string, ...string[]]),
   sleeping: optionalEnum(SLEEPING),
-  needs: z.array(z.enum(NEED_KEYS as [string, ...string[]])).max(NEED_KEYS.length),
+  needs: z.array(z.enum(NEED_KEYS.filter((k) => k !== "lgbtq") as [string, ...string[]])).max(NEED_KEYS.length),
   urgent: z.boolean(),
   urgentDetails: optionalText(500),
   language: optionalEnum(LANGUAGES),
@@ -31,6 +32,7 @@ export const IntakeSchema = z.object({
   hasVehicle: z.boolean(),
   hasPets: z.boolean(),
   hasChildren: z.boolean(),
+  lgbtqCare: z.boolean(),
 });
 export type IntakeInput = z.infer<typeof IntakeSchema>;
 
@@ -39,6 +41,7 @@ export function readIntakeForm(form: FormData) {
   return IntakeSchema.safeParse({
     firstName: s("firstName") ?? "",
     lastName: s("lastName"),
+    pronouns: s("pronouns"),
     ageRange: s("ageRange"),
     phone: s("phone"),
     email: s("email"),
@@ -57,6 +60,7 @@ export function readIntakeForm(form: FormData) {
     hasVehicle: form.get("hasVehicle") === "on",
     hasPets: form.get("hasPets") === "on",
     hasChildren: form.get("hasChildren") === "on",
+    lgbtqCare: form.get("lgbtqCare") === "on",
   });
 }
 
@@ -64,6 +68,7 @@ export function toClientColumns(input: IntakeInput) {
   const profile: ClientProfile = {
     firstName: input.firstName,
     lastName: input.lastName,
+    pronouns: input.pronouns,
     ageRange: input.ageRange,
     phone: input.phone,
     email: input.email || undefined,
@@ -78,6 +83,7 @@ export function toClientColumns(input: IntakeInput) {
     hasVehicle: input.hasVehicle,
     hasPets: input.hasPets,
     hasChildren: input.hasChildren,
+    lgbtqCare: input.lgbtqCare,
     filledOutBy: input.filledOutBy,
   };
   return {

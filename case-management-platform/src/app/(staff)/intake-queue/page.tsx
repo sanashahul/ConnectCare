@@ -1,7 +1,7 @@
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader } from "@/components/ui";
 import { ClientLabel, NeedChips } from "@/components/client-row";
 import { requireSupervisor } from "@/lib/auth";
-import { listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
+import { languageLabel, listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
 import { caseManagers } from "@/lib/followups";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
@@ -36,7 +36,7 @@ export default async function IntakeQueuePage() {
                     <Badge tone={c.source === "google_form" ? "blue" : "gray"}>{SOURCE_LABELS[c.source]}</Badge>
                   </div>
                   <p className="text-sm text-stone-600">
-                    {[c.city, c.profile.ageRange, c.profile.language, c.profile.sleeping].filter(Boolean).join(" · ")}
+                    {[c.city, c.profile.ageRange, languageLabel(c.profile), c.profile.sleeping].filter(Boolean).join(" · ")}
                   </p>
                   {c.profile.outreachSite && <p className="text-sm text-stone-600">Site: {c.profile.outreachSite}</p>}
                   {c.profile.urgentDetails && (

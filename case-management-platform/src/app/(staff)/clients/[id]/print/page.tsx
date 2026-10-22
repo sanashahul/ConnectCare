@@ -5,7 +5,7 @@ import { db, schema } from "@/db";
 import { formatDate, secondaryButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
-import { getClientForUser } from "@/lib/clients";
+import { getClientForUser, matchingNeeds } from "@/lib/clients";
 import { needLabel, NEEDS } from "@/lib/options";
 import { decryptPlanBody } from "@/lib/plan";
 import { emergencyNumbers, matchResources } from "@/lib/resource-match";
@@ -94,7 +94,7 @@ export default async function PrintPage({ params, searchParams }: {
   } else {
     const p = client.profile;
     const matches = matchResources(resources, {
-      city: client.city, county: client.county, needs: client.needs, language: p.language,
+      city: client.city, county: client.county, needs: matchingNeeds(client), language: p.language,
       insurance: p.insurance, ageRange: p.ageRange, urgent: client.urgent, hasChildren: p.hasChildren,
     }, 3);
     const seen = new Set<string>();

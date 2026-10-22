@@ -6,7 +6,7 @@ import { NeedChips } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass, smallButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
-import { displayName, getClientForUser, SOURCE_LABELS } from "@/lib/clients";
+import { displayName, getClientForUser, languageLabel, matchingNeeds, SOURCE_LABELS } from "@/lib/clients";
 import { decryptString } from "@/lib/crypto";
 import { caseManagers } from "@/lib/followups";
 import { CONTACT_TYPES, needLabel } from "@/lib/options";
@@ -47,6 +47,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         title={
           <span className="flex flex-wrap items-center gap-2">
             {displayName(p)}
+            {p.pronouns && <span className="text-base font-normal text-stone-600">({p.pronouns})</span>}
             <span className="font-mono text-base font-normal text-stone-400">{client.clientCode}</span>
             {client.urgent && <Badge tone="red">Urgent</Badge>}
             {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
@@ -69,14 +70,16 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-1">
           <Card title="Profile">
-            <NeedChips needs={client.needs} max={20} />
+            <NeedChips needs={matchingNeeds(client)} max={20} />
             <dl className="mt-3 space-y-2 text-sm">
               <Row label="Client ID" value={client.clientCode} />
               <Row label="Phone" value={p.phone && `${p.phone}${p.okToLeaveMessage === false ? " (no messages)" : ""}`} />
               <Row label="Email" value={p.email} />
               <Row label="Best place to reach" value={p.howToReach} />
               <Row label="Age" value={p.ageRange} />
-              <Row label="Language" value={p.language} />
+              <Row label="Pronouns" value={p.pronouns} />
+              <Row label="Preferred language" value={languageLabel(p)} />
+              <Row label="LGBTQ+ care" value={p.lgbtqCare ? "Would like LGBTQ+ affirming care" : undefined} />
               <Row label="Insurance" value={p.insurance} />
               <Row label="Staying" value={p.sleeping} />
               <Row

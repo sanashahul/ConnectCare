@@ -9,6 +9,7 @@ import { decryptJson, encryptJson } from "./crypto";
 export type ClientProfile = {
   firstName: string;
   lastName?: string;
+  pronouns?: string;
   ageRange?: string;
   phone?: string;
   email?: string;
@@ -16,6 +17,10 @@ export type ClientProfile = {
   okToLeaveMessage?: boolean | null;
   sleeping?: string;
   language?: string;
+  /** When language is "Other": what they wrote. */
+  languageOther?: string;
+  /** Would like LGBTQ+ affirming care. Kept encrypted, never in the plaintext needs list. */
+  lgbtqCare?: boolean;
   insurance?: string;
   outreachSite?: string;
   urgentDetails?: string;
@@ -62,6 +67,15 @@ export async function insertClient(values: NewClient) {
 
 export function displayName(p: ClientProfile) {
   return [p.firstName, p.lastName].filter(Boolean).join(" ");
+}
+
+/** Needs used for resource matching: the plaintext list plus encrypted profile answers. */
+export function matchingNeeds(client: { needs: string[]; profile: ClientProfile }) {
+  return client.profile.lgbtqCare && !client.needs.includes("lgbtq") ? [...client.needs, "lgbtq"] : client.needs;
+}
+
+export function languageLabel(p: ClientProfile) {
+  return p.language === "Other" && p.languageOther ? p.languageOther : p.language;
 }
 
 /** Loads a client only if this user may see it. Returns null otherwise (callers show 404). */

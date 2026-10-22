@@ -2874,7 +2874,8 @@
     "name": "Valley Homeless Healthcare Program",
     "categories": [
       "medical",
-      "mental_health"
+      "mental_health",
+      "lgbtq"
     ],
     "description": "Free primary and urgent care, mental health care, and social work for people experiencing homelessness, no referral needed. Clinics, medical buses, a street medicine team, a teen van, a gender clinic, and mobile units. Walk-in visits are first come, first served.",
     "county": "Santa Clara",
@@ -3117,7 +3118,8 @@
     "id": "gronowski-center",
     "name": "Gronowski Center",
     "categories": [
-      "mental_health"
+      "mental_health",
+      "lgbtq"
     ],
     "description": "Sliding-scale counseling and therapy for all ages, a few blocks from Hope's Corner. Includes La Clinica Latina (Spanish) and a clinic for LGBTQ+ needs. Care by supervised doctoral trainees. Call first.",
     "county": "Santa Clara",
@@ -4872,7 +4874,8 @@
     "id": "lgbtq-youth-space",
     "name": "LGBTQ Youth Space",
     "categories": [
-      "youth"
+      "youth",
+      "lgbtq"
     ],
     "description": "Drop-in and support services for LGBTQ+ youth, some of whom may be experiencing family rejection and homelessness.",
     "county": "Santa Clara",
