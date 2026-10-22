@@ -5,22 +5,21 @@ import { ClientRow } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
-import { caseManagers, followUpsFor, todayIso } from "@/lib/followups";
+import { caseManagers, todayIso } from "@/lib/followups";
+import { listThreads } from "@/lib/messages";
+import { todoItemsFor } from "@/lib/todos";
+import { TodoList } from "./todo-list";
 import { needLabel } from "@/lib/options";
 
 export default async function DashboardPage() {
   const user = await requireUser();
   const supervisor = user.role === "supervisor";
   const today = todayIso();
-  const weekAhead = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
 
   const active = await listClientsForUser(user, { statuses: ["active", "new"] });
-  const mine = supervisor ? active.filter((c) => c.assignedToId === user.id) : active;
-  const followUps = await followUpsFor(active.map((c) => c.id));
-  const due = active
-    .filter((c) => c.assignedToId === user.id || !supervisor)
-    .filter((c) => (followUps.get(c.id) ?? "9999") <= weekAhead || c.urgent)
-    .sort((a, b) => (followUps.get(a.id) ?? "9999").localeCompare(followUps.get(b.id) ?? "9999"));
+  const mine = active.filter((c) => c.assignedToId === user.id);
+  const [todos, threads] = await Promise.all([todoItemsFor(user), listThreads(user, { resolved: false, limit: 5 })]);
+  const urgent = mine.filter((c) => c.urgent);
 
   return (
     <div className="space-y-6">
@@ -31,15 +30,21 @@ export default async function DashboardPage() {
       />
       {supervisor && <SupervisorPanels />}
       {supervisor && <NewRequests requests={active.filter((c) => c.status === "new")} />}
-      <Card title={supervisor ? "Your own follow-ups this week" : "Follow-ups and urgent clients"}>
-        {due.length === 0 ? (
-          <EmptyState>Nothing due in the next 7 days.</EmptyState>
-        ) : (
-          <ul className="-mx-3 divide-y divide-stone-100">
-            {due.map((c) => <ClientRow key={c.id} client={c} followUp={followUps.get(c.id)} today={today} />)}
-          </ul>
-        )}
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card title="Action items" className="lg:col-span-2">
+          <TodoList items={todos} clients={mine.map((c) => ({ id: c.id, code: c.clientCode }))} today={today} />
+        </Card>
+        <div className="space-y-6">
+          <MessagesCard threads={threads} supervisor={supervisor} />
+          {urgent.length > 0 && (
+            <Card title="Urgent clients">
+              <ul className="-mx-3 divide-y divide-stone-100">
+                {urgent.map((c) => <ClientRow key={c.id} client={c} today={today} />)}
+              </ul>
+            </Card>
+          )}
+        </div>
+      </div>
       {!supervisor && (
         <div className="flex flex-wrap gap-2">
           <Link href="/clients" className={secondaryButtonClass}>All my clients</Link>
@@ -47,6 +52,34 @@ export default async function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function MessagesCard({ threads, supervisor }: { threads: Awaited<ReturnType<typeof listThreads>>; supervisor: boolean }) {
+  return (
+    <Card
+      title={supervisor ? "Messages from your team" : "Messages"}
+      actions={<Link href="/messages" className="text-sm text-brand-700 underline">All →</Link>}
+    >
+      {threads.length === 0 ? (
+        <p className="text-sm text-stone-600">No open conversations.</p>
+      ) : (
+        <ul className="-mx-3 divide-y divide-stone-100">
+          {threads.map((t) => (
+            <li key={t.thread.id}>
+              <Link href={`/messages/${t.thread.id}`} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-stone-50">
+                {t.unread ? <span className="h-2 w-2 shrink-0 rounded-full bg-brand-600" aria-label="Unread" /> : <span className="w-2 shrink-0" />}
+                <span className={`min-w-0 flex-1 truncate ${t.unread ? "font-semibold" : ""}`}>{t.subject}</span>
+                {supervisor && <span className="shrink-0 text-xs text-stone-500">{t.caseManagerName.split(" ")[0]}</span>}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link href="/messages/new" className={`${secondaryButtonClass} mt-3 w-full`}>
+        {supervisor ? "Message a case manager" : "Message a supervisor"}
+      </Link>
+    </Card>
   );
 }
 

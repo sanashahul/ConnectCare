@@ -56,6 +56,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <>
             <Link href={`/clients/${id}/plan`} className={buttonClass}>Find resources & plan</Link>
             <Link href={`/clients/${id}/print`} className={secondaryButtonClass}>Print resource sheet</Link>
+            <Link href={`/messages/new?client=${id}`} className={secondaryButtonClass}>
+              {supervisor ? "Message case manager" : "Message supervisor"}
+            </Link>
             <Link href={`/clients/${id}/edit`} className={secondaryButtonClass}>Edit</Link>
           </>
         }

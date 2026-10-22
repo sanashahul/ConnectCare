@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logout } from "@/app/(public)/login/actions";
 import { requireUser } from "@/lib/auth";
+import { unreadThreadCount } from "@/lib/messages";
 import { NavLinks } from "./nav-links";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser({ allowPasswordChange: true });
   const supervisor = user.role === "supervisor";
+  const unread = await unreadThreadCount(user);
   const links = [
     { href: "/dashboard", label: "Dashboard" },
     ...(supervisor ? [{ href: "/intake-queue", label: "Intake queue" }] : []),
     { href: "/clients", label: supervisor ? "All clients" : "My clients" },
     { href: "/resources", label: "Resources" },
+    { href: "/messages", label: "Messages", badge: unread },
     ...(supervisor ? [{ href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }, { href: "/setup", label: "Setup check" }] : []),
   ];
   return (
