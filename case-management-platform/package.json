@@ -1,0 +1,42 @@
+{
+  "name": "connectcare-case-management",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Case management platform for street medicine / homeless outreach case managers.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed-resources": "tsx scripts/seed-resources.ts",
+    "create-supervisor": "tsx scripts/create-user.ts --role supervisor",
+    "create-user": "tsx scripts/create-user.ts",
+    "generate-key": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.0.0",
+    "drizzle-orm": "^0.45.4",
+    "next": "^16.4.2",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/pg": "^8",
+    "@types/qrcode": "^1.5",
+    "drizzle-kit": "0.31.11",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "tsx": "^4",
+    "dotenv": "^17"
+  }
+}
