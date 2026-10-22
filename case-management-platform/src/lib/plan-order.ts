@@ -38,8 +38,22 @@ export function sortSteps<T extends { status: string; dueDate: string | null; cr
 export const OPEN_STATUSES = ["todo", "referred", "connected"] as const;
 export const isOpen = (status: string) => (OPEN_STATUSES as readonly string[]).includes(status);
 
-/** The single step to show as "Next" for a client, or undefined when nothing is open. */
-export function nextStep<T extends { status: string; dueDate: string | null; createdAt: Date | number }>(steps: T[]): T | undefined {
+type Orderable = { status: string; dueDate: string | null; createdAt: Date | number; position?: number | null };
+
+/** Up next in the case manager's own order; steps they haven't placed yet follow, soonest due first. */
+export function sortUpNext<T extends Orderable>(steps: T[]): T[] {
+  const placed = steps.filter((s) => s.position !== null && s.position !== undefined).sort((a, b) => a.position! - b.position!);
+  const rest = sortSteps(steps.filter((s) => s.position === null || s.position === undefined));
+  return [...placed, ...rest];
+}
+
+/**
+ * The single step to show as "Next" for a client: the top of Up next, or when nothing is left to do,
+ * the open referral or connection due soonest.
+ */
+export function nextStep<T extends Orderable>(steps: T[]): T | undefined {
+  const upNext = steps.filter((s) => s.status === "todo");
+  if (upNext.length) return sortUpNext(upNext)[0];
   return sortSteps(steps.filter((s) => isOpen(s.status)))[0];
 }
 

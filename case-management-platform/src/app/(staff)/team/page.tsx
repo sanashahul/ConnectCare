@@ -21,7 +21,7 @@ export default async function TeamPage() {
                 <p className="font-medium">
                   {u.name} <span className="text-sm font-normal text-stone-500">{u.email}</span>
                   {u.role === "case_manager" && (
-                    <Link href={`/team/${u.id}`} className="ml-3 text-sm font-normal text-brand-700 underline">View action items</Link>
+                    <Link href={`/team/${u.id}`} className="ml-3 text-sm font-normal text-brand-700 underline">View their Home</Link>
                   )}
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1">

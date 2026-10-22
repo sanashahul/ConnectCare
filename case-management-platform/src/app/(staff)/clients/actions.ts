@@ -403,6 +403,35 @@ export async function updatePlanItem(form: FormData) {
   for (const path of [`/clients/${item.clientId}`, `/clients/${item.clientId}/plan`, "/dashboard"]) revalidatePath(path);
 }
 
+/** Saves the order the case manager arranged Up next in (first id = top). */
+export async function reorderUpNext(clientId: string, ids: string[]): Promise<{ ok: boolean }> {
+  const { user } = await clientOr404(clientId);
+  if (!Array.isArray(ids) || ids.length > 200 || !ids.every((i) => typeof i === "string" && /^[0-9a-f-]{36}$/i.test(i))) return { ok: false };
+  const steps = await db
+    .select({ id: schema.planItems.id })
+    .from(schema.planItems)
+    .where(and(eq(schema.planItems.clientId, clientId), eq(schema.planItems.status, "todo")));
+  const allowed = new Set(steps.map((s) => s.id));
+  if (!ids.every((i) => allowed.has(i))) return { ok: false };
+  await db.transaction(async (tx) => {
+    for (const [position, id] of ids.entries()) {
+      await tx.update(schema.planItems).set({ position }).where(eq(schema.planItems.id, id));
+    }
+  });
+  await audit({ userId: user.id, action: "plan.reordered", clientId });
+  for (const path of [`/clients/${clientId}`, "/dashboard"]) revalidatePath(path);
+  return { ok: true };
+}
+
+/** "Reset order": back to the suggested order (due date first). */
+export async function resetUpNextOrder(form: FormData) {
+  const clientId = String(form.get("clientId") ?? "");
+  const { user } = await clientOr404(clientId);
+  await db.update(schema.planItems).set({ position: null }).where(eq(schema.planItems.clientId, clientId));
+  await audit({ userId: user.id, action: "plan.reordered", clientId, detail: { reset: true } });
+  for (const path of [`/clients/${clientId}`, "/dashboard"]) revalidatePath(path);
+}
+
 // ---------- AI ----------
 
 export async function runAiPlanner(clientId: string, question: string): Promise<AiResult> {

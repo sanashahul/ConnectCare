@@ -119,6 +119,8 @@ export const planItems = pgTable(
     status: planStatusEnum("status").notNull().default("todo"),
     // When status last changed; drives "steps connected / done this month" in reports.
     statusChangedAt: timestamp("status_changed_at", { withTimezone: true }),
+    // The case manager's order for Up next (0 = first). Null = not arranged yet; those follow by due date.
+    position: integer("position"),
     dueDate: date("due_date"),
     // AI suggestions that are not in the vetted directory start unverified and are
     // kept off printouts until a case manager confirms them.

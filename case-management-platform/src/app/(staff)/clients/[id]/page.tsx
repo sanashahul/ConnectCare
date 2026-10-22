@@ -126,7 +126,7 @@ export default async function ClientPage({ params, searchParams }: {
                 No plan steps yet. <Link href={`/clients/${id}/plan`} className="text-brand-700 underline">Find resources</Link> or add a step below.
               </EmptyState>
             ) : (
-              <CarePlan steps={steps} resourceName={resourceName} today={today} />
+              <CarePlan clientId={id} steps={steps} resourceName={resourceName} today={today} />
             )}
             <details id="add-step" className="mt-4 scroll-mt-4">
               <summary className="cursor-pointer text-sm font-medium text-brand-700">+ Add a plan step</summary>

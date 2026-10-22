@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Badge, formatDate, smallButtonClass } from "@/components/ui";
 import { needLabel, PLAN_STATUSES } from "@/lib/options";
 import type { PlanItemBody } from "@/lib/plan";
-import { FOCUS_COUNT, NEXT_STATUS, PLAN_SECTIONS, progressByNeed, sortSteps, type PlanStatus } from "@/lib/plan-order";
-import { updatePlanItem } from "../actions";
+import { NEXT_STATUS, PLAN_SECTIONS, progressByNeed, sortSteps, sortUpNext, type PlanStatus } from "@/lib/plan-order";
+import { resetUpNextOrder, updatePlanItem } from "../actions";
 import { PlanTabs } from "./plan-tabs";
+import { UpNextList } from "./up-next-list";
 
 export type PlanStep = {
   id: string;
@@ -12,6 +13,7 @@ export type PlanStep = {
   status: PlanStatus;
   dueDate: string | null;
   createdAt: Date;
+  position: number | null;
   resourceId: string | null;
   verified: boolean;
   aiSuggested: boolean;
@@ -19,10 +21,15 @@ export type PlanStep = {
 };
 
 /**
- * The care plan, with a button for each stage (Up next, Waiting, Connected, Done). Up next shows
- * the first few To do steps; the rest wait under "Later".
+ * The care plan, with a button for each stage (Up next, Waiting, Connected, Done). Up next is in
+ * the case manager's own order (drag or ↑ ↓) and shows the first few; the rest wait under "Later".
  */
-export function CarePlan({ steps, resourceName, today }: { steps: PlanStep[]; resourceName: Map<string, string>; today: string }) {
+export function CarePlan({ clientId, steps, resourceName, today }: {
+  clientId: string;
+  steps: PlanStep[];
+  resourceName: Map<string, string>;
+  today: string;
+}) {
   const progress = progressByNeed(steps);
   return (
     <div className="space-y-4">
@@ -50,20 +57,21 @@ export function CarePlan({ steps, resourceName, today }: { steps: PlanStep[]; re
           const finished = section.status === "done" || section.status === "unable";
           let content: React.ReactNode = <StepList steps={inSection} resourceName={resourceName} today={today} compact={finished} />;
           if (section.status === "todo") {
-            const focus = inSection.slice(0, FOCUS_COUNT);
-            const later = inSection.slice(FOCUS_COUNT);
+            const arranged = inSection.some((st) => st.position !== null);
             content = (
               <>
-                <StepList steps={focus} resourceName={resourceName} today={today} />
-                {later.length > 0 && (
-                  <details className="mt-2 rounded-md border border-dashed border-stone-300 px-3 py-2">
-                    <summary className="cursor-pointer text-sm text-stone-700">
-                      Later ({later.length}). Focus on the {focus.length} above first.
-                    </summary>
-                    <div className="mt-2">
-                      <StepList steps={later} resourceName={resourceName} today={today} />
-                    </div>
-                  </details>
+                <UpNextList
+                  clientId={clientId}
+                  items={sortUpNext(inSection).map((st) => ({
+                    id: st.id,
+                    node: <StepCard step={st} resourceName={resourceName} today={today} />,
+                  }))}
+                />
+                {arranged && (
+                  <form action={resetUpNextOrder} className="mt-2 text-right">
+                    <input type="hidden" name="clientId" value={clientId} />
+                    <button className="text-xs text-stone-500 underline">Reset order (soonest due first)</button>
+                  </form>
                 )}
               </>
             );
