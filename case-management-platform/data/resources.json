@@ -32,6 +32,37 @@
     "notes": "Guide gives no address or hours."
   },
   {
+    "id": "irs-vita-free-tax-help",
+    "name": "IRS Free File / VITA Tax Clinics",
+    "categories": [
+      "benefits"
+    ],
+    "description": "Free tax preparation for low-income and homeless individuals, including patients without a fixed address; can help access the Earned Income Tax Credit and stimulus/rebate programs. Various community sites countywide (seasonal).",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-906-9887"
+      }
+    ],
+    "web": "irs.gov/vita",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "san-mateo-county-human-services-east-palo-alto",
     "name": "Medi-Cal, CalFresh, and cash aid (San Mateo County Human Services)",
     "categories": [
@@ -94,11 +125,70 @@
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
     "notes": "Milpitas guide: Hope for the Unhoused volunteers assist with applications. Sunnyvale guide: Helping Hands assists with applications and ID cards (408-663-1812)."
+  },
+  {
+    "id": "soar-ssi-ssdi-outreach",
+    "name": "SOAR (SSI/SSDI Outreach, Access, and Recovery)",
+    "categories": [
+      "benefits"
+    ],
+    "description": "Specialized technical assistance model to speed up SSI/SSDI approvals for people experiencing homelessness with a disabling condition. Ask the case manager whether a county SOAR-trained worker is available.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness with a disabling condition",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "social-security-administration",
+    "name": "Social Security Administration (SSI/SSDI)",
+    "categories": [
+      "benefits",
+      "phone_id_documents"
+    ],
+    "description": "SSI/SSDI applications for patients with qualifying disabilities, benefit verification letters, and replacement Social Security cards. Homeless status can be used for mail/payment routing via representative payee or agency address.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "2202 N. 1st St., San Jose",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-772-1213"
+      }
+    ],
+    "web": "ssa.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "Guide says to verify local office hours before visiting."
   },
   {
     "id": "st-anthonys-menlo-park-clothing",
@@ -128,6 +218,32 @@
       "WeHOPE (East Palo Alto)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "st-vincent-de-paul-santa-clara-county",
+    "name": "St. Vincent de Paul Society - Santa Clara County Council",
+    "categories": [
+      "clothing"
+    ],
+    "description": "Free clothing, furniture, household goods, and basic necessities via home visits and parish conferences. Contact the nearest parish conference (varies by ZIP).",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "svdp-sccc.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -163,7 +279,8 @@
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
       "WeHOPE (East Palo Alto)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -302,6 +419,42 @@
     "notes": null
   },
   {
+    "id": "veterans-crisis-line",
+    "name": "Veterans Crisis Line",
+    "categories": [
+      "crisis",
+      "mental_health"
+    ],
+    "description": "For veterans in crisis or their loved ones. Call 988 then press 1, or text 838255.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Call, then press 1",
+        "number": "988"
+      },
+      {
+        "label": "Text",
+        "number": "838255"
+      }
+    ],
+    "web": null,
+    "hours": "24/7",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Veterans in crisis or their loved ones",
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "foothill-college-dental-hygiene-clinic",
     "name": "Foothill College Dental Hygiene Clinic",
     "categories": [
@@ -366,6 +519,39 @@
     "notes": null
   },
   {
+    "id": "next-door-solutions-to-domestic-violence",
+    "name": "Next Door Solutions to Domestic Violence",
+    "categories": [
+      "domestic_violence",
+      "crisis",
+      "shelter"
+    ],
+    "description": "DV shelter, counseling, and legal advocacy program.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "24-hour hotline",
+        "number": "408-279-2962"
+      }
+    ],
+    "web": null,
+    "hours": "24-hour hotline",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "ywca-24-hour-line",
     "name": "YWCA 24-hour line",
     "categories": [
@@ -392,7 +578,8 @@
     "isHotline": true,
     "sources": [
       "Hope for the Unhoused (Milpitas)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -427,7 +614,8 @@
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
       "WeHOPE (East Palo Alto)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -458,6 +646,38 @@
       "Helping Hands (Sunnyvale Library)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "poison-control",
+    "name": "Poison Control",
+    "categories": [
+      "emergency",
+      "medical"
+    ],
+    "description": "Suspected poisoning or overdose information.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-222-1222"
+      }
+    ],
+    "web": null,
+    "hours": "24/7",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -527,7 +747,12 @@
     "county": "Santa Clara",
     "city": "San Jose",
     "address": "751 S Bascom Ave, San Jose",
-    "phones": [],
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-885-5000"
+      }
+    ],
     "web": null,
     "hours": null,
     "walkIn": null,
@@ -539,9 +764,161 @@
     "sources": [
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "calfresh-employment-and-training",
+    "name": "CalFresh Employment & Training (CFET)",
+    "categories": [
+      "employment"
+    ],
+    "description": "Free, voluntary job skills and training program for CalFresh recipients. Via SSA.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "ssa.santaclaracounty.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "CalFresh recipients",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "goodwill-silicon-valley-job-training",
+    "name": "Goodwill Silicon Valley (job training)",
+    "categories": [
+      "employment"
+    ],
+    "description": "Job training, veteran employment services, and supportive employment programs.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1080 N. 7th St., San Jose, CA 95112",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-998-4700"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "homefirst-employment-training",
+    "name": "HomeFirst Employment Training",
+    "categories": [
+      "employment"
+    ],
+    "description": "Employment placement and self-sufficiency workshops integrated with shelter case management.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7600"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
+  },
+  {
+    "id": "nova-workforce-board-americas-job-center",
+    "name": "NOVA Workforce Board / America's Job Center of California",
+    "categories": [
+      "employment"
+    ],
+    "description": "Free job search assistance, resume help, training referrals, and unemployment insurance navigation.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "196 N. 3rd St., San Jose (and other sites)",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-730-7290"
+      }
+    ],
+    "web": "novaworks.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "calfresh-santa-clara-county-ssa",
+    "name": "CalFresh Food (SNAP) - Santa Clara County SSA",
+    "categories": [
+      "food",
+      "benefits"
+    ],
+    "description": "Monthly EBT food benefit. Apply online, by phone, or in person; document drop boxes at SSA offices. Expedited service (benefits within 3 days) for very low-income households. Homeless, elderly, and disabled clients may use EBT for hot prepared meals at participating restaurants (Restaurant Meals Program).",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-541-5011"
+      }
+    ],
+    "web": "BenefitsCal.com",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -826,6 +1203,37 @@
     "notes": "Milpitas site closes for summer break through August 30, 2026."
   },
   {
+    "id": "marthas-kitchen",
+    "name": "Martha's Kitchen",
+    "categories": [
+      "food"
+    ],
+    "description": "Free hot meals served daily to anyone in need, no ID or eligibility screening required.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-292-1144"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Anyone in need; no ID or eligibility screening",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "milpitas-food-pantry",
     "name": "Milpitas Food Pantry",
     "categories": [
@@ -936,7 +1344,7 @@
         "number": "408-278-2160"
       }
     ],
-    "web": null,
+    "web": "sacredheartcs.org",
     "hours": "Mon to Thu 9 am to 4 pm",
     "walkIn": null,
     "cost": null,
@@ -945,10 +1353,29 @@
     "eligibility": null,
     "isHotline": false,
     "sources": [
-      "Neighborhood Hands (San Jose)"
+      "Neighborhood Hands (San Jose)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
-    "conflicts": [],
+    "conflicts": [
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "408-278-2160",
+            "source": "Neighborhood Hands (San Jose)"
+          },
+          {
+            "value": "408-283-6114 (Food Pantry)",
+            "source": "SCC Resource Guide (Sep 2026)"
+          },
+          {
+            "value": "408-916-5053 (Clothes Closet)",
+            "source": "SCC Resource Guide (Sep 2026)"
+          }
+        ]
+      }
+    ],
     "notes": null
   },
   {
@@ -990,11 +1417,70 @@
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
       "WeHOPE (East Palo Alto)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
     "notes": "Text GETFOOD to 408-455-5181. The East Palo Alto guide lists only the 800 number."
+  },
+  {
+    "id": "senior-nutrition-program",
+    "name": "Senior Nutrition Program",
+    "categories": [
+      "food"
+    ],
+    "description": "Congregate and home-delivered meals for adults 60+ at 35+ meal sites countywide, including Meals on Wheels for homebound seniors. Via SSA.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "ssa.santaclaracounty.gov/food-assistance",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Adults 60+",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "usda-snap-federal-info-line",
+    "name": "USDA SNAP (CalFresh) Federal Info Line",
+    "categories": [
+      "food",
+      "benefits"
+    ],
+    "description": "General SNAP/CalFresh program information. Local applications go through Santa Clara County SSA.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-221-5689"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
   },
   {
     "id": "wehope-family-harvest",
@@ -1019,6 +1505,92 @@
       "WeHOPE (East Palo Alto)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "wic-santa-clara-county",
+    "name": "WIC (Women, Infants & Children)",
+    "categories": [
+      "food",
+      "families"
+    ],
+    "description": "Federal nutrition program for pregnant and postpartum people and children under 5. Santa Clara County Public Health Dept.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "888-942-2229"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Pregnant/postpartum people and children under 5",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "california-housing-is-key",
+    "name": "California Housing Is Key (housing.ca.gov)",
+    "categories": [
+      "housing",
+      "legal"
+    ],
+    "description": "State clearinghouse for tenant protections, eviction help, and rental assistance program information.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "housing.ca.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "calworks-housing-support-program",
+    "name": "CalWORKs Housing Support Program (HSP)",
+    "categories": [
+      "housing",
+      "families"
+    ],
+    "description": "State-funded rapid rehousing and housing stabilization for CalWORKs-eligible families. Apply through Santa Clara County Social Services Agency (SSA).",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "ssa.santaclaracounty.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "CalWORKs-eligible families",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -1072,7 +1644,7 @@
         "number": "408-278-6400"
       }
     ],
-    "web": null,
+    "web": "osh.santaclaracounty.gov",
     "hours": null,
     "walkIn": null,
     "cost": null,
@@ -1084,11 +1656,75 @@
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
     "notes": null
+  },
+  {
+    "id": "goodwill-silicon-valley-veterans-programs",
+    "name": "Goodwill Silicon Valley - Veterans Programs",
+    "categories": [
+      "housing",
+      "employment"
+    ],
+    "description": "SSVF partner agency offering veteran-specific rapid rehousing and employment services.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-998-6047"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Veterans",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "homefirst-hope-rapid-rehousing",
+    "name": "HomeFirst Housing Opportunities for Everyone (HOPE) / Rapid Rehousing",
+    "categories": [
+      "housing"
+    ],
+    "description": "Flexible one-time assistance (deposits, application fees, moving costs) plus short-term rental subsidy and housing navigation case management.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7600"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
   },
   {
     "id": "santa-clara-county-homelessness-prevention-line",
@@ -1119,11 +1755,61 @@
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
-    "conflicts": [],
+    "conflicts": [
+      {
+        "field": "description",
+        "values": [
+          {
+            "value": "Homelessness Prevention line: rent assistance and legal support for people at risk of losing housing.",
+            "source": "Hope's Corner (Mountain View); Hope for the Unhoused (Milpitas); Neighborhood Hands (San Jose); Helping Hands (Sunnyvale Library)"
+          },
+          {
+            "value": "Homelessness Prevention System (HPS): one-time or short-term financial assistance (rent, deposit, utilities), legal support, and case management for households at risk of losing housing. No longer restricted by ZIP code.",
+            "source": "SCC Resource Guide (Sep 2026)"
+          },
+          {
+            "value": "Family Shelter Waiting List Hotline (same number, 408-926-8885): families with children must call daily 10 to 11 am to remain on the shared shelter waiting list. Also given as the access line for the HomeFirst Family Shelters.",
+            "source": "SCC Resource Guide (Sep 2026)"
+          }
+        ]
+      }
+    ],
     "notes": "Mountain View and San Jose guides mention rent assistance only; Milpitas and Sunnyvale guides add legal support and the website."
+  },
+  {
+    "id": "housing-authority-of-the-county-of-santa-clara",
+    "name": "Housing Authority of the County of Santa Clara (HACSC)",
+    "categories": [
+      "housing"
+    ],
+    "description": "Administers Section 8 Housing Choice Vouchers, public housing, and HUD-VASH rental vouchers for veterans (in partnership with the VA; over 1,200 vouchers allocated to the county). Waitlists may be closed periodically; check status before referring.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "505 W. Julian St., San Jose, CA 95110",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-275-8770"
+      }
+    ],
+    "web": "hacsc.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
   },
   {
     "id": "milpitas-outreach-team-wehope",
@@ -1153,6 +1839,37 @@
       "Hope for the Unhoused (Milpitas)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "national-call-center-for-homeless-veterans",
+    "name": "National Call Center for Homeless Veterans (VA)",
+    "categories": [
+      "housing"
+    ],
+    "description": "First call for any homeless or at-risk veteran. Connects veterans experiencing or at risk of homelessness to the nearest VA homeless programs (SSVF, HUD-VASH, Grant Per Diem, and healthcare enrollment).",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "877-424-3838"
+      }
+    ],
+    "web": "va.gov/homeless",
+    "hours": "24/7",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Veterans experiencing or at risk of homelessness",
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -1190,6 +1907,95 @@
     "notes": null
   },
   {
+    "id": "homefirst-ssvf",
+    "name": "Supportive Services for Veteran Families (SSVF) - HomeFirst",
+    "categories": [
+      "housing"
+    ],
+    "description": "Rapid rehousing and homelessness prevention case management and financial assistance for veteran households. First-come shelter check-in at 3:30 pm before VA bed eligibility screening.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "2011 Little Orchard Blvd., San Jose, CA",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7522"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Veteran households",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "va-palo-alto-health-care-system",
+    "name": "VA Palo Alto Health Care System (HUD-VASH)",
+    "categories": [
+      "housing",
+      "medical"
+    ],
+    "description": "HUD-VASH voucher program (rental vouchers combined with VA case management for eligible homeless veterans, administered with HACSC), VA health enrollment, and homeless veteran case management.",
+    "county": "Santa Clara",
+    "city": "Palo Alto",
+    "address": "3801 Miranda Ave., Palo Alto, CA 94304",
+    "phones": [
+      {
+        "label": "HUD-VASH info",
+        "number": "650-493-5000, ext. 25590"
+      }
+    ],
+    "web": "va.gov/homeless/hud-vash.asp",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Eligible homeless veterans",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "veterans-resource-centers-of-america",
+    "name": "Veterans Resource Centers of America",
+    "categories": [
+      "housing"
+    ],
+    "description": "SSVF partner offering case management and housing assistance for veterans.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Veterans",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "Guide gives no phone or address; it says to check the current listing via 211."
+  },
+  {
     "id": "wehope-outreach-sunnyvale",
     "name": "WeHOPE outreach in Sunnyvale",
     "categories": [
@@ -1222,6 +2028,457 @@
       "Helping Hands (Sunnyvale Library)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "asian-law-alliance",
+    "name": "Asian Law Alliance",
+    "categories": [
+      "legal"
+    ],
+    "description": "Multilingual civil legal aid. Walk-in and phone general consultations weekday mornings; immigration clinic by appointment (Fridays and Saturdays).",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "991 W. Hedding St., Suite 202, San Jose, CA 95126",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-287-9710"
+      }
+    ],
+    "web": null,
+    "hours": "General consultations Mon to Fri mornings (walk in or phone); immigration clinic by appointment, Fridays and Saturdays",
+    "walkIn": true,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [
+      "English",
+      "Vietnamese",
+      "Chinese",
+      "Tagalog",
+      "Korean",
+      "Spanish"
+    ],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "bay-area-legal-aid-san-jose",
+    "name": "Bay Area Legal Aid",
+    "categories": [
+      "legal"
+    ],
+    "description": "Free civil legal help for low-income residents: housing/eviction, domestic violence, public benefits denials, and family law. San Jose office, serves Santa Clara County.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-283-3750"
+      },
+      {
+        "label": "Alternate",
+        "number": "800-551-5554"
+      }
+    ],
+    "web": "baylegal.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Low-income residents",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "caras-south-county",
+    "name": "CARAS (Community Agency for Resources, Advocacy & Services)",
+    "categories": [
+      "legal"
+    ],
+    "description": "Legal and eviction assistance for South County residents.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "South County residents only (Gilroy, San Martin, Morgan Hill)",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "Guide gives no phone or address; it says to call 211 for current contact information."
+  },
+  {
+    "id": "catholic-charities-immigration-legal-services",
+    "name": "Catholic Charities of Santa Clara County - Immigration & Legal Services",
+    "categories": [
+      "legal"
+    ],
+    "description": "DOJ-recognized agency; accredited representatives assist with citizenship, DACA, family petitions, and general immigration counseling.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "2625 Zanker Rd., Suite 201, San Jose, CA 95134",
+    "phones": [
+      {
+        "label": "Consultation line",
+        "number": "408-468-0100"
+      },
+      {
+        "label": "Alternate",
+        "number": "408-944-0691"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Low/moderate-income residents",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "san-jose-eviction-help-center",
+    "name": "City of San Jose Eviction Help Center",
+    "categories": [
+      "legal",
+      "housing"
+    ],
+    "description": "Explains the eviction process and connects tenants to legal and financial resources (does not give legal advice directly). Email: evictionhelp@sanjoseca.gov.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-975-4444"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "San Jose residents",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "alexander-community-law-center",
+    "name": "Katharine & George Alexander Community Law Center (Santa Clara University School of Law)",
+    "categories": [
+      "legal",
+      "employment"
+    ],
+    "description": "Free clinic covering consumer, employment, and immigration law for low-income residents.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1030 The Alameda, San Jose, CA 95126",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-288-7030"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Low-income residents",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "law-foundation-of-silicon-valley",
+    "name": "Law Foundation of Silicon Valley",
+    "categories": [
+      "legal",
+      "housing"
+    ],
+    "description": "Housing Program: free eviction defense, fair-housing/discrimination claims, Section 8/Housing Authority hearings, and HPS legal support. Also runs the Mental Health Advocacy Project and Health Legal Services for clients of the Valley Homeless Healthcare Program. Does not specialize in immigration law but can advise on how immigration status affects public benefits.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "4 North Second St., San Jose, CA 95113",
+    "phones": [
+      {
+        "label": "Housing intake",
+        "number": "408-280-2424"
+      },
+      {
+        "label": "Listed in Immigration section",
+        "number": "408-280-2420"
+      }
+    ],
+    "web": "lawfoundation.org/housing",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "408-280-2424 (Housing Program intake, Legal Aid section)",
+            "source": "SCC Resource Guide (Sep 2026)"
+          },
+          {
+            "value": "408-280-2420 (Immigration Services section)",
+            "source": "SCC Resource Guide (Sep 2026)"
+          }
+        ]
+      }
+    ],
+    "notes": "The guide gives two numbers that differ by one digit in different sections. Verify which is current."
+  },
+  {
+    "id": "national-immigration-legal-services-directory",
+    "name": "National Immigration Legal Services Directory",
+    "categories": [
+      "legal"
+    ],
+    "description": "Searchable directory of vetted nonprofit immigration legal providers; useful to confirm an agency is still active before referring. Only a licensed attorney or a BIA-accredited representative may legally give immigration advice or file petitions; unauthorized 'notario' services are a common source of fraud.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "immigrationadvocates.org/legaldirectory",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "santa-clara-county-office-of-immigrant-relations",
+    "name": "Office of Immigrant Relations (OIR) - County of Santa Clara",
+    "categories": [
+      "legal"
+    ],
+    "description": "County office (Division of Equity & Social Justice) coordinating funded immigration legal partners (VAWA/U-Visa/T-Visa, DACA, citizenship, removal defense). Good starting point for referrals and the current partner list.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "desj.santaclaracounty.gov/oir",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "pro-bono-project-silicon-valley",
+    "name": "Pro Bono Project Silicon Valley",
+    "categories": [
+      "legal"
+    ],
+    "description": "Civil legal aid via volunteer attorneys: consumer, employment, and family law referrals.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "25 N. 14th St., Suite 506, San Jose, CA 95112",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-998-5298"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "project-sentinel",
+    "name": "Project Sentinel",
+    "categories": [
+      "legal",
+      "housing"
+    ],
+    "description": "Free counseling on eviction notices, tenant/landlord rights, and fair housing complaints. Serves Santa Clara County.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-720-9888"
+      }
+    ],
+    "web": "housing.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "santa-clara-county-superior-court-self-help-center",
+    "name": "Santa Clara County Superior Court Self-Help Center",
+    "categories": [
+      "legal"
+    ],
+    "description": "In-person help with court forms; emergency same-day filing assistance for unlawful detainer (eviction) Answers.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "Family Justice Center, 201 N. First St., 1st Floor, San Jose",
+    "phones": [],
+    "web": null,
+    "hours": "Mon to Thu, 8:30 am to 1:30 pm; Fri, 8:30 am to noon",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "siren-immigrant-rights",
+    "name": "SIREN (Services, Immigrant Rights & Education Network)",
+    "categories": [
+      "legal"
+    ],
+    "description": "Rapid-response support for immigrants in crisis (24/7), know-your-rights workshops, community navigator training, and legal service referrals.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "1415 Koll Circle, Suite 108, San Jose, CA 95112",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-453-3017"
+      }
+    ],
+    "web": "siren-bayarea.org",
+    "hours": "Rapid-response support 24/7",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "uscis-contact-center",
+    "name": "USCIS Contact Center",
+    "categories": [
+      "legal"
+    ],
+    "description": "Official immigration case status, forms, and application information. Will not give legal advice.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-375-5283"
+      }
+    ],
+    "web": "uscis.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -1331,6 +2588,33 @@
     "lastVerified": "2026-08-01",
     "conflicts": [],
     "notes": null
+  },
+  {
+    "id": "north-county-mobile-health-center-sunnyvale-homefirst",
+    "name": "North County Mobile Health Center (Valley Homeless Healthcare Program) - Sunnyvale HomeFirst Shelter",
+    "categories": [
+      "medical",
+      "mental_health"
+    ],
+    "description": "Mobile clinic with outreach specialists, psychiatrists, psychologists, physicians, and social workers. Access via the Valley Homeless Healthcare Program.",
+    "county": "Santa Clara",
+    "city": "Sunnyvale",
+    "address": "Sunnyvale HomeFirst Shelter",
+    "phones": [],
+    "web": null,
+    "hours": "Mondays and Thursdays",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "Guide gives no phone for this stop ('Via VHHP') and no street address. The same mobile clinic's Hope's Corner stop is a separate entry."
   },
   {
     "id": "peninsula-healthcare-connection",
@@ -1602,7 +2886,7 @@
         "number": "408-885-5000"
       }
     ],
-    "web": null,
+    "web": "scvh.org",
     "hours": "Walk in, Mon to Fri 8:30 am to 5 pm",
     "walkIn": true,
     "cost": "free",
@@ -1613,7 +2897,8 @@
     "sources": [
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [
@@ -1631,6 +2916,10 @@
           {
             "value": "888-334-1000",
             "source": "Helping Hands (Sunnyvale Library)"
+          },
+          {
+            "value": "408-792-5121 (Alexian clinic)",
+            "source": "SCC Resource Guide (Sep 2026)"
           }
         ]
       },
@@ -1749,7 +3038,8 @@
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [
@@ -1792,6 +3082,10 @@
           {
             "value": "Mon to Fri, 8 am to 5 pm",
             "source": "Helping Hands (Sunnyvale Library)"
+          },
+          {
+            "value": "24/7 (Access Line)",
+            "source": "SCC Resource Guide (Sep 2026)"
           }
         ]
       },
@@ -2000,6 +3294,38 @@
     "notes": null
   },
   {
+    "id": "samhsa-national-helpline",
+    "name": "SAMHSA National Helpline",
+    "categories": [
+      "mental_health",
+      "substance_use"
+    ],
+    "description": "Free, confidential treatment referral for mental health and substance use disorders; treatment locator and behavioral health resources.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-662-4357"
+      }
+    ],
+    "web": "samhsa.gov",
+    "hours": "24/7",
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "san-mateo-county-access-line",
     "name": "San Mateo County ACCESS line",
     "categories": [
@@ -2129,11 +3455,109 @@
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
       "WeHOPE (East Palo Alto)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
-    "conflicts": [],
+    "conflicts": [
+      {
+        "field": "phones",
+        "values": [
+          {
+            "value": "211",
+            "source": "Hope's Corner (Mountain View); Hope for the Unhoused (Milpitas); Neighborhood Hands (San Jose); WeHOPE (East Palo Alto); Helping Hands (Sunnyvale Library)"
+          },
+          {
+            "value": "211; or text your ZIP code to 898211",
+            "source": "SCC Resource Guide (Sep 2026)"
+          }
+        ]
+      }
+    ],
     "notes": "Listed in the emergency strip of the Milpitas, East Palo Alto, and Sunnyvale guides; Mountain View and San Jose guides mention it in the footer."
+  },
+  {
+    "id": "destination-home",
+    "name": "Destination: Home",
+    "categories": [
+      "other"
+    ],
+    "description": "Countywide backbone organization coordinating housing funds, landlord engagement, and systems-level rehousing initiatives, including the All the Way Home veterans campaign (coordination of veteran housing resources and landlord recruitment).",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [],
+    "web": "destinationhomesv.org",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "hud-exchange-continuum-of-care",
+    "name": "HUD Exchange / Continuum of Care (CoC) Programs",
+    "categories": [
+      "other"
+    ],
+    "description": "Federal funding source and policy for Continuum of Care, HMIS, and homeless-assistance programs. Administered locally by OSH as CoC Lead; general public inquiries go through local OSH/CoC partners rather than HUD directly.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-955-2232"
+      }
+    ],
+    "web": "hudexchange.info",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "myconnectsv",
+    "name": "MyConnectSV",
+    "categories": [
+      "other"
+    ],
+    "description": "Patient-facing HMIS portal that lets clients view their own record and securely message their care team. Ask OSH or a case manager for portal access.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
   },
   {
     "id": "humane-society-pet-pantry-milpitas",
@@ -2163,6 +3587,68 @@
       "Hope for the Unhoused (Milpitas)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "cdph-vital-records",
+    "name": "California Department of Public Health - Vital Records",
+    "categories": [
+      "phone_id_documents"
+    ],
+    "description": "Replacement birth certificates. State office (Sacramento) or the County Recorder's Office locally. A no-fee or reduced-fee process may be available for homeless applicants through some County Recorder offices; verify current local policy.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "916-445-2684"
+      }
+    ],
+    "web": "cdph.ca.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "california-dmv-homeless-id-fee-waiver",
+    "name": "California DMV - Fee Waiver / Homeless ID",
+    "categories": [
+      "phone_id_documents"
+    ],
+    "description": "Fee waiver available for a state ID card for people experiencing homelessness. An agency or shelter can provide a homeless-verification letter in place of standard proof of residency. Local DMV field offices.",
+    "county": "Multi-county",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "800-777-0133"
+      }
+    ],
+    "web": "dmv.ca.gov",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "People experiencing homelessness",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -2350,6 +3836,41 @@
     "notes": "Guide gives no lot address."
   },
   {
+    "id": "cold-weather-shelter-program",
+    "name": "Cold Weather Shelter Program",
+    "categories": [
+      "shelter"
+    ],
+    "description": "Seasonal overnight shelter opened during cold or wet weather at rotating sites countywide; operated in partnership with HomeFirst and OSH. Call Here4You (408-385-2400) or 408-278-6420.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Here4You",
+        "number": "408-385-2400"
+      },
+      {
+        "label": "Shelter Hotline",
+        "number": "408-278-6420"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "here4you-hotline",
     "name": "Here4You Hotline",
     "categories": [
@@ -2378,9 +3899,149 @@
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
       "Neighborhood Hands (San Jose)",
-      "Helping Hands (Sunnyvale Library)"
+      "Helping Hands (Sunnyvale Library)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "homefirst-boccardo-reception-center",
+    "name": "HomeFirst Boccardo Reception Center (BRC)",
+    "categories": [
+      "shelter",
+      "food",
+      "showers_hygiene",
+      "laundry"
+    ],
+    "description": "Largest shelter in the county. Congregate shelter for single adults not accompanied by minor children. On-site medical clinic, showers, laundry, meals, case management, and employment services. Showers, laundry, and hygiene kits for shelter guests and outreach clients. Bus Line 26.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "2011 Little Orchard Blvd., San Jose",
+    "phones": [
+      {
+        "label": "Helpline",
+        "number": "408-510-7600"
+      },
+      {
+        "label": "Front desk",
+        "number": "408-510-7521"
+      }
+    ],
+    "web": null,
+    "hours": "24/7",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Single adults not accompanied by minor children",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
+  },
+  {
+    "id": "homefirst-emergency-interim-housing",
+    "name": "HomeFirst Emergency Interim Housing (Tiny Homes)",
+    "categories": [
+      "shelter",
+      "housing"
+    ],
+    "description": "Tiny-home and converted-motel interim housing communities at multiple sites countywide, with 24/7 support, meals, laundry, showers, and housing navigation.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7600"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
+  },
+  {
+    "id": "homefirst-family-shelters",
+    "name": "HomeFirst Family Shelters (Sobrato and Boccardo Family Living Centers)",
+    "categories": [
+      "shelter",
+      "families"
+    ],
+    "description": "Shelter for families with children, in Santa Clara and San Martin. Access is through the Family Shelter Waiting List Hotline, 408-926-8885, 10 to 11 am daily.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-539-2100"
+      },
+      {
+        "label": "Family Shelter Waiting List Hotline (10 to 11 am daily)",
+        "number": "408-926-8885"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Families with children",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "Two sites (Santa Clara and San Martin); the guide gives no street addresses and does not say which center is in which city. 408-926-8885 is listed elsewhere in the data as the Homelessness Prevention line; see the conflict on that entry."
+  },
+  {
+    "id": "homefirst-gilroy-shelter",
+    "name": "HomeFirst Gilroy Shelter",
+    "categories": [
+      "shelter",
+      "food",
+      "showers_hygiene"
+    ],
+    "description": "Congregate shelter serving about 120 adults nightly; meals, showers, and supportive services. South County.",
+    "county": "Santa Clara",
+    "city": "Gilroy",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-539-2100"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Adults",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -2448,6 +4109,37 @@
     "lastVerified": "2026-08-01",
     "conflicts": [],
     "notes": "Guide gives no address."
+  },
+  {
+    "id": "salvation-army-silicon-valley-shelter-hotline",
+    "name": "Salvation Army Silicon Valley Shelter Hotline",
+    "categories": [
+      "shelter"
+    ],
+    "description": "Shelter availability information for single adults (men and women), families, and youth, including cold-weather shelter activation.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": "405 N. 4th St., San Jose, CA 95112",
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-278-6420"
+      }
+    ],
+    "web": null,
+    "hours": "Mon to Fri, 9 am to 6 pm",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": true,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "The guide lists this number twice: as 'Santa Clara County Shelter Hotline (Cold Weather / General)' in the emergency quick reference (countywide) and as 'Salvation Army Silicon Valley - Shelter Hotline' with the 405 N. 4th St. address."
   },
   {
     "id": "samaritan-house-south",
@@ -2674,6 +4366,37 @@
     "notes": "Stops change; see wehope.org/dow-schedule. Guide gives no stop address."
   },
   {
+    "id": "homefirst-outreach-teams",
+    "name": "HomeFirst Outreach Teams",
+    "categories": [
+      "showers_hygiene"
+    ],
+    "description": "Field teams distribute hygiene kits (soap, toothpaste, sunscreen, etc.) directly to people living outside, street and encampment based, countywide.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7600"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
+  },
+  {
     "id": "lifemoves-opportunity-center",
     "name": "LifeMoves Opportunity Center",
     "categories": [
@@ -2772,6 +4495,39 @@
     "notes": "Call 408-297-8330 for current times."
   },
   {
+    "id": "united-methodist-los-gatos-showers-meal",
+    "name": "United Methodist Los Gatos - Homeless Showers & Meal",
+    "categories": [
+      "showers_hygiene",
+      "food",
+      "laundry"
+    ],
+    "description": "Weekly hot showers, lunch, hygiene supplies, and laundry vouchers. Contact via St. Vincent de Paul Los Gatos.",
+    "county": "Santa Clara",
+    "city": "Los Gatos",
+    "address": null,
+    "phones": [
+      {
+        "label": "St. Vincent de Paul Los Gatos",
+        "number": "408-354-3726, ext. 134"
+      }
+    ],
+    "web": null,
+    "hours": "Thursdays",
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": null,
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
     "id": "santa-clara-county-free-naloxone",
     "name": "Free naloxone (Narcan)",
     "categories": [
@@ -2814,7 +4570,7 @@
         "number": "511"
       }
     ],
-    "web": null,
+    "web": "511.org",
     "hours": null,
     "walkIn": null,
     "cost": null,
@@ -2824,7 +4580,8 @@
     "isHotline": true,
     "sources": [
       "Hope's Corner (Mountain View)",
-      "Neighborhood Hands (San Jose)"
+      "Neighborhood Hands (San Jose)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -2857,7 +4614,8 @@
     "sources": [
       "Hope's Corner (Mountain View)",
       "Hope for the Unhoused (Milpitas)",
-      "Neighborhood Hands (San Jose)"
+      "Neighborhood Hands (San Jose)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -2889,7 +4647,8 @@
     "isHotline": false,
     "sources": [
       "Hope's Corner (Mountain View)",
-      "WeHOPE (East Palo Alto)"
+      "WeHOPE (East Palo Alto)",
+      "SCC Resource Guide (Sep 2026)"
     ],
     "lastVerified": "2026-08-01",
     "conflicts": [],
@@ -2921,6 +4680,89 @@
       "WeHOPE (East Palo Alto)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "homefirst-transportation-services",
+    "name": "HomeFirst Transportation Services",
+    "categories": [
+      "transit"
+    ],
+    "description": "Transportation assistance connected to shelter and housing placement for HomeFirst clients.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-510-7600"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "HomeFirst clients",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": "408-510-7600 is the HomeFirst helpline; the guide lists it for several HomeFirst programs."
+  },
+  {
+    "id": "uplift-transit-pass-program",
+    "name": "UPLIFT Transit Pass Program (Universal Pass for Life Improvement From Transportation)",
+    "categories": [
+      "transit"
+    ],
+    "description": "Free quarterly VTA bus and light-rail pass for adults experiencing homelessness or at risk of losing housing, to support getting to housing and job appointments. A trained provider enters the referral in HMIS. Email: UPLIFT@hhs.sccgov.org.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": "free",
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Adults experiencing homelessness or at risk of losing housing; referral entered in HMIS by a trained agency partner",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "vta-regional-transit-connection-discount-card",
+    "name": "VTA Regional Transit Connection (RTC) Discount Card",
+    "categories": [
+      "transit"
+    ],
+    "description": "Discount Clipper card for riders with qualifying disabilities; reduced fares on VTA, Caltrain, SamTrans, AC Transit, BART, and Muni.",
+    "county": "Santa Clara",
+    "city": null,
+    "address": null,
+    "phones": [],
+    "web": "vta.gov/fares/regional-transit-connection-card",
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Riders with qualifying disabilities",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   },
@@ -2988,6 +4830,72 @@
       "Hope's Corner (Mountain View)"
     ],
     "lastVerified": "2026-08-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "bill-wilson-center",
+    "name": "Bill Wilson Center",
+    "categories": [
+      "youth",
+      "shelter",
+      "showers_hygiene",
+      "laundry",
+      "clothing"
+    ],
+    "description": "Emergency shelter and drop-in center for transition-age youth (roughly 18 to 24): showers, laundry, clothing, personal-care items, mental health, and housing navigation for unaccompanied youth. Also foster youth transition support (Sobrato House) and family services.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-243-0222"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "Homeless or transition-age youth (roughly 18 to 24)",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
+    "conflicts": [],
+    "notes": null
+  },
+  {
+    "id": "lgbtq-youth-space",
+    "name": "LGBTQ Youth Space",
+    "categories": [
+      "youth"
+    ],
+    "description": "Drop-in and support services for LGBTQ+ youth, some of whom may be experiencing family rejection and homelessness.",
+    "county": "Santa Clara",
+    "city": "San Jose",
+    "address": null,
+    "phones": [
+      {
+        "label": "Main",
+        "number": "408-340-1728"
+      }
+    ],
+    "web": null,
+    "hours": null,
+    "walkIn": null,
+    "cost": null,
+    "acceptsMediCal": null,
+    "languages": [],
+    "eligibility": "LGBTQ+ youth",
+    "isHotline": false,
+    "sources": [
+      "SCC Resource Guide (Sep 2026)"
+    ],
+    "lastVerified": "2026-09-01",
     "conflicts": [],
     "notes": null
   }
