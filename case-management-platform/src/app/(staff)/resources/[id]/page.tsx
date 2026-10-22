@@ -9,6 +9,9 @@ import { categoryLabel } from "@/lib/resource-types";
 import { getResource } from "@/lib/resources";
 import { markVerified, resolveFlag, setResourceActive } from "../actions";
 import { FlagForm } from "./flag-form";
+import { AssignToClientForm } from "./assign-form";
+import { displayName, listClientsForUser } from "@/lib/clients";
+import { NEEDS } from "@/lib/options";
 
 export default async function ResourcePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -64,6 +67,16 @@ export default async function ResourcePage({ params }: { params: Promise<{ id: s
           </ul>
         </Card>
       )}
+
+      <Card title={supervisor ? "Add to a client's plan" : "Add to one of your clients' plans"}>
+        <AssignToClientForm
+          resourceId={id}
+          defaultNeed={NEEDS.find((n) => (n.resourceCategories as readonly string[]).some((c) => r.categories.includes(c)))?.key ?? NEEDS[0].key}
+          clients={(await listClientsForUser(user, { statuses: ["new", "active"] }))
+            .map((c) => ({ id: c.id, label: `${displayName(c.profile)} (${c.clientCode})` }))
+            .sort((a, b) => a.label.localeCompare(b.label))}
+        />
+      </Card>
 
       <Card title="Report a problem">
         <FlagForm resourceId={id} />
