@@ -37,7 +37,7 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 
 ## Deploying
 
-**Start here: [DEPLOY.md](DEPLOY.md)** is a step-by-step guide to putting this online with Render. It covers creating your account, adding your team, connecting the Google Form, and testing everything with a made-up person. Inside the app, supervisors can open **Setup check** to see what's working and what's left.
+**Start here: [DEPLOY.md](DEPLOY.md)** is a step-by-step guide to putting this online for free with Vercel and Neon. It covers your account, your team, the Google Form, and a test with a made-up person. Inside the app, supervisors can open **Setup check** to see what's working.
 
 ## Running it locally
 

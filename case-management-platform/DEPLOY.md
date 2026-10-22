@@ -1,181 +1,111 @@
-# Deploying ConnectCare, step by step
+# Putting ConnectCare online for free (Vercel + Neon)
 
-This guide takes you from "the code is on GitHub" to "my team is using it." Do the parts in order and check each box as you go. **Part 7** tells you how to confirm everything works before real clients use it.
+This guide gets your website running at **$0 a month**:
 
-**What you'll end up with**
-- A website for your team, for example `https://connectcare.onrender.com`.
-- A Google Form link to share with guests.
-- New requests appearing on your dashboard, ready to assign.
+| Piece | Service | Cost |
+|---|---|---|
+| Website | **Vercel**, free "Hobby" plan | $0 |
+| Database | **Neon**, free plan, added from inside Vercel | $0 |
+| Intake form | **Google Forms**, with your Stanford Google account | $0 |
+| AI assistant | Off for now (turn it on later with an Anthropic key) | $0 |
 
-**Time:** about 1 to 1.5 hours the first time.
-**Cost:** about $13 a month on Render (web service about $7, database about $6), plus a few dollars of AI usage. Prices may change, so check render.com/pricing.
+**Time:** about 45 minutes. You don't need to write any code.
 
-```
-Guest fills out Google Form
-        │  (signed, encrypted)
-        ▼
-ConnectCare website on Render  ──►  Postgres database (encrypted client data)
-        │
-        ▼
-Supervisor dashboard → assign → Case manager → resources, AI plan, printout
-```
+> **Pilot with made-up people only.** The free plans don't include the agreements needed for real client health information (HIPAA). Use this to try everything with your team. Before entering real clients, see Part 8.
 
 ---
 
-## Part 0: Before you start (10 minutes)
+## Part 1: Create your Vercel account (5 minutes)
 
-You need four accounts. Create any you don't have yet.
+1. Go to **[vercel.com/signup](https://vercel.com/signup)**.
+2. Choose **Hobby** (free) and click **Continue with GitHub**. Sign in with the GitHub account that owns the ConnectCare repository.
 
-- [ ] **GitHub**: you already have this. The code is in `sanashahul/connectcare`.
-- [ ] **Render** ([render.com](https://render.com)): hosts the website and the database. Sign up with your GitHub account, then add a payment card.
-- [ ] **Anthropic** ([console.anthropic.com](https://console.anthropic.com)): for the AI assistant. Create an account, add billing, then go to **API keys → Create key**. Copy the key (it starts with `sk-ant-`) and keep it somewhere private for Part 2.
-- [ ] **Google Workspace**: use your organization's Google account (for example your Stanford account), not a personal Gmail.
+## Part 2: Import the project (5 minutes)
 
-> **Privacy note.** Until your privacy office approves the hosting (Render) and AI (Anthropic) accounts, test with **made-up people only**. Part 8 covers going live.
+1. On the Vercel dashboard, click **Add New… → Project**.
+2. Find **ConnectCare** in the list and click **Import**. If it isn't listed, click **Adjust GitHub App Permissions** and give Vercel access to that repository.
+3. **Important:** next to **Root Directory**, click **Edit**, choose the **`case-management-platform`** folder, and click **Continue**.
+4. Leave everything else as it is. The Framework should say **Next.js**.
+5. Click **Deploy**. It takes 2–3 minutes. The first deploy works even though there's no database yet.
+6. When you see "Congratulations", click **Continue to Dashboard**. Your website address is shown under **Domains**, something like **`connectcare-xyz.vercel.app`**. Write it down:
 
----
+   `https://__________________________.vercel.app`
 
-## Part 1: Get the code onto your default branch (5 minutes)
+## Part 3: Open your website (1 minute)
 
-The new platform is currently on the branch `claude/practical-cray-wyqte8`. Render deploys from your repository's default branch, which is currently `claude/homeless-support-onboarding-8O111` (GitHub shows it first on the repository page).
+Go to your website address. You'll see the **First-time setup** page. **Keep this tab open.** It shows a checklist and turns each step green as you finish it.
 
-- [ ] On GitHub, open the pull request from `claude/practical-cray-wyqte8` into the default branch and click **Merge pull request**.
+![First-time setup page](docs/screenshots/vercel-first-time-setup.png)
 
----
+## Part 4: Add the free database (5 minutes)
 
-## Part 2: Put the website online with Render (20 minutes)
+1. In Vercel, open your project and click the **Storage** tab.
+2. Click **Create Database**, choose **Neon** ("Serverless Postgres"), then click **Continue**.
+3. Choose the **Free** plan. Pick the region closest to you, for example **US West (Oregon)**. Click **Continue / Create**, accepting Neon's terms if asked.
+4. When it asks which project to connect, choose your ConnectCare project, keep all environments checked, and click **Connect**.
 
-The file `render.yaml` at the top of the repository tells Render everything it needs. Render creates the website and the database and generates the secret keys for you.
+## Part 5: Add the secret settings (10 minutes)
 
-1. [ ] In Render, click **New +** → **Blueprint**.
-2. [ ] Connect GitHub if Render asks, then choose the **connectcare** repository.
-3. [ ] Render shows what it will create: a web service called **connectcare** and a database called **connectcare-db**. It asks for one value:
-   - **ANTHROPIC_API_KEY**: paste the key from Part 0.
-4. [ ] Click **Apply**. The first build takes about 5 to 10 minutes. During it, Render:
-   - installs and builds the app,
-   - creates the database tables,
-   - loads the 87 resources from your guides,
-   - starts the website.
-5. [ ] When the **connectcare** service shows **Live**, click its address at the top of the page, for example `https://connectcare.onrender.com`. You should see the ConnectCare sign-in page.
+1. Go back to your website's **First-time setup** tab and reload it. Step 2 now shows three names, each with a long random value:
+   - `DATA_ENCRYPTION_KEY`
+   - `GOOGLE_FORM_WEBHOOK_SECRET`
+   - `ADMIN_SETUP_CODE`
 
-**Write down your website address:** `https://________________________`
+   Your own browser made these values; they aren't sent anywhere. If you reload the page, new values appear. That's fine, but use all three from the *same* page.
+2. **Save all three in a password manager** (or a private, secure note) before you continue.
+3. In Vercel, open your project → **Settings** → **Environment Variables**. For each of the three:
+   1. In **Key**, type the name exactly as shown, for example `DATA_ENCRYPTION_KEY`.
+   2. In **Value**, paste the value from the setup page. Use **Copy value** to copy it.
+   3. Leave all environments checked and click **Save**.
 
-If the deploy fails, open the service's **Logs** tab and copy the last red lines into a message to Claude.
+> Never change or lose `DATA_ENCRYPTION_KEY` after you start. It's what unlocks the client information.
 
----
+## Part 6: Redeploy (5 minutes)
 
-## Part 3: Create your supervisor account (5 minutes)
+1. In Vercel, click the **Deployments** tab.
+2. On the top deployment, click the **⋯** menu → **Redeploy** → **Redeploy**.
+3. Wait until it says **Ready**, about 2–3 minutes. This creates the database tables and loads your 87 resources.
+4. Reload the **First-time setup** tab. Steps 1–3 should now be green ✓.
 
-Nobody can sign up on their own; accounts are created by a supervisor. The very first one is created from Render's command line.
+## Part 7: Create your account and test (15 minutes)
 
-1. [ ] In Render, open the **connectcare** service and click **Shell** in the left menu.
-2. [ ] Type this, with your own email and name, and press Enter:
-   ```
-   npm run create-supervisor -- --email you@stanford.edu --name "Your Name"
-   ```
-3. [ ] It prints a **temporary password**. Copy it.
+**Your account**
+1. On the setup page, step 4, enter:
+   - the **setup code** (your `ADMIN_SETUP_CODE` value)
+   - your name and work email
+   - a password of at least 12 characters
 
----
+   Then click **Create supervisor account**.
+2. Sign in. Scan the QR code with an authenticator app on your phone (Google Authenticator, Microsoft Authenticator or Duo), then type the 6-digit code.
+3. You're on the **Dashboard**. Click **Setup check** in the top menu to see what's working.
 
-## Part 4: Sign in and set up two-step verification (5 minutes)
+**Your team**
+4. Click **Team** and add each case manager. Give each one their temporary password in person. They sign in and set up their own phone code.
 
-1. [ ] On your phone, install an authenticator app: Google Authenticator, Microsoft Authenticator, Duo, or 1Password.
-2. [ ] Go to your website address, enter your email and the temporary password.
-3. [ ] The site shows a QR code. In the authenticator app, add an account and scan it. Then type the 6-digit code from the app into the site.
-4. [ ] Choose your own password: at least 12 characters. A short sentence works well.
-5. [ ] You land on the **Dashboard**. Click **Setup check** in the top menu. This page shows a green ✓ for each piece that works and an ! for what's left. Keep it open; you'll come back to it.
+**The Google Form**
+5. Follow **[google-apps-script/README.md](google-apps-script/README.md)** (about 20 minutes). The two values it asks for are:
+   - `CONNECTCARE_URL`: your website address, e.g. `https://connectcare-xyz.vercel.app`
+   - `CONNECTCARE_SECRET`: your `GOOGLE_FORM_WEBHOOK_SECRET` value from Part 5
 
-From now on, signing in takes your password plus the current code from your phone.
-
-When everything is done, **Setup check** looks like this. The AI line turns green once the Anthropic key is set:
-
-![Setup check page](docs/screenshots/setup-check.png)
-
----
-
-## Part 5: Add your case managers (10 minutes)
-
-1. [ ] Click **Team**.
-2. [ ] For each case manager, enter their name and work email, choose **Case manager**, and click **Create account**.
-3. [ ] Each time, the page shows a **temporary password once**. Give it to them in person or by phone, not by email or text.
-4. [ ] Each case manager does Part 4 on their own phone: sign in, scan the QR code, choose a password.
-
-On **Setup check**, "Case manager accounts" turns green. "Everyone has two-step verification" turns green after each person has signed in once.
+**Test with a made-up person**
+6. Fill out the Google Form as "Test Person". It should appear on your Dashboard under **New requests**.
+7. Assign it to a case manager in the **Intake queue**.
+8. As that case manager: open it, add a note, click **Find resources & plan**, add a resource, and print the resource sheet.
+9. As supervisor, delete the test client: open it → **Delete all data for this client**.
 
 ---
 
-## Part 6: Connect the Google Form (20 minutes)
+## Part 8: Before using it with real clients
 
-### 6a. Copy the connection password from Render
-1. [ ] In Render, open **connectcare** → **Environment**.
-2. [ ] Find **GOOGLE_FORM_WEBHOOK_SECRET**, click the eye icon to show it, and copy the value. This long password proves submissions really come from your form.
+The free setup is for the pilot. For real client information:
 
-### 6b. Create the Google script
-1. [ ] Signed in to your organization's Google account, go to [script.google.com](https://script.google.com) → **New project**. Rename it "ConnectCare intake" (click "Untitled project" at the top).
-2. [ ] In the repository, open `case-management-platform/google-apps-script/Code.gs`, copy all of it, and paste it into the editor, replacing the sample code.
-3. [ ] Click the **gear icon (Project Settings)** and check **Show "appsscript.json" manifest file in editor**.
-4. [ ] Go back to the editor (`< >` icon) and click **appsscript.json**. Replace its contents with `case-management-platform/google-apps-script/appsscript.json`. Click **Save** (disk icon).
-5. [ ] Go back to **Project Settings**, scroll to **Script properties**, and add two properties:
+1. Ask **Stanford's Privacy Office** whether HIPAA applies to your program, and which hosting they approve.
+2. If you stay on Vercel and Neon, you'd need their HIPAA agreements:
+   - **Vercel Pro**: $20 a month, plus a $350 a month HIPAA add-on
+   - **Neon Scale plan**: usage-based, with HIPAA available
 
-   | Property | Value |
-   |---|---|
-   | `CONNECTCARE_URL` | your website address from Part 2, e.g. `https://connectcare.onrender.com` (no slash at the end) |
-   | `CONNECTCARE_SECRET` | the value you copied in 6a |
-
-### 6c. Create the form
-1. [ ] In the editor, choose **setup** from the function menu at the top, then click **Run**.
-2. [ ] Google asks for permission. Click **Review permissions**, choose your account, and click **Allow**. If you see "Google hasn't verified this app", click **Advanced → Go to ConnectCare intake**. It's your own script, so this is expected.
-3. [ ] The **Execution log** at the bottom shows two links:
-   - **Share this link**: the form guests fill out. Copy it, and later put it on flyers as a QR code.
-   - **Edit the form here**: change colors, add a logo, or adjust wording. Don't rename the questions.
-
-**Write down your form link:** `https://docs.google.com/forms/________________________`
-
-> Don't link the form to a Google Sheet, and don't turn on email notifications for new responses. The script deletes each response from Google once ConnectCare has saved it.
-
----
-
-## Part 7: Test everything with a made-up person (15 minutes)
-
-Do this before anyone real uses it. Use a made-up name and your own email.
-
-**Guest side**
-1. [ ] Open the form link on your phone. Fill it out as "Test Person", with your email, "Hope's Corner on Thursdays" as best place, "Need a shelter bed tonight and food" as urgent need, **Yes** for help today, and check consent. Submit.
-2. [ ] Within a minute, you get an email "We received your request" with a number like **CC-7K3PM**.
-3. [ ] In the Google Form editor, the **Responses** tab shows **0**, because the response was delivered and removed from Google.
-
-**Supervisor side**
-4. [ ] On the ConnectCare **Dashboard**, **New requests** shows the same CC number with "Google Form" and "Needs help today".
-5. [ ] **Setup check** shows "A Google Form submission has arrived" in green.
-6. [ ] On **Setup check**, click **Test AI connection**. It should say "Connected".
-7. [ ] Open **Intake queue**, choose a case manager, and click **Assign**.
-
-**Case manager side** (sign in as one of them, or ask them to)
-8. [ ] The client appears on their **Dashboard** and in **My clients** by CC number.
-9. [ ] Open it. The name, email, best place to reach, and urgent need are all there. Needs show Shelter and Food.
-10. [ ] Add a note in the **Contact log** with a follow-up date.
-11. [ ] Click **Find resources & plan**. Resources appear for each need. Click **+ Add to plan** on two of them.
-12. [ ] On the same page, click **Draft a plan with AI**. Within about a minute, a plan appears. Anything outside your resource list is marked **Unverified**.
-13. [ ] Click **Print resource sheet**. One page with the client ID, crisis numbers, and the resources in the plan.
-
-**Privacy checks**
-14. [ ] Sign in as a *different* case manager. The test client is **not** in their list.
-15. [ ] As supervisor, open **Audit log**. You can see the sign-ins, views, and printout.
-16. [ ] Open the test client as supervisor and use **Delete all data for this client** to remove the test person.
-
-If every box is checked, the system works end to end.
-
----
-
-## Part 8: Before real clients
-
-Go through the **Go-live checklist in [PRIVACY.md](PRIVACY.md)** with Stanford's Privacy Office and Information Security Office. The main questions to bring them:
-
-1. Is **Render** an approved place to host this data? If not, which host should we use? The app runs anywhere that supports Node.js and Postgres, so moving it is straightforward.
-2. Is our **Anthropic** account covered by an approved agreement, such as a BAA? If not, set `AI_ENABLED` to `false` in Render → Environment until it is.
-3. Is our **Google Workspace** account approved for this data in Google Forms?
-4. Is the **consent wording** on the form acceptable?
-5. How long should we **keep closed cases**?
+   Or Stanford may host it for you on its own approved systems.
+3. Go through the go-live checklist in **[PRIVACY.md](PRIVACY.md)**.
 
 ---
 
@@ -183,15 +113,14 @@ Go through the **Go-live checklist in [PRIVACY.md](PRIVACY.md)** with Stanford's
 
 | Task | How |
 |---|---|
-| Add or remove a staff member | **Team** page. Deactivate people the day they leave. |
-| Someone lost their phone | **Team** → **Reset 2FA** next to their name. They set it up again at next sign-in. |
-| You (the supervisor) lost your phone | Render → connectcare → **Shell**: `npm run create-user -- --email you@stanford.edu --reset-2fa` |
-| Turn off the AI | Render → connectcare → **Environment** → set `AI_ENABLED` to `false` → **Save**. |
-| Update the app after code changes | Merge the change into the default branch on GitHub. Render redeploys automatically. |
+| Add or remove staff | **Team** page. Deactivate people the day they leave. |
+| A case manager lost their phone | **Team** → **Reset 2FA** next to their name. |
+| **You** lost your phone | Go to `your-site.vercel.app/recover` and enter your setup code and email. |
+| Turn on the AI later | Get a key at console.anthropic.com. In Vercel → **Settings → Environment Variables**, add `ANTHROPIC_API_KEY`, then **Redeploy**. Test it on **Setup check**. |
 | Fix a resource's phone or hours | **Resources** → open it → **Edit**. |
-| Something isn't working | Open **Setup check** first. Then check Render → **Logs**, and the Google script → **Executions**. |
+| Update the app after code changes | Merge the change on GitHub. Vercel redeploys automatically. |
+| Something isn't working | Check **Setup check** first. Then in Vercel, open **Deployments** → latest → **Logs**, and send the red text to Claude. |
 
-## Keep these safe
+---
 
-- **DATA_ENCRYPTION_KEY** (in Render → Environment). If it is lost or changed, the encrypted client information cannot be read. Copy it into your organization's password manager.
-- **Your authenticator app.** Turn on its cloud backup, so a new phone doesn't lock you out.
+*Alternative host: `render.yaml` at the top of the repository sets everything up on Render (paid, about $13 a month) if you ever prefer it.*
