@@ -35,11 +35,11 @@ You need four accounts. Create any you don't have yet.
 
 ---
 
-## Part 1: Get the code onto the main branch (5 minutes)
+## Part 1: Get the code onto your default branch (5 minutes)
 
-The new platform is currently on the branch `claude/practical-cray-wyqte8`. Render deploys from your main branch.
+The new platform is currently on the branch `claude/practical-cray-wyqte8`. Render deploys from your repository's default branch, which is currently `claude/homeless-support-onboarding-8O111` (GitHub shows it first on the repository page).
 
-- [ ] On GitHub, open a pull request from `claude/practical-cray-wyqte8` into `main` and merge it. (You can also ask Claude to open the pull request for you.)
+- [ ] On GitHub, open the pull request from `claude/practical-cray-wyqte8` into the default branch and click **Merge pull request**.
 
 ---
 
@@ -187,7 +187,7 @@ Go through the **Go-live checklist in [PRIVACY.md](PRIVACY.md)** with Stanford's
 | Someone lost their phone | **Team** → **Reset 2FA** next to their name. They set it up again at next sign-in. |
 | You (the supervisor) lost your phone | Render → connectcare → **Shell**: `npm run create-user -- --email you@stanford.edu --reset-2fa` |
 | Turn off the AI | Render → connectcare → **Environment** → set `AI_ENABLED` to `false` → **Save**. |
-| Update the app after code changes | Merge the change into `main` on GitHub. Render redeploys automatically. |
+| Update the app after code changes | Merge the change into the default branch on GitHub. Render redeploys automatically. |
 | Fix a resource's phone or hours | **Resources** → open it → **Edit**. |
 | Something isn't working | Open **Setup check** first. Then check Render → **Logs**, and the Google script → **Executions**. |
 
