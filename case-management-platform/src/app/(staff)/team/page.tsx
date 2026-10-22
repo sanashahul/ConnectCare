@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { asc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { Badge, Card, PageHeader, smallButtonClass } from "@/components/ui";
@@ -17,7 +18,12 @@ export default async function TeamPage() {
           {users.map((u) => (
             <li key={u.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
               <div>
-                <p className="font-medium">{u.name} <span className="text-sm font-normal text-stone-500">{u.email}</span></p>
+                <p className="font-medium">
+                  {u.name} <span className="text-sm font-normal text-stone-500">{u.email}</span>
+                  {u.role === "case_manager" && (
+                    <Link href={`/team/${u.id}`} className="ml-3 text-sm font-normal text-brand-700 underline">View action items</Link>
+                  )}
+                </p>
                 <div className="mt-1 flex flex-wrap gap-1">
                   <Badge tone="brand">{u.role === "supervisor" ? "Supervisor" : "Case manager"}</Badge>
                   {!u.active && <Badge tone="red">Deactivated</Badge>}

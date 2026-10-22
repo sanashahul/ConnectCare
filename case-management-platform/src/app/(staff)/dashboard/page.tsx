@@ -142,9 +142,12 @@ async function SupervisorPanels() {
         ) : (
           <ul className="space-y-1 text-sm">
             {cms.map((cm) => (
-              <li key={cm.id} className="flex justify-between">
-                <Link className="hover:underline" href={`/clients?cm=${cm.id}`}>{cm.name}</Link>
-                <span className="font-medium">{load.get(cm.id) ?? 0}</span>
+              <li key={cm.id} className="flex items-center justify-between gap-2">
+                <Link className="hover:underline" href={`/clients?cm=${cm.id}`} title="Their clients">{cm.name}</Link>
+                <span className="flex items-center gap-3">
+                  <Link className="text-xs text-brand-700 underline" href={`/team/${cm.id}`}>Action items</Link>
+                  <span className="font-medium" title="Active clients">{load.get(cm.id) ?? 0}</span>
+                </span>
               </li>
             ))}
           </ul>

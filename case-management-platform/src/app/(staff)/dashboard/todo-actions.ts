@@ -52,6 +52,19 @@ export async function completeTodo(key: string): Promise<{ ok: boolean }> {
   return { ok: true };
 }
 
+/** Moves a plan step along To do → Referred → Connected → Done from the dashboard. */
+export async function setPlanStatus(key: string, status: "todo" | "referred" | "connected" | "done"): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  if (!/^plan:[0-9a-f-]{36}$/.test(key) || !["todo", "referred", "connected", "done"].includes(status)) return { ok: false };
+  const id = key.slice("plan:".length);
+  const item = await db.query.planItems.findFirst({ where: eq(schema.planItems.id, id) });
+  if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
+  await db.update(schema.planItems).set({ status, updatedAt: new Date() }).where(eq(schema.planItems.id, id));
+  await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status, from: "todo_list" } });
+  revalidatePath(`/clients/${item.clientId}`);
+  return { ok: true };
+}
+
 export async function deleteTask(id: string): Promise<{ ok: boolean }> {
   const user = await requireUser();
   await db.delete(schema.tasks).where(and(eq(schema.tasks.id, id), eq(schema.tasks.userId, user.id)));
