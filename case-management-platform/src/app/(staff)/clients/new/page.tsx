@@ -17,10 +17,7 @@ export default async function NewClientPage() {
         }
       />
       <Card>
-        <p className="mb-4 rounded-md bg-stone-50 p-3 text-sm text-stone-700">
-          Before saving, tell the client what you are writing down and why, and that only the case management team can see it.
-        </p>
-        <ClientForm action={createClient} submitLabel="Save client" />
+        <ClientForm action={createClient} submitLabel="Save client" askConsent />
       </Card>
     </div>
   );
