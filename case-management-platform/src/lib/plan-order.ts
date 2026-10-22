@@ -1,16 +1,16 @@
 // How care plan steps are grouped and ordered, kept in one place so the client page, the home
-// page and "This week" agree on what a client's next step is. Safe to import from the browser.
+// page and the supervisor team view agree on what a client's next step is. Safe to import from the browser.
 
 export type PlanStatus = "todo" | "referred" | "connected" | "done" | "unable";
 
 /** Plan sections, in the order they appear. Labels are written for someone new to case management. */
 export const PLAN_SECTIONS = [
-  { status: "todo", title: "Up next", hint: "Steps to take. Focus on the first few." },
-  { status: "referred", title: "Waiting to hear back", hint: "You made the referral. Check back with the guest or the provider." },
-  { status: "connected", title: "Connected", hint: "The guest has started getting this help. Mark done once it's settled." },
-  { status: "done", title: "Done", hint: "" },
-  { status: "unable", title: "Couldn't connect", hint: "Tried and it didn't work out. Worth trying another resource?" },
-] as const satisfies readonly { status: PlanStatus; title: string; hint: string }[];
+  { status: "todo", title: "Up next", short: "Up next", hint: "Steps to take. Focus on the first few." },
+  { status: "referred", title: "Waiting to hear back", short: "Waiting", hint: "Waiting to hear back: you made the referral. Check in with the guest or the provider." },
+  { status: "connected", title: "Connected", short: "Connected", hint: "The guest has started getting this help. Mark done once it's settled." },
+  { status: "done", title: "Done", short: "Done", hint: "" },
+  { status: "unable", title: "Couldn't connect", short: "Couldn't connect", hint: "Tried and it didn't work out. Worth trying another resource?" },
+] as const satisfies readonly { status: PlanStatus; title: string; short: string; hint: string }[];
 
 /** How many To do steps to show before the rest go under "Later". */
 export const FOCUS_COUNT = 3;

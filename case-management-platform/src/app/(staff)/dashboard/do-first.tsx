@@ -68,7 +68,7 @@ export function DoFirst({ items: initial, more }: { items: DoFirstItem[]; more: 
       </ul>
       {more > 0 && (
         <p className="text-sm text-stone-600">
-          {more} more client{more === 1 ? " needs" : "s need"} attention. See <Link href="/tasks" className="text-brand-700 underline">This week</Link>.
+          {more} more client{more === 1 ? " needs" : "s need"} attention. See your clients below.
         </p>
       )}
     </div>

@@ -13,7 +13,6 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const links = [
     { href: "/dashboard", label: "Home" },
     ...(supervisor ? [{ href: "/intake-queue", label: "Intake queue" }, { href: "/clients", label: "All clients" }] : []),
-    { href: "/tasks", label: "This week" },
     { href: "/resources", label: "Resources" },
     { href: "/messages", label: "Messages", badge: unread },
     ...(supervisor ? [{ href: "/reports", label: "Reports" }, { href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }, { href: "/setup", label: "Setup check" }] : []),

@@ -6,7 +6,7 @@ import { Badge, EmptyState, formatDate } from "@/components/ui";
 import { NEXT_STATUS } from "@/lib/plan-order";
 import { PRIORITIES, type Priority } from "@/lib/priorities";
 import type { TodoItem } from "@/lib/todos";
-import { completeTodo, setPlanStatus, setTodoPriority } from "../dashboard/todo-actions";
+import { completeTodo, setPlanStatus, setTodoPriority } from "../../dashboard/todo-actions";
 
 type Group = { key: string; title: string; open: boolean; items: TodoItem[] };
 

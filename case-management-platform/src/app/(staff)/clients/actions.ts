@@ -177,9 +177,8 @@ const NoteSchema = z
   })
   .refine((d) => d.kind === "not_found" || d.body.length > 0, { message: "Write a short note.", path: ["body"] });
 
-export async function addNote(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const { user } = await clientOr404(clientId);
-  const parsed = NoteSchema.safeParse({
+function parseNote(form: FormData) {
+  return NoteSchema.safeParse({
     kind: form.get("kind") ?? "met",
     contactDate: form.get("contactDate"),
     // An update is work done without the guest, so how it happened doesn't apply.
@@ -189,11 +188,10 @@ export async function addNote(clientId: string, _: ActionState, form: FormData):
     needsAddressed: form.getAll("needsAddressed").map(String),
     followUpDate: form.get("followUpDate") ?? undefined,
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
-  const d = parsed.data;
-  await db.insert(schema.notes).values({
-    clientId,
-    authorId: user.id,
+}
+
+function noteColumns(d: z.infer<typeof NoteSchema>) {
+  return {
     kind: d.kind,
     contactDate: d.contactDate,
     contactType: d.contactType as (typeof schema.notes.$inferInsert)["contactType"],
@@ -201,10 +199,35 @@ export async function addNote(clientId: string, _: ActionState, form: FormData):
     needsAddressed: d.needsAddressed,
     bodyEnc: encryptString(d.body),
     followUpDate: d.followUpDate,
-  });
+  };
+}
+
+export async function addNote(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const { user } = await clientOr404(clientId);
+  const parsed = parseNote(form);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
+  await db.insert(schema.notes).values({ clientId, authorId: user.id, ...noteColumns(parsed.data) });
   await touch(clientId);
-  await audit({ userId: user.id, action: "note.created", clientId, detail: { kind: d.kind } });
+  await audit({ userId: user.id, action: "note.created", clientId, detail: { kind: parsed.data.kind } });
   for (const path of [`/clients/${clientId}`, "/dashboard", "/clients"]) revalidatePath(path);
+  return { ok: true };
+}
+
+/** Authors can correct their own log entries. The entry then shows when it was last edited. */
+export async function updateNote(noteId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  if (!/^[0-9a-f-]{36}$/i.test(noteId)) return { error: "This entry could not be found." };
+  const note = await db.query.notes.findFirst({ where: eq(schema.notes.id, noteId) });
+  if (!note) return { error: "This entry could not be found. It may have been deleted." };
+  const { user } = await clientOr404(note.clientId);
+  if (note.authorId !== user.id) return { error: "Only the person who wrote this entry can edit it." };
+  const parsed = parseNote(form);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
+  await db
+    .update(schema.notes)
+    .set({ ...noteColumns(parsed.data), editedAt: new Date() })
+    .where(eq(schema.notes.id, noteId));
+  await audit({ userId: user.id, action: "note.updated", clientId: note.clientId, detail: { kind: parsed.data.kind } });
+  for (const path of [`/clients/${note.clientId}`, "/dashboard"]) revalidatePath(path);
   return { ok: true };
 }
 
@@ -377,7 +400,7 @@ export async function updatePlanItem(form: FormData) {
   } else return;
   await touch(item.clientId);
   await audit({ userId: user.id, action: `plan.${intent}`, clientId: item.clientId });
-  for (const path of [`/clients/${item.clientId}`, `/clients/${item.clientId}/plan`, "/dashboard", "/tasks"]) revalidatePath(path);
+  for (const path of [`/clients/${item.clientId}`, `/clients/${item.clientId}/plan`, "/dashboard"]) revalidatePath(path);
 }
 
 // ---------- AI ----------

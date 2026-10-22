@@ -6,7 +6,7 @@ import { audit } from "@/lib/audit";
 import { requireSupervisor } from "@/lib/auth";
 import { todayIso } from "@/lib/followups";
 import { todoItemsFor } from "@/lib/todos";
-import { WeekList } from "../../tasks/week-list";
+import { WeekList } from "./week-list";
 
 /** A supervisor's view-only look at a case manager's open items, by when they're due. */
 export default async function TeamMemberActionItems({ params }: { params: Promise<{ id: string }> }) {

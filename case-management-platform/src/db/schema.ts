@@ -100,6 +100,8 @@ export const notes = pgTable(
     bodyEnc: text("body_enc").notNull(),
     followUpDate: date("follow_up_date"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // Set when the author changes the entry; shown as "Edited <date>".
+    editedAt: timestamp("edited_at", { withTimezone: true }),
   },
   (t) => [index("notes_client_idx").on(t.clientId)],
 );

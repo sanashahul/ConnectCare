@@ -26,7 +26,6 @@ export async function addTask(_: TaskState, form: FormData): Promise<TaskState> 
   if (d.clientId && !(await getClientForUser(user, d.clientId))) return { error: "That client isn't one of yours." };
   await db.insert(schema.tasks).values({ userId: user.id, textEnc: encryptString(d.text), dueDate: d.dueDate, clientId: d.clientId });
   revalidatePath("/dashboard");
-  revalidatePath("/tasks");
   return { ok: true };
 }
 
@@ -50,7 +49,6 @@ export async function completeTodo(key: string): Promise<{ ok: boolean }> {
       .onConflictDoUpdate({ target: [schema.todoState.userId, schema.todoState.itemKey], set: { doneAt: new Date() } });
   }
   revalidatePath("/dashboard");
-  revalidatePath("/tasks");
   return { ok: true };
 }
 
@@ -63,7 +61,7 @@ export async function setPlanStatus(key: string, status: "todo" | "referred" | "
   if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
   await db.update(schema.planItems).set({ status, statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
   await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status, from: "todo_list" } });
-  for (const path of [`/clients/${item.clientId}`, "/dashboard", "/tasks"]) revalidatePath(path);
+  for (const path of [`/clients/${item.clientId}`, "/dashboard"]) revalidatePath(path);
   return { ok: true };
 }
 
@@ -75,6 +73,5 @@ export async function setTodoPriority(key: string, priority: Priority): Promise<
     .values({ userId: user.id, itemKey: key, priority })
     .onConflictDoUpdate({ target: [schema.todoState.userId, schema.todoState.itemKey], set: { priority } });
   revalidatePath("/dashboard");
-  revalidatePath("/tasks");
   return { ok: true };
 }

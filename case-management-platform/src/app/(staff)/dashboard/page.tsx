@@ -119,7 +119,7 @@ export default async function DashboardPage() {
           )}
         </div>
         <div className="space-y-6">
-          <Card title="My own to-dos" actions={<Link href="/tasks" className="text-sm text-brand-700 underline">This week →</Link>}>
+          <Card title="My own to-dos">
             <MyTodos items={ownTodos} clients={cards.map((c) => ({ id: c.id, name: c.name }))} today={today} />
           </Card>
           <MessagesCard threads={threads} supervisor={supervisor} />
