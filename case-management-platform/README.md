@@ -27,14 +27,17 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 | Who | Where | What |
 |---|---|---|
 | Guest or volunteer | The Google Form or `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. |
-| Supervisor | **Dashboard** → New requests | Sees the newest requests by ID, with their source and most urgent need. |
+| Supervisor | **Home** → New requests | Sees the newest requests by ID, with their source and most urgent need. |
 | Supervisor | **Intake queue** | Sees new requests by client ID (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
-| Case manager | **Dashboard** | Sees today's short list and a card per client with their next step, when they were last seen, and a "Not reached" flag after 14 days. |
+| Case manager | **Home** | **Do these first**: up to 5 items, at most one per client (overdue, due today, urgent, not reached, new). Then their clients grouped as Needs attention / New to you / On track, each with its next step and a Log contact button. A small **My own to-dos** box. |
+| Case manager | **This week** | Everything open by when it's due: Overdue, Today, This week, Later, No date. |
+| Case manager | Client → **At a glance** | The one next step, when they were last seen, and for new clients a 4-step **Getting started** checklist (first contact, confirm needs, add steps, print sheet). |
+| Case manager | Client → **Care plan** | Steps grouped as Up next (3 at a time, the rest under Later), Waiting to hear back, Connected, Done. One button moves a step forward. |
 | Case manager | Client → **Contact log** | Logs **Met with guest** (and where), **Couldn't find**, or an **Update**, plus needs and a follow-up date. |
 | Case manager | Client → **Find resources & plan** | Sees matched resources per need and the gaps. Adds resources to the plan. Optionally asks the AI for a draft plan. |
 | Case manager | Client → **Print resource sheet** | Prints a one-page sheet for the client. It contains no last name, contact details, or notes. |
 | Anyone on staff | **Resources** → Report a problem | Flags a wrong phone number or changed hours. |
-| Supervisor | **Dashboard** → Not reached in 14+ days | Sees guests nobody has met recently and who their case manager is. |
+| Supervisor | **Home** → Not reached in 14+ days | Sees guests nobody has met recently and who their case manager is. |
 | Supervisor | **Reports** | Monthly program report for team check-ins and funders. **Download PDF** saves it. |
 | Supervisor | **Resources** | Fixes reported problems and entries where the guides disagree. Marks resources as verified. |
 

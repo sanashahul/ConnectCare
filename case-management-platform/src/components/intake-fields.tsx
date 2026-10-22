@@ -82,7 +82,7 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
           </div>
         </div>
         <div>
-          <label className={labelClass} htmlFor="howToReach">{you ? T.otherWays : "Other ways to find them"}</label>
+          <label className={labelClass} htmlFor="howToReach">{you ? T.otherWays : "Other ways to contact them"}</label>
           <input id="howToReach" name="howToReach" maxLength={300} placeholder={T.otherWaysExample} defaultValue={defaults.howToReach} className={inputClass} />
         </div>
         <fieldset>

@@ -78,6 +78,8 @@ export const clients = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     assignedAt: timestamp("assigned_at", { withTimezone: true }),
+    // When a case manager confirmed the need categories ("Getting started" step 2).
+    needsConfirmedAt: timestamp("needs_confirmed_at", { withTimezone: true }),
     closedAt: timestamp("closed_at", { withTimezone: true }),
   },
   (t) => [index("clients_assigned_idx").on(t.assignedToId), index("clients_status_idx").on(t.status)],

@@ -6,9 +6,9 @@ import { audit } from "@/lib/audit";
 import { requireSupervisor } from "@/lib/auth";
 import { todayIso } from "@/lib/followups";
 import { todoItemsFor } from "@/lib/todos";
-import { TodoList } from "../../dashboard/todo-list";
+import { WeekList } from "../../tasks/week-list";
 
-/** A supervisor's view-only look at a case manager's Action items, in their order and priorities. */
+/** A supervisor's view-only look at a case manager's open items, by when they're due. */
 export default async function TeamMemberActionItems({ params }: { params: Promise<{ id: string }> }) {
   const supervisor = await requireSupervisor();
   const { id } = await params;
@@ -25,11 +25,11 @@ export default async function TeamMemberActionItems({ params }: { params: Promis
     <div className="max-w-4xl">
       <PageHeader
         back={{ href: "/dashboard", label: "Dashboard" }}
-        title={`${member.name}'s action items`}
-        subtitle={`${items.length} open · ${counts.urgent} urgent · ${counts.high} high · ${counts.medium} medium${overdue ? ` · ${overdue} overdue` : ""}. View only, in the order ${member.name.split(" ")[0]} arranged them.`}
+        title={`${member.name}'s week`}
+        subtitle={`${items.length} open · ${counts.urgent} urgent · ${counts.high} high${overdue ? ` · ${overdue} overdue` : ""}. View only.`}
       />
       <Card>
-        <TodoList items={items} clients={[]} today={todayIso()} readOnly />
+        <WeekList items={items} today={todayIso()} readOnly />
       </Card>
     </div>
   );

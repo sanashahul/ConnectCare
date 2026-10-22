@@ -55,6 +55,8 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
     status: assignToSelf ? "active" : "new",
     assignedToId: assignToSelf ? user.id : null,
     assignedAt: assignToSelf ? new Date() : null,
+    // Staff entered the needs themselves, so there is nothing to confirm.
+    needsConfirmedAt: new Date(),
     county: cols.county,
     city: cols.city,
     needs: cols.needs,
@@ -82,11 +84,21 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
       needs: cols.needs,
       urgent: cols.urgent,
       profileEnc: encryptProfile({ ...cols.profile, consentAt: client.profile.consentAt }),
+      needsConfirmedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(schema.clients.id, id));
   await audit({ userId: user.id, action: "client.updated", clientId: id });
   redirect(`/clients/${id}`);
+}
+
+/** "Getting started" step 2: the case manager checked the need categories with the guest. */
+export async function confirmNeeds(form: FormData) {
+  const id = String(form.get("clientId") ?? "");
+  const { user } = await clientOr404(id);
+  await db.update(schema.clients).set({ needsConfirmedAt: new Date(), updatedAt: new Date() }).where(eq(schema.clients.id, id));
+  await audit({ userId: user.id, action: "client.needs_confirmed", clientId: id });
+  for (const path of [`/clients/${id}`, "/dashboard"]) revalidatePath(path);
 }
 
 export type AssignClientState = { ok?: boolean; error?: string; assigneeId?: string; assigneeName?: string } | undefined;
@@ -365,8 +377,7 @@ export async function updatePlanItem(form: FormData) {
   } else return;
   await touch(item.clientId);
   await audit({ userId: user.id, action: `plan.${intent}`, clientId: item.clientId });
-  revalidatePath(`/clients/${item.clientId}`);
-  revalidatePath(`/clients/${item.clientId}/plan`);
+  for (const path of [`/clients/${item.clientId}`, `/clients/${item.clientId}/plan`, "/dashboard", "/tasks"]) revalidatePath(path);
 }
 
 // ---------- AI ----------
