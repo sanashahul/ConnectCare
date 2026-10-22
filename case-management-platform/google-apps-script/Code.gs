@@ -106,8 +106,17 @@ var DESCRIPTION =
 // case managers always see English choices. Written answers stay as the guest wrote them.
 // Translation lists must line up item by item with the English lists above.
 
+// This is the form's only language question: it picks the section to fill out and is
+// saved as the guest's preferred language. Languages without their own section use English.
 var LANGUAGE_PICKER = "Language / Idioma / Ngôn ngữ";
-var LANGUAGE_PICKER_CHOICES = { English: "en", "Español": "es", "Tiếng Việt": "vi" };
+var LANGUAGE_OPTIONS = [
+  { label: "English", section: "en", language: "English" },
+  { label: "Español", section: "es", language: "Spanish" },
+  { label: "Tiếng Việt", section: "vi", language: "Vietnamese" },
+  { label: "中文 (Chinese, form in English)", section: "en", language: "Chinese" },
+  { label: "Tagalog (form in English)", section: "en", language: "Tagalog" },
+  { label: "Another language (form in English)", section: "en", language: "Other" },
+];
 var FORM_LANGUAGE_NAMES = { en: "English", es: "Spanish", vi: "Vietnamese" };
 var MULTILINGUAL_TITLE = "Ask for help · Pida ayuda · Xin giúp đỡ";
 var MULTILINGUAL_DESCRIPTION =
@@ -320,7 +329,7 @@ function strings_(lang) {
 
 // Question order within each language section. Consent stays last.
 var ORDER = [
-  "name", "pronouns", "email", "contact", "language", "urgentNeed", "helpToday",
+  "name", "pronouns", "email", "contact", "urgentNeed", "helpToday",
   "needs", "lgbtqCare", "disability", "accessNeeds", "area", "otherInfo", "consent",
 ];
 
@@ -334,6 +343,8 @@ function setup() {
     form = FormApp.openById(formId);
     addMissingQuestions_(form); // forms made by an older version of this script
     if (addLanguageSections_(form)) applyFormText_(form);
+    removeSectionLanguageQuestions_(form);
+    setLanguageChoices_(form);
   } else {
     form = buildForm_();
     props.setProperty("FORM_ID", form.getId());
@@ -398,10 +409,6 @@ function addQuestion_(form, key, lang) {
     case "otherInfo":
       item = form.addParagraphTextItem().setTitle(title);
       break;
-    case "language":
-      item = form.addMultipleChoiceItem().setTitle(title);
-      choices(item, S.choices.language).showOtherOption(true);
-      break;
     case "helpToday":
     case "lgbtqCare":
     case "disability":
@@ -439,7 +446,6 @@ function addMissingQuestions_(form) {
     }
   };
   if (!has(Q.pronouns)) place(addQuestion_(form, "pronouns", "en"), Q.name);
-  if (!has(Q.language)) place(addQuestion_(form, "language", "en"), Q.contact);
   if (!has(Q.lgbtqCare)) place(addQuestion_(form, "lgbtqCare", "en"), Q.needs);
   if (!has(Q.disability)) place(addQuestion_(form, "disability", "en"), Q.lgbtqCare);
   if (!has(Q.accessNeeds)) place(addQuestion_(form, "accessNeeds", "en"), Q.disability);
@@ -464,11 +470,10 @@ function addLanguageSections_(form) {
   var english = form.addPageBreakItem().setTitle("English").setHelpText(DESCRIPTION);
   form.moveItem(english.getIndex(), 1);
 
-  var pages = { en: english };
   ["es", "vi"].forEach(function (lang) {
     var S = strings_(lang);
     // A section break's "go to" applies to the section before it: finish that language and submit.
-    pages[lang] = form
+    form
       .addPageBreakItem()
       .setTitle(S.section)
       .setHelpText(S.description)
@@ -478,12 +483,39 @@ function addLanguageSections_(form) {
     });
   });
 
+  setLanguageChoices_(form);
+  return true;
+}
+
+/** Points each choice of the language question at its section. Safe to run again. */
+function setLanguageChoices_(form) {
+  var picker = null;
+  var pages = {};
+  var sectionTitles = { English: "en" };
+  sectionTitles[strings_("es").section] = "es";
+  sectionTitles[strings_("vi").section] = "vi";
+  form.getItems().forEach(function (item) {
+    var title = item.getTitle();
+    if (title === LANGUAGE_PICKER) picker = item.asMultipleChoiceItem();
+    else if (sectionTitles[title] && item.getType() === FormApp.ItemType.PAGE_BREAK) pages[sectionTitles[title]] = item.asPageBreakItem();
+  });
+  if (!picker || !pages.en || !pages.es || !pages.vi) return;
   picker.setChoices(
-    Object.keys(LANGUAGE_PICKER_CHOICES).map(function (label) {
-      return picker.createChoice(label, pages[LANGUAGE_PICKER_CHOICES[label]]);
+    LANGUAGE_OPTIONS.map(function (o) {
+      return picker.createChoice(o.label, pages[o.section]);
     }),
   );
-  return true;
+}
+
+/**
+ * Earlier versions also asked "Preferred language" inside each section. The language question
+ * at the start now covers it, so those repeats are removed.
+ */
+function removeSectionLanguageQuestions_(form) {
+  var repeats = [Q.language, strings_("es").q.language, strings_("vi").q.language];
+  form.getItems().forEach(function (item) {
+    if (repeats.indexOf(item.getTitle()) !== -1) form.deleteItem(item);
+  });
 }
 
 /** Trigger: runs on every form submission. */
@@ -557,12 +589,16 @@ function toEnglish_(lang, key, value) {
   return i === -1 ? value : strings_("en").choices[key][i];
 }
 
-function formLanguageOf_(response) {
-  var lang = "en";
+/** The answer to the language question: which section they used and their preferred language. */
+function languageChoiceOf_(response) {
+  var choice = LANGUAGE_OPTIONS[0];
   response.getItemResponses().forEach(function (ir) {
-    if (ir.getItem().getTitle() === LANGUAGE_PICKER) lang = LANGUAGE_PICKER_CHOICES[String(ir.getResponse())] || "en";
+    if (ir.getItem().getTitle() !== LANGUAGE_PICKER) return;
+    LANGUAGE_OPTIONS.forEach(function (o) {
+      if (o.label === String(ir.getResponse())) choice = o;
+    });
   });
-  return lang;
+  return choice;
 }
 
 function toPayload_(response) {
@@ -579,10 +615,10 @@ function toPayload_(response) {
     else if (key === "needs") answers.needs = [].concat(value).map(function (v) { return toEnglish_(found.lang, "needs", String(v)); });
     else answers[key] = toEnglish_(found.lang, key, String(value));
   });
-  var formLanguage = FORM_LANGUAGE_NAMES[formLanguageOf_(response)];
-  // Someone who filled out the Spanish form and skipped "Preferred language" still prefers Spanish.
-  if (!answers.language && formLanguage !== "English") answers.language = formLanguage;
-  answers.formLanguage = formLanguage;
+  var choice = languageChoiceOf_(response);
+  // Older forms asked "Preferred language" again inside each section; otherwise the first question answers it.
+  if (!answers.language) answers.language = choice.language;
+  answers.formLanguage = FORM_LANGUAGE_NAMES[choice.section];
   return {
     responseId: response.getId(),
     submittedAt: response.getTimestamp().toISOString(),
@@ -597,7 +633,7 @@ function sendConfirmation_(response, clientCode) {
     if (found && found.key === "email") email = String(ir.getResponse()).trim();
   });
   if (!email || !clientCode) return;
-  var S = strings_(formLanguageOf_(response));
+  var S = strings_(languageChoiceOf_(response).section);
   MailApp.sendEmail({ to: email, subject: S.emailSubject, body: S.emailBody.replace("{code}", clientCode) });
 }
 

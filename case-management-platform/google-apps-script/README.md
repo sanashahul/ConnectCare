@@ -14,15 +14,14 @@ From there, the supervisor assigns the request to a case manager, and the case m
 
 ## The form
 
-The form opens with one question: **Language / Idioma / Ngôn ngữ** (English, Español, Tiếng Việt). Google Forms then jumps to that language's section, so guests share one link and one QR code.
+The form opens with its only language question: **Language / Idioma / Ngôn ngữ**. Choosing English, Español or Tiếng Việt jumps to that language's section; Chinese, Tagalog and "Another language" use the English section. The answer is saved as the guest's preferred language. Guests share one link and one QR code.
 
 - Choice answers (needs, area, yes/no, language, disability) are converted back to English before they are sent, so case managers always see English choices.
 - **Written answers** (name, best place to reach you, urgent need, anything else) arrive as the guest wrote them. The client's profile shows "Filled out in Spanish" (or Vietnamese) so the case manager knows.
-- If a guest uses the Spanish or Vietnamese section and skips "Preferred language", their preferred language is set to that language.
 - The confirmation email goes out in the language the guest used.
 - **Have a fluent speaker read the Spanish and Vietnamese sections before sharing the link.** You can fix wording right in the form editor, but keep the *question titles* matching `TRANSLATIONS` in `Code.gs` (see "Changing the form" below).
 
-Each language section has these questions:
+The first question is **Language / Idioma / Ngôn ngữ** (required; saved as their preferred language). Each language section then has these questions:
 
 | Question | Required | Goes to |
 |---|---|---|
@@ -30,7 +29,6 @@ Each language section has these questions:
 | Your pronouns | No | Shown next to their name for staff |
 | Email | No | Client email; the request number is emailed here |
 | Best place or way to contact you | Yes | "Best place to reach" |
-| Preferred language | No | Preferred language (choices plus "Other"); used to match resources in their language |
 | What do you need most urgently? | Yes | "Most urgent need"; also used to fill in need categories automatically |
 | Do you need help today? | No | "Yes" marks the request as urgent |
 | What else can we help with? | No | Need categories |
@@ -81,6 +79,8 @@ To add Spanish and Vietnamese to a form you made with an earlier version of the 
 1. Open the Apps Script project, select all of `Code.gs`, and replace it with the new `Code.gs` from GitHub. Click **Save**.
 2. Choose `setup` from the menu at the top and click **Run**.
 3. Open your form. It now starts with the language question, followed by English, Español and Tiếng Việt sections. The link and QR code don't change.
+
+If you ran the previous version, `setup` also removes the repeated "Preferred language" question from each section, so only the first language question is left.
 
 ### 4. Test it
 
