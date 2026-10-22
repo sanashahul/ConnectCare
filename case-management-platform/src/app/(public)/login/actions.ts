@@ -10,7 +10,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { createSession, destroySession, readSession } from "@/lib/session";
 import { verifyTotp } from "@/lib/totp";
 
-export type FormState = { error?: string } | undefined;
+export type FormState = { error?: string; email?: string } | undefined;
 
 const MAX_FAILS = 5;
 const LOCK_MINUTES = 15;
@@ -20,16 +20,16 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   const ip = await requestIp();
-  if (!(await rateLimit(`login:${ip}`, 20, 15 * 60_000))) return { error: "Too many attempts. Wait 15 minutes and try again." };
+  if (!(await rateLimit(`login:${ip}`, 20, 15 * 60_000))) return { error: "Too many attempts. Wait 15 minutes and try again.", email };
 
   const user = await db.query.users.findFirst({ where: eq(schema.users.email, email) });
   if (!user || !user.active) {
     await verifyPassword(password, "scrypt.AAAAAAAAAAAAAAAAAAAAAA.AAAA"); // keep timing similar
     await audit({ action: "login.failed", detail: { reason: "unknown_or_inactive" } });
-    return { error: GENERIC };
+    return { error: GENERIC, email };
   }
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    return { error: "This account is temporarily locked after too many attempts. Try again later or ask your supervisor." };
+    return { error: "This account is temporarily locked after too many attempts. Try again later or ask your supervisor.", email };
   }
   if (!(await verifyPassword(password, user.passwordHash))) {
     const fails = user.failedLogins + 1;
@@ -41,7 +41,7 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
       })
       .where(eq(schema.users.id, user.id));
     await audit({ userId: user.id, action: "login.failed", detail: { reason: "password", locked: fails >= MAX_FAILS } });
-    return { error: GENERIC };
+    return { error: GENERIC, email };
   }
   await db.update(schema.users).set({ failedLogins: 0, lockedUntil: null }).where(eq(schema.users.id, user.id));
   await createSession(user.id, "password");

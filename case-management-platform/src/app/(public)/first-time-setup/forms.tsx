@@ -52,11 +52,11 @@ export function FirstSupervisorForm() {
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="name">Your name</label>
-          <input id="name" name="name" required className={inputClass} />
+          <input id="name" name="name" required defaultValue={state?.name} key={`n${state?.name}`} className={inputClass} />
         </div>
         <div>
           <label className={labelClass} htmlFor="email">Your work email</label>
-          <input id="email" name="email" type="email" required autoComplete="username" className={inputClass} />
+          <input id="email" name="email" type="email" required autoComplete="username" defaultValue={state?.email} key={`e${state?.email}`} className={inputClass} />
         </div>
         <div>
           <label className={labelClass} htmlFor="password">Choose a password (12+ characters)</label>
