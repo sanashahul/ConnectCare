@@ -5,14 +5,23 @@ import { ClientLabel } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { displayName, listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
-import { caseManagers, todayIso } from "@/lib/followups";
-import { listThreads } from "@/lib/messages";
-import { todoItemsFor, type TodoItem } from "@/lib/todos";
-import { ClientCards, type ClientCard } from "./client-cards";
-import { TodayList } from "./today";
-import { needLabel, NOT_REACHED_DAYS } from "@/lib/options";
 import { contactSummaries, daysNotReached } from "@/lib/contacts";
+import { pickDoFirst } from "@/lib/do-first";
+import { caseManagers, todayIso } from "@/lib/followups";
+import { gettingStartedFor, showGettingStarted } from "@/lib/getting-started";
+import { listThreads } from "@/lib/messages";
+import { needLabel, NOT_REACHED_DAYS } from "@/lib/options";
+import { decryptPlanBody } from "@/lib/plan";
+import { nextStep, OPEN_STATUSES } from "@/lib/plan-order";
+import { todoItemsFor } from "@/lib/todos";
+import { cardGroup, ClientGroups, type ClientCard } from "./client-cards";
+import { DoFirst } from "./do-first";
+import { MyTodos } from "./my-todos";
 
+/**
+ * Home. Case managers see what to do first (at most one item per client), then their clients
+ * grouped by what they need, then their own to-dos. Supervisors also see the team panels.
+ */
 export default async function DashboardPage() {
   const user = await requireUser();
   const supervisor = user.role === "supervisor";
@@ -20,26 +29,33 @@ export default async function DashboardPage() {
 
   const active = await listClientsForUser(user, { statuses: ["active", "new"] });
   const mine = active.filter((c) => c.assignedToId === user.id && c.status === "active");
-  const [todos, threads, views, contacts] = await Promise.all([
+  const mineIds = mine.map((c) => c.id);
+  const [todos, threads, views, contacts, started, openSteps] = await Promise.all([
     todoItemsFor(user),
     listThreads(user, { resolved: false, limit: 5 }),
-    lastViewed(user.id, mine.map((c) => c.id)),
-    contactSummaries(mine.map((c) => c.id)),
+    lastViewed(user.id, mineIds),
+    contactSummaries(mineIds),
+    gettingStartedFor(mine),
+    mineIds.length
+      ? db
+          .select({
+            clientId: schema.planItems.clientId,
+            status: schema.planItems.status,
+            dueDate: schema.planItems.dueDate,
+            createdAt: schema.planItems.createdAt,
+            bodyEnc: schema.planItems.bodyEnc,
+          })
+          .from(schema.planItems)
+          .where(and(inArray(schema.planItems.clientId, mineIds), inArray(schema.planItems.status, [...OPEN_STATUSES])))
+      : Promise.resolve([]),
   ]);
 
-  // Today: overdue first, then due today, then other urgent items. Kept short on purpose.
-  const rank = (i: TodoItem) => (i.dueDate && i.dueDate < today ? 0 : i.dueDate === today ? 1 : 2);
-  const todayAll = todos
-    .filter((i) => (i.dueDate && i.dueDate <= today) || i.priority === "urgent")
-    .sort((a, b) => rank(a) - rank(b));
-  const TODAY_MAX = 5;
-
-  // One card per client, with their first item in the case manager's own priority order.
   const cards: ClientCard[] = mine.map((c) => {
-    const items = todos.filter((t) => t.clientId === c.id);
-    const next = items[0];
+    const steps = openSteps.filter((s) => s.clientId === c.id);
+    const next = nextStep(steps);
     const seen = views.get(c.id);
     const contact = contacts.get(c.id);
+    const gs = started.get(c.id);
     return {
       id: c.id,
       name: displayName(c.profile),
@@ -49,51 +65,63 @@ export default async function DashboardPage() {
       lastMet: contact?.lastMet,
       lastPlace: contact?.lastPlace,
       notReached: daysNotReached(c, contact, today),
-      next: next?.text,
-      nextDue: next?.dueDate,
-      open: items.length,
-      overdue: items.filter((t) => t.dueDate && t.dueDate < today).length,
+      gettingStarted: showGettingStarted(c, gs) ? gs : undefined,
+      next: next && decryptPlanBody(next.bodyEnc).title,
+      nextDue: next?.dueDate ?? undefined,
+      open: steps.length,
+      overdue: todos.filter((t) => t.clientId === c.id && t.dueDate && t.dueDate < today).length,
     };
   });
-  cards.sort(
-    (a, b) =>
-      Number(b.urgent || b.overdue > 0 || b.notReached !== null) - Number(a.urgent || a.overdue > 0 || a.notReached !== null) ||
-      Number(b.isNew) - Number(a.isNew) ||
-      (a.nextDue ?? "9999").localeCompare(b.nextDue ?? "9999") ||
-      a.name.localeCompare(b.name),
-  );
+  cards.sort((a, b) => (a.nextDue ?? "9999").localeCompare(b.nextDue ?? "9999") || a.name.localeCompare(b.name));
+
+  const doFirst = pickDoFirst({
+    todos,
+    clients: cards.map((c) => ({ id: c.id, name: c.name, notReached: c.notReached, notMetYet: !c.lastMet && !!c.gettingStarted })),
+    today,
+  });
+  const ownTodos = todos.filter((t) => t.kind === "task");
+  const attention = cards.filter((c) => cardGroup(c) === "attention").length;
+  const showMine = !supervisor || cards.length > 0;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`Hello, ${user.name.split(" ")[0]}`}
-        subtitle={supervisor ? "Team overview" : `${mine.length} active client${mine.length === 1 ? "" : "s"}`}
-        actions={
-          <>
-            <Link href="/tasks" className={secondaryButtonClass}>All tasks ({todos.length})</Link>
-            <Link href="/clients/new" className={buttonClass}>+ New client</Link>
-          </>
+        subtitle={
+          supervisor
+            ? "Team overview"
+            : `${mine.length} client${mine.length === 1 ? "" : "s"}${attention ? ` · ${attention} need${attention === 1 ? "s" : ""} attention` : ""}`
         }
+        actions={<Link href="/clients/new" className={buttonClass}>+ New client</Link>}
       />
       {supervisor && <SupervisorPanels />}
       {supervisor && <NotReached clients={active.filter((c) => c.status === "active")} today={today} />}
       {supervisor && <NewRequests requests={active.filter((c) => c.status === "new")} />}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <Card title={`Today${todayAll.length ? ` (${todayAll.length})` : ""}`}>
-            <TodayList items={todayAll.slice(0, TODAY_MAX)} more={Math.max(0, todayAll.length - TODAY_MAX)} today={today} />
-          </Card>
-          {(!supervisor || cards.length > 0) && (
-            <Card title={`My clients (${cards.length})`} actions={<Link href="/clients" className="text-sm text-brand-700 underline">List view →</Link>}>
+          {showMine && (
+            <Card title="Do these first">
+              <p className="-mt-1 mb-3 text-xs text-stone-500">The most pressing thing for each client, up to 5.</p>
+              <DoFirst items={doFirst.items} more={doFirst.more} />
+            </Card>
+          )}
+          {showMine && (
+            <Card
+              title={supervisor ? `Your own clients (${cards.length})` : `Your clients (${cards.length})`}
+              actions={<Link href="/clients" className="text-sm text-brand-700 underline">List and search →</Link>}
+            >
               {cards.length === 0 ? (
-                <EmptyState>No active clients yet. New guests appear here once a supervisor assigns them to you.</EmptyState>
+                <EmptyState>No clients yet. New guests appear here once a supervisor assigns them to you.</EmptyState>
               ) : (
-                <ClientCards cards={cards} today={today} />
+                <ClientGroups cards={cards} today={today} />
               )}
             </Card>
           )}
         </div>
         <div className="space-y-6">
+          <Card title="My own to-dos" actions={<Link href="/tasks" className="text-sm text-brand-700 underline">This week →</Link>}>
+            <MyTodos items={ownTodos} clients={cards.map((c) => ({ id: c.id, name: c.name }))} today={today} />
+          </Card>
           <MessagesCard threads={threads} supervisor={supervisor} />
         </div>
       </div>
@@ -222,7 +250,7 @@ async function SupervisorPanels() {
               <li key={cm.id} className="flex items-center justify-between gap-2">
                 <Link className="hover:underline" href={`/clients?cm=${cm.id}`} title="Their clients">{cm.name}</Link>
                 <span className="flex items-center gap-3">
-                  <Link className="text-xs text-brand-700 underline" href={`/team/${cm.id}`}>Action items</Link>
+                  <Link className="text-xs text-brand-700 underline" href={`/team/${cm.id}`}>Their week</Link>
                   <span className="font-medium" title="Active clients">{load.get(cm.id) ?? 0}</span>
                 </span>
               </li>

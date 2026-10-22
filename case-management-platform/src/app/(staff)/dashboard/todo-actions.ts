@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/db";
@@ -63,15 +63,7 @@ export async function setPlanStatus(key: string, status: "todo" | "referred" | "
   if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
   await db.update(schema.planItems).set({ status, statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
   await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status, from: "todo_list" } });
-  revalidatePath(`/clients/${item.clientId}`);
-  return { ok: true };
-}
-
-export async function deleteTask(id: string): Promise<{ ok: boolean }> {
-  const user = await requireUser();
-  await db.delete(schema.tasks).where(and(eq(schema.tasks.id, id), eq(schema.tasks.userId, user.id)));
-  revalidatePath("/dashboard");
-  revalidatePath("/tasks");
+  for (const path of [`/clients/${item.clientId}`, "/dashboard", "/tasks"]) revalidatePath(path);
   return { ok: true };
 }
 
@@ -82,25 +74,7 @@ export async function setTodoPriority(key: string, priority: Priority): Promise<
     .insert(schema.todoState)
     .values({ userId: user.id, itemKey: key, priority })
     .onConflictDoUpdate({ target: [schema.todoState.userId, schema.todoState.itemKey], set: { priority } });
-  return { ok: true };
-}
-
-/** Saves the order the person arranged their list in. */
-export async function saveTodoOrder(keys: string[]): Promise<{ ok: boolean }> {
-  const user = await requireUser();
-  if (!Array.isArray(keys) || keys.length > 500 || !keys.every((k) => typeof k === "string" && TODO_KEY_PATTERN.test(k))) {
-    return { ok: false };
-  }
-  await db.transaction(async (tx) => {
-    await tx.update(schema.todoState).set({ position: null }).where(eq(schema.todoState.userId, user.id));
-    if (keys.length === 0) return;
-    await tx
-      .insert(schema.todoState)
-      .values(keys.map((itemKey, position) => ({ userId: user.id, itemKey, position })))
-      .onConflictDoUpdate({
-        target: [schema.todoState.userId, schema.todoState.itemKey],
-        set: { position: sql`excluded.position` },
-      });
-  });
+  revalidatePath("/dashboard");
+  revalidatePath("/tasks");
   return { ok: true };
 }
