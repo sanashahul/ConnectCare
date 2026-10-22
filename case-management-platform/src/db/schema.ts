@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -161,4 +162,77 @@ export const auditLog = pgTable(
     ip: text("ip"),
   },
   (t) => [index("audit_at_idx").on(t.at), index("audit_client_idx").on(t.clientId)],
+);
+
+// ---------- To-do list ----------
+
+// A staff member's own tasks, alongside the plan steps and follow-ups pulled from their clients.
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    // Optional client the task is about (must be one the user can access).
+    clientId: uuid("client_id").references(() => clients.id, { onDelete: "set null" }),
+    textEnc: text("text_enc").notNull(),
+    dueDate: date("due_date"),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("tasks_user_idx").on(t.userId)],
+);
+
+// Each person's chosen order for their to-do list, and follow-ups they've ticked off.
+// itemKey: "task:<id>", "plan:<id>", or "followup:<clientId>:<date>".
+export const todoState = pgTable(
+  "todo_state",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    itemKey: text("item_key").notNull(),
+    position: integer("position"),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.itemKey] })],
+);
+
+// ---------- Messages between case managers and supervisors ----------
+
+export const messageThreads = pgTable(
+  "message_threads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // The case manager in the conversation. Supervisors see every thread.
+    caseManagerId: uuid("case_manager_id").notNull().references(() => users.id),
+    createdById: uuid("created_by_id").notNull().references(() => users.id),
+    clientId: uuid("client_id").references(() => clients.id, { onDelete: "set null" }),
+    subjectEnc: text("subject_enc").notNull(),
+    resolved: boolean("resolved").notNull().default(false),
+    // Who wrote the latest message, so the other side sees it as unread.
+    lastAuthorId: uuid("last_author_id").references(() => users.id),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("threads_cm_idx").on(t.caseManagerId), index("threads_last_idx").on(t.lastMessageAt)],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    threadId: uuid("thread_id").notNull().references(() => messageThreads.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").notNull().references(() => users.id),
+    bodyEnc: text("body_enc").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("messages_thread_idx").on(t.threadId)],
+);
+
+export const threadReads = pgTable(
+  "thread_reads",
+  {
+    threadId: uuid("thread_id").notNull().references(() => messageThreads.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.threadId, t.userId] })],
 );
