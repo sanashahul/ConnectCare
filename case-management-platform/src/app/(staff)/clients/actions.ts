@@ -11,12 +11,12 @@ import { requireSupervisor, requireUser } from "@/lib/auth";
 import { displayName, encryptProfile, getClientForUser, insertClient } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
-import { CONTACT_TYPES, NEED_KEYS, PLAN_STATUSES } from "@/lib/options";
-import { encryptPlanBody, decryptPlanBody, type AiSuggestion } from "@/lib/plan";
+import { CONTACT_TYPES, NEED_KEYS, NEEDS, PLAN_STATUSES } from "@/lib/options";
+import { encryptPlanBody, decryptPlanBody, type AiSuggestion, type CustomResource } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 import { redactIdentifiers } from "@/lib/redact";
 import { matchResources } from "@/lib/resource-match";
-import { getActiveResources, getResource } from "@/lib/resources";
+import { getActiveResources, getResource, insertDirectoryResource } from "@/lib/resources";
 
 export type ActionState = { error?: string; fieldErrors?: Record<string, string>; ok?: boolean } | undefined;
 
@@ -40,6 +40,7 @@ const dateOrNull = z
 
 export async function createClient(_: ActionState, form: FormData): Promise<ActionState> {
   const user = await requireUser();
+  if (form.get("consent") !== "on") return { error: "Confirm that the client agreed before saving." };
   const parsed = readIntakeForm(form);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
@@ -58,9 +59,9 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
     city: cols.city,
     needs: cols.needs,
     urgent: cols.urgent,
-    profileEnc: encryptProfile(cols.profile),
+    profileEnc: encryptProfile({ ...cols.profile, consentAt: new Date().toISOString() }),
   });
-  await audit({ userId: user.id, action: "client.created", clientId: row.id });
+  await audit({ userId: user.id, action: "client.created", clientId: row.id, detail: { consent: true } });
   redirect(`/clients/${row.id}`);
 }
 
@@ -176,32 +177,101 @@ export async function addNote(clientId: string, _: ActionState, form: FormData):
 
 // ---------- Care plan ----------
 
+const optionalText = (max: number) =>
+  z.string().trim().max(max).optional().transform((v) => v || undefined);
+
 const PlanSchema = z.object({
   need: z.enum(NEED_KEYS as [string, ...string[]]),
-  title: z.string().trim().min(1, "Describe the step.").max(500),
-  details: z.string().trim().max(2000).optional(),
+  title: optionalText(500),
+  details: optionalText(2000),
+  // "" = no resource, "__custom" = typed in below, anything else = a directory resource id
   resourceId: z.string().optional().transform((v) => v || null),
   dueDate: dateOrNull,
+  customName: optionalText(200),
+  customPhone: optionalText(100),
+  customAddress: optionalText(300),
+  customHours: optionalText(300),
+  customNotes: optionalText(1000),
+  addToDirectory: z.boolean(),
 });
 
 export async function addPlanItem(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const { user } = await clientOr404(clientId);
+  const { user, client } = await clientOr404(clientId);
   const parsed = PlanSchema.safeParse({
     need: form.get("need"),
-    title: form.get("title"),
+    title: form.get("title") ?? undefined,
     details: form.get("details") ?? undefined,
     resourceId: form.get("resourceId") ?? undefined,
     dueDate: form.get("dueDate") ?? undefined,
+    customName: form.get("customName") ?? undefined,
+    customPhone: form.get("customPhone") ?? undefined,
+    customAddress: form.get("customAddress") ?? undefined,
+    customHours: form.get("customHours") ?? undefined,
+    customNotes: form.get("customNotes") ?? undefined,
+    addToDirectory: form.get("addToDirectory") === "on",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
   const d = parsed.data;
-  if (d.resourceId && !(await getResource(d.resourceId))) return { error: "That resource no longer exists." };
+
+  let resourceId: string | null = null;
+  let resourceName: string | undefined;
+  let custom: CustomResource | undefined;
+  if (d.resourceId === "__custom") {
+    if (!d.customName) return { error: "Type the resource's name." };
+    if (d.addToDirectory) {
+      // Save to the shared directory so the whole team can find it, and link this step to it.
+      const categories = [...(NEEDS.find((n) => n.key === d.need)?.resourceCategories.slice(0, 1) ?? ["other"])];
+      const city = client.city && !client.city.startsWith("Other") ? client.city : null;
+      resourceId = await insertDirectoryResource(
+        {
+          name: d.customName,
+          categories,
+          description: d.customNotes ?? "",
+          county: client.county ?? "Multi-county",
+          city,
+          address: d.customAddress ?? null,
+          phones: d.customPhone ? [{ label: "Main", number: d.customPhone }] : [],
+          web: null,
+          hours: d.customHours ?? null,
+          walkIn: null,
+          cost: null,
+          acceptsMediCal: null,
+          languages: [],
+          eligibility: null,
+          isHotline: false,
+          sources: [`Added by ${user.name}`],
+          lastVerified: new Date().toISOString().slice(0, 10),
+          conflicts: [],
+          notes: null,
+        },
+        user.id,
+      );
+      await audit({ userId: user.id, action: "resource.created", detail: { resourceId, fromPlan: true } });
+    } else {
+      custom = {
+        name: d.customName,
+        phone: d.customPhone,
+        address: d.customAddress,
+        hours: d.customHours,
+        notes: d.customNotes,
+      };
+    }
+    resourceName = d.customName;
+  } else if (d.resourceId) {
+    const r = await getResource(d.resourceId);
+    if (!r) return { error: "That resource no longer exists." };
+    resourceId = r.id;
+    resourceName = r.name;
+  }
+
+  const title = d.title ?? (resourceName ? `Connect with ${resourceName}` : undefined);
+  if (!title) return { error: "Describe the step, or pick or type a resource." };
   await db.insert(schema.planItems).values({
     clientId,
     createdById: user.id,
     need: d.need,
-    resourceId: d.resourceId,
-    bodyEnc: encryptPlanBody({ title: d.title, details: d.details || undefined }),
+    resourceId,
+    bodyEnc: encryptPlanBody({ title, details: d.details, custom }),
     dueDate: d.dueDate,
   });
   await touch(clientId);

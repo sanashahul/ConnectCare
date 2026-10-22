@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { buttonClass, ErrorText, inputClass, labelClass } from "@/components/ui";
 import { CONTACT_TYPES, NEEDS } from "@/lib/options";
 import { addNote, addPlanItem } from "../actions";
@@ -58,11 +58,16 @@ export function AddPlanItemForm({ clientId, needs, resources }: {
   resources: { id: string; name: string }[];
 }) {
   const [state, action, pending] = useActionState(addPlanItem.bind(null, clientId), undefined);
+  const [resourceChoice, setResourceChoice] = useState("");
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state?.ok) ref.current?.reset();
+    if (state?.ok) {
+      ref.current?.reset();
+      setResourceChoice("");
+    }
   }, [state]);
   const ordered = [...NEEDS.filter((n) => needs.includes(n.key)), ...NEEDS.filter((n) => !needs.includes(n.key))];
+  const typing = resourceChoice === "__custom";
   return (
     <form ref={ref} action={action} className="space-y-3 rounded-md bg-stone-50 p-3">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -78,15 +83,60 @@ export function AddPlanItemForm({ clientId, needs, resources }: {
         </div>
       </div>
       <div>
-        <label className={labelClass} htmlFor="title">Step</label>
-        <input id="title" name="title" required maxLength={500} className={inputClass} placeholder="e.g. Call Here4You together for a shelter bed" />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="resourceId">Resource (optional)</label>
-        <select id="resourceId" name="resourceId" className={inputClass}>
-          <option value="">None</option>
-          {resources.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+        <label className={labelClass} htmlFor="resourceId">Resource</label>
+        <select
+          id="resourceId"
+          name="resourceId"
+          value={resourceChoice}
+          onChange={(e) => setResourceChoice(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">No resource (just a step)</option>
+          <option value="__custom">✎ Type in a resource…</option>
+          <optgroup label="From the resource directory">
+            {resources.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </optgroup>
         </select>
+      </div>
+      {typing && (
+        <div className="space-y-3 rounded-md border border-stone-200 bg-white p-3">
+          <div>
+            <label className={labelClass} htmlFor="customName">Resource name *</label>
+            <input id="customName" name="customName" required maxLength={200} className={inputClass} placeholder="e.g. St. Vincent de Paul clothing closet" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass} htmlFor="customPhone">Phone</label>
+              <input id="customPhone" name="customPhone" maxLength={100} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="customHours">Hours</label>
+              <input id="customHours" name="customHours" maxLength={300} className={inputClass} placeholder="e.g. Mon–Fri 9 am to 3 pm" />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="customAddress">Address</label>
+            <input id="customAddress" name="customAddress" maxLength={300} className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="customNotes">What they offer / notes</label>
+            <input id="customNotes" name="customNotes" maxLength={1000} className={inputClass} placeholder="Shown on the client's printout" />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-stone-800">
+            <input type="checkbox" name="addToDirectory" /> Also add to the resource directory so the whole team can use it
+          </label>
+        </div>
+      )}
+      <div>
+        <label className={labelClass} htmlFor="title">Step {resourceChoice ? <span className="font-normal text-stone-500">(optional)</span> : null}</label>
+        <input
+          id="title"
+          name="title"
+          maxLength={500}
+          required={!resourceChoice}
+          className={inputClass}
+          placeholder={resourceChoice ? "Leave blank for “Connect with …”" : "e.g. Bring your ID to the Thursday appointment"}
+        />
       </div>
       <ErrorText>{state?.error}</ErrorText>
       <button className={buttonClass} disabled={pending}>{pending ? "Saving…" : "Add step"}</button>

@@ -8,7 +8,7 @@ import { db, schema } from "@/db";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
 import { RESOURCE_CATEGORIES, type Resource } from "@/lib/resource-types";
-import { getResource } from "@/lib/resources";
+import { getResource, insertDirectoryResource } from "@/lib/resources";
 import { todayIso } from "@/lib/followups";
 
 export type ResourceFormState = { error?: string; ok?: boolean } | undefined;
@@ -128,8 +128,9 @@ function toResourceData(id: string, d: z.infer<typeof ResourceSchema>, prev?: Re
   };
 }
 
+// Anyone on the team can add a resource; editing existing ones is for supervisors.
 export async function saveResource(existingId: string | null, _: ResourceFormState, form: FormData): Promise<ResourceFormState> {
-  const user = await requireSupervisor();
+  const user = existingId ? await requireSupervisor() : await requireUser();
   const parsed = parseResourceForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
   if (existingId) {
@@ -143,11 +144,9 @@ export async function saveResource(existingId: string | null, _: ResourceFormSta
     await audit({ userId: user.id, action: "resource.updated", detail: { resourceId: existingId } });
     redirect(`/resources/${existingId}`);
   }
-  const base = parsed.data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "resource";
-  let id = base;
-  for (let n = 2; await getResource(id); n++) id = `${base}-${n}`;
-  const data = toResourceData(id, parsed.data);
-  await db.insert(schema.resources).values({ id, data, lastVerified: data.lastVerified, updatedById: user.id });
+  const { id: _id, ...data } = toResourceData("", parsed.data);
+  data.sources = [`Added by ${user.name}`];
+  const id = await insertDirectoryResource(data, user.id);
   await audit({ userId: user.id, action: "resource.created", detail: { resourceId: id } });
   redirect(`/resources/${id}`);
 }

@@ -36,7 +36,7 @@ export default async function ResourcesPage({ searchParams }: { searchParams: Pr
       <PageHeader
         title="Resource directory"
         subtitle={`${all.length} vetted resources from your team's guides. Hours change, so call before sending someone.`}
-        actions={supervisor && <Link href="/resources/new" className={buttonClass}>+ Add resource</Link>}
+        actions={<Link href="/resources/new" className={buttonClass}>+ Add resource</Link>}
       />
       <Card>
         <form className="mb-4 flex flex-wrap items-end gap-2">

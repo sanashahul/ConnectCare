@@ -148,6 +148,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                             {resourceName.get(item.resourceId) ?? "Resource"}
                           </Link>
                         )}
+                        {item.body.custom && (
+                          <div className="mt-1 text-sm text-stone-700">
+                            <p><strong>{item.body.custom.name}</strong>{item.body.custom.notes ? `: ${item.body.custom.notes}` : ""}</p>
+                            {[item.body.custom.phone, item.body.custom.address, item.body.custom.hours].filter(Boolean).length > 0 && (
+                              <p>{[item.body.custom.phone, item.body.custom.address, item.body.custom.hours].filter(Boolean).join(" · ")}</p>
+                            )}
+                          </div>
+                        )}
                         {item.body.suggestion && (
                           <div className="mt-1 text-sm text-stone-700">
                             <p><strong>{item.body.suggestion.name}</strong>: {item.body.suggestion.offers}</p>
