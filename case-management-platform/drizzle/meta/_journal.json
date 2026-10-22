@@ -36,6 +36,13 @@
       "when": 1792650015298,
       "tag": "0004_todos_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792651039127,
+      "tag": "0005_todo_priority",
+      "breakpoints": true
     }
   ]
 }

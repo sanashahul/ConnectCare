@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { count, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { ClientRow } from "@/components/client-row";
+import { ClientLabel, ClientRow } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
+import { displayName, listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
 import { caseManagers, todayIso } from "@/lib/followups";
 import { listThreads } from "@/lib/messages";
 import { todoItemsFor } from "@/lib/todos";
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
       {supervisor && <NewRequests requests={active.filter((c) => c.status === "new")} />}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card title="Action items" className="lg:col-span-2">
-          <TodoList items={todos} clients={mine.map((c) => ({ id: c.id, code: c.clientCode }))} today={today} />
+          <TodoList items={todos} clients={mine.map((c) => ({ id: c.id, name: displayName(c.profile) }))} today={today} />
         </Card>
         <div className="space-y-6">
           <MessagesCard threads={threads} supervisor={supervisor} />
@@ -94,7 +94,7 @@ function NewRequests({ requests }: { requests: Awaited<ReturnType<typeof listCli
           {newest.map((c) => (
             <li key={c.id}>
               <Link href={`/clients/${c.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-3 hover:bg-stone-50">
-                <span className="font-mono font-semibold tracking-wide text-stone-900">{c.clientCode}</span>
+                <ClientLabel client={c} />
                 {c.urgent && <Badge tone="red">Needs help today</Badge>}
                 <Badge tone={c.source === "google_form" ? "blue" : "gray"}>{SOURCE_LABELS[c.source]}</Badge>
                 <span className="min-w-0 flex-1 truncate text-sm text-stone-700">{c.profile.urgentDetails}</span>

@@ -4,7 +4,8 @@ import { asc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { Badge, Card, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { decryptString } from "@/lib/crypto";
+import { displayName, type ClientProfile } from "@/lib/clients";
+import { decryptJson, decryptString } from "@/lib/crypto";
 import { canAccessThread, markThreadRead } from "@/lib/messages";
 import { setResolved } from "../actions";
 import { ReplyForm } from "./reply-form";
@@ -38,7 +39,9 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
           <span className="flex flex-wrap items-center gap-2">
             {supervisor ? `With ${cm?.name ?? "case manager"}` : "With the supervisors"}
             {client && (
-              <Link href={`/clients/${client.id}`} className="font-mono font-semibold text-brand-700 underline">{client.clientCode}</Link>
+              <Link href={`/clients/${client.id}`} className="font-semibold text-brand-700 underline">
+                {displayName(decryptJson<ClientProfile>(client.profileEnc))}
+              </Link>
             )}
             {thread.resolved && <Badge tone="green">Resolved</Badge>}
           </span>

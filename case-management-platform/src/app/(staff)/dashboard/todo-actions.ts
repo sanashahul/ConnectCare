@@ -8,7 +8,7 @@ import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { getClientForUser } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
-import { TODO_KEY_PATTERN } from "@/lib/todos";
+import { PRIORITIES, TODO_KEY_PATTERN, type Priority } from "@/lib/todos";
 
 export type TaskState = { error?: string; ok?: boolean } | undefined;
 
@@ -56,6 +56,16 @@ export async function deleteTask(id: string): Promise<{ ok: boolean }> {
   const user = await requireUser();
   await db.delete(schema.tasks).where(and(eq(schema.tasks.id, id), eq(schema.tasks.userId, user.id)));
   revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function setTodoPriority(key: string, priority: Priority): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  if (!TODO_KEY_PATTERN.test(key) || !PRIORITIES.includes(priority)) return { ok: false };
+  await db
+    .insert(schema.todoState)
+    .values({ userId: user.id, itemKey: key, priority })
+    .onConflictDoUpdate({ target: [schema.todoState.userId, schema.todoState.itemKey], set: { priority } });
   return { ok: true };
 }
 

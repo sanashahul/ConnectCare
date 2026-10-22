@@ -190,6 +190,8 @@ export const todoState = pgTable(
     userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     itemKey: text("item_key").notNull(),
     position: integer("position"),
+    // "urgent" | "high" | "medium"; null = default (urgent clients start as urgent, everything else medium)
+    priority: text("priority", { enum: ["urgent", "high", "medium"] }),
     doneAt: timestamp("done_at", { withTimezone: true }),
   },
   (t) => [primaryKey({ columns: [t.userId, t.itemKey] })],

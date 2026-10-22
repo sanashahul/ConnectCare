@@ -7,13 +7,22 @@ const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0
 
 test("arranged items keep their order; new items follow by due date", () => {
   const items = [
-    { key: "a", dueDate: "2026-11-05", createdAt: 1 },
-    { key: "b", dueDate: "2026-11-01", createdAt: 2 },
-    { key: "c", createdAt: 3 },
-    { key: "d", dueDate: "2026-10-30", createdAt: 4 },
+    { key: "a", priority: "medium" as const, dueDate: "2026-11-05", createdAt: 1 },
+    { key: "b", priority: "medium" as const, dueDate: "2026-11-01", createdAt: 2 },
+    { key: "c", priority: "medium" as const, createdAt: 3 },
+    { key: "d", priority: "medium" as const, dueDate: "2026-10-30", createdAt: 4 },
   ];
   const order = orderTodos(items, new Map([["c", 0], ["a", 1]])).map((i) => i.key);
   assert.deepEqual(order, ["c", "a", "d", "b"]);
+});
+
+test("priority comes first: urgent, then high, then medium", () => {
+  const items = [
+    { key: "m", priority: "medium" as const, createdAt: 1 },
+    { key: "u", priority: "urgent" as const, createdAt: 2 },
+    { key: "h", priority: "high" as const, createdAt: 3 },
+  ];
+  assert.deepEqual(orderTodos(items, new Map([["m", 0]])).map((i) => i.key), ["u", "h", "m"]);
 });
 
 test("to-do keys are validated", () => {

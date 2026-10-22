@@ -2,7 +2,8 @@ import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db, schema } from "@/db";
 import type { CurrentUser } from "./auth";
-import { decryptString } from "./crypto";
+import { displayName, type ClientProfile } from "./clients";
+import { decryptJson, decryptString } from "./crypto";
 
 // Conversations between a case manager and the supervisors. A case manager sees their own
 // threads; every supervisor sees all threads. Subjects and messages are encrypted.
@@ -28,6 +29,7 @@ export async function listThreads(user: CurrentUser, opts: { resolved?: boolean;
       thread: schema.messageThreads,
       caseManagerName: cm.name,
       clientCode: schema.clients.clientCode,
+      clientProfileEnc: schema.clients.profileEnc,
       unread: sql<boolean>`coalesce(${unreadFor(user.id)}, false)`,
     })
     .from(schema.messageThreads)
@@ -40,7 +42,11 @@ export async function listThreads(user: CurrentUser, opts: { resolved?: boolean;
     .where(and(visibleTo(user), opts.resolved === undefined ? undefined : eq(schema.messageThreads.resolved, opts.resolved)))
     .orderBy(desc(schema.messageThreads.lastMessageAt))
     .limit(opts.limit ?? 200);
-  return rows.map((r) => ({ ...r, subject: decryptString(r.thread.subjectEnc) }));
+  return rows.map(({ clientProfileEnc, ...r }) => ({
+    ...r,
+    subject: decryptString(r.thread.subjectEnc),
+    clientName: clientProfileEnc ? displayName(decryptJson<ClientProfile>(clientProfileEnc)) : null,
+  }));
 }
 
 export async function unreadThreadCount(user: CurrentUser): Promise<number> {

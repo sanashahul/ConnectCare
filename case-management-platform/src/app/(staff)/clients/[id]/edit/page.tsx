@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { getClientForUser } from "@/lib/clients";
+import { displayName, getClientForUser } from "@/lib/clients";
 import { updateClient } from "../../actions";
 import { ClientForm } from "../../client-form";
 
@@ -12,7 +12,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   if (!client) notFound();
   return (
     <div className="max-w-3xl">
-      <PageHeader title={`Edit ${client.clientCode}`} back={{ href: `/clients/${id}`, label: "Back to client" }} />
+      <PageHeader title={`Edit ${displayName(client.profile)}`} back={{ href: `/clients/${id}`, label: "Back to client" }} />
       <Card>
         <ClientForm
           action={updateClient.bind(null, id)}

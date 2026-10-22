@@ -1,5 +1,5 @@
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader } from "@/components/ui";
-import { ClientCode, NeedChips } from "@/components/client-row";
+import { ClientLabel, NeedChips } from "@/components/client-row";
 import { requireSupervisor } from "@/lib/auth";
 import { listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
 import { caseManagers } from "@/lib/followups";
@@ -31,7 +31,7 @@ export default async function IntakeQueuePage() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/clients/${c.id}`} className="hover:underline"><ClientCode code={c.clientCode} /></Link>
+                    <Link href={`/clients/${c.id}`} className="hover:underline"><ClientLabel client={c} /></Link>
                     {c.urgent && <Badge tone="red">Urgent</Badge>}
                     <Badge tone={c.source === "google_form" ? "blue" : "gray"}>{SOURCE_LABELS[c.source]}</Badge>
                   </div>
