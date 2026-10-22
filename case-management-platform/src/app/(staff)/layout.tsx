@@ -14,6 +14,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
     { href: "/dashboard", label: "Dashboard" },
     ...(supervisor ? [{ href: "/intake-queue", label: "Intake queue" }] : []),
     { href: "/clients", label: supervisor ? "All clients" : "My clients" },
+    { href: "/tasks", label: "Tasks" },
     { href: "/resources", label: "Resources" },
     { href: "/messages", label: "Messages", badge: unread },
     ...(supervisor ? [{ href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }, { href: "/setup", label: "Setup check" }] : []),
