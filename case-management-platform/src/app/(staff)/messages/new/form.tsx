@@ -7,7 +7,7 @@ import { startThread } from "../actions";
 export function NewMessageForm({ supervisor, caseManagers, clients, defaultClientId, defaultCaseManagerId }: {
   supervisor: boolean;
   caseManagers: { id: string; name: string }[];
-  clients: { id: string; code: string }[];
+  clients: { id: string; label: string }[];
   defaultClientId?: string;
   defaultCaseManagerId?: string;
 }) {
@@ -31,13 +31,13 @@ export function NewMessageForm({ supervisor, caseManagers, clients, defaultClien
         <label className={labelClass} htmlFor="clientId">About a client (optional)</label>
         <select id="clientId" name="clientId" defaultValue={defaultClientId ?? ""} className={inputClass}>
           <option value="">No specific client</option>
-          {clients.map((c) => <option key={c.id} value={c.id}>{c.code}</option>)}
+          {clients.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
       </div>
       <div>
         <label className={labelClass} htmlFor="body">Message</label>
         <textarea id="body" name="body" required rows={5} maxLength={5000} className={inputClass} />
-        <p className="mt-1 text-xs text-stone-500">Refer to clients by their CC number. Only you and the supervisors can see this conversation.</p>
+        <p className="mt-1 text-xs text-stone-500">Only you and the supervisors can see this conversation.</p>
       </div>
       <ErrorText>{state?.error}</ErrorText>
       <button className={buttonClass} disabled={pending}>{pending ? "Sending…" : "Send"}</button>

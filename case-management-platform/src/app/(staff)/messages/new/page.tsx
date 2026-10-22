@@ -1,6 +1,6 @@
 import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { listClientsForUser } from "@/lib/clients";
+import { displayName, listClientsForUser } from "@/lib/clients";
 import { caseManagers } from "@/lib/followups";
 import { NewMessageForm } from "./form";
 
@@ -18,7 +18,7 @@ export default async function NewMessagePage({ searchParams }: { searchParams: P
         <NewMessageForm
           supervisor={supervisor}
           caseManagers={cms.map((c) => ({ id: c.id, name: c.name }))}
-          clients={clients.map((c) => ({ id: c.id, code: c.clientCode }))}
+          clients={clients.map((c) => ({ id: c.id, label: `${displayName(c.profile)} (${c.clientCode})` }))}
           defaultClientId={linked?.id}
           defaultCaseManagerId={linked?.assignedToId ?? undefined}
         />

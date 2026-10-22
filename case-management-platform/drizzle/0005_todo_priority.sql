@@ -1,0 +1,1 @@
+ALTER TABLE "todo_state" ADD COLUMN "priority" text;

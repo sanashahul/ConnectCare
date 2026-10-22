@@ -39,7 +39,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       />
       <Card>
         <form className="mb-4 flex flex-wrap items-end gap-2">
-          <input name="q" defaultValue={sp.q} placeholder="Client ID (CC-…) or name" className={`${inputClass} max-w-xs`} />
+          <input name="q" defaultValue={sp.q} placeholder="Name or client ID" className={`${inputClass} max-w-xs`} />
           <select name="status" defaultValue={status} className={`${inputClass} w-auto`}>
             <option value="open">Open</option>
             <option value="closed">Closed</option>

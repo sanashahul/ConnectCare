@@ -4,7 +4,7 @@ import { ResourceSummary } from "@/components/resource-card";
 import { Badge, Card, EmptyState, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { aiEnabled, describeAiPayload } from "@/lib/ai";
 import { requireUser } from "@/lib/auth";
-import { getClientForUser } from "@/lib/clients";
+import { displayName, getClientForUser } from "@/lib/clients";
 import { needLabel } from "@/lib/options";
 import { matchResources } from "@/lib/resource-match";
 import { getActiveResources } from "@/lib/resources";
@@ -47,7 +47,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="space-y-5">
       <PageHeader
-        back={{ href: `/clients/${id}`, label: client.clientCode }}
+        back={{ href: `/clients/${id}`, label: displayName(p) }}
         title="Find resources & plan"
         subtitle={`Matched to ${client.city ?? "unknown area"}${p.language ? `, ${p.language}` : ""}${p.insurance ? `, ${p.insurance}` : ""}. Edit the profile to change needs.`}
         actions={<Link href={`/clients/${id}/print`} className={secondaryButtonClass}>Print resource sheet</Link>}

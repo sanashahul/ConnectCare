@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { ClientCode, NeedChips } from "@/components/client-row";
+import { NeedChips } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass, smallButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
@@ -45,7 +45,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         back={{ href: "/clients", label: "Clients" }}
         title={
           <span className="flex flex-wrap items-center gap-2">
-            <ClientCode code={client.clientCode} />
+            {displayName(p)}
+            <span className="font-mono text-base font-normal text-stone-400">{client.clientCode}</span>
             {client.urgent && <Badge tone="red">Urgent</Badge>}
             {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
             {client.status === "closed" && <Badge>Closed</Badge>}
@@ -69,7 +70,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <Card title="Profile">
             <NeedChips needs={client.needs} max={20} />
             <dl className="mt-3 space-y-2 text-sm">
-              <Row label="Name" value={displayName(p)} />
+              <Row label="Client ID" value={client.clientCode} />
               <Row label="Phone" value={p.phone && `${p.phone}${p.okToLeaveMessage === false ? " (no messages)" : ""}`} />
               <Row label="Email" value={p.email} />
               <Row label="Best place to reach" value={p.howToReach} />

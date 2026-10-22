@@ -1,7 +1,8 @@
 import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { CurrentUser } from "./auth";
-import { decryptString } from "./crypto";
+import { displayName, type ClientProfile } from "./clients";
+import { decryptJson, decryptString } from "./crypto";
 import { needLabel } from "./options";
 import { decryptPlanBody } from "./plan";
 
@@ -9,13 +10,19 @@ import { decryptPlanBody } from "./plan";
 //   - open plan steps (To do / Referred) for clients assigned to them
 //   - each client's latest follow-up date from the contact log
 //   - their own tasks
-// The order is theirs to arrange (todo_state.position); new items go below arranged ones by due date.
+// Items are grouped by priority (Urgent, High, Medium). Within a group the order is theirs to arrange
+// (todo_state.position); new items go below arranged ones by due date.
+
+import { PRIORITIES, type Priority } from "./priorities";
+export { PRIORITIES, type Priority };
 
 export type TodoItem = {
   key: string;
   kind: "task" | "plan" | "followup";
   text: string;
+  priority: Priority;
   clientId?: string;
+  clientName?: string;
   clientCode?: string;
   need?: string;
   dueDate?: string;
@@ -26,13 +33,16 @@ export const TODO_KEY_PATTERN = /^(task:[0-9a-f-]{36}|plan:[0-9a-f-]{36}|followu
 
 export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
   const myClients = await db
-    .select({ id: schema.clients.id, code: schema.clients.clientCode, urgent: schema.clients.urgent })
+    .select({ id: schema.clients.id, code: schema.clients.clientCode, urgent: schema.clients.urgent, profileEnc: schema.clients.profileEnc })
     .from(schema.clients)
     .where(and(eq(schema.clients.assignedToId, user.id), eq(schema.clients.status, "active")));
-  const clientById = new Map(myClients.map((c) => [c.id, c]));
+  const clientById = new Map(
+    myClients.map((c) => [c.id, { ...c, name: displayName(decryptJson<ClientProfile>(c.profileEnc)) }]),
+  );
   const clientIds = myClients.map((c) => c.id);
 
-  const items: (TodoItem & { createdAt: number })[] = [];
+  type Draft = Omit<TodoItem, "priority"> & { createdAt: number };
+  const items: Draft[] = [];
 
   if (clientIds.length > 0) {
     const plan = await db
@@ -46,6 +56,7 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
         kind: "plan",
         text: decryptPlanBody(p.bodyEnc).title,
         clientId: c.id,
+        clientName: c.name,
         clientCode: c.code,
         need: needLabel(p.need),
         dueDate: p.dueDate ?? undefined,
@@ -69,8 +80,9 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
       items.push({
         key: `followup:${clientId}:${f.date}`,
         kind: "followup",
-        text: `Follow up with ${c.code}`,
+        text: `Follow up with ${c.name}`,
         clientId,
+        clientName: c.name,
         clientCode: c.code,
         dueDate: f.date,
         urgent: c.urgent,
@@ -80,16 +92,17 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
   }
 
   const tasks = await db
-    .select({ task: schema.tasks, code: schema.clients.clientCode })
+    .select({ task: schema.tasks, code: schema.clients.clientCode, profileEnc: schema.clients.profileEnc })
     .from(schema.tasks)
     .leftJoin(schema.clients, eq(schema.tasks.clientId, schema.clients.id))
     .where(and(eq(schema.tasks.userId, user.id), isNull(schema.tasks.doneAt)));
-  for (const { task, code } of tasks) {
+  for (const { task, code, profileEnc } of tasks) {
     items.push({
       key: `task:${task.id}`,
       kind: "task",
       text: decryptString(task.textEnc),
       clientId: task.clientId ?? undefined,
+      clientName: profileEnc ? displayName(decryptJson<ClientProfile>(profileEnc)) : undefined,
       clientCode: code ?? undefined,
       dueDate: task.dueDate ?? undefined,
       createdAt: task.createdAt.getTime(),
@@ -99,16 +112,22 @@ export async function todoItemsFor(user: CurrentUser): Promise<TodoItem[]> {
   const state = await db.select().from(schema.todoState).where(eq(schema.todoState.userId, user.id));
   const position = new Map(state.filter((s) => s.position !== null).map((s) => [s.itemKey, s.position!]));
   const done = new Set(state.filter((s) => s.doneAt).map((s) => s.itemKey));
+  const chosen = new Map(state.filter((s) => s.priority).map((s) => [s.itemKey, s.priority as Priority]));
 
-  return orderTodos(items.filter((i) => !done.has(i.key)), position).map(({ createdAt: _c, ...rest }) => rest);
+  const withPriority = items
+    .filter((i) => !done.has(i.key))
+    .map((i) => ({ ...i, priority: chosen.get(i.key) ?? (i.urgent ? "urgent" : "medium") }) as TodoItem & { createdAt: number });
+  return orderTodos(withPriority, position).map(({ createdAt: _c, ...rest }) => rest);
 }
 
-/** Arranged items first (by position), then the rest by due date, then oldest first. */
-export function orderTodos<T extends { key: string; dueDate?: string; createdAt: number }>(
+/** Urgent, then High, then Medium. Within each: arranged items (by position), then by due date, then oldest first. */
+export function orderTodos<T extends { key: string; priority: Priority; dueDate?: string; createdAt: number }>(
   items: T[],
   position: Map<string, number>,
 ): T[] {
   return [...items].sort((a, b) => {
+    const rank = PRIORITIES.indexOf(a.priority) - PRIORITIES.indexOf(b.priority);
+    if (rank !== 0) return rank;
     const pa = position.get(a.key);
     const pb = position.get(b.key);
     if (pa !== undefined && pb !== undefined) return pa - pb;

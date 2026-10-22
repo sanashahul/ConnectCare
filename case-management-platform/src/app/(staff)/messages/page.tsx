@@ -31,7 +31,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                   {t.unread ? <span className="h-2.5 w-2.5 rounded-full bg-brand-600" aria-label="Unread" /> : <span className="w-2.5" />}
                   <span className={`min-w-0 flex-1 truncate ${t.unread ? "font-semibold text-stone-900" : "text-stone-800"}`}>{t.subject}</span>
                   {supervisor && <span className="text-sm text-stone-600">{t.caseManagerName}</span>}
-                  {t.clientCode && <Badge tone="brand">{t.clientCode}</Badge>}
+                  {t.clientName && <Badge tone="brand">{t.clientName}</Badge>}
                   {t.unread && <Badge tone="blue">New</Badge>}
                   <span className="text-xs text-stone-500">{formatDate(t.thread.lastMessageAt)}</span>
                 </Link>
