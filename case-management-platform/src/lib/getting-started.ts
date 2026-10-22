@@ -4,7 +4,7 @@ import { db, schema } from "@/db";
 // A short checklist for each newly assigned client, so a new case manager knows where to start.
 
 export const GETTING_STARTED_STEPS = [
-  { key: "met", label: "Find them and log a first contact" },
+  { key: "met", label: "Contact them and log a first contact" },
   { key: "needs", label: "Confirm their needs" },
   { key: "plan", label: "Add 1 to 3 plan steps" },
   { key: "printed", label: "Print their resource sheet" },

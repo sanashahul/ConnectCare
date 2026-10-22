@@ -62,9 +62,9 @@ export function pickDoFirst(
   }
   for (const c of input.clients) {
     if (c.notReached !== null) {
-      consider({ key: `reach:${c.id}`, clientId: c.id, clientName: c.name, text: `Find ${c.name} and check in`, reason: "not_reached", days: c.notReached, action: "log" });
+      consider({ key: `reach:${c.id}`, clientId: c.id, clientName: c.name, text: `Contact ${c.name} and check in`, reason: "not_reached", days: c.notReached, action: "log" });
     } else if (c.notMetYet) {
-      consider({ key: `meet:${c.id}`, clientId: c.id, clientName: c.name, text: `Find ${c.name} and log a first contact`, reason: "new", action: "log" });
+      consider({ key: `meet:${c.id}`, clientId: c.id, clientName: c.name, text: `Contact ${c.name} and log a first contact`, reason: "new", action: "log" });
     }
   }
 
