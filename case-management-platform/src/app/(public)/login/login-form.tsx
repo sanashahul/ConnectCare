@@ -11,7 +11,7 @@ export function LoginForm() {
       <ErrorText>{state?.error}</ErrorText>
       <div>
         <label className={labelClass} htmlFor="email">Work email</label>
-        <input id="email" name="email" type="email" autoComplete="username" required className={inputClass} />
+        <input id="email" name="email" type="email" autoComplete="username" required defaultValue={state?.email} key={state?.email} className={inputClass} />
       </div>
       <div>
         <label className={labelClass} htmlFor="password">Password</label>

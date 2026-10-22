@@ -12,7 +12,7 @@ export async function submitIntake(_: IntakeState, form: FormData): Promise<Inta
   // Honeypot: real people never see or fill this field.
   if (String(form.get("website") ?? "") !== "") redirect("/intake/thanks");
   const ip = await requestIp();
-  if (!rateLimit(`intake:${ip}`, 15, 60 * 60_000)) {
+  if (!(await rateLimit(`intake:${ip}`, 15, 60 * 60_000))) {
     return { error: "Too many forms were sent from this device. Please ask a staff member for help." };
   }
   if (form.get("consent") !== "on") return { error: "Please check the box to agree before sending." };

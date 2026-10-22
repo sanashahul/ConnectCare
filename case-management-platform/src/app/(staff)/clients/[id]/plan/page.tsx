@@ -11,6 +11,9 @@ import { getActiveResources } from "@/lib/resources";
 import { AddResourceToPlan } from "./add-buttons";
 import { AiPanel } from "./ai-panel";
 
+// The AI assistant (a server action on this page) can take up to a minute or two with web search.
+export const maxDuration = 300;
+
 export default async function PlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser();

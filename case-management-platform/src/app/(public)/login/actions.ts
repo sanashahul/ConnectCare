@@ -10,7 +10,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { createSession, destroySession, readSession } from "@/lib/session";
 import { verifyTotp } from "@/lib/totp";
 
-export type FormState = { error?: string } | undefined;
+export type FormState = { error?: string; email?: string } | undefined;
 
 const MAX_FAILS = 5;
 const LOCK_MINUTES = 15;
@@ -20,16 +20,16 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   const ip = await requestIp();
-  if (!rateLimit(`login:${ip}`, 20, 15 * 60_000)) return { error: "Too many attempts. Wait 15 minutes and try again." };
+  if (!(await rateLimit(`login:${ip}`, 20, 15 * 60_000))) return { error: "Too many attempts. Wait 15 minutes and try again.", email };
 
   const user = await db.query.users.findFirst({ where: eq(schema.users.email, email) });
   if (!user || !user.active) {
     await verifyPassword(password, "scrypt.AAAAAAAAAAAAAAAAAAAAAA.AAAA"); // keep timing similar
     await audit({ action: "login.failed", detail: { reason: "unknown_or_inactive" } });
-    return { error: GENERIC };
+    return { error: GENERIC, email };
   }
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    return { error: "This account is temporarily locked after too many attempts. Try again later or ask your supervisor." };
+    return { error: "This account is temporarily locked after too many attempts. Try again later or ask your supervisor.", email };
   }
   if (!(await verifyPassword(password, user.passwordHash))) {
     const fails = user.failedLogins + 1;
@@ -41,7 +41,7 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
       })
       .where(eq(schema.users.id, user.id));
     await audit({ userId: user.id, action: "login.failed", detail: { reason: "password", locked: fails >= MAX_FAILS } });
-    return { error: GENERIC };
+    return { error: GENERIC, email };
   }
   await db.update(schema.users).set({ failedLogins: 0, lockedUntil: null }).where(eq(schema.users.id, user.id));
   await createSession(user.id, "password");
@@ -58,7 +58,7 @@ export async function verifyCode(_: FormState, form: FormData): Promise<FormStat
   const { session, user } = await pendingSession();
   if (session.stage === "full") redirect("/dashboard");
   if (!user.totpEnabled || !user.totpSecretEnc) redirect("/login/setup-2fa");
-  if (!rateLimit(`totp:${user.id}`, 6, 5 * 60_000)) return { error: "Too many attempts. Wait 5 minutes." };
+  if (!(await rateLimit(`totp:${user.id}`, 6, 5 * 60_000))) return { error: "Too many attempts. Wait 5 minutes." };
 
   const step = verifyTotp(decryptString(user.totpSecretEnc), String(form.get("code") ?? ""));
   if (step === null || (user.totpLastStep !== null && step <= user.totpLastStep)) {
@@ -76,7 +76,7 @@ export async function confirmSetup(_: FormState, form: FormData): Promise<FormSt
   const { user } = await pendingSession();
   if (user.totpEnabled) redirect("/login/verify");
   if (!user.totpSecretEnc) return { error: "Setup expired. Reload the page." };
-  if (!rateLimit(`totp:${user.id}`, 6, 5 * 60_000)) return { error: "Too many attempts. Wait 5 minutes." };
+  if (!(await rateLimit(`totp:${user.id}`, 6, 5 * 60_000))) return { error: "Too many attempts. Wait 5 minutes." };
   const step = verifyTotp(decryptString(user.totpSecretEnc), String(form.get("code") ?? ""));
   if (step === null) return { error: "That code didn't match. Make sure you scanned the code on this page, then try again." };
   await db.update(schema.users).set({ totpEnabled: true, totpLastStep: step }).where(eq(schema.users.id, user.id));

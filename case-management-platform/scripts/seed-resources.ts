@@ -11,8 +11,16 @@ import type { Resource } from "../src/lib/resource-types";
 
 async function main() {
   const overwrite = process.argv.includes("--overwrite");
+  const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+  if (!url) {
+    if (process.argv.includes("--if-configured")) {
+      console.warn("No database connected yet: skipping resource loading.");
+      return;
+    }
+    throw new Error("DATABASE_URL is not set");
+  }
   const items = JSON.parse(readFileSync("data/resources.json", "utf8")) as Resource[];
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({ connectionString: url });
   const db = drizzle(pool, { schema });
   let n = 0;
   for (const r of items) {

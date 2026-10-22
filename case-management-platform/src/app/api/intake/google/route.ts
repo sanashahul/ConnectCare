@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const secret = process.env.GOOGLE_FORM_WEBHOOK_SECRET;
   // The endpoint does not exist unless a secret is configured.
   if (!secret || secret.length < 32) return json(404, { error: "Not found" });
-  if (!rateLimit("google-intake", 300, 60 * 60_000)) return json(429, { error: "Too many requests" });
+  if (!(await rateLimit("google-intake", 300, 60 * 60_000))) return json(429, { error: "Too many requests" });
 
   const body = await request.text();
   if (body.length > MAX_BODY) return json(413, { error: "Too large" });

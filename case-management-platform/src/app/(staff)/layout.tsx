@@ -3,6 +3,8 @@ import { logout } from "@/app/(public)/login/actions";
 import { requireUser } from "@/lib/auth";
 import { NavLinks } from "./nav-links";
 
+export const dynamic = "force-dynamic";
+
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser({ allowPasswordChange: true });
   const supervisor = user.role === "supervisor";
