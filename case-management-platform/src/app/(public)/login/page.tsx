@@ -5,6 +5,9 @@ import { readSession } from "@/lib/session";
 import { setupStatus } from "@/lib/setup";
 import { LoginForm } from "./login-form";
 
+// Depends on whether accounts exist yet, so never serve a copy saved at build time.
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ setup?: string }> }) {
   const status = await setupStatus();
   if (!status.tablesReady || status.userCount === 0) redirect("/first-time-setup");

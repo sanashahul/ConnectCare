@@ -7,6 +7,8 @@ import { ensurePendingTotpSecret } from "@/lib/two-factor";
 import { confirmSetup, logout } from "../actions";
 import { CodeForm } from "../code-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function SetupTwoFactorPage() {
   const s = await readSession();
   if (!s) redirect("/login");

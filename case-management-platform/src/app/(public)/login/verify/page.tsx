@@ -4,6 +4,8 @@ import { readSession } from "@/lib/session";
 import { logout, verifyCode } from "../actions";
 import { CodeForm } from "../code-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function VerifyPage() {
   const s = await readSession();
   if (!s) redirect("/login");
