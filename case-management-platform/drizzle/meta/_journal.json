@@ -57,6 +57,20 @@
       "when": 1792695002277,
       "tag": "0007_needs_confirmed",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792697083539,
+      "tag": "0008_note_edits",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792701466167,
+      "tag": "0009_up_next_order",
+      "breakpoints": true
     }
   ]
 }

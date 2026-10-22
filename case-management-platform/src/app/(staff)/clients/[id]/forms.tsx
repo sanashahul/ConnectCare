@@ -1,9 +1,9 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useCallback, useEffect, useId, useRef, useState } from "react";
 import { buttonClass, ErrorText, inputClass, labelClass } from "@/components/ui";
 import { CONTACT_TYPES, NEEDS, NOTE_KINDS, type NoteKind } from "@/lib/options";
-import { addNote, addPlanItem } from "../actions";
+import { addNote, addPlanItem, updateNote } from "../actions";
 
 function todayLocal() {
   const d = new Date();
@@ -18,17 +18,44 @@ const BODY_PLACEHOLDER: Record<NoteKind, string> = {
   update: "What you did for them. For example: called Here4You, they're on the bed list; sent the Medi-Cal form.",
 };
 
-export function NoteForm({ clientId, needs, lastPlace }: { clientId: string; needs: string[]; lastPlace?: string }) {
-  const [state, action, pending] = useActionState(addNote.bind(null, clientId), undefined);
-  const [kind, setKind] = useState<NoteKind>("met");
+/** A log entry as it is being edited. */
+export type NoteDraft = {
+  id: string;
+  kind: NoteKind;
+  contactDate: string;
+  contactType: string;
+  where?: string;
+  body: string;
+  needsAddressed: string[];
+  followUpDate?: string | null;
+};
+
+/** Adds a log entry, or edits one when `editing` is given. */
+export function NoteForm({ clientId, needs, lastPlace, editing, onDone }: {
+  clientId: string;
+  needs: string[];
+  lastPlace?: string;
+  editing?: NoteDraft;
+  onDone?: () => void;
+}) {
+  const save = editing ? updateNote.bind(null, editing.id) : addNote.bind(null, clientId);
+  const [state, action, pending] = useActionState(save, undefined);
+  const [kind, setKind] = useState<NoteKind>(editing?.kind ?? "met");
   const ref = useRef<HTMLFormElement>(null);
+  const uid = useId();
+  const id = (name: string) => `${uid}-${name}`;
   useEffect(() => {
-    if (state?.ok) {
+    if (!state?.ok) return;
+    if (editing) {
+      onDone?.();
+    } else {
       ref.current?.reset();
       setKind("met");
     }
-  }, [state]);
+  }, [state, editing, onDone]);
   const methods = kind === "not_found" ? CONTACT_TYPES.filter((c) => c.key !== "other") : CONTACT_TYPES;
+  // Needs to offer: the client's current needs, plus any an older entry mentioned.
+  const needOptions = NEEDS.filter((n) => needs.includes(n.key) || editing?.needsAddressed.includes(n.key));
   return (
     <form
       ref={ref}
@@ -57,54 +84,90 @@ export function NoteForm({ clientId, needs, lastPlace }: { clientId: string; nee
       <p className="text-xs text-stone-600">{NOTE_KINDS.find((k) => k.key === kind)?.hint}</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
-          <label className={labelClass} htmlFor="contactDate">Date</label>
-          <input id="contactDate" name="contactDate" type="date" defaultValue={todayLocal()} required className={inputClass} />
+          <label className={labelClass} htmlFor={id("date")}>Date</label>
+          <input id={id("date")} name="contactDate" type="date" defaultValue={editing?.contactDate ?? todayLocal()} required className={inputClass} />
         </div>
         {kind !== "update" && (
           <div>
-            <label className={labelClass} htmlFor="contactType">{METHOD_LABEL[kind]}</label>
-            <select id="contactType" name="contactType" className={inputClass}>
+            <label className={labelClass} htmlFor={id("type")}>{METHOD_LABEL[kind]}</label>
+            <select id={id("type")} name="contactType" defaultValue={editing?.contactType} className={inputClass}>
               {methods.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
             </select>
           </div>
         )}
         <div>
-          <label className={labelClass} htmlFor="followUpDate">Follow up on</label>
-          <input id="followUpDate" name="followUpDate" type="date" className={inputClass} />
+          <label className={labelClass} htmlFor={id("follow")}>Follow up on</label>
+          <input id={id("follow")} name="followUpDate" type="date" defaultValue={editing?.followUpDate ?? undefined} className={inputClass} />
         </div>
       </div>
       {kind !== "update" && (
         <div>
-          <label className={labelClass} htmlFor="where">
+          <label className={labelClass} htmlFor={id("where")}>
             {WHERE_LABEL[kind]} <span className="font-normal text-stone-500">(optional)</span>
           </label>
           <input
-            id="where"
+            id={id("where")}
             name="where"
             maxLength={300}
+            defaultValue={editing?.where}
             className={inputClass}
             placeholder={lastPlace ? `Last time: ${lastPlace}` : "For example: St. James Park, by the library"}
           />
         </div>
       )}
       <div>
-        <label className={labelClass} htmlFor="body">
+        <label className={labelClass} htmlFor={id("body")}>
           Note {kind === "not_found" && <span className="font-normal text-stone-500">(optional)</span>}
         </label>
-        <textarea id="body" name="body" rows={3} required={kind !== "not_found"} className={inputClass} placeholder={BODY_PLACEHOLDER[kind]} />
+        <textarea
+          id={id("body")}
+          name="body"
+          rows={3}
+          required={kind !== "not_found"}
+          defaultValue={editing?.body}
+          className={inputClass}
+          placeholder={BODY_PLACEHOLDER[kind]}
+        />
       </div>
-      {needs.length > 0 && kind !== "not_found" && (
+      {needOptions.length > 0 && kind !== "not_found" && (
         <div className="flex flex-wrap gap-3 text-sm">
           <span className="text-stone-600">{kind === "update" ? "Needs worked on:" : "Needs discussed:"}</span>
-          {NEEDS.filter((n) => needs.includes(n.key)).map((n) => (
-            <label key={n.key} className="flex items-center gap-1"><input type="checkbox" name="needsAddressed" value={n.key} /> {n.label}</label>
+          {needOptions.map((n) => (
+            <label key={n.key} className="flex items-center gap-1">
+              <input type="checkbox" name="needsAddressed" value={n.key} defaultChecked={editing?.needsAddressed.includes(n.key)} /> {n.label}
+            </label>
           ))}
         </div>
       )}
       <ErrorText>{state?.error}</ErrorText>
-      {state?.ok && !pending && <p role="status" className="text-sm text-emerald-800">✓ Added to the log.</p>}
-      <button className={buttonClass} disabled={pending}>{pending ? "Saving…" : "Add to log"}</button>
+      {!editing && state?.ok && !pending && <p role="status" className="text-sm text-emerald-800">✓ Added to the log.</p>}
+      <div className="flex items-center gap-3">
+        <button className={buttonClass} disabled={pending}>{pending ? "Saving…" : editing ? "Save changes" : "Add to log"}</button>
+        {editing && (
+          <button type="button" onClick={onDone} className="text-sm text-stone-600 underline">Cancel</button>
+        )}
+      </div>
     </form>
+  );
+}
+
+/** "Edit" on the author's own log entries; shows the form in place of the entry. */
+export function EditableNote({ draft, clientId, needs, children }: {
+  draft: NoteDraft;
+  clientId: string;
+  needs: string[];
+  children: React.ReactNode;
+}) {
+  const [editing, setEditing] = useState(false);
+  const close = useCallback(() => setEditing(false), []);
+  if (editing) return <NoteForm clientId={clientId} needs={needs} editing={draft} onDone={close} />;
+  return (
+    <div>
+      {children}
+      <button type="button" onClick={() => setEditing(true)} className="mt-1 text-xs text-brand-700 underline">
+        Edit
+      </button>
+    </div>
   );
 }
 

@@ -7,7 +7,12 @@ import type { TodoItem } from "@/lib/todos";
 import { addTask, completeTodo } from "./todo-actions";
 
 /** Tasks the person wrote for themselves (optionally about a client), with a quick add form. */
-export function MyTodos({ items: initial, clients, today }: { items: TodoItem[]; clients: { id: string; name: string }[]; today: string }) {
+export function MyTodos({ items: initial, clients, today, readOnly = false }: {
+  items: TodoItem[];
+  clients: { id: string; name: string }[];
+  today: string;
+  readOnly?: boolean;
+}) {
   const [items, setItems] = useState(initial);
   const [, start] = useTransition();
   useEffect(() => setItems(initial), [initial]);
@@ -22,15 +27,16 @@ export function MyTodos({ items: initial, clients, today }: { items: TodoItem[];
   return (
     <div className="space-y-3">
       {items.length === 0 ? (
-        <p className="text-sm text-stone-600">Nothing here. Add reminders for yourself below.</p>
+        <p className="text-sm text-stone-600">{readOnly ? "None." : "Nothing here. Add reminders for yourself below."}</p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((t) => (
             <li key={t.key} className="flex items-start gap-2 text-sm">
               <button
                 type="button"
+                disabled={readOnly}
                 onClick={() => done(t.key)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border border-stone-400 hover:border-emerald-600 hover:bg-emerald-50"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border border-stone-400 hover:border-emerald-600 hover:bg-emerald-50 disabled:opacity-40 disabled:hover:border-stone-400 disabled:hover:bg-transparent"
                 aria-label={`Done: ${t.text}`}
               />
               <span className="min-w-0 flex-1">
@@ -47,7 +53,7 @@ export function MyTodos({ items: initial, clients, today }: { items: TodoItem[];
           ))}
         </ul>
       )}
-      <AddTaskForm clients={clients} />
+      {!readOnly && <AddTaskForm clients={clients} />}
     </div>
   );
 }

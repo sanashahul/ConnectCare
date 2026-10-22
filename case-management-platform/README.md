@@ -27,12 +27,13 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 | Who | Where | What |
 |---|---|---|
 | Guest or volunteer | The Google Form or `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. |
+| Supervisor | **Team** → View their Home | Sees a case manager's Home exactly as they do, read-only, with a Message button for each client. |
 | Supervisor | **Home** → New requests | Sees the newest requests by ID, with their source and most urgent need. |
 | Supervisor | **Intake queue** | Sees new requests by client ID (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
-| Case manager | **Home** | **Do these first**: up to 5 items, at most one per client (overdue, due today, urgent, not reached, new). Then their clients grouped as Needs attention / New to you / On track, each with its next step and a Log contact button. A small **My own to-dos** box. |
-| Case manager | **This week** | Everything open by when it's due: Overdue, Today, This week, Later, No date. |
+| Case manager | **Home** | **Task list**: one line per client, the top step of that client's Up next (in the order the case manager set). Overdue, due today and urgent come first, then guests not reached in 14 days and new guests. Then their clients grouped as Needs attention / New to you / On track, and a small **My own to-dos** box. |
 | Case manager | Client → **At a glance** | The one next step, when they were last seen, and for new clients a 4-step **Getting started** checklist (first contact, confirm needs, add steps, print sheet). |
-| Case manager | Client → **Care plan** | Steps grouped as Up next (3 at a time, the rest under Later), Waiting to hear back, Connected, Done. One button moves a step forward. |
+| Case manager | Client → **Care plan** | Buttons for **Up next**, **Waiting**, **Connected** and **Done**. Drag Up next steps (or use ↑ ↓) into the order you'll do them; the top one feeds the Task list. **Reset order** goes back to soonest due first. One button moves a step forward. |
+| Case manager | Client → **Contact log** → Edit | Authors can correct their own entries; edited entries show "Edited" and the date. |
 | Case manager | Client → **Contact log** | Logs **Met with guest** (and where), **Couldn't find**, or an **Update**, plus needs and a follow-up date. |
 | Case manager | Client → **Find resources & plan** | Sees matched resources per need and the gaps. Adds resources to the plan. Optionally asks the AI for a draft plan. |
 | Case manager | Client → **Print resource sheet** | Prints a one-page sheet for the client. It contains no last name, contact details, or notes. |

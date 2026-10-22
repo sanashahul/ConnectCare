@@ -1,16 +1,16 @@
 // How care plan steps are grouped and ordered, kept in one place so the client page, the home
-// page and "This week" agree on what a client's next step is. Safe to import from the browser.
+// page and the supervisor team view agree on what a client's next step is. Safe to import from the browser.
 
 export type PlanStatus = "todo" | "referred" | "connected" | "done" | "unable";
 
 /** Plan sections, in the order they appear. Labels are written for someone new to case management. */
 export const PLAN_SECTIONS = [
-  { status: "todo", title: "Up next", hint: "Steps to take. Focus on the first few." },
-  { status: "referred", title: "Waiting to hear back", hint: "You made the referral. Check back with the guest or the provider." },
-  { status: "connected", title: "Connected", hint: "The guest has started getting this help. Mark done once it's settled." },
-  { status: "done", title: "Done", hint: "" },
-  { status: "unable", title: "Couldn't connect", hint: "Tried and it didn't work out. Worth trying another resource?" },
-] as const satisfies readonly { status: PlanStatus; title: string; hint: string }[];
+  { status: "todo", title: "Up next", short: "Up next", hint: "Steps to take. Focus on the first few." },
+  { status: "referred", title: "Waiting to hear back", short: "Waiting", hint: "Waiting to hear back: you made the referral. Check in with the guest or the provider." },
+  { status: "connected", title: "Connected", short: "Connected", hint: "The guest has started getting this help. Mark done once it's settled." },
+  { status: "done", title: "Done", short: "Done", hint: "" },
+  { status: "unable", title: "Couldn't connect", short: "Couldn't connect", hint: "Tried and it didn't work out. Worth trying another resource?" },
+] as const satisfies readonly { status: PlanStatus; title: string; short: string; hint: string }[];
 
 /** How many To do steps to show before the rest go under "Later". */
 export const FOCUS_COUNT = 3;
@@ -38,8 +38,22 @@ export function sortSteps<T extends { status: string; dueDate: string | null; cr
 export const OPEN_STATUSES = ["todo", "referred", "connected"] as const;
 export const isOpen = (status: string) => (OPEN_STATUSES as readonly string[]).includes(status);
 
-/** The single step to show as "Next" for a client, or undefined when nothing is open. */
-export function nextStep<T extends { status: string; dueDate: string | null; createdAt: Date | number }>(steps: T[]): T | undefined {
+type Orderable = { status: string; dueDate: string | null; createdAt: Date | number; position?: number | null };
+
+/** Up next in the case manager's own order; steps they haven't placed yet follow, soonest due first. */
+export function sortUpNext<T extends Orderable>(steps: T[]): T[] {
+  const placed = steps.filter((s) => s.position !== null && s.position !== undefined).sort((a, b) => a.position! - b.position!);
+  const rest = sortSteps(steps.filter((s) => s.position === null || s.position === undefined));
+  return [...placed, ...rest];
+}
+
+/**
+ * The single step to show as "Next" for a client: the top of Up next, or when nothing is left to do,
+ * the open referral or connection due soonest.
+ */
+export function nextStep<T extends Orderable>(steps: T[]): T | undefined {
+  const upNext = steps.filter((s) => s.status === "todo");
+  if (upNext.length) return sortUpNext(upNext)[0];
   return sortSteps(steps.filter((s) => isOpen(s.status)))[0];
 }
 

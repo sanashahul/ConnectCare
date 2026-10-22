@@ -1,36 +1,39 @@
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { Card, PageHeader } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireSupervisor } from "@/lib/auth";
 import { todayIso } from "@/lib/followups";
-import { todoItemsFor } from "@/lib/todos";
-import { WeekList } from "../../tasks/week-list";
+import { HomeMain, loadHome, OwnTodos } from "../../dashboard/home";
 
-/** A supervisor's view-only look at a case manager's open items, by when they're due. */
-export default async function TeamMemberActionItems({ params }: { params: Promise<{ id: string }> }) {
+/** A supervisor's read-only view of a case manager's Home, exactly as they see it. */
+export default async function TeamMemberHome({ params }: { params: Promise<{ id: string }> }) {
   const supervisor = await requireSupervisor();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const member = await db.query.users.findFirst({ where: eq(schema.users.id, id) });
   if (!member) notFound();
-  const items = await todoItemsFor(member);
-  await audit({ userId: supervisor.id, action: "team.viewed_action_items", detail: { targetUserId: id } });
-  const counts = { urgent: 0, high: 0, medium: 0 };
-  for (const i of items) counts[i.priority]++;
-  const overdue = items.filter((i) => i.dueDate && i.dueDate < todayIso()).length;
+  const today = todayIso();
+  const home = await loadHome(member, today);
+  await audit({ userId: supervisor.id, action: "team.viewed_home", detail: { targetUserId: id } });
+  const first = member.name.split(" ")[0];
 
   return (
-    <div className="max-w-4xl">
+    <div className="space-y-6">
       <PageHeader
-        back={{ href: "/dashboard", label: "Dashboard" }}
-        title={`${member.name}'s week`}
-        subtitle={`${items.length} open · ${counts.urgent} urgent · ${counts.high} high${overdue ? ` · ${overdue} overdue` : ""}. View only.`}
+        back={{ href: "/team", label: "Team" }}
+        title={`${member.name}'s Home`}
+        subtitle={`${home.cards.length} client${home.cards.length === 1 ? "" : "s"}${home.attention ? ` · ${home.attention} need${home.attention === 1 ? "s" : ""} attention` : ""}. View only: this is what ${first} sees.`}
       />
-      <Card>
-        <WeekList items={items} today={todayIso()} readOnly />
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <HomeMain data={home} today={today} readOnly ownerName={first} />
+        </div>
+        <div className="space-y-6">
+          <OwnTodos data={home} today={today} readOnly />
+        </div>
+      </div>
     </div>
   );
 }

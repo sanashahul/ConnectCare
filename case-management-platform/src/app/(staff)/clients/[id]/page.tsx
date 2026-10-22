@@ -17,7 +17,7 @@ import { decryptPlanBody } from "@/lib/plan";
 import { nextStep } from "@/lib/plan-order";
 import { confirmNeeds, deleteClient, setClientStatus } from "../actions";
 import { CarePlan, StepCard, type PlanStep } from "./care-plan";
-import { AddPlanItemForm, NoteForm } from "./forms";
+import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
 
 /** Log entries shown before "Earlier entries". */
 const RECENT_NOTES = 5;
@@ -58,6 +58,7 @@ export default async function ClientPage({ params, searchParams }: {
   const gs = started.get(id);
   const next = nextStep(steps);
   const logHref = `/clients/${id}?log=1#log`;
+  const noteListProps = { userId: user.id, clientId: id, needs: client.needs };
 
   return (
     <div className="space-y-5">
@@ -125,7 +126,7 @@ export default async function ClientPage({ params, searchParams }: {
                 No plan steps yet. <Link href={`/clients/${id}/plan`} className="text-brand-700 underline">Find resources</Link> or add a step below.
               </EmptyState>
             ) : (
-              <CarePlan steps={steps} resourceName={resourceName} today={today} />
+              <CarePlan clientId={id} steps={steps} resourceName={resourceName} today={today} />
             )}
             <details id="add-step" className="mt-4 scroll-mt-4">
               <summary className="cursor-pointer text-sm font-medium text-brand-700">+ Add a plan step</summary>
@@ -151,11 +152,11 @@ export default async function ClientPage({ params, searchParams }: {
               <div className="mt-4"><EmptyState>No contacts logged yet.</EmptyState></div>
             ) : (
               <>
-                <NoteList rows={noteRows.slice(0, RECENT_NOTES)} />
+                <NoteList rows={noteRows.slice(0, RECENT_NOTES)} {...noteListProps} />
                 {noteRows.length > RECENT_NOTES && (
                   <details className="mt-1">
                     <summary className="cursor-pointer text-sm text-stone-600">Earlier entries ({noteRows.length - RECENT_NOTES})</summary>
-                    <NoteList rows={noteRows.slice(RECENT_NOTES)} />
+                    <NoteList rows={noteRows.slice(RECENT_NOTES)} {...noteListProps} />
                   </details>
                 )}
               </>
@@ -277,27 +278,52 @@ function GettingStartedList({ clientId, gs, needs, logHref }: { clientId: string
 
 type NoteRow = { note: typeof schema.notes.$inferSelect; author: string };
 
-function NoteList({ rows }: { rows: NoteRow[] }) {
+function NoteList({ rows, userId, clientId, needs }: { rows: NoteRow[]; userId: string; clientId: string; needs: string[] }) {
   return (
     <ul className="mt-3 divide-y divide-stone-100">
-      {rows.map(({ note, author }) => (
-        <li key={note.id} className="py-3">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-medium">{formatDate(note.contactDate)}</span>
-            <Badge tone={KIND_TONE[note.kind]}>{NOTE_KINDS.find((k) => k.key === note.kind)?.short}</Badge>
-            {note.kind !== "update" && <span className="text-stone-500">{CONTACT_TYPES.find((c) => c.key === note.contactType)?.label}</span>}
-            <span className="text-stone-500">by {author}</span>
-            {note.needsAddressed.map((n) => <Badge key={n}>{needLabel(n)}</Badge>)}
-            {note.followUpDate && <span className="ml-auto text-xs text-stone-600">Follow up {formatDate(note.followUpDate)}</span>}
-          </div>
-          {note.whereEnc && (
-            <p className="mt-1 text-sm text-stone-600">
-              {note.kind === "met" ? "Seen at" : "Looked at"}: {decryptString(note.whereEnc)}
-            </p>
-          )}
-          <NoteBody text={decryptString(note.bodyEnc)} />
-        </li>
-      ))}
+      {rows.map(({ note, author }) => {
+        const where = note.whereEnc ? decryptString(note.whereEnc) : undefined;
+        const body = decryptString(note.bodyEnc);
+        const entry = (
+          <>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium">{formatDate(note.contactDate)}</span>
+              <Badge tone={KIND_TONE[note.kind]}>{NOTE_KINDS.find((k) => k.key === note.kind)?.short}</Badge>
+              {note.kind !== "update" && <span className="text-stone-500">{CONTACT_TYPES.find((c) => c.key === note.contactType)?.label}</span>}
+              <span className="text-stone-500">by {author}</span>
+              {note.editedAt && <span className="text-xs text-stone-500">· Edited {formatDate(note.editedAt)}</span>}
+              {note.needsAddressed.map((n) => <Badge key={n}>{needLabel(n)}</Badge>)}
+              {note.followUpDate && <span className="ml-auto text-xs text-stone-600">Follow up {formatDate(note.followUpDate)}</span>}
+            </div>
+            {where && <p className="mt-1 text-sm text-stone-600">{note.kind === "met" ? "Seen at" : "Looked at"}: {where}</p>}
+            <NoteBody text={body} />
+          </>
+        );
+        return (
+          <li key={note.id} className="py-3">
+            {note.authorId === userId ? (
+              <EditableNote
+                clientId={clientId}
+                needs={needs}
+                draft={{
+                  id: note.id,
+                  kind: note.kind,
+                  contactDate: note.contactDate,
+                  contactType: note.contactType,
+                  where,
+                  body,
+                  needsAddressed: note.needsAddressed,
+                  followUpDate: note.followUpDate,
+                }}
+              >
+                {entry}
+              </EditableNote>
+            ) : (
+              entry
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -2,8 +2,10 @@ import Link from "next/link";
 import { Badge, formatDate, smallButtonClass } from "@/components/ui";
 import { needLabel, PLAN_STATUSES } from "@/lib/options";
 import type { PlanItemBody } from "@/lib/plan";
-import { FOCUS_COUNT, NEXT_STATUS, PLAN_SECTIONS, progressByNeed, sortSteps, type PlanStatus } from "@/lib/plan-order";
-import { updatePlanItem } from "../actions";
+import { NEXT_STATUS, PLAN_SECTIONS, progressByNeed, sortSteps, sortUpNext, type PlanStatus } from "@/lib/plan-order";
+import { resetUpNextOrder, updatePlanItem } from "../actions";
+import { PlanTabs } from "./plan-tabs";
+import { UpNextList } from "./up-next-list";
 
 export type PlanStep = {
   id: string;
@@ -11,6 +13,7 @@ export type PlanStep = {
   status: PlanStatus;
   dueDate: string | null;
   createdAt: Date;
+  position: number | null;
   resourceId: string | null;
   verified: boolean;
   aiSuggested: boolean;
@@ -18,10 +21,15 @@ export type PlanStep = {
 };
 
 /**
- * The care plan, grouped by where each step stands. Only the first few To do steps are open;
- * the rest, and everything finished, sit in sections you can open when you need them.
+ * The care plan, with a button for each stage (Up next, Waiting, Connected, Done). Up next is in
+ * the case manager's own order (drag or ↑ ↓) and shows the first few; the rest wait under "Later".
  */
-export function CarePlan({ steps, resourceName, today }: { steps: PlanStep[]; resourceName: Map<string, string>; today: string }) {
+export function CarePlan({ clientId, steps, resourceName, today }: {
+  clientId: string;
+  steps: PlanStep[];
+  resourceName: Map<string, string>;
+  today: string;
+}) {
   const progress = progressByNeed(steps);
   return (
     <div className="space-y-4">
@@ -42,49 +50,36 @@ export function CarePlan({ steps, resourceName, today }: { steps: PlanStep[]; re
           </ul>
         </details>
       )}
-      {PLAN_SECTIONS.map((section) => {
-        const inSection = sortSteps(steps.filter((s) => s.status === section.status));
-        if (inSection.length === 0) return null;
-        const finished = section.status === "done" || section.status === "unable";
-        if (section.status === "todo") {
-          const focus = inSection.slice(0, FOCUS_COUNT);
-          const later = inSection.slice(FOCUS_COUNT);
-          return (
-            <Section key={section.status} title={`${section.title} (${inSection.length})`} hint={section.hint} open>
-              <StepList steps={focus} resourceName={resourceName} today={today} />
-              {later.length > 0 && (
-                <details className="mt-2 rounded-md border border-dashed border-stone-300 px-3 py-2">
-                  <summary className="cursor-pointer text-sm text-stone-700">
-                    Later ({later.length}). Focus on the {focus.length} above first.
-                  </summary>
-                  <div className="mt-2">
-                    <StepList steps={later} resourceName={resourceName} today={today} />
-                  </div>
-                </details>
-              )}
-            </Section>
-          );
-        }
-        return (
-          <Section key={section.status} title={`${section.title} (${inSection.length})`} hint={section.hint} open={!finished}>
-            <StepList steps={inSection} resourceName={resourceName} today={today} compact={finished} />
-          </Section>
-        );
-      })}
+      <PlanTabs
+        initial={PLAN_SECTIONS.find((sec) => sec.status !== "done" && steps.some((st) => st.status === sec.status))?.status ?? "todo"}
+        tabs={PLAN_SECTIONS.filter((sec) => sec.status !== "unable" || steps.some((st) => st.status === "unable")).map((section) => {
+          const inSection = sortSteps(steps.filter((st) => st.status === section.status));
+          const finished = section.status === "done" || section.status === "unable";
+          let content: React.ReactNode = <StepList steps={inSection} resourceName={resourceName} today={today} compact={finished} />;
+          if (section.status === "todo") {
+            const arranged = inSection.some((st) => st.position !== null);
+            content = (
+              <>
+                <UpNextList
+                  clientId={clientId}
+                  items={sortUpNext(inSection).map((st) => ({
+                    id: st.id,
+                    node: <StepCard step={st} resourceName={resourceName} today={today} />,
+                  }))}
+                />
+                {arranged && (
+                  <form action={resetUpNextOrder} className="mt-2 text-right">
+                    <input type="hidden" name="clientId" value={clientId} />
+                    <button className="text-xs text-stone-500 underline">Reset order (soonest due first)</button>
+                  </form>
+                )}
+              </>
+            );
+          }
+          return { key: section.status, label: section.short, count: inSection.length, hint: section.hint, content };
+        })}
+      />
     </div>
-  );
-}
-
-function Section({ title, hint, open, children }: { title: string; hint: string; open: boolean; children: React.ReactNode }) {
-  return (
-    <details open={open} className="group">
-      <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-stone-900">
-        <span className="inline-block w-3 text-stone-500 transition group-open:rotate-90">▸</span>
-        {title}
-      </summary>
-      {hint && <p className="mb-2 ml-5 text-xs text-stone-500">{hint}</p>}
-      <div className="ml-5 mt-1">{children}</div>
-    </details>
   );
 }
 

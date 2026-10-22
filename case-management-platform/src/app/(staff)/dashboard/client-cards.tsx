@@ -36,7 +36,7 @@ const GROUPS: { key: CardGroup; title: string; hint: string }[] = [
 ];
 
 /** A client's cards, grouped so the ones that need you come first. */
-export function ClientGroups({ cards, today }: { cards: ClientCard[]; today: string }) {
+export function ClientGroups({ cards, today, readOnly = false }: { cards: ClientCard[]; today: string; readOnly?: boolean }) {
   return (
     <div className="space-y-5">
       {GROUPS.map((g) => {
@@ -51,7 +51,7 @@ export function ClientGroups({ cards, today }: { cards: ClientCard[]; today: str
             <ul className="grid gap-3 sm:grid-cols-2">
               {inGroup.map((c) => (
                 <li key={c.id}>
-                  <Card c={c} today={today} />
+                  <Card c={c} today={today} readOnly={readOnly} />
                 </li>
               ))}
             </ul>
@@ -62,7 +62,7 @@ export function ClientGroups({ cards, today }: { cards: ClientCard[]; today: str
   );
 }
 
-function Card({ c, today }: { c: ClientCard; today: string }) {
+function Card({ c, today, readOnly }: { c: ClientCard; today: string; readOnly: boolean }) {
   const gs = c.gettingStarted;
   const nextLabel = gs?.next ? GETTING_STARTED_STEPS.find((s) => s.key === gs.next)?.label : undefined;
   return (
@@ -104,9 +104,15 @@ function Card({ c, today }: { c: ClientCard; today: string }) {
         <Link href={`/clients/${c.id}`} className="rounded-md border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-800 hover:bg-stone-50">
           Open
         </Link>
-        <Link href={`/clients/${c.id}?log=1#log`} className="rounded-md border border-brand-600 px-3 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">
-          Log contact
-        </Link>
+        {readOnly ? (
+          <Link href={`/messages/new?client=${c.id}`} className="rounded-md border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-800 hover:bg-stone-50">
+            Message about this client
+          </Link>
+        ) : (
+          <Link href={`/clients/${c.id}?log=1#log`} className="rounded-md border border-brand-600 px-3 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">
+            Log contact
+          </Link>
+        )}
       </div>
     </div>
   );
