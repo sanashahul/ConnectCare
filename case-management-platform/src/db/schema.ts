@@ -137,6 +137,17 @@ export const resourceFlags = pgTable("resource_flags", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Shared across server instances (Vercel runs many), so limits hold everywhere.
+export const rateLimitHits = pgTable(
+  "rate_limit_hits",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    key: text("key").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("rate_limit_key_at_idx").on(t.key, t.at)],
+);
+
 // Append-only. Never store client names, contact info, or note text here.
 export const auditLog = pgTable(
   "audit_log",

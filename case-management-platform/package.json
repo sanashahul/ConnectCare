@@ -14,7 +14,8 @@
     "db:seed-resources": "tsx scripts/seed-resources.ts",
     "create-supervisor": "tsx scripts/create-user.ts --role supervisor",
     "create-user": "tsx scripts/create-user.ts",
-    "generate-key": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
+    "generate-key": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",
+    "vercel-build": "tsx scripts/migrate.ts --if-configured && tsx scripts/seed-resources.ts --if-configured && next build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.0.0",

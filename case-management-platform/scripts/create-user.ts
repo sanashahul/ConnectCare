@@ -21,7 +21,7 @@ async function main() {
   });
   if (!values.email) throw new Error("--email is required");
   const email = values.email.trim().toLowerCase();
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL ?? process.env.POSTGRES_URL });
   const db = drizzle(pool, { schema });
   const password = temporaryPassword();
   const existing = await db.query.users.findFirst({ where: eq(schema.users.email, email) });

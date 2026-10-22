@@ -283,7 +283,7 @@ export async function updatePlanItem(form: FormData) {
 export async function runAiPlanner(clientId: string, question: string): Promise<AiResult> {
   const { user, client } = await clientOr404(clientId);
   if (!aiEnabled()) return { ok: false, error: "The AI assistant is turned off for this site." };
-  if (!rateLimit(`ai:${user.id}`, 20, 60 * 60_000)) return { ok: false, error: "AI limit reached for this hour." };
+  if (!(await rateLimit(`ai:${user.id}`, 20, 60 * 60_000))) return { ok: false, error: "AI limit reached for this hour." };
   if (client.needs.length === 0) return { ok: false, error: "Add at least one need to the client profile first." };
 
   const p = client.profile;
