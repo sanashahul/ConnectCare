@@ -26,6 +26,7 @@ export async function addTask(_: TaskState, form: FormData): Promise<TaskState> 
   if (d.clientId && !(await getClientForUser(user, d.clientId))) return { error: "That client isn't one of yours." };
   await db.insert(schema.tasks).values({ userId: user.id, textEnc: encryptString(d.text), dueDate: d.dueDate, clientId: d.clientId });
   revalidatePath("/dashboard");
+  revalidatePath("/tasks");
   return { ok: true };
 }
 
@@ -39,7 +40,7 @@ export async function completeTodo(key: string): Promise<{ ok: boolean }> {
   } else if (kind === "plan") {
     const item = await db.query.planItems.findFirst({ where: eq(schema.planItems.id, id) });
     if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
-    await db.update(schema.planItems).set({ status: "done", updatedAt: new Date() }).where(eq(schema.planItems.id, id));
+    await db.update(schema.planItems).set({ status: "done", statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
     await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status: "done", from: "todo" } });
   } else {
     if (!(await getClientForUser(user, id))) return { ok: false };
@@ -49,6 +50,7 @@ export async function completeTodo(key: string): Promise<{ ok: boolean }> {
       .onConflictDoUpdate({ target: [schema.todoState.userId, schema.todoState.itemKey], set: { doneAt: new Date() } });
   }
   revalidatePath("/dashboard");
+  revalidatePath("/tasks");
   return { ok: true };
 }
 
@@ -59,7 +61,7 @@ export async function setPlanStatus(key: string, status: "todo" | "referred" | "
   const id = key.slice("plan:".length);
   const item = await db.query.planItems.findFirst({ where: eq(schema.planItems.id, id) });
   if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
-  await db.update(schema.planItems).set({ status, updatedAt: new Date() }).where(eq(schema.planItems.id, id));
+  await db.update(schema.planItems).set({ status, statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
   await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status, from: "todo_list" } });
   revalidatePath(`/clients/${item.clientId}`);
   return { ok: true };
@@ -69,6 +71,7 @@ export async function deleteTask(id: string): Promise<{ ok: boolean }> {
   const user = await requireUser();
   await db.delete(schema.tasks).where(and(eq(schema.tasks.id, id), eq(schema.tasks.userId, user.id)));
   revalidatePath("/dashboard");
+  revalidatePath("/tasks");
   return { ok: true };
 }
 

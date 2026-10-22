@@ -22,6 +22,9 @@ export const roleEnum = pgEnum("role", ["supervisor", "case_manager"]);
 export const clientStatusEnum = pgEnum("client_status", ["new", "active", "closed"]);
 export const intakeSourceEnum = pgEnum("intake_source", ["public_form", "staff", "google_form"]);
 export const contactTypeEnum = pgEnum("contact_type", ["in_person", "phone", "text", "outreach_site", "other"]);
+// met = saw or talked with the guest; not_found = tried to reach them and couldn't;
+// update = work done on their behalf without contact (e.g. called a shelter).
+export const noteKindEnum = pgEnum("note_kind", ["met", "not_found", "update"]);
 export const planStatusEnum = pgEnum("plan_status", ["todo", "referred", "connected", "done", "unable"]);
 
 export const users = pgTable("users", {
@@ -87,7 +90,10 @@ export const notes = pgTable(
     clientId: uuid("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
     authorId: uuid("author_id").notNull().references(() => users.id),
     contactDate: date("contact_date").notNull(),
+    kind: noteKindEnum("kind").notNull().default("met"),
     contactType: contactTypeEnum("contact_type").notNull(),
+    // Where the guest was seen (met) or looked for (not_found), e.g. "St. James Park".
+    whereEnc: text("where_enc"),
     needsAddressed: text("needs_addressed").array().notNull().default([]),
     bodyEnc: text("body_enc").notNull(),
     followUpDate: date("follow_up_date"),
@@ -107,6 +113,8 @@ export const planItems = pgTable(
     // Encrypted JSON: { title, details?, suggestion? } - see PlanItemBody in src/lib/plan.ts
     bodyEnc: text("body_enc").notNull(),
     status: planStatusEnum("status").notNull().default("todo"),
+    // When status last changed; drives "steps connected / done this month" in reports.
+    statusChangedAt: timestamp("status_changed_at", { withTimezone: true }),
     dueDate: date("due_date"),
     // AI suggestions that are not in the vetted directory start unverified and are
     // kept off printouts until a case manager confirms them.

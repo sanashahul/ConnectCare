@@ -11,7 +11,7 @@ import { decryptPlanBody } from "@/lib/plan";
 import { emergencyNumbers, matchResources } from "@/lib/resource-match";
 import type { Resource } from "@/lib/resource-types";
 import { getActiveResources } from "@/lib/resources";
-import { PrintButton } from "./print-button";
+import { PrintButton } from "@/components/print-button";
 import { PrintSheet, type PrintEntry } from "./print-sheet";
 
 function resourceEntry(r: Resource): Omit<PrintEntry, "key" | "need" | "needLabel" | "defaultChecked"> {

@@ -47,6 +47,7 @@ export const GooglePayloadSchema = z.object({
     area: text(100),
     otherInfo: text(1500),
     consent: z.boolean(),
+    formLanguage: text(20),
   }),
 });
 export type GooglePayload = z.infer<typeof GooglePayloadSchema>;
@@ -71,8 +72,28 @@ const KEYWORDS: [string, RegExp][] = [
   ["pets", /\b(dog|cat|pet|pets)\b/i],
 ];
 
+// The same hints for answers written on the Spanish and Vietnamese forms (matched anywhere in the text).
+const OTHER_LANGUAGE_KEYWORDS: [string, RegExp][] = [
+  ["shelter", /refugio|albergue|cama|dormir|dónde quedarme|frío|carpa|chỗ ngủ|nơi ngủ|giường|lều|trú ẩn/i],
+  ["housing", /vivienda|apartamento|renta|alquiler|desalojo|nhà ở|căn hộ|tiền thuê|bị đuổi/i],
+  ["food", /comida|hambre|comer|despensa|thức ăn|đồ ăn|đói|bữa ăn|thực phẩm/i],
+  ["medical", /médic|clínica|enferm|dolor|herida|medicina|medicamento|receta|farmacia|insulina|bác sĩ|phòng khám|bệnh|đau|vết thương|thuốc|tiểu đường/i],
+  ["mental_health", /salud mental|depresi|ansiedad|psicólog|terapia|suicid|tâm lý|tâm thần|trầm cảm|lo âu|tự tử/i],
+  ["substance_use", /droga|alcohol|desintoxic|rehabilita|fentanilo|ma túy|rượu|cai nghiện/i],
+  ["dental_vision", /dentista|diente|muela|lentes|anteojos|răng|nha sĩ|mắt kính|thị lực/i],
+  ["hygiene", /ducha|bañarme|lavander|ropa|higiene|tắm|giặt|quần áo|vệ sinh/i],
+  ["benefits", /beneficios|seguro médico|ayuda en efectivo|trợ cấp|bảo hiểm/i],
+  ["documents_phone", /identificación|acta de nacimiento|seguro social|teléfono|celular|documentos|giấy tờ|căn cước|an sinh|điện thoại/i],
+  ["transit", /autobús|transporte|xe buýt|đi lại/i],
+  ["employment", /trabajo|empleo|việc làm|công việc/i],
+  ["legal", /abogado|tribunal|multa|orden de arresto|libertad condicional|luật sư|tòa án|pháp lý/i],
+  ["safety", /abuso|violencia|peligro|amenaza|agresión|bạo lực|bạo hành|lạm dụng|nguy hiểm|đe dọa/i],
+  ["pets", /perro|gato|mascota|chó|mèo|thú cưng/i],
+];
+
 export function inferNeeds(textInput: string): string[] {
-  return KEYWORDS.filter(([, re]) => re.test(textInput)).map(([k]) => k);
+  const t = textInput.normalize("NFC");
+  return [...new Set([...KEYWORDS, ...OTHER_LANGUAGE_KEYWORDS].filter(([, re]) => re.test(t)).map(([k]) => k))];
 }
 
 export function mapGooglePayload(p: GooglePayload) {
@@ -100,6 +121,7 @@ export function mapGooglePayload(p: GooglePayload) {
     urgentDetails: a.urgentNeed,
     otherInfo: a.otherInfo || undefined,
     filledOutBy: "self",
+    formLanguage: a.formLanguage && a.formLanguage !== "English" ? a.formLanguage : undefined,
     consentAt: p.submittedAt && !Number.isNaN(Date.parse(p.submittedAt)) ? new Date(p.submittedAt).toISOString() : new Date().toISOString(),
   };
   return {

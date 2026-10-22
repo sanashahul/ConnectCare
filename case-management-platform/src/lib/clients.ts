@@ -33,6 +33,8 @@ export type ClientProfile = {
   hasPets?: boolean;
   hasChildren?: boolean;
   filledOutBy?: "self" | "helper" | "staff";
+  /** Language of the form the guest filled out, when not English. Written answers are in this language. */
+  formLanguage?: string;
   consentAt?: string;
 };
 

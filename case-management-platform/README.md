@@ -1,16 +1,17 @@
 # ConnectCare Case Management
 
-A web app for street-medicine case managers working with people experiencing homelessness in Santa Clara and San Mateo counties.
+A web app for a street medicine team in Santa Clara and San Mateo counties. Unhoused guests fill out a request form; the team's case managers use the app to follow up and help each guest.
 
-It does five things:
+It does six things:
 
-1. **Intake.** People ask for help through a **Google Form** (name, email, best place to contact, most urgent need), or through the app's own form at `/intake`. Either way, the request goes straight into the app with a client ID. Google Form setup: [google-apps-script/README.md](google-apps-script/README.md).
+1. **Intake.** Guests ask for help through a **Google Form** or the app's own form at `/intake`, in **English, Spanish or Vietnamese**. Choice answers reach staff in English. Either way, the request goes straight into the app. Google Form setup: [google-apps-script/README.md](google-apps-script/README.md).
 2. **Assignment.** New requests land in the supervisor's **Intake queue**. The supervisor assigns each guest to a case manager, and the whole record moves with them.
-3. **Case work.** For each client, case managers keep a profile, a **contact log** (notes, needs discussed, follow-up dates), and a **care plan** (steps linked to resources, tracked as To do → Referred → Connected → Done).
+3. **Case work.** For each client, case managers keep a profile, a **contact log**, and a **care plan** (steps linked to resources, tracked as To do → Referred → Connected → Done). Each log entry is **Met with guest** (with where they were seen), **Couldn't find**, or **Update** (work done for them, like calling a shelter). Guests nobody has met in 14 days are flagged to their case manager and supervisors.
 4. **Resources.** A searchable **directory** of 87 vetted resources built from the team's five guides. The app matches resources to each client's needs, area, language, and insurance, and lists the gaps it can't fill.
-5. **AI help and printouts.** An optional **AI assistant** drafts a plan and suggests resources to fill gaps. Anything outside the vetted directory is marked **unverified** until a case manager checks it. A **one-page resource sheet** prints only what applies to the client.
+5. **Monthly report.** Supervisors get a one-page report per month with counts only (requests, time to first contact, top needs, plan steps connected or done, share of guests we couldn't find), downloadable as a PDF.
+6. **AI help and printouts.** An optional **AI assistant** drafts a plan and suggests resources to fill gaps. Anything outside the vetted directory is marked **unverified** until a case manager checks it. A **one-page resource sheet** prints only what applies to the client.
 
-**Clients are identified by ID.** Every client gets a short random ID such as `CC-7K3PM`. Dashboards, lists, the intake queue, and the audit log show the ID, never the name. The name is visible only inside the client's own record. Guests see their ID after submitting the form, and it is printed on their resource sheet, so they can mention it when they contact the team.
+**Clients are shown by name** to the staff who can see them. Every client also gets a short request number such as `CC-7K3PM`, which guests see after submitting the form and can mention when they contact the team. The audit log records IDs, never names.
 
 Who sees what:
 
@@ -28,11 +29,13 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 | Guest or volunteer | The Google Form or `/intake` (share the link or a QR code at outreach sites) | Fills out the request form. |
 | Supervisor | **Dashboard** → New requests | Sees the newest requests by ID, with their source and most urgent need. |
 | Supervisor | **Intake queue** | Sees new requests by client ID (urgent ones flagged) and each case manager's current caseload. Assigns each request. |
-| Case manager | **Dashboard** | Sees follow-ups due this week and urgent clients. |
-| Case manager | Client → **Contact log** | Logs each conversation, the needs discussed, and a follow-up date. |
+| Case manager | **Dashboard** | Sees today's short list and a card per client with their next step, when they were last seen, and a "Not reached" flag after 14 days. |
+| Case manager | Client → **Contact log** | Logs **Met with guest** (and where), **Couldn't find**, or an **Update**, plus needs and a follow-up date. |
 | Case manager | Client → **Find resources & plan** | Sees matched resources per need and the gaps. Adds resources to the plan. Optionally asks the AI for a draft plan. |
 | Case manager | Client → **Print resource sheet** | Prints a one-page sheet for the client. It contains no last name, contact details, or notes. |
 | Anyone on staff | **Resources** → Report a problem | Flags a wrong phone number or changed hours. |
+| Supervisor | **Dashboard** → Not reached in 14+ days | Sees guests nobody has met recently and who their case manager is. |
+| Supervisor | **Reports** | Monthly program report for team check-ins and funders. **Download PDF** saves it. |
 | Supervisor | **Resources** | Fixes reported problems and entries where the guides disagree. Marks resources as verified. |
 
 ## Deploying

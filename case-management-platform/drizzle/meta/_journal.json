@@ -43,6 +43,13 @@
       "when": 1792651039127,
       "tag": "0005_todo_priority",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792692808016,
+      "tag": "0006_contact_kinds",
+      "breakpoints": true
     }
   ]
 }

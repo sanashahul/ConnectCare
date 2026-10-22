@@ -81,6 +81,17 @@ export const CONTACT_TYPES = [
   { key: "other", label: "Other" },
 ] as const;
 
+/** Kinds of contact log entry. Only "met" counts as reaching the guest. */
+export const NOTE_KINDS = [
+  { key: "met", label: "Met with guest", short: "Met", hint: "You saw or talked with them." },
+  { key: "not_found", label: "Couldn't find", short: "Couldn't find", hint: "You tried to reach them and couldn't." },
+  { key: "update", label: "Update", short: "Update", hint: "Work done for them, like calling a shelter." },
+] as const;
+export type NoteKind = (typeof NOTE_KINDS)[number]["key"];
+
+/** Days without meeting a guest before they are flagged as not reached. */
+export const NOT_REACHED_DAYS = 14;
+
 export const PLAN_STATUSES = [
   { key: "todo", label: "To do" },
   { key: "referred", label: "Referred" },

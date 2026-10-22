@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { buttonClass, ErrorText, inputClass, labelClass } from "@/components/ui";
-import { CONTACT_TYPES, NEEDS } from "@/lib/options";
+import { CONTACT_TYPES, NEEDS, NOTE_KINDS, type NoteKind } from "@/lib/options";
 import { addNote, addPlanItem } from "../actions";
 
 function todayLocal() {
@@ -10,43 +10,99 @@ function todayLocal() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
-export function NoteForm({ clientId, needs }: { clientId: string; needs: string[] }) {
+const METHOD_LABEL: Record<NoteKind, string> = { met: "How", not_found: "How you tried", update: "" };
+const WHERE_LABEL: Record<NoteKind, string> = { met: "Where you saw them", not_found: "Where you looked", update: "" };
+const BODY_PLACEHOLDER: Record<NoteKind, string> = {
+  met: "What you talked about, what was done, next steps.",
+  not_found: "Optional. For example: not at the usual spot, left a message with the site staff.",
+  update: "What you did for them. For example: called Here4You, they're on the bed list; sent the Medi-Cal form.",
+};
+
+export function NoteForm({ clientId, needs, lastPlace }: { clientId: string; needs: string[]; lastPlace?: string }) {
   const [state, action, pending] = useActionState(addNote.bind(null, clientId), undefined);
+  const [kind, setKind] = useState<NoteKind>("met");
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
-    if (state?.ok) ref.current?.reset();
+    if (state?.ok) {
+      ref.current?.reset();
+      setKind("met");
+    }
   }, [state]);
+  const methods = kind === "not_found" ? CONTACT_TYPES.filter((c) => c.key !== "other") : CONTACT_TYPES;
   return (
-    <form ref={ref} action={action} className="space-y-3 rounded-md bg-stone-50 p-3">
+    <form
+      ref={ref}
+      // Submitted by hand so React doesn't reset the form before we know the save worked.
+      onSubmit={(e) => {
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        startTransition(() => action(data));
+      }}
+      className="space-y-3 rounded-md bg-stone-50 p-3"
+    >
+      <input type="hidden" name="kind" value={kind} />
+      <div role="group" aria-label="Type of entry" className="grid grid-cols-3 gap-1 rounded-md bg-stone-200 p-1 text-sm">
+        {NOTE_KINDS.map((k) => (
+          <button
+            key={k.key}
+            type="button"
+            aria-pressed={kind === k.key}
+            onClick={() => setKind(k.key)}
+            className={`rounded px-2 py-1.5 font-medium ${kind === k.key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900"}`}
+          >
+            {k.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-stone-600">{NOTE_KINDS.find((k) => k.key === kind)?.hint}</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
           <label className={labelClass} htmlFor="contactDate">Date</label>
           <input id="contactDate" name="contactDate" type="date" defaultValue={todayLocal()} required className={inputClass} />
         </div>
-        <div>
-          <label className={labelClass} htmlFor="contactType">Type</label>
-          <select id="contactType" name="contactType" className={inputClass}>
-            {CONTACT_TYPES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
-          </select>
-        </div>
+        {kind !== "update" && (
+          <div>
+            <label className={labelClass} htmlFor="contactType">{METHOD_LABEL[kind]}</label>
+            <select id="contactType" name="contactType" className={inputClass}>
+              {methods.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label className={labelClass} htmlFor="followUpDate">Follow up on</label>
           <input id="followUpDate" name="followUpDate" type="date" className={inputClass} />
         </div>
       </div>
+      {kind !== "update" && (
+        <div>
+          <label className={labelClass} htmlFor="where">
+            {WHERE_LABEL[kind]} <span className="font-normal text-stone-500">(optional)</span>
+          </label>
+          <input
+            id="where"
+            name="where"
+            maxLength={300}
+            className={inputClass}
+            placeholder={lastPlace ? `Last time: ${lastPlace}` : "For example: St. James Park, by the library"}
+          />
+        </div>
+      )}
       <div>
-        <label className={labelClass} htmlFor="body">Note</label>
-        <textarea id="body" name="body" rows={3} required className={inputClass} placeholder="What you talked about, what was done, next steps." />
+        <label className={labelClass} htmlFor="body">
+          Note {kind === "not_found" && <span className="font-normal text-stone-500">(optional)</span>}
+        </label>
+        <textarea id="body" name="body" rows={3} required={kind !== "not_found"} className={inputClass} placeholder={BODY_PLACEHOLDER[kind]} />
       </div>
-      {needs.length > 0 && (
+      {needs.length > 0 && kind !== "not_found" && (
         <div className="flex flex-wrap gap-3 text-sm">
-          <span className="text-stone-600">Needs discussed:</span>
+          <span className="text-stone-600">{kind === "update" ? "Needs worked on:" : "Needs discussed:"}</span>
           {NEEDS.filter((n) => needs.includes(n.key)).map((n) => (
             <label key={n.key} className="flex items-center gap-1"><input type="checkbox" name="needsAddressed" value={n.key} /> {n.label}</label>
           ))}
         </div>
       )}
       <ErrorText>{state?.error}</ErrorText>
+      {state?.ok && !pending && <p role="status" className="text-sm text-emerald-800">✓ Added to the log.</p>}
       <button className={buttonClass} disabled={pending}>{pending ? "Saving…" : "Add to log"}</button>
     </form>
   );

@@ -44,3 +44,14 @@ export async function caseManagers() {
     orderBy: (u, { asc }) => [asc(u.name)],
   });
 }
+
+/** Active case managers with how many active clients each has, for assignment dropdowns. */
+export async function caseManagerOptions() {
+  const [cms, active] = await Promise.all([
+    caseManagers(),
+    db.select({ a: schema.clients.assignedToId }).from(schema.clients).where(eq(schema.clients.status, "active")),
+  ]);
+  const load = new Map<string, number>();
+  for (const r of active) if (r.a) load.set(r.a, (load.get(r.a) ?? 0) + 1);
+  return cms.map((cm) => ({ id: cm.id, name: cm.name, load: load.get(cm.id) ?? 0 }));
+}
