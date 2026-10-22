@@ -43,6 +43,7 @@ export const GooglePayloadSchema = z.object({
     helpToday: text(20),
     needs: z.array(z.string().max(100)).max(30).optional().default([]),
     area: text(100),
+    otherInfo: text(1500),
     consent: z.boolean(),
   }),
 });
@@ -93,6 +94,7 @@ export function mapGooglePayload(p: GooglePayload) {
     email,
     howToReach: a.contact,
     urgentDetails: a.urgentNeed,
+    otherInfo: a.otherInfo || undefined,
     filledOutBy: "self",
     consentAt: p.submittedAt && !Number.isNaN(Date.parse(p.submittedAt)) ? new Date(p.submittedAt).toISOString() : new Date().toISOString(),
   };

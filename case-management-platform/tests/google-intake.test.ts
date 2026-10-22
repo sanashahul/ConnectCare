@@ -57,6 +57,8 @@ test("pronouns, language, and LGBTQ+ care map from the form", () => {
   assert.equal(a.profile.pronouns, "they/them");
   assert.equal(a.profile.language, "Spanish");
   assert.equal(a.profile.lgbtqCare, true);
+  const d = mapGooglePayload(GooglePayloadSchema.parse({ responseId: "r", answers: { ...base, otherInfo: "I have a service dog." } }));
+  assert.equal(d.profile.otherInfo, "I have a service dog.");
   const b = mapGooglePayload(GooglePayloadSchema.parse({ responseId: "r", answers: { ...base, language: "Amharic", lgbtqCare: "No" } }));
   assert.equal(b.profile.language, "Other");
   assert.equal(b.profile.languageOther, "Amharic");

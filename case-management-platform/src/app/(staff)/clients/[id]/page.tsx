@@ -88,7 +88,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               />
               <Row label="Outreach site" value={p.outreachSite} />
               <Row label={client.urgent ? "Needs help today" : "Most urgent need"} value={p.urgentDetails || (client.urgent ? "Yes" : undefined)} />
-              <Row label="Notes from intake" value={p.otherInfo} />
+              <Row label="Additional information" value={p.otherInfo} />
               <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? " (filled by a helper)" : ""}`} />
               {p.consentAt && <Row label="Consent" value={`Agreed ${formatDate(p.consentAt)}`} />}
             </dl>

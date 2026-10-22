@@ -31,6 +31,7 @@ var Q = {
   needs: "What else can we help with?",
   lgbtqCare: "Would you like LGBTQ+ affirming care?",
   area: "Which area are you in?",
+  otherInfo: "Anything else you'd like us to know?",
   consent: "Consent",
 };
 
@@ -148,6 +149,7 @@ function buildForm_() {
   addLgbtqCare_(form);
   var area = form.addListItem().setTitle(Q.area);
   area.setChoices(AREA_CHOICES.map(function (c) { return area.createChoice(c); }));
+  addOtherInfo_(form);
   var consent = form.addCheckboxItem().setTitle(Q.consent).setRequired(true);
   consent.setChoices([consent.createChoice(CONSENT_TEXT)]);
   return form;
@@ -172,6 +174,13 @@ function addLgbtqCare_(form) {
   return item;
 }
 
+function addOtherInfo_(form) {
+  return form
+    .addParagraphTextItem()
+    .setTitle(Q.otherInfo)
+    .setHelpText("Optional. Share only what you are comfortable with. Please don't include Social Security numbers.");
+}
+
 /** Adds questions introduced after the form was first created, keeping Consent last. */
 function addMissingQuestions_(form) {
   var titles = form.getItems().map(function (i) { return i.getTitle(); });
@@ -188,6 +197,7 @@ function addMissingQuestions_(form) {
   if (!has(Q.pronouns)) place(addPronouns_(form), Q.name);
   if (!has(Q.language)) place(addLanguage_(form), Q.contact);
   if (!has(Q.lgbtqCare)) place(addLgbtqCare_(form), Q.needs);
+  if (!has(Q.otherInfo)) place(addOtherInfo_(form), Q.area);
 }
 
 /** Trigger: runs on every form submission. */
@@ -245,7 +255,7 @@ function deliver_(response) {
 function toPayload_(response) {
   var answers = {
     name: "", pronouns: "", email: "", contact: "", language: "", urgentNeed: "", helpToday: "",
-    needs: [], lgbtqCare: "", area: "", consent: false,
+    needs: [], lgbtqCare: "", area: "", otherInfo: "", consent: false,
   };
   response.getItemResponses().forEach(function (ir) {
     var title = ir.getItem().getTitle();
@@ -260,6 +270,7 @@ function toPayload_(response) {
     else if (title === Q.helpToday) answers.helpToday = String(value);
     else if (title === Q.needs) answers.needs = [].concat(value).map(String);
     else if (title === Q.area) answers.area = String(value);
+    else if (title === Q.otherInfo) answers.otherInfo = String(value);
     else if (title === Q.consent) answers.consent = [].concat(value).length > 0;
   });
   return {

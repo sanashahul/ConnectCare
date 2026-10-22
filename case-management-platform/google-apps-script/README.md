@@ -28,6 +28,7 @@ The script creates the form for you, with these questions:
 | What else can we help with? | No | Need categories |
 | Would you like LGBTQ+ affirming care? | No | "Yes" adds LGBTQ+ affirming resources to their matches. Stored encrypted. |
 | Which area are you in? | No | City and county, used for resource matching |
+| Anything else you'd like us to know? | No | "Additional information" on their profile. Stored encrypted. |
 | Consent | Yes | Consent date. Submissions without consent are refused. |
 
 ## One-time setup (about 15 minutes)
