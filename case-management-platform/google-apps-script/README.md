@@ -14,7 +14,15 @@ From there, the supervisor assigns the request to a case manager, and the case m
 
 ## The form
 
-The script creates the form for you, with these questions:
+The form opens with one question: **Language / Idioma / Ngôn ngữ** (English, Español, Tiếng Việt). Google Forms then jumps to that language's section, so guests share one link and one QR code.
+
+- Choice answers (needs, area, yes/no, language, disability) are converted back to English before they are sent, so case managers always see English choices.
+- **Written answers** (name, best place to reach you, urgent need, anything else) arrive as the guest wrote them. The client's profile shows "Filled out in Spanish" (or Vietnamese) so the case manager knows.
+- If a guest uses the Spanish or Vietnamese section and skips "Preferred language", their preferred language is set to that language.
+- The confirmation email goes out in the language the guest used.
+- **Have a fluent speaker read the Spanish and Vietnamese sections before sharing the link.** You can fix wording right in the form editor, but keep the *question titles* matching `TRANSLATIONS` in `Code.gs` (see "Changing the form" below).
+
+Each language section has these questions:
 
 | Question | Required | Goes to |
 |---|---|---|
@@ -64,7 +72,15 @@ Set the output as `GOOGLE_FORM_WEBHOOK_SECRET` in the server's environment, then
    - **Share this link** goes to the form people fill out. Put it on flyers as a QR code, or text it.
    - **Edit the form here** lets you change colors, a logo, or wording.
 
-Running `setup` again is safe. It reuses the same form, resets the triggers, and adds any questions that newer versions of the script introduced (for example pronouns, preferred language, and LGBTQ+ care). Your existing questions and settings are kept.
+Running `setup` again is safe. It reuses the same form (same link), resets the triggers, and adds anything newer versions of the script introduced, such as new questions or the Spanish and Vietnamese sections. Your existing English questions and settings are kept.
+
+### Updating a form you already set up
+
+To add Spanish and Vietnamese to a form you made with an earlier version of the script:
+
+1. Open the Apps Script project, select all of `Code.gs`, and replace it with the new `Code.gs` from GitHub. Click **Save**.
+2. Choose `setup` from the menu at the top and click **Run**.
+3. Open your form. It now starts with the language question, followed by English, Español and Tiếng Việt sections. The link and QR code don't change.
 
 ### 4. Test it
 
@@ -73,7 +89,9 @@ Fill out the form yourself. Within a few seconds, the request should appear on t
 ## Changing the form
 
 - **Wording, colors, logo, help text:** change these freely in the form editor.
-- **Question titles:** don't rename them. The script finds answers by title. If you must rename one, update the matching line in `Q` at the top of `Code.gs`.
+- **Question titles:** don't rename them, in any language. The script finds answers by title. If you must rename one, update the matching line in `Q` (English) or `TRANSLATIONS` (Spanish, Vietnamese) in `Code.gs`.
+- **Choice wording:** same rule. Each Spanish and Vietnamese choice must stay in the same order as the English list it translates.
+- **Language sections:** don't delete the section breaks or change where the language question sends people.
 - **Adding questions:** you can add questions, but their answers are not sent to ConnectCare unless the script and app are updated too.
 - **"What else can we help with?" and "Which area are you in?":** the choices must match the app's list. Change both together.
 

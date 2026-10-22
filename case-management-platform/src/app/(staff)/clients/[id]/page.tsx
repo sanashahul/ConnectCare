@@ -8,9 +8,10 @@ import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
 import { displayName, getClientForUser, languageLabel, matchingNeeds, SOURCE_LABELS } from "@/lib/clients";
 import { decryptString } from "@/lib/crypto";
-import { caseManagerOptions } from "@/lib/followups";
+import { caseManagerOptions, todayIso } from "@/lib/followups";
 import { AssignCaseManager } from "@/components/assign-case-manager";
-import { CONTACT_TYPES, needLabel } from "@/lib/options";
+import { CONTACT_TYPES, needLabel, NOTE_KINDS } from "@/lib/options";
+import { contactSummaries, daysNotReached, type ContactSummary } from "@/lib/contacts";
 import { decryptPlanBody } from "@/lib/plan";
 import { deleteClient, setClientStatus, updatePlanItem } from "../actions";
 import { AddPlanItemForm, NoteForm } from "./forms";
@@ -40,6 +41,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const plan = planRows.map((r) => ({ ...r, body: decryptPlanBody(r.bodyEnc) }));
   const unverified = plan.filter((i) => !i.verified).length;
   const cms = supervisor ? await caseManagerOptions() : [];
+  const contact = (await contactSummaries([id])).get(id)!;
+  const notReached = client.status === "active" ? daysNotReached(client, contact, todayIso()) : null;
 
   return (
     <div className="space-y-5">
@@ -53,6 +56,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             {client.urgent && <Badge tone="red">Urgent</Badge>}
             {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
             {client.status === "closed" && <Badge>Closed</Badge>}
+            {notReached !== null && <Badge tone="amber">Not reached in {notReached} days</Badge>}
           </span>
         }
         subtitle={[client.city, client.county && `${client.county} County`, assignee && `Case manager: ${assignee.name}`].filter(Boolean).join(" · ")}
@@ -85,6 +89,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               <Row label="Age" value={p.ageRange} />
               <Row label="Pronouns" value={p.pronouns} />
               <Row label="Preferred language" value={languageLabel(p)} />
+              <Row
+                label="Form language"
+                value={p.formLanguage && `Filled out in ${p.formLanguage}. Written answers are in ${p.formLanguage}; choices were converted to English.`}
+              />
               <Row label="LGBTQ+ care" value={p.lgbtqCare ? "Would like LGBTQ+ affirming care" : undefined} />
               <Row label="Disability" value={p.disability} />
               <Row label="Accommodations" value={p.accessNeeds} />
@@ -202,7 +210,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </Card>
 
           <Card title="Contact log">
-            <NoteForm clientId={id} needs={client.needs} />
+            <LastSeen contact={contact} notReached={notReached} howToReach={p.howToReach} />
+            <NoteForm clientId={id} needs={client.needs} lastPlace={contact.lastPlace} />
             {noteRows.length === 0 ? (
               <div className="mt-4"><EmptyState>No contacts logged yet.</EmptyState></div>
             ) : (
@@ -211,12 +220,20 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                   <li key={note.id} className="py-3">
                     <div className="flex flex-wrap items-center gap-2 text-sm">
                       <span className="font-medium">{formatDate(note.contactDate)}</span>
-                      <span className="text-stone-500">{CONTACT_TYPES.find((c) => c.key === note.contactType)?.label}</span>
+                      <Badge tone={KIND_TONE[note.kind]}>{NOTE_KINDS.find((k) => k.key === note.kind)?.short}</Badge>
+                      {note.kind !== "update" && (
+                        <span className="text-stone-500">{CONTACT_TYPES.find((c) => c.key === note.contactType)?.label}</span>
+                      )}
                       <span className="text-stone-500">by {author}</span>
                       {note.needsAddressed.map((n) => <Badge key={n}>{needLabel(n)}</Badge>)}
                       {note.followUpDate && <span className="ml-auto text-xs text-stone-600">Follow up {formatDate(note.followUpDate)}</span>}
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-stone-800">{decryptString(note.bodyEnc)}</p>
+                    {note.whereEnc && (
+                      <p className="mt-1 text-sm text-stone-600">
+                        {note.kind === "met" ? "Seen at" : "Looked at"}: {decryptString(note.whereEnc)}
+                      </p>
+                    )}
+                    <NoteBody text={decryptString(note.bodyEnc)} />
                   </li>
                 ))}
               </ul>
@@ -224,6 +241,37 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+function NoteBody({ text }: { text: string }) {
+  return text ? <p className="mt-1 whitespace-pre-wrap text-sm text-stone-800">{text}</p> : null;
+}
+
+const KIND_TONE = { met: "green", not_found: "amber", update: "gray" } as const;
+
+function LastSeen({ contact, notReached, howToReach }: { contact: ContactSummary; notReached: number | null; howToReach?: string }) {
+  return (
+    <div className={`mb-3 rounded-md px-3 py-2 text-sm ${notReached !== null ? "bg-amber-50 text-amber-950" : "bg-stone-50 text-stone-800"}`}>
+      {contact.lastMet ? (
+        <p>
+          <span className="font-semibold">Last seen {formatDate(contact.lastMet)}</span>
+          {contact.lastPlace && <> at {contact.lastPlace}</>}
+          {contact.missesSinceMet > 0 && (
+            <span className="text-amber-800"> · couldn&apos;t find {contact.missesSinceMet} time{contact.missesSinceMet === 1 ? "" : "s"} since</span>
+          )}
+        </p>
+      ) : (
+        <p>
+          <span className="font-semibold">Not met yet.</span>
+          {contact.missesSinceMet > 0 && <> Couldn&apos;t find {contact.missesSinceMet} time{contact.missesSinceMet === 1 ? "" : "s"}.</>}
+          {howToReach && <> Best place to reach (from intake): {howToReach}</>}
+        </p>
+      )}
+      {notReached !== null && (
+        <p className="mt-1 text-amber-900">Nobody has met this guest in {notReached} days. Your supervisor sees this too.</p>
+      )}
     </div>
   );
 }

@@ -83,6 +83,247 @@ var CONSENT_TEXT =
   "and connect me with services. Only the case management team can see it, and it is never sold. I can ask to see " +
   "or delete my information at any time.";
 
+// Help text under each English question.
+var HELP = {
+  name: "First name or nickname is fine.",
+  pronouns: "Optional. For example: she/her, he/him, they/them.",
+  email: "Optional. We will send your request number here.",
+  contact: "A phone number, or where and when we can usually find you (for example: Hope's Corner on Thursday mornings).",
+  urgentNeed: "Share only what you are comfortable with. Please don't include Social Security numbers.",
+  lgbtqCare: "Optional. Only the case management team will see your answer.",
+  disability: "Optional.",
+  accessNeeds: "Optional. For example: wheelchair access, ASL interpreter, large print, help filling out forms.",
+  otherInfo: "Optional. Share only what you are comfortable with. Please don't include Social Security numbers.",
+};
+
+var DESCRIPTION =
+  "Tell us what you need and a case manager from the outreach team will follow up.\n\n" +
+  "In danger right now? Call 911. Mental health crisis? Call or text 988, any time.";
+
+// ---------- Languages ----------
+// Guests pick a language on the first page and the form jumps to that section.
+// Answers are converted back to English before they are sent, so the app and
+// case managers always see English choices. Written answers stay as the guest wrote them.
+// Translation lists must line up item by item with the English lists above.
+
+var LANGUAGE_PICKER = "Language / Idioma / Ngôn ngữ";
+var LANGUAGE_PICKER_CHOICES = { English: "en", "Español": "es", "Tiếng Việt": "vi" };
+var FORM_LANGUAGE_NAMES = { en: "English", es: "Spanish", vi: "Vietnamese" };
+var MULTILINGUAL_TITLE = "Ask for help · Pida ayuda · Xin giúp đỡ";
+var MULTILINGUAL_DESCRIPTION =
+  "Choose your language to start. Elija su idioma para empezar. Chọn ngôn ngữ của bạn để bắt đầu.\n\n" +
+  "Emergency / Emergencia / Cấp cứu: 911. Mental health crisis / Crisis de salud mental / Khủng hoảng tâm lý: 988.";
+var CONFIRMATION_MESSAGE =
+  "Thank you. We got your request and a case manager will reach out. If you gave an email, we sent your request number there.\n\n" +
+  "Gracias. Recibimos su solicitud y un administrador de casos se comunicará con usted. Si nos dio un correo electrónico, le enviamos su número de solicitud.\n\n" +
+  "Cảm ơn bạn. Chúng tôi đã nhận được yêu cầu và một nhân viên quản lý hồ sơ sẽ liên lạc với bạn. Nếu bạn để lại email, chúng tôi đã gửi mã số yêu cầu đến đó.\n\n" +
+  "911 · 988 · 211";
+
+var TRANSLATIONS = {
+  es: {
+    section: "Español",
+    description:
+      "Cuéntenos qué necesita y un administrador de casos del equipo de alcance comunitario le contactará.\n\n" +
+      "¿Está en peligro ahora? Llame al 911. ¿Crisis de salud mental? Llame o envíe un mensaje de texto al 988, a cualquier hora.",
+    q: {
+      name: "Su nombre",
+      pronouns: "Sus pronombres",
+      email: "Correo electrónico",
+      contact: "El mejor lugar o forma de contactarle",
+      language: "Idioma preferido",
+      urgentNeed: "¿Qué es lo que más necesita con urgencia?",
+      helpToday: "¿Necesita ayuda hoy?",
+      needs: "¿En qué más le podemos ayudar?",
+      lgbtqCare: "¿Le gustaría recibir atención que afirme a las personas LGBTQ+?",
+      disability: "¿Tiene alguna discapacidad o necesita alguna adaptación?",
+      accessNeeds: "Si es así, ¿qué nos ayudaría a apoyarle?",
+      area: "¿En qué zona se encuentra?",
+      otherInfo: "¿Hay algo más que quiera que sepamos?",
+      consent: "Consentimiento",
+    },
+    help: {
+      name: "Basta con su nombre o apodo.",
+      pronouns: "Opcional. Por ejemplo: ella, él, elle.",
+      email: "Opcional. Le enviaremos aquí su número de solicitud.",
+      contact: "Un número de teléfono, o dónde y cuándo podemos encontrarle normalmente (por ejemplo: Hope's Corner los jueves por la mañana).",
+      urgentNeed: "Comparta solo lo que le haga sentir cómodo/a. Por favor, no incluya números de Seguro Social.",
+      lgbtqCare: "Opcional. Solo el equipo de administración de casos verá su respuesta.",
+      disability: "Opcional.",
+      accessNeeds: "Opcional. Por ejemplo: acceso para silla de ruedas, intérprete de lenguaje de señas, letra grande, ayuda para llenar formularios.",
+      otherInfo: "Opcional. Comparta solo lo que le haga sentir cómodo/a. Por favor, no incluya números de Seguro Social.",
+    },
+    yesNo: ["Sí", "No"],
+    needs: [
+      "Atención médica",
+      "Dental, vista u oído",
+      "Salud mental",
+      "Apoyo por uso de sustancias",
+      "Refugio para esta noche",
+      "Vivienda (a largo plazo)",
+      "Comida",
+      "Duchas, lavandería, ropa",
+      "Beneficios (Medi-Cal, CalFresh, ayuda en efectivo)",
+      "Identificación, documentos o un teléfono",
+      "Transporte",
+      "Trabajo o capacitación laboral",
+      "Ayuda legal",
+      "Seguridad (violencia o abuso)",
+      "Cuidado de mascotas",
+    ],
+    languages: ["Inglés", "Español", "Vietnamita", "Chino", "Tagalo"],
+    disability: ["Sí", "No", "Prefiero no decir"],
+    areas: [
+      "Mountain View",
+      "Sunnyvale",
+      "San Jose",
+      "Milpitas",
+      "Palo Alto",
+      "Santa Clara",
+      "Otro lugar del condado de Santa Clara",
+      "East Palo Alto",
+      "Menlo Park",
+      "Redwood City",
+      "Otro lugar del condado de San Mateo",
+      "Otro / no estoy seguro/a",
+    ],
+    consent:
+      "Acepto que el equipo de administración de casos de alcance comunitario guarde esta información de forma segura y la use " +
+      "para contactarme y conectarme con servicios. Solo el equipo de administración de casos puede verla y nunca se vende. " +
+      "Puedo pedir ver o borrar mi información en cualquier momento.",
+    emailSubject: "Recibimos su solicitud",
+    emailBody:
+      "Gracias por comunicarse. Un administrador de casos del equipo de alcance comunitario se comunicará con usted.\n\n" +
+      "Su número de solicitud es {code}. Por favor, menciónelo cuando hable con el equipo.\n\n" +
+      "Emergencias: 911\nCrisis de salud mental: llame o envíe un mensaje de texto al 988\nCualquier servicio, las 24 horas: 211\n",
+  },
+  vi: {
+    section: "Tiếng Việt",
+    description:
+      "Hãy cho chúng tôi biết bạn cần gì, một nhân viên quản lý hồ sơ từ nhóm tiếp cận cộng đồng sẽ liên lạc với bạn.\n\n" +
+      "Đang gặp nguy hiểm? Gọi 911. Khủng hoảng sức khỏe tâm thần? Gọi hoặc nhắn tin 988, bất cứ lúc nào.",
+    q: {
+      name: "Tên của bạn",
+      pronouns: "Đại từ nhân xưng của bạn",
+      email: "Địa chỉ email",
+      contact: "Nơi hoặc cách tốt nhất để liên lạc với bạn",
+      language: "Ngôn ngữ ưa thích",
+      urgentNeed: "Bạn cần gì gấp nhất?",
+      helpToday: "Bạn có cần giúp đỡ ngay hôm nay không?",
+      needs: "Chúng tôi có thể giúp gì thêm cho bạn?",
+      lgbtqCare: "Bạn có muốn được chăm sóc thân thiện với người LGBTQ+ không?",
+      disability: "Bạn có khuyết tật hoặc cần hỗ trợ đặc biệt nào không?",
+      accessNeeds: "Nếu có, điều gì sẽ giúp chúng tôi hỗ trợ bạn?",
+      area: "Bạn đang ở khu vực nào?",
+      otherInfo: "Bạn có muốn cho chúng tôi biết điều gì khác không?",
+      consent: "Đồng ý",
+    },
+    help: {
+      name: "Chỉ cần tên hoặc biệt danh.",
+      pronouns: "Không bắt buộc. Ví dụ: she/her, he/him, they/them.",
+      email: "Không bắt buộc. Chúng tôi sẽ gửi mã số yêu cầu của bạn đến đây.",
+      contact: "Số điện thoại, hoặc nơi và lúc chúng tôi thường có thể gặp bạn (ví dụ: Hope's Corner vào sáng thứ Năm).",
+      urgentNeed: "Chỉ chia sẻ những gì bạn thấy thoải mái. Xin đừng ghi số An Sinh Xã Hội.",
+      lgbtqCare: "Không bắt buộc. Chỉ nhóm quản lý hồ sơ mới thấy câu trả lời của bạn.",
+      disability: "Không bắt buộc.",
+      accessNeeds: "Không bắt buộc. Ví dụ: lối đi cho xe lăn, thông dịch viên ngôn ngữ ký hiệu, chữ in lớn, giúp điền đơn.",
+      otherInfo: "Không bắt buộc. Chỉ chia sẻ những gì bạn thấy thoải mái. Xin đừng ghi số An Sinh Xã Hội.",
+    },
+    yesNo: ["Có", "Không"],
+    needs: [
+      "Chăm sóc y tế",
+      "Răng, mắt hoặc thính giác",
+      "Sức khỏe tâm thần",
+      "Hỗ trợ về sử dụng chất gây nghiện",
+      "Chỗ ngủ tối nay",
+      "Nhà ở (lâu dài)",
+      "Thức ăn",
+      "Tắm, giặt đồ, quần áo",
+      "Trợ cấp (Medi-Cal, CalFresh, trợ cấp tiền mặt)",
+      "Giấy tờ tùy thân, giấy tờ hoặc điện thoại",
+      "Phương tiện đi lại",
+      "Việc làm hoặc đào tạo nghề",
+      "Trợ giúp pháp lý",
+      "An toàn (bạo lực hoặc lạm dụng)",
+      "Chăm sóc thú cưng",
+    ],
+    languages: ["Tiếng Anh", "Tiếng Tây Ban Nha", "Tiếng Việt", "Tiếng Trung", "Tiếng Tagalog"],
+    disability: ["Có", "Không", "Không muốn trả lời"],
+    areas: [
+      "Mountain View",
+      "Sunnyvale",
+      "San Jose",
+      "Milpitas",
+      "Palo Alto",
+      "Santa Clara",
+      "Nơi khác trong quận Santa Clara",
+      "East Palo Alto",
+      "Menlo Park",
+      "Redwood City",
+      "Nơi khác trong quận San Mateo",
+      "Khác / không rõ",
+    ],
+    consent:
+      "Tôi đồng ý để nhóm quản lý hồ sơ của chương trình tiếp cận cộng đồng lưu trữ thông tin này một cách an toàn và dùng nó " +
+      "để liên lạc với tôi và kết nối tôi với các dịch vụ. Chỉ nhóm quản lý hồ sơ mới xem được và thông tin không bao giờ bị bán. " +
+      "Tôi có thể yêu cầu xem hoặc xóa thông tin của mình bất cứ lúc nào.",
+    emailSubject: "Chúng tôi đã nhận được yêu cầu của bạn",
+    emailBody:
+      "Cảm ơn bạn đã liên hệ. Một nhân viên quản lý hồ sơ từ nhóm tiếp cận cộng đồng sẽ liên lạc với bạn.\n\n" +
+      "Mã số yêu cầu của bạn là {code}. Vui lòng cho nhóm biết mã số này khi nói chuyện.\n\n" +
+      "Cấp cứu: 911\nKhủng hoảng sức khỏe tâm thần: gọi hoặc nhắn tin 988\nMọi dịch vụ, 24 giờ: 211\n",
+  },
+};
+
+/** Titles, help text and choices for one language ("en", "es" or "vi"). */
+function strings_(lang) {
+  if (lang === "en") {
+    return {
+      section: "English",
+      description: DESCRIPTION,
+      q: Q,
+      help: HELP,
+      choices: {
+        helpToday: ["Yes", "No"],
+        lgbtqCare: ["Yes", "No"],
+        needs: NEED_CHOICES,
+        language: LANGUAGE_CHOICES,
+        disability: DISABILITY_CHOICES,
+        area: AREA_CHOICES,
+      },
+      consent: CONSENT_TEXT,
+      emailSubject: "We received your request",
+      emailBody:
+        "Thank you for reaching out. A case manager from the outreach team will contact you.\n\n" +
+        "Your request number is {code}. Please mention it when you talk to the team.\n\n" +
+        "Emergency: 911\nMental health crisis: call or text 988\nAny service, 24 hours: 211\n",
+    };
+  }
+  var t = TRANSLATIONS[lang];
+  return {
+    section: t.section,
+    description: t.description,
+    q: t.q,
+    help: t.help,
+    choices: {
+      helpToday: t.yesNo,
+      lgbtqCare: t.yesNo,
+      needs: t.needs,
+      language: t.languages,
+      disability: t.disability,
+      area: t.areas,
+    },
+    consent: t.consent,
+    emailSubject: t.emailSubject,
+    emailBody: t.emailBody,
+  };
+}
+
+// Question order within each language section. Consent stays last.
+var ORDER = [
+  "name", "pronouns", "email", "contact", "language", "urgentNeed", "helpToday",
+  "needs", "lgbtqCare", "disability", "accessNeeds", "area", "otherInfo", "consent",
+];
+
 /** Run once: creates the form (or reuses it) and installs the submit and retry triggers. */
 function setup() {
   config_(); // fail early if properties are missing
@@ -92,6 +333,7 @@ function setup() {
   if (formId) {
     form = FormApp.openById(formId);
     addMissingQuestions_(form); // forms made by an older version of this script
+    if (addLanguageSections_(form)) applyFormText_(form);
   } else {
     form = buildForm_();
     props.setProperty("FORM_ID", form.getId());
@@ -109,96 +351,78 @@ function setup() {
 }
 
 function buildForm_() {
-  var form = FormApp.create(FORM_TITLE);
-  form
-    .setDescription(
-      "Tell us what you need and a case manager from the outreach team will follow up.\n\n" +
-        "In danger right now? Call 911. Mental health crisis? Call or text 988, any time.",
-    )
-    .setCollectEmail(false)
-    .setAllowResponseEdits(false)
-    .setShowLinkToRespondAgain(true)
-    .setConfirmationMessage(
-      "Thank you. We got your request and a case manager will reach out. " +
-        "If you gave an email, we sent your request number there.\n\n" +
-        "Emergency: 911. Mental health crisis: 988. Any service, 24 hours: 211.",
-    );
+  var form = FormApp.create(MULTILINGUAL_TITLE);
+  form.setCollectEmail(false).setAllowResponseEdits(false).setShowLinkToRespondAgain(true);
   try {
     form.setRequireLogin(false); // Workspace forms default to "your organization only"
   } catch (e) {
     // Personal Google accounts do not support this setting; their forms are already public.
   }
-
-  form.addTextItem().setTitle(Q.name).setHelpText("First name or nickname is fine.").setRequired(true);
-  addPronouns_(form);
-  form
-    .addTextItem()
-    .setTitle(Q.email)
-    .setHelpText("Optional. We will send your request number here.")
-    .setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
-  form
-    .addParagraphTextItem()
-    .setTitle(Q.contact)
-    .setHelpText("A phone number, or where and when we can usually find you (for example: Hope's Corner on Thursday mornings).")
-    .setRequired(true);
-  addLanguage_(form);
-  form
-    .addParagraphTextItem()
-    .setTitle(Q.urgentNeed)
-    .setHelpText("Share only what you are comfortable with. Please don't include Social Security numbers.")
-    .setRequired(true);
-  var today = form.addMultipleChoiceItem().setTitle(Q.helpToday);
-  today.setChoices([today.createChoice("Yes"), today.createChoice("No")]);
-  var needs = form.addCheckboxItem().setTitle(Q.needs);
-  needs.setChoices(NEED_CHOICES.map(function (c) { return needs.createChoice(c); }));
-  addLgbtqCare_(form);
-  addDisability_(form);
-  addAccessNeeds_(form);
-  var area = form.addListItem().setTitle(Q.area);
-  area.setChoices(AREA_CHOICES.map(function (c) { return area.createChoice(c); }));
-  addOtherInfo_(form);
-  var consent = form.addCheckboxItem().setTitle(Q.consent).setRequired(true);
-  consent.setChoices([consent.createChoice(CONSENT_TEXT)]);
+  ORDER.forEach(function (key) {
+    addQuestion_(form, key, "en");
+  });
+  addLanguageSections_(form);
+  applyFormText_(form);
   return form;
 }
 
-function addPronouns_(form) {
-  return form.addTextItem().setTitle(Q.pronouns).setHelpText("Optional. For example: she/her, he/him, they/them.");
+/** Form title, intro and thank-you message, in all three languages. */
+function applyFormText_(form) {
+  if (!form.getTitle() || form.getTitle() === FORM_TITLE) form.setTitle(MULTILINGUAL_TITLE);
+  form.setDescription(MULTILINGUAL_DESCRIPTION).setConfirmationMessage(CONFIRMATION_MESSAGE);
 }
 
-function addLanguage_(form) {
-  var item = form.addMultipleChoiceItem().setTitle(Q.language);
-  item.setChoices(LANGUAGE_CHOICES.map(function (c) { return item.createChoice(c); })).showOtherOption(true);
+/** Adds one question in the given language at the end of the form and returns it. */
+function addQuestion_(form, key, lang) {
+  var S = strings_(lang);
+  var title = S.q[key];
+  var help = S.help[key];
+  var item;
+  var choices = function (it, list) {
+    return it.setChoices(list.map(function (c) { return it.createChoice(c); }));
+  };
+  switch (key) {
+    case "name":
+    case "pronouns":
+      item = form.addTextItem().setTitle(title);
+      if (key === "name") item.setRequired(true);
+      break;
+    case "email":
+      item = form.addTextItem().setTitle(title).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
+      break;
+    case "contact":
+    case "urgentNeed":
+      item = form.addParagraphTextItem().setTitle(title).setRequired(true);
+      break;
+    case "accessNeeds":
+    case "otherInfo":
+      item = form.addParagraphTextItem().setTitle(title);
+      break;
+    case "language":
+      item = form.addMultipleChoiceItem().setTitle(title);
+      choices(item, S.choices.language).showOtherOption(true);
+      break;
+    case "helpToday":
+    case "lgbtqCare":
+    case "disability":
+      item = form.addMultipleChoiceItem().setTitle(title);
+      choices(item, S.choices[key]);
+      break;
+    case "needs":
+      item = form.addCheckboxItem().setTitle(title);
+      choices(item, S.choices.needs);
+      break;
+    case "area":
+      item = form.addListItem().setTitle(title);
+      choices(item, S.choices.area);
+      break;
+    case "consent":
+      item = form.addCheckboxItem().setTitle(title).setRequired(true);
+      choices(item, [S.consent]);
+      break;
+  }
+  if (help) item.setHelpText(help);
   return item;
-}
-
-function addLgbtqCare_(form) {
-  var item = form
-    .addMultipleChoiceItem()
-    .setTitle(Q.lgbtqCare)
-    .setHelpText("Optional. Only the case management team will see your answer.");
-  item.setChoices([item.createChoice("Yes"), item.createChoice("No")]);
-  return item;
-}
-
-function addDisability_(form) {
-  var item = form.addMultipleChoiceItem().setTitle(Q.disability).setHelpText("Optional.");
-  item.setChoices(DISABILITY_CHOICES.map(function (c) { return item.createChoice(c); }));
-  return item;
-}
-
-function addAccessNeeds_(form) {
-  return form
-    .addParagraphTextItem()
-    .setTitle(Q.accessNeeds)
-    .setHelpText("Optional. For example: wheelchair access, ASL interpreter, large print, help filling out forms.");
-}
-
-function addOtherInfo_(form) {
-  return form
-    .addParagraphTextItem()
-    .setTitle(Q.otherInfo)
-    .setHelpText("Optional. Share only what you are comfortable with. Please don't include Social Security numbers.");
 }
 
 /** Adds questions introduced after the form was first created, keeping Consent last. */
@@ -214,12 +438,52 @@ function addMissingQuestions_(form) {
       }
     }
   };
-  if (!has(Q.pronouns)) place(addPronouns_(form), Q.name);
-  if (!has(Q.language)) place(addLanguage_(form), Q.contact);
-  if (!has(Q.lgbtqCare)) place(addLgbtqCare_(form), Q.needs);
-  if (!has(Q.disability)) place(addDisability_(form), Q.lgbtqCare);
-  if (!has(Q.accessNeeds)) place(addAccessNeeds_(form), Q.disability);
-  if (!has(Q.otherInfo)) place(addOtherInfo_(form), Q.area);
+  if (!has(Q.pronouns)) place(addQuestion_(form, "pronouns", "en"), Q.name);
+  if (!has(Q.language)) place(addQuestion_(form, "language", "en"), Q.contact);
+  if (!has(Q.lgbtqCare)) place(addQuestion_(form, "lgbtqCare", "en"), Q.needs);
+  if (!has(Q.disability)) place(addQuestion_(form, "disability", "en"), Q.lgbtqCare);
+  if (!has(Q.accessNeeds)) place(addQuestion_(form, "accessNeeds", "en"), Q.disability);
+  if (!has(Q.otherInfo)) place(addQuestion_(form, "otherInfo", "en"), Q.area);
+}
+
+/**
+ * Turns an English-only form into: a language question, then an English, Spanish and
+ * Vietnamese section. The existing English questions (and the form's link) stay as they are.
+ * Returns false if the form already has the language sections.
+ */
+function addLanguageSections_(form) {
+  var already = form.getItems().some(function (i) { return i.getTitle() === LANGUAGE_PICKER; });
+  if (already) return false;
+
+  var picker = form
+    .addMultipleChoiceItem()
+    .setTitle(LANGUAGE_PICKER)
+    .setHelpText("Choose your language. Elija su idioma. Chọn ngôn ngữ của bạn.")
+    .setRequired(true);
+  form.moveItem(picker.getIndex(), 0);
+  var english = form.addPageBreakItem().setTitle("English").setHelpText(DESCRIPTION);
+  form.moveItem(english.getIndex(), 1);
+
+  var pages = { en: english };
+  ["es", "vi"].forEach(function (lang) {
+    var S = strings_(lang);
+    // A section break's "go to" applies to the section before it: finish that language and submit.
+    pages[lang] = form
+      .addPageBreakItem()
+      .setTitle(S.section)
+      .setHelpText(S.description)
+      .setGoToPage(FormApp.PageNavigationType.SUBMIT);
+    ORDER.forEach(function (key) {
+      addQuestion_(form, key, lang);
+    });
+  });
+
+  picker.setChoices(
+    Object.keys(LANGUAGE_PICKER_CHOICES).map(function (label) {
+      return picker.createChoice(label, pages[LANGUAGE_PICKER_CHOICES[label]]);
+    }),
+  );
+  return true;
 }
 
 /** Trigger: runs on every form submission. */
@@ -274,29 +538,51 @@ function deliver_(response) {
   return true;
 }
 
+/** Which question (and in which language) an item title belongs to. */
+function questionFor_(title) {
+  var langs = ["en", "es", "vi"];
+  for (var i = 0; i < langs.length; i++) {
+    var q = strings_(langs[i]).q;
+    for (var key in q) {
+      if (q[key] === title) return { key: key, lang: langs[i] };
+    }
+  }
+  return null;
+}
+
+/** A translated choice back to its English wording (unknown values, like "Other" answers, pass through). */
+function toEnglish_(lang, key, value) {
+  var list = strings_(lang).choices[key];
+  var i = list ? list.indexOf(value) : -1;
+  return i === -1 ? value : strings_("en").choices[key][i];
+}
+
+function formLanguageOf_(response) {
+  var lang = "en";
+  response.getItemResponses().forEach(function (ir) {
+    if (ir.getItem().getTitle() === LANGUAGE_PICKER) lang = LANGUAGE_PICKER_CHOICES[String(ir.getResponse())] || "en";
+  });
+  return lang;
+}
+
 function toPayload_(response) {
   var answers = {
     name: "", pronouns: "", email: "", contact: "", language: "", urgentNeed: "", helpToday: "",
     needs: [], lgbtqCare: "", disability: "", accessNeeds: "", area: "", otherInfo: "", consent: false,
   };
   response.getItemResponses().forEach(function (ir) {
-    var title = ir.getItem().getTitle();
+    var found = questionFor_(ir.getItem().getTitle());
+    if (!found) return;
+    var key = found.key;
     var value = ir.getResponse();
-    if (title === Q.name) answers.name = String(value);
-    else if (title === Q.pronouns) answers.pronouns = String(value);
-    else if (title === Q.language) answers.language = String(value);
-    else if (title === Q.lgbtqCare) answers.lgbtqCare = String(value);
-    else if (title === Q.disability) answers.disability = String(value);
-    else if (title === Q.accessNeeds) answers.accessNeeds = String(value);
-    else if (title === Q.email) answers.email = String(value);
-    else if (title === Q.contact) answers.contact = String(value);
-    else if (title === Q.urgentNeed) answers.urgentNeed = String(value);
-    else if (title === Q.helpToday) answers.helpToday = String(value);
-    else if (title === Q.needs) answers.needs = [].concat(value).map(String);
-    else if (title === Q.area) answers.area = String(value);
-    else if (title === Q.otherInfo) answers.otherInfo = String(value);
-    else if (title === Q.consent) answers.consent = [].concat(value).length > 0;
+    if (key === "consent") answers.consent = [].concat(value).length > 0;
+    else if (key === "needs") answers.needs = [].concat(value).map(function (v) { return toEnglish_(found.lang, "needs", String(v)); });
+    else answers[key] = toEnglish_(found.lang, key, String(value));
   });
+  var formLanguage = FORM_LANGUAGE_NAMES[formLanguageOf_(response)];
+  // Someone who filled out the Spanish form and skipped "Preferred language" still prefers Spanish.
+  if (!answers.language && formLanguage !== "English") answers.language = formLanguage;
+  answers.formLanguage = formLanguage;
   return {
     responseId: response.getId(),
     submittedAt: response.getTimestamp().toISOString(),
@@ -307,17 +593,12 @@ function toPayload_(response) {
 function sendConfirmation_(response, clientCode) {
   var email = "";
   response.getItemResponses().forEach(function (ir) {
-    if (ir.getItem().getTitle() === Q.email) email = String(ir.getResponse()).trim();
+    var found = questionFor_(ir.getItem().getTitle());
+    if (found && found.key === "email") email = String(ir.getResponse()).trim();
   });
   if (!email || !clientCode) return;
-  MailApp.sendEmail({
-    to: email,
-    subject: "We received your request",
-    body:
-      "Thank you for reaching out. A case manager from the outreach team will contact you.\n\n" +
-      "Your request number is " + clientCode + ". Please mention it when you talk to the team.\n\n" +
-      "Emergency: 911\nMental health crisis: call or text 988\nAny service, 24 hours: 211\n",
-  });
+  var S = strings_(formLanguageOf_(response));
+  MailApp.sendEmail({ to: email, subject: S.emailSubject, body: S.emailBody.replace("{code}", clientCode) });
 }
 
 function getForm_() {

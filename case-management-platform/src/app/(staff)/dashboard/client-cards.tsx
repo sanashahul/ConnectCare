@@ -8,6 +8,10 @@ export type ClientCard = {
   urgent: boolean;
   /** Assigned to this case manager and not opened by them since. */
   isNew: boolean;
+  lastMet?: string;
+  lastPlace?: string;
+  /** Days since anyone met them, once that reaches the not-reached threshold. */
+  notReached: number | null;
   next?: string;
   nextDue?: string;
   open: number;
@@ -23,7 +27,7 @@ export function ClientCards({ cards, today }: { cards: ClientCard[]; today: stri
           <Link
             href={`/clients/${c.id}`}
             className={`block h-full rounded-lg border bg-white p-4 shadow-sm transition hover:border-brand-600 hover:shadow ${
-              c.urgent || c.overdue ? "border-red-200" : "border-stone-200"
+              c.urgent || c.overdue ? "border-red-200" : c.notReached !== null ? "border-amber-300" : "border-stone-200"
             }`}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -32,7 +36,11 @@ export function ClientCards({ cards, today }: { cards: ClientCard[]; today: stri
               {c.isNew && <Badge tone="blue">New</Badge>}
               {c.urgent && <Badge tone="red">Urgent</Badge>}
               {c.overdue > 0 && <Badge tone="red">{c.overdue} overdue</Badge>}
+              {c.notReached !== null && <Badge tone="amber">Not reached {c.notReached}d</Badge>}
             </div>
+            <p className="mt-1 text-xs text-stone-500">
+              {c.lastMet ? `Last seen ${formatDate(c.lastMet)}${c.lastPlace ? ` · ${c.lastPlace}` : ""}` : "Not met yet"}
+            </p>
             {c.next ? (
               <>
                 <p className="mt-2 text-sm text-stone-800">

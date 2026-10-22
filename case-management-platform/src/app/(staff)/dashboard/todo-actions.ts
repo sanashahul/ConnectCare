@@ -40,7 +40,7 @@ export async function completeTodo(key: string): Promise<{ ok: boolean }> {
   } else if (kind === "plan") {
     const item = await db.query.planItems.findFirst({ where: eq(schema.planItems.id, id) });
     if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
-    await db.update(schema.planItems).set({ status: "done", updatedAt: new Date() }).where(eq(schema.planItems.id, id));
+    await db.update(schema.planItems).set({ status: "done", statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
     await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status: "done", from: "todo" } });
   } else {
     if (!(await getClientForUser(user, id))) return { ok: false };
@@ -61,7 +61,7 @@ export async function setPlanStatus(key: string, status: "todo" | "referred" | "
   const id = key.slice("plan:".length);
   const item = await db.query.planItems.findFirst({ where: eq(schema.planItems.id, id) });
   if (!item || !(await getClientForUser(user, item.clientId))) return { ok: false };
-  await db.update(schema.planItems).set({ status, updatedAt: new Date() }).where(eq(schema.planItems.id, id));
+  await db.update(schema.planItems).set({ status, statusChangedAt: new Date(), updatedAt: new Date() }).where(eq(schema.planItems.id, id));
   await audit({ userId: user.id, action: "plan.status", clientId: item.clientId, detail: { status, from: "todo_list" } });
   revalidatePath(`/clients/${item.clientId}`);
   return { ok: true };

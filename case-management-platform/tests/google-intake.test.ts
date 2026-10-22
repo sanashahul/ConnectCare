@@ -82,3 +82,27 @@ test("Apps Script choices and consent match the app", () => {
   assert.deepEqual([...(ctx.AREA_CHOICES as string[])], CITIES.map((c) => c.city));
   assert.equal(ctx.CONSENT_TEXT, CONSENT_TEXT);
 });
+
+test("Spanish and Vietnamese form choices line up with the English ones", () => {
+  const ctx: Record<string, unknown> = {};
+  vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
+  const strings = ctx.strings_ as (lang: string) => { q: Record<string, string>; choices: Record<string, string[]> };
+  const en = strings("en");
+  for (const lang of ["es", "vi"]) {
+    const s = strings(lang);
+    assert.deepEqual(Object.keys(s.q).sort(), Object.keys(en.q).sort(), `${lang} has every question`);
+    for (const key of Object.keys(en.choices)) assert.equal(s.choices[key].length, en.choices[key].length, `${lang} ${key} choices`);
+    // Titles must be unique across languages so each answer maps to one question.
+    for (const t of Object.values(s.q)) assert.ok(!Object.values(en.q).includes(t), `${lang} title "${t}" differs from English`);
+  }
+});
+
+test("needs are picked up from Spanish and Vietnamese written answers", () => {
+  assert.deepEqual(inferNeeds("Necesito una cama esta noche y comida").sort(), ["food", "shelter"]);
+  assert.deepEqual(inferNeeds("Tôi cần chỗ ngủ và thuốc").sort(), ["medical", "shelter"]);
+  const m = mapGooglePayload(
+    GooglePayloadSchema.parse({ responseId: "r", answers: { name: "Ana", contact: "x", urgentNeed: "comida", consent: true, language: "Spanish", formLanguage: "Spanish" } }),
+  );
+  assert.equal(m.profile.formLanguage, "Spanish");
+  assert.equal(m.profile.language, "Spanish");
+});

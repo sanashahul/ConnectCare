@@ -15,8 +15,9 @@ This document describes what the software does. It is not legal advice. Before u
 - **IDs, not names.** Every client gets a random ID (for example `CC-7K3PM`). It is random rather than numbered in order, so it reveals nothing about how many people are served or when someone joined. Dashboards, lists, the intake queue, and the audit log show only the ID. The name appears only inside the client's own record, which only their case manager and supervisors can open.
 
 ### Lock it up
-- **Encrypted fields.** Names, contact details, intake answers, case notes, and care-plan text are encrypted with AES-256-GCM before they reach the database. A copy of the database alone does not reveal them; the key (`DATA_ENCRYPTION_KEY`) is also needed. Keep the key in a secret manager, separate from database backups.
-- **What stays readable.** The database stores in plain text only what is needed for sorting and counting: case status, assigned case manager, city or county, need categories, and the urgent flag.
+- **Encrypted fields.** Names, contact details, intake answers, case notes, where a guest was seen or looked for, and care-plan text are encrypted with AES-256-GCM before they reach the database. A copy of the database alone does not reveal them; the key (`DATA_ENCRYPTION_KEY`) is also needed. Keep the key in a secret manager, separate from database backups.
+- **What stays readable.** The database stores in plain text only what is needed for sorting and counting: case status, assigned case manager, city or county, need categories, the urgent flag, and the type and date of each contact log entry (met, couldn't find, update).
+- **Monthly reports** read only those readable counting fields. They show counts, never names or notes. With very small numbers, a count can still point to a person, so share reports outside the team with care.
 - **Hosting.** Use a database with encryption at rest, and serve the app over HTTPS only. The app sends HSTS.
 - **Passwords.** Passwords are hashed with scrypt. Two-step-verification secrets are encrypted.
 

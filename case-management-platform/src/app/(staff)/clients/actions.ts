@@ -11,7 +11,7 @@ import { requireSupervisor, requireUser } from "@/lib/auth";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
-import { CONTACT_TYPES, NEED_KEYS, NEEDS, PLAN_STATUSES } from "@/lib/options";
+import { CONTACT_TYPES, NEED_KEYS, NEEDS, NOTE_KINDS, PLAN_STATUSES, type NoteKind } from "@/lib/options";
 import { encryptPlanBody, decryptPlanBody, type AiSuggestion, type CustomResource } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
 import { redactIdentifiers } from "@/lib/redact";
@@ -153,20 +153,27 @@ export async function deleteClient(form: FormData) {
 
 // ---------- Contact log ----------
 
-const NoteSchema = z.object({
-  contactDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date."),
-  contactType: z.enum(CONTACT_TYPES.map((c) => c.key) as [string, ...string[]]),
-  body: z.string().trim().min(1, "Write a short note.").max(10_000),
-  needsAddressed: z.array(z.enum(NEED_KEYS as [string, ...string[]])),
-  followUpDate: dateOrNull,
-});
+const NoteSchema = z
+  .object({
+    kind: z.enum(NOTE_KINDS.map((k) => k.key) as [NoteKind, ...NoteKind[]]),
+    contactDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date."),
+    contactType: z.enum(CONTACT_TYPES.map((c) => c.key) as [string, ...string[]]),
+    where: z.string().trim().max(300).optional().transform((v) => v || undefined),
+    body: z.string().trim().max(10_000),
+    needsAddressed: z.array(z.enum(NEED_KEYS as [string, ...string[]])),
+    followUpDate: dateOrNull,
+  })
+  .refine((d) => d.kind === "not_found" || d.body.length > 0, { message: "Write a short note.", path: ["body"] });
 
 export async function addNote(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
   const { user } = await clientOr404(clientId);
   const parsed = NoteSchema.safeParse({
+    kind: form.get("kind") ?? "met",
     contactDate: form.get("contactDate"),
-    contactType: form.get("contactType"),
-    body: form.get("body"),
+    // An update is work done without the guest, so how it happened doesn't apply.
+    contactType: form.get("kind") === "update" ? "other" : form.get("contactType"),
+    where: form.get("kind") === "update" ? undefined : (form.get("where") ?? undefined),
+    body: form.get("body") ?? "",
     needsAddressed: form.getAll("needsAddressed").map(String),
     followUpDate: form.get("followUpDate") ?? undefined,
   });
@@ -175,15 +182,17 @@ export async function addNote(clientId: string, _: ActionState, form: FormData):
   await db.insert(schema.notes).values({
     clientId,
     authorId: user.id,
+    kind: d.kind,
     contactDate: d.contactDate,
     contactType: d.contactType as (typeof schema.notes.$inferInsert)["contactType"],
+    whereEnc: d.where ? encryptString(d.where) : null,
     needsAddressed: d.needsAddressed,
     bodyEnc: encryptString(d.body),
     followUpDate: d.followUpDate,
   });
   await touch(clientId);
-  await audit({ userId: user.id, action: "note.created", clientId });
-  revalidatePath(`/clients/${clientId}`);
+  await audit({ userId: user.id, action: "note.created", clientId, detail: { kind: d.kind } });
+  for (const path of [`/clients/${clientId}`, "/dashboard", "/clients"]) revalidatePath(path);
   return { ok: true };
 }
 
@@ -337,7 +346,7 @@ export async function updatePlanItem(form: FormData) {
     if (!PLAN_STATUSES.some((s) => s.key === status)) return;
     await db
       .update(schema.planItems)
-      .set({ status: status as typeof item.status, updatedAt: new Date() })
+      .set({ status: status as typeof item.status, statusChangedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.planItems.id, itemId));
   } else if (intent === "verify") {
     // Case manager confirms they checked an AI suggestion (called, visited the site, etc.).
