@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bugs & Drugs Showdown</title>
+<style>
+  :root {
+    --bg: #0f1020; --panel: #1a1c34; --panel2: #23264a; --text: #f3f4ff; --muted: #a3a7d0;
+    --good: #2fd47a; --bad: #ff5d5d; --accent: #8b7bff;
+    --A: #ff5d73; --B: #3ec1ff; --C: #ffd23f; --D: #7cf29a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { overflow-x: hidden; }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 10px; padding: .6em 1.1em;
+    background: var(--panel2); color: var(--text); }
+  button:hover { filter: brightness(1.2); }
+  button.primary { background: var(--accent); font-weight: 700; }
+  button.small { padding: .35em .7em; font-size: .85em; }
+  button.link { background: none; color: var(--muted); text-decoration: underline; padding: .2em; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  input[type=text], select { font: inherit; background: var(--bg); color: var(--text); border: 1px solid #3a3e70;
+    border-radius: 8px; padding: .45em .6em; }
+  h1, h2, h3 { margin: 0 0 .4em; }
+  .muted { color: var(--muted); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .panel { background: var(--panel); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  .title { font-size: 2.2em; font-weight: 800; letter-spacing: -.02em; }
+  .title span { color: var(--accent); }
+
+  /* setup */
+  .players { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .pcard { background: var(--panel2); border-radius: 14px; padding: 14px; border-top: 6px solid var(--pc);
+    transition: transform .08s, box-shadow .15s; }
+  .pcard.flash { transform: scale(1.03); box-shadow: 0 0 0 3px var(--pc), 0 0 30px var(--pc); }
+  .pcard input { width: 100%; font-weight: 700; margin-bottom: 10px; }
+  .binds { display: flex; gap: 6px; flex-wrap: wrap; min-height: 34px; margin-bottom: 10px; }
+  .bind { background: var(--bg); border-radius: 8px; padding: 4px 8px; font-size: .85em; }
+  .bind b { color: var(--pc); margin-right: 4px; }
+  .bind.hit { background: var(--pc); color: #111; }
+  .bind.hit b { color: #111; }
+  .warn { color: var(--C); font-size: .9em; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .mode { background: var(--panel2); border-radius: 12px; padding: 12px 14px; border: 2px solid transparent; cursor: pointer; }
+  .mode.on { border-color: var(--accent); }
+  .mode h3 { font-size: 1.05em; }
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px 16px; }
+  .cats label { display: flex; gap: 8px; align-items: center; }
+  .deckhead { margin: 12px 0 6px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+  details summary { cursor: pointer; font-weight: 700; }
+  details li { margin: .35em 0; }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; background: rgba(5,6,15,.85); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .modal .box { background: var(--panel); border-radius: 18px; padding: 30px 36px; max-width: 620px; text-align: center; border-top: 8px solid var(--pc, var(--accent)); }
+  .bigprompt { font-size: 2.2em; font-weight: 800; margin: .3em 0; }
+  .err { color: var(--bad); font-weight: 600; min-height: 1.4em; }
+
+  /* game */
+  .game { min-height: 100vh; display: flex; flex-direction: column; padding: 20px 28px; gap: 18px; }
+  .gtop { display: flex; align-items: center; gap: 16px; font-size: 1.1em; }
+  .chip { background: var(--panel2); border-radius: 999px; padding: .3em .9em; }
+  .timer { height: 12px; background: var(--panel2); border-radius: 99px; overflow: hidden; }
+  .timer > div { height: 100%; background: linear-gradient(90deg, var(--good), var(--C)); width: 100%; }
+  .timer.low > div { background: var(--bad); }
+  .question { font-size: clamp(1.6em, 3.6vw, 3em); font-weight: 750; text-align: center; line-height: 1.2;
+    padding: 20px 10px; flex: 0 0 auto; }
+  .question .proposed { display: block; margin-top: .6em; font-size: .8em; color: var(--C); }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; }
+  .opt { border-radius: 18px; padding: 20px 24px; font-size: clamp(1.1em, 2.2vw, 1.9em); font-weight: 650;
+    display: flex; align-items: center; gap: 18px; background: var(--panel); border-left: 14px solid var(--oc); position: relative; }
+  .opt .letter { background: var(--oc); color: #111; font-weight: 900; border-radius: 12px; min-width: 2em; height: 2em;
+    display: flex; align-items: center; justify-content: center; padding: 0 .3em; }
+  .opt.right { background: #11402a; box-shadow: 0 0 0 4px var(--good); }
+  .opt.wrong { opacity: .35; }
+  .opt .who { position: absolute; right: 14px; bottom: 10px; display: flex; gap: 6px; }
+  .dot { width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--pc); color: #111; font-size: .55em; font-weight: 900;
+    display: flex; align-items: center; justify-content: center; }
+  .buzzarea { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+  .buzzarea .big { font-size: clamp(1.8em, 4vw, 3.4em); font-weight: 800; }
+  .answerbox { background: #11402a; box-shadow: 0 0 0 4px var(--good); border-radius: 18px; padding: 18px 30px; font-size: clamp(1.4em, 3vw, 2.4em); font-weight: 750; }
+  .note { text-align: center; color: var(--muted); font-size: 1.15em; }
+  .pbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .pchip { background: var(--panel); border-radius: 14px; padding: 12px 16px; border-bottom: 6px solid var(--pc); }
+  .pchip .n { font-weight: 800; color: var(--pc); }
+  .pchip .s { font-size: 1.8em; font-weight: 850; }
+  .pchip .st { color: var(--muted); min-height: 1.4em; }
+  .pchip.buzzed { box-shadow: 0 0 0 4px var(--pc), 0 0 40px var(--pc); }
+  .pchip.out { opacity: .4; }
+  .good { color: var(--good) !important; } .bad { color: var(--bad) !important; }
+  .hint { text-align: center; color: var(--muted); }
+  kbd { background: var(--panel2); border-radius: 6px; padding: .1em .45em; border-bottom: 2px solid #000; font-family: inherit; }
+
+  /* results */
+  .podium { display: flex; flex-direction: column; gap: 10px; }
+  .prow { display: flex; align-items: center; gap: 16px; background: var(--panel2); border-radius: 14px; padding: 14px 18px; border-left: 10px solid var(--pc); font-size: 1.2em; }
+  .prow .rank { font-size: 1.8em; width: 1.6em; text-align: center; }
+  .prow .sc { font-size: 1.6em; font-weight: 850; }
+  .missed { display: grid; gap: 8px; }
+  .missed div { background: var(--panel2); border-radius: 10px; padding: 10px 14px; }
+  .missed .a { color: var(--good); font-weight: 650; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+
+<script src="starter-deck.js"></script>
+<script>
+"use strict";
+// ======================================================================
+//  Bugs & Drugs Showdown: party quiz for up to 4 players with Bluetooth
+//  "Anki remotes" (or any keyboard / mouse / gamepad) as buzzers.
+// ======================================================================
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const now = () => performance.now();
+
+const PCOLORS = ["#ff5d73", "#3ec1ff", "#ffd23f", "#7cf29a"];
+const OCOLORS = ["var(--A)", "var(--B)", "var(--C)", "var(--D)"];
+const DEFAULT_KEYS = [
+  ["Digit1", "Digit2", "Digit3", "Digit4"],
+  ["KeyQ", "KeyW", "KeyE", "KeyR"],
+  ["KeyA", "KeyS", "KeyD", "KeyF"],
+  ["KeyZ", "KeyX", "KeyC", "KeyV"],
+];
+const MODES = {
+  mc:   { name: "Multiple choice", buttons: 4, slots: ["A", "B", "C", "D"],
+          desc: "4 answer choices. Everyone answers on their own remote; faster correct answers score more." },
+  tf:   { name: "True or False", buttons: 2, slots: ["TRUE", "FALSE"],
+          desc: "For 2-button remotes. A clue + proposed answer: is it right? Faster correct answers score more." },
+  buzz: { name: "Buzzer (say it out loud)", buttons: 1, slots: ["BUZZ"],
+          desc: "Free recall: no choices shown. First to buzz answers out loud; the host presses Y (right) or N (wrong)." },
+};
+
+// ---------------- persistence ----------------
+const store = {
+  load(k, d) { try { const v = localStorage.getItem("bdg_" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  save(k, v) { try { localStorage.setItem("bdg_" + k, JSON.stringify(v)); } catch {} },
+};
+let settings = Object.assign({ mode: "mc", count: 20, seconds: 20, sound: true, playerCount: 3, selected: null }, store.load("settings", {}));
+let players = store.load("players", null) || [0, 1, 2, 3].map((i) => ({ name: "Player " + (i + 1), binds: [] }));
+let userDecks = store.load("decks", []);
+const saveAll = () => { store.save("settings", settings); store.save("players", players); store.save("decks", userDecks); };
+
+const STARTER = (() => {
+  const d = window.STARTER_DECK || { name: "Starter", cards: [] };
+  return { id: "starter", name: d.name, builtin: true, cards: d.cards.map(([c, q, a, n]) => ({ c, q, a, n })) };
+})();
+const allDecks = () => [STARTER, ...userDecks];
+const catKey = (deck, c) => deck.id + "::" + c;
+function categories() {
+  const out = [];
+  for (const d of allDecks()) {
+    const m = new Map();
+    for (const card of d.cards) m.set(card.c, (m.get(card.c) || 0) + 1);
+    for (const [c, n] of m) out.push({ key: catKey(d, c), deck: d, name: c, count: n });
+  }
+  return out;
+}
+function selectedKeys() {
+  if (!settings.selected) return new Set(categories().filter((c) => c.deck.builtin).map((c) => c.key));
+  return new Set(settings.selected);
+}
+function selectedCards() {
+  const keys = selectedKeys(); const out = [];
+  for (const d of allDecks()) for (const card of d.cards) if (keys.has(catKey(d, card.c))) out.push({ ...card, deckId: d.id });
+  return out;
+}
+
+// ---------------- sound ----------------
+let actx = null;
+function beep(freq = 660, dur = 0.12, type = "sine", vol = 0.15, delay = 0) {
+  if (!settings.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+  } catch {}
+}
+const sfx = {
+  lock: () => beep(520, 0.08, "triangle"),
+  buzz: () => { beep(220, 0.25, "square", 0.12); },
+  right: () => { beep(660, 0.1); beep(880, 0.16, "sine", 0.15, 0.1); },
+  wrong: () => beep(160, 0.3, "sawtooth", 0.1),
+  reveal: () => { beep(523, 0.1); beep(659, 0.1, "sine", 0.15, 0.1); beep(784, 0.2, "sine", 0.15, 0.2); },
+  err: () => beep(120, 0.2, "square", 0.08),
+  tick: () => beep(1000, 0.03, "square", 0.05),
+};
+
+// ======================================================================
+//  INPUT: every remote press becomes an id like "key:ArrowRight",
+//  "mouse:0", "wheel:down", or "pad:1:b3" and is mapped to (player, slot).
+// ======================================================================
+let inputMap = new Map();
+function rebuildInputMap() {
+  inputMap = new Map();
+  players.slice(0, settings.playerCount).forEach((pl, p) => pl.binds.forEach((b, slot) => inputMap.set(b.id, { p, slot })));
+}
+let bindState = null; // { p, error }
+
+function handleInput(id, label) {
+  if (bindState) { captureBind(id, label); return true; }
+  const m = inputMap.get(id);
+  if (!m) return false;
+  onPlayerButton(m.p, m.slot);
+  return true;
+}
+
+const KEY_LABELS = { ArrowUp: "↑", ArrowDown: "↓", ArrowLeft: "←", ArrowRight: "→", " ": "Space",
+  AudioVolumeUp: "Vol+", AudioVolumeDown: "Vol−", MediaPlayPause: "Play/Pause", MediaTrackNext: "Next track", MediaTrackPrevious: "Prev track" };
+const keyLabel = (e) => KEY_LABELS[e.key] || (e.key && e.key.length === 1 ? e.key.toUpperCase() : e.key || e.code);
+
+document.addEventListener("keydown", (e) => {
+  const typing = e.target.matches && e.target.matches("input[type=text], textarea, select");
+  if (typing && !bindState) return;
+  const id = "key:" + (e.code || e.key);
+  if (bindState || inputMap.has(id)) {
+    e.preventDefault();
+    if (e.repeat) return;
+    if (bindState && e.key === "Escape" && !e.shiftKey) { /* Escape still bindable, cancel via button */ }
+    handleInput(id, keyLabel(e));
+    return;
+  }
+  hostKey(e);
+}, true);
+
+document.addEventListener("mousedown", (e) => {
+  if (bindState) {
+    if (e.target.closest(".noBind")) return;
+    e.preventDefault();
+    handleInput("mouse:" + e.button, ["Left click", "Middle click", "Right click", "Back button", "Forward button"][e.button] || "Mouse " + e.button);
+    return;
+  }
+  const id = "mouse:" + e.button;
+  if (e.target.closest(".noBind, button, input, select, label, summary")) return;
+  if (inputMap.has(id) && screen === "game") { e.preventDefault(); handleInput(id); }
+  else if (inputMap.has(id)) handleInput(id);
+}, true);
+document.addEventListener("contextmenu", (e) => { if (bindState || inputMap.has("mouse:2")) e.preventDefault(); });
+
+const lastWheel = {};
+document.addEventListener("wheel", (e) => {
+  if (Math.abs(e.deltaY) < 1) return;
+  const id = e.deltaY < 0 ? "wheel:up" : "wheel:down";
+  if (!bindState && !inputMap.has(id)) return;
+  e.preventDefault();
+  const t = now(); if (t - (lastWheel[id] || 0) < 350) { lastWheel[id] = t; return; }
+  lastWheel[id] = t;
+  handleInput(id, e.deltaY < 0 ? "Scroll up" : "Scroll down");
+}, { passive: false, capture: true });
+
+// Gamepads (8BitDo-style remotes in controller mode ARE distinguishable from each other)
+const padPrev = {};
+function pollPads() {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (const gp of pads) {
+    if (!gp) continue;
+    const prev = padPrev[gp.index] || {};
+    const cur = {};
+    gp.buttons.forEach((b, i) => { cur["b" + i] = b.pressed || b.value > 0.5; });
+    gp.axes.forEach((v, i) => { cur["a" + i + "+"] = v > 0.6; cur["a" + i + "-"] = v < -0.6; });
+    for (const k in cur) if (cur[k] && !prev[k]) handleInput(`pad:${gp.index}:${k}`, `Controller ${gp.index + 1} · ${k.startsWith("b") ? "button " + k.slice(1) : "stick " + k.slice(1)}`);
+    padPrev[gp.index] = cur;
+  }
+}
+
+// ---------------- binding ----------------
+function startBind(p) {
+  players[p].binds = [];
+  rebuildInputMap();
+  bindState = { p, error: "" };
+  renderBindModal();
+}
+function captureBind(id, label) {
+  const { p } = bindState, pl = players[p], mode = MODES[settings.mode];
+  const owner = inputMap.get(id);
+  if (owner && owner.p !== p) {
+    bindState.error = `That signal (${esc(label)}) is already ${esc(players[owner.p].name)}'s button. Your remotes are probably sending identical keys, so see "Remote tips" on the setup screen.`;
+    sfx.err(); renderBindModal(); return;
+  }
+  if (pl.binds.some((b) => b.id === id)) {
+    bindState.error = `You already used ${esc(label)}. Press a different button.`;
+    sfx.err(); renderBindModal(); return;
+  }
+  pl.binds.push({ id, label });
+  rebuildInputMap();
+  sfx.lock();
+  bindState.error = "";
+  if (pl.binds.length >= mode.buttons) { bindState = null; saveAll(); closeModal(); render(); }
+  else renderBindModal();
+}
+function renderBindModal() {
+  if (!bindState) return;
+  const { p, error } = bindState, pl = players[p], mode = MODES[settings.mode];
+  const slot = pl.binds.length;
+  const what = mode.buttons === 1 ? "your BUZZ button" : `the button you want for <span style="color:${OCOLORS[slot]}">${mode.slots[slot]}</span>`;
+  $("#modal").innerHTML = `
+    <div class="modal"><div class="box" style="--pc:${PCOLORS[p]}">
+      <div class="muted">${esc(pl.name)}: set up remote (${slot + 1} of ${mode.buttons})</div>
+      <div class="bigprompt">Press ${what}</div>
+      <div class="binds" style="justify-content:center">${pl.binds.map((b, i) => `<span class="bind" style="--pc:${PCOLORS[p]}"><b>${mode.slots[i]}</b>${esc(b.label)}</span>`).join("")}</div>
+      <p class="err">${error}</p>
+      <div class="row" style="justify-content:center">
+        <button class="noBind" onclick="useKeyboard(${p})">Use keyboard keys instead</button>
+        <button class="noBind" onclick="cancelBind()">Cancel</button>
+      </div>
+    </div></div>`;
+}
+function cancelBind() { bindState = null; closeModal(); render(); }
+function useKeyboard(p) {
+  bindState = null;
+  const mode = MODES[settings.mode];
+  const taken = new Set(players.flatMap((pl, i) => (i === p ? [] : pl.binds.map((b) => b.id))));
+  const keys = DEFAULT_KEYS[p].slice(0, mode.buttons).map((c) => "key:" + c);
+  if (keys.some((k) => taken.has(k))) { alert("Those keyboard keys are already used by another player."); return; }
+  players[p].binds = keys.map((id) => ({ id, label: id.replace("key:Digit", "").replace("key:Key", "") + " key" }));
+  rebuildInputMap(); saveAll(); closeModal(); render();
+}
+const closeModal = () => { $("#modal").innerHTML = ""; };
+
+// ======================================================================
+//  SCREENS
+// ======================================================================
+let screen = "setup";
+let game = null;
+function render() {
+  if (screen === "setup") renderSetup();
+  else if (screen === "game") renderGame();
+  else if (screen === "results") renderResults();
+}
+
+function onPlayerButton(p, slot) {
+  if (screen === "setup") return flashPlayer(p, slot);
+  if (screen === "game") return gameButton(p, slot);
+  if (screen === "results") return;
+}
+function flashPlayer(p, slot) {
+  const card = document.querySelector(`.pcard[data-p="${p}"]`);
+  if (!card) return;
+  sfx.lock();
+  card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+  card.querySelectorAll(".bind").forEach((el, i) => el.classList.toggle("hit", i === slot));
+  clearTimeout(card._t);
+  card._t = setTimeout(() => { card.classList.remove("flash"); card.querySelectorAll(".bind").forEach((el) => el.classList.remove("hit")); }, 450);
+}
+
+// ---------------- setup ----------------
+function renderSetup() {
+  const mode = MODES[settings.mode];
+  const n = settings.playerCount;
+  const sel = selectedKeys();
+  const cats = categories();
+  const nSel = selectedCards().length;
+  const problems = [];
+  for (let p = 0; p < n; p++) if (players[p].binds.length < mode.buttons) problems.push(`${players[p].name} needs ${mode.buttons} button${mode.buttons > 1 ? "s" : ""} set up.`);
+  if (nSel === 0) problems.push("Pick at least one category.");
+  if (settings.mode === "mc" && nSel < 4) problems.push("Multiple choice needs at least 4 cards.");
+
+  let deckHtml = "";
+  for (const d of allDecks()) {
+    const dc = cats.filter((c) => c.deck === d);
+    deckHtml += `<div class="deckhead">${esc(d.name)} <span class="muted">(${d.cards.length} cards)</span>
+      <button class="small" onclick="toggleDeck('${d.id}', true)">all</button><button class="small" onclick="toggleDeck('${d.id}', false)">none</button>
+      ${d.builtin ? "" : `<button class="small" onclick="deleteDeck('${d.id}')">delete deck</button>`}</div>
+      <div class="cats">${dc.map((c) => `<label><input type="checkbox" ${sel.has(c.key) ? "checked" : ""} data-key="${esc(c.key)}" onchange="toggleCat(this.dataset.key, this.checked)"> ${esc(c.name)} <span class="muted">(${c.count})</span></label>`).join("")}</div>`;
+  }
+
+  $("#app").innerHTML = `
+  <div class="wrap">
+    <div class="row" style="margin-bottom:14px">
+      <div class="title">🦠 Bugs <span>&</span> Drugs Showdown 💊</div><div class="spacer"></div>
+      <button onclick="toggleFS()">⛶ Fullscreen</button>
+      <button onclick="settings.sound=!settings.sound;saveAll();render()">${settings.sound ? "🔊 Sound on" : "🔇 Sound off"}</button>
+    </div>
+
+    <div class="panel">
+      <div class="row"><h2>1. Game mode</h2></div>
+      <div class="modes">${Object.entries(MODES).map(([k, m]) => `
+        <div class="mode ${settings.mode === k ? "on" : ""}" onclick="setMode('${k}')">
+          <h3>${m.name}</h3><div class="muted">${m.desc}</div><div style="margin-top:6px"><b>${m.buttons}</b> button${m.buttons > 1 ? "s" : ""} per remote</div>
+        </div>`).join("")}</div>
+    </div>
+
+    <div class="panel">
+      <div class="row"><h2>2. Players & remotes</h2><div class="spacer"></div>
+        Players: <select onchange="settings.playerCount=+this.value;rebuildInputMap();saveAll();render()">${[1, 2, 3, 4].map((i) => `<option ${i === n ? "selected" : ""}>${i}</option>`).join("")}</select>
+      </div>
+      <p class="muted">Pair every remote with this computer over Bluetooth, then click <b>Set up remote</b> and press the buttons in order. Afterwards, press any button to check it lights up the right player.</p>
+      <div class="players">${players.slice(0, n).map((pl, p) => `
+        <div class="pcard" data-p="${p}" style="--pc:${PCOLORS[p]}">
+          <input type="text" value="${esc(pl.name)}" oninput="players[${p}].name=this.value;saveAll()" maxlength="20">
+          <div class="binds">${pl.binds.length ? pl.binds.slice(0, mode.buttons).map((b, i) => `<span class="bind"><b>${mode.slots[i]}</b>${esc(b.label)}</span>`).join("") : '<span class="muted">No buttons yet</span>'}</div>
+          ${pl.binds.length < mode.buttons ? `<div class="warn">Needs ${mode.buttons} button${mode.buttons > 1 ? "s" : ""}</div>` : ""}
+          <div class="row" style="margin-top:8px"><button class="primary" onclick="startBind(${p})">Set up remote</button>
+          <button class="link" onclick="useKeyboard(${p})">use keyboard</button></div>
+        </div>`).join("")}</div>
+      <details style="margin-top:14px"><summary>🎮 Remote tips (read this if two remotes clash)</summary>
+        <ul class="muted">
+          <li>Most Anki remotes connect as a Bluetooth <b>keyboard</b> or <b>mouse</b> and send keys like arrows, Page Up/Down, Space, Enter, volume, or scroll/click.</li>
+          <li><b>A web page cannot tell two identical keyboards apart.</b> If all three remotes are the same model in the same mode, they send the same keys, and setup will say "already Player X's button".</li>
+          <li>Fixes: (1) switch each remote to a <b>different mode</b> (most have several, e.g. arrows / page turn / volume / mouse; usually you hold a button or a button combo, so check its manual).
+            (2) If a remote supports <b>gamepad/controller mode</b> (e.g. 8BitDo Micro), use that: controllers <i>are</i> told apart.
+            (3) Remotes with a companion app can be remapped to unique keys.
+            (4) Worst case, one player uses the laptop keyboard (<b>use keyboard</b>: P1 = 1 2 3 4, P2 = Q W E R, P3 = A S D F, P4 = Z X C V).</li>
+          <li>macOS can grab volume/media keys before the browser sees them. If a volume button does nothing, use a different mode.</li>
+          <li>Use Chrome or Edge, and keep this tab in front. Controllers only appear after you press a button on them once.</li>
+          <li>Host keys during a game: <kbd>Enter</kbd>/<kbd>Space</kbd> = reveal / next, <kbd>Y</kbd>/<kbd>N</kbd> = judge a buzzer answer, <kbd>Esc</kbd> = pause menu (unless a remote uses those keys).</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="panel">
+      <div class="row"><h2>3. Cards</h2><div class="spacer"></div>
+        <label class="row" style="gap:6px"><button class="primary" onclick="$('#file').click()">⬆ Import deck</button></label>
+        <input id="file" type="file" accept=".txt,.tsv,.csv,.json" multiple style="display:none" onchange="importFiles(this.files);this.value=''">
+      </div>
+      <p class="muted">Import an Anki export (<i>File → Export → Notes in Plain Text</i>, check "Include deck name" and "Include tags"), a CSV with columns <code>category,question,answer</code>, or a JSON deck. Wrong choices come from other answers in the same category.</p>
+      ${deckHtml}
+      <div class="row" style="margin-top:14px">
+        Questions: <select onchange="settings.count=+this.value;saveAll();render()">${[10, 15, 20, 30, 50, 9999].map((v) => `<option value="${v}" ${v === settings.count ? "selected" : ""}>${v === 9999 ? "All" : v}</option>`).join("")}</select>
+        Seconds per question: <select onchange="settings.seconds=+this.value;saveAll()">${[8, 10, 15, 20, 30, 45, 60].map((v) => `<option ${v === settings.seconds ? "selected" : ""}>${v}</option>`).join("")}</select>
+        <span class="muted">${nSel} cards selected</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="primary" style="font-size:1.4em;padding:.6em 1.6em" onclick="startGame()" ${problems.length ? "disabled" : ""}>▶ Start game</button>
+      <div class="warn">${problems.map(esc).join("<br>")}</div>
+    </div>
+  </div>`;
+}
+function setMode(k) { settings.mode = k; saveAll(); render(); }
+function toggleCat(key, on) { const s = selectedKeys(); on ? s.add(key) : s.delete(key); settings.selected = [...s]; saveAll(); render(); }
+function toggleDeck(id, on) {
+  const s = selectedKeys();
+  for (const c of categories()) if (c.deck.id === id) on ? s.add(c.key) : s.delete(c.key);
+  settings.selected = [...s]; saveAll(); render();
+}
+function deleteDeck(id) {
+  const d = userDecks.find((x) => x.id === id);
+  if (!d || !confirm(`Delete "${d.name}"?`)) return;
+  userDecks = userDecks.filter((x) => x.id !== id); saveAll(); render();
+}
+function toggleFS() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
+
+// ---------------- import ----------------
+function stripHtml(s) {
+  s = String(s ?? "").replace(/\[sound:[^\]]*\]/g, "").replace(/<br\s*\/?>|<\/div>|<\/p>|<\/li>/gi, " ");
+  const doc = new DOMParser().parseFromString(s, "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+}
+function parseDelimited(text, sep) {
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+    else if (ch === '"' && f === "") q = true;
+    else if (ch === sep) { row.push(f); f = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += ch;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows.filter((r) => r.some((x) => x.trim() !== ""));
+}
+function cloze(front, back) {
+  const re = /\{\{c(\d+)::(.*?)(?:::(.*?))?\}\}/g;
+  const nums = [...front.matchAll(re)].map((m) => m[1]);
+  if (!nums.length) return null;
+  const target = nums[0]; const answers = [];
+  const q = front.replace(re, (_, n, txt, hint) => { if (n === target) { answers.push(txt); return hint ? `[${hint}]` : "_____"; } return txt; });
+  return { q, a: answers.join(" / "), n: back };
+}
+function cardsFromText(text, fallbackCat) {
+  const lines = text.split(/\r?\n/);
+  const meta = {}; let i = 0;
+  while (i < lines.length && lines[i].startsWith("#")) { const m = lines[i].match(/^#([\w ]+):(.*)$/); if (m) meta[m[1].trim().toLowerCase()] = m[2].trim(); i++; }
+  const body = lines.slice(i).join("\n");
+  const sepName = (meta.separator || "").toLowerCase();
+  const sep = { tab: "\t", comma: ",", semicolon: ";", pipe: "|", colon: ":", space: " " }[sepName] || (body.includes("\t") ? "\t" : ",");
+  let rows = parseDelimited(body, sep);
+  // columns
+  const deckCol = meta["deck column"] ? +meta["deck column"] - 1 : -1;
+  const tagsCol = meta["tags column"] ? +meta["tags column"] - 1 : -1;
+  const skip = new Set([deckCol, tagsCol, meta["guid column"] ? +meta["guid column"] - 1 : -1, meta["notetype column"] ? +meta["notetype column"] - 1 : -1]);
+  let ci = -1, qi = -1, ai = -1, ni = -1;
+  const head = rows[0] ? rows[0].map((h) => h.trim().toLowerCase()) : [];
+  if (head.some((h) => /^(question|front|q|clue)$/.test(h))) {
+    ci = head.findIndex((h) => /^(category|topic|deck|c)$/.test(h));
+    qi = head.findIndex((h) => /^(question|front|q|clue)$/.test(h));
+    ai = head.findIndex((h) => /^(answer|back|a)$/.test(h));
+    ni = head.findIndex((h) => /^(note|notes|extra|n)$/.test(h));
+    rows = rows.slice(1);
+  }
+  const cards = [];
+  for (const r of rows) {
+    let fields = r;
+    let q, a, n = "", c = fallbackCat;
+    if (qi >= 0) { q = r[qi]; a = ai >= 0 ? r[ai] : ""; n = ni >= 0 ? r[ni] : ""; if (ci >= 0 && r[ci]) c = r[ci]; }
+    else {
+      fields = r.filter((_, k) => !skip.has(k));
+      [q, a = "", n = ""] = fields;
+      if (deckCol >= 0 && r[deckCol]) c = r[deckCol].split("::").pop();
+      else if (tagsCol >= 0 && r[tagsCol]) { const tag = r[tagsCol].trim().split(/\s+/)[0]; if (tag) c = tag.split("::").pop().replace(/_/g, " "); }
+    }
+    const cz = cloze(q || "", a || "");
+    if (cz) { q = cz.q; a = cz.a; n = cz.n; }
+    q = stripHtml(q); a = stripHtml(a); n = stripHtml(n);
+    if (q && a) cards.push({ c: stripHtml(c) || fallbackCat, q, a, n: n && n !== a ? n : "" });
+  }
+  return cards;
+}
+async function importFiles(files) {
+  const msgs = [];
+  for (const f of files) {
+    const text = await f.text();
+    const base = f.name.replace(/\.[^.]+$/, "");
+    let cards = [], name = base;
+    try {
+      if (/\.json$/i.test(f.name)) {
+        const j = JSON.parse(text);
+        const list = Array.isArray(j) ? j : j.cards || [];
+        name = j.name || base;
+        cards = list.map((x) => Array.isArray(x) ? { c: x[0], q: x[1], a: x[2], n: x[3] || "" }
+          : { c: x.category || x.c || base, q: x.question || x.q || x.front, a: x.answer || x.a || x.back, n: x.note || x.n || "" })
+          .filter((x) => x.q && x.a);
+      } else cards = cardsFromText(text, base);
+    } catch (err) { msgs.push(`${f.name}: couldn't read it (${err.message})`); continue; }
+    if (!cards.length) { msgs.push(`${f.name}: no cards found`); continue; }
+    const deck = { id: "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, cards };
+    userDecks.push(deck);
+    const s = selectedKeys(); for (const c of new Set(cards.map((x) => x.c))) s.add(catKey(deck, c)); settings.selected = [...s];
+    msgs.push(`${f.name}: imported ${cards.length} cards in ${new Set(cards.map((x) => x.c)).size} categories`);
+  }
+  saveAll(); render();
+  if (msgs.length) alert(msgs.join("\n"));
+}
+
+// ======================================================================
+//  GAME
+// ======================================================================
+function startGame(cardsOverride) {
+  const pool = cardsOverride || selectedCards();
+  if (!pool.length) return;
+  const n = settings.playerCount;
+  game = {
+    mode: settings.mode, total: settings.seconds * 1000, n, pool: selectedCards().concat(cardsOverride || []),
+    queue: shuffle(pool).slice(0, Math.min(settings.count, pool.length)), idx: -1,
+    scores: Array(n).fill(0), streak: Array(n).fill(0), right: Array(n).fill(0), times: [...Array(n)].map(() => []),
+    log: [], paused: false,
+  };
+  screen = "game";
+  nextQuestion();
+}
+function distractors(card, k) {
+  const norm = (s) => s.trim().toLowerCase();
+  const seen = new Set([norm(card.a)]); const out = [];
+  const add = (a) => { if (a && !seen.has(norm(a)) && out.length < k) { seen.add(norm(a)); out.push(a); } };
+  (card.d || []).forEach(add);
+  shuffle(game.pool.filter((c) => c.c === card.c && c.deckId === card.deckId).map((c) => c.a)).forEach(add);
+  if (out.length < k) shuffle(game.pool.map((c) => c.a)).forEach(add);
+  return out;
+}
+function nextQuestion() {
+  game.idx++;
+  if (game.idx >= game.queue.length) return endGame();
+  const card = game.queue[game.idx];
+  const q = { card };
+  if (game.mode === "mc") {
+    const opts = shuffle([card.a, ...distractors(card, 3)]);
+    q.options = opts; q.correct = opts.indexOf(card.a);
+  } else if (game.mode === "tf") {
+    q.truth = Math.random() < 0.5;
+    q.proposed = q.truth ? card.a : (distractors(card, 1)[0] || card.a);
+    if (q.proposed === card.a) q.truth = true;
+  }
+  Object.assign(game, { q, phase: "question", answers: {}, remaining: game.total, shownAt: now(), buzz: { current: null, at: 0, out: new Set() }, gained: Array(game.n).fill(null), lastTick: null });
+  renderGame();
+}
+const speedPoints = (elapsed) => Math.round(500 + 500 * Math.max(0, 1 - elapsed / game.total));
+
+function gameButton(p, slot) {
+  if (game.paused) return;
+  const t = now();
+  if (game.phase === "reveal") { if (t - game.revealAt > 1200) nextQuestion(); return; }
+  if (game.phase !== "question" || t - game.shownAt < 350) return;
+  const elapsed = game.total - game.remaining;
+  if (game.mode === "buzz") {
+    if (game.buzz.current !== null || game.buzz.out.has(p)) return;
+    game.buzz.current = p; game.buzz.at = elapsed;
+    sfx.buzz(); renderGame(); return;
+  }
+  if (game.answers[p]) return;
+  if (slot >= MODES[game.mode].buttons) return;
+  game.answers[p] = { slot, t: elapsed };
+  sfx.lock();
+  if (Object.keys(game.answers).length >= game.n) reveal(); else renderGame();
+}
+function judge(correct) {
+  if (!game || game.phase !== "question" || game.buzz.current === null) return;
+  const p = game.buzz.current;
+  if (correct) {
+    const pts = speedPoints(game.buzz.at);
+    game.gained[p] = pts; game.scores[p] += pts; game.right[p]++; game.streak[p]++; game.times[p].push(game.buzz.at);
+    game.buzz.winner = p;
+    sfx.right(); reveal(true);
+  } else {
+    game.gained[p] = -250; game.scores[p] -= 250; game.streak[p] = 0;
+    game.buzz.out.add(p); game.buzz.current = null;
+    sfx.wrong();
+    if (game.buzz.out.size >= game.n) reveal(true); else renderGame();
+  }
+}
+function reveal(fromBuzz) {
+  if (game.phase !== "question") return;
+  game.phase = "reveal"; game.revealAt = now();
+  const { q } = game; const missed = [];
+  if (game.mode === "buzz") {
+    if (game.buzz.winner === undefined) missed.push("nobody");
+    for (let p = 0; p < game.n; p++) if (p !== game.buzz.winner) game.streak[p] = 0;
+  } else {
+    for (let p = 0; p < game.n; p++) {
+      const ans = game.answers[p];
+      const ok = ans && (game.mode === "mc" ? ans.slot === q.correct : (ans.slot === 0) === q.truth);
+      if (ok) { const pts = speedPoints(ans.t); game.gained[p] = pts; game.scores[p] += pts; game.right[p]++; game.streak[p]++; game.times[p].push(ans.t); }
+      else { game.gained[p] = 0; game.streak[p] = 0; missed.push(p); }
+    }
+  }
+  game.log.push({ card: q.card, missed: missed.length > 0 });
+  if (!fromBuzz) (missed.length < game.n ? sfx.reveal : sfx.wrong)();
+  renderGame();
+}
+function endGame() { screen = "results"; game.phase = "done"; render(); }
+
+function hostKey(e) {
+  if (screen !== "game" || !game) return;
+  const k = e.key;
+  if (k === "Escape" || k === "p" || k === "P") { e.preventDefault(); return togglePause(); }
+  if (game.paused) return;
+  if (k === "Enter" || k === " ") {
+    e.preventDefault();
+    if (game.phase === "question") reveal();
+    else if (game.phase === "reveal") nextQuestion();
+  } else if (game.mode === "buzz" && (k === "y" || k === "Y")) judge(true);
+  else if (game.mode === "buzz" && (k === "n" || k === "N")) judge(false);
+  else if (k === "f" || k === "F") toggleFS();
+}
+function togglePause() {
+  game.paused = !game.paused;
+  if (game.paused) {
+    $("#modal").innerHTML = `<div class="modal"><div class="box"><div class="bigprompt">Paused</div>
+      <div class="row" style="justify-content:center"><button class="primary noBind" onclick="togglePause()">Resume</button>
+      <button class="noBind" onclick="togglePause();endGame()">End game & see scores</button>
+      <button class="noBind" onclick="quitToSetup()">Quit to setup</button></div></div></div>`;
+  } else closeModal();
+}
+function quitToSetup() { closeModal(); game = null; screen = "setup"; render(); }
+
+function renderGame() {
+  const { q, mode } = game; const card = q.card;
+  const n = game.n, rev = game.phase === "reveal";
+  let center = "";
+  if (mode === "mc") {
+    center = `<div class="options">${q.options.map((o, i) => {
+      const who = rev ? Object.entries(game.answers).filter(([, a]) => a.slot === i).map(([p]) => `<span class="dot" style="--pc:${PCOLORS[p]}">${esc(initial(+p))}</span>`).join("") : "";
+      return `<div class="opt ${rev ? (i === q.correct ? "right" : "wrong") : ""}" style="--oc:${OCOLORS[i]}"><span class="letter">${"ABCD"[i]}</span><span>${esc(o)}</span><span class="who">${who}</span></div>`;
+    }).join("")}</div>`;
+  } else if (mode === "tf") {
+    center = `<div class="options">${["TRUE", "FALSE"].map((o, i) => {
+      const correct = (i === 0) === q.truth;
+      const who = rev ? Object.entries(game.answers).filter(([, a]) => a.slot === i).map(([p]) => `<span class="dot" style="--pc:${PCOLORS[p]}">${esc(initial(+p))}</span>`).join("") : "";
+      return `<div class="opt ${rev ? (correct ? "right" : "wrong") : ""}" style="--oc:${OCOLORS[i === 0 ? 3 : 0]}"><span class="letter">${i === 0 ? "✓" : "✗"}</span><span>${o}</span><span class="who">${who}</span></div>`;
+    }).join("")}</div>`;
+  } else {
+    const cur = game.buzz.current;
+    center = `<div class="buzzarea">${rev
+      ? `<div class="answerbox">${esc(card.a)}</div>${game.buzz.winner !== undefined ? `<div class="big" style="color:${PCOLORS[game.buzz.winner]}">${esc(players[game.buzz.winner].name)} got it! +${game.gained[game.buzz.winner]}</div>` : `<div class="big muted">Nobody got it</div>`}`
+      : cur !== null
+        ? `<div class="big" style="color:${PCOLORS[cur]}">🔔 ${esc(players[cur].name)}, say your answer!</div>
+           <div class="row"><button class="primary noBind" style="font-size:1.3em;background:var(--good)" onclick="judge(true)">✓ Right (Y)</button>
+           <button class="noBind" style="font-size:1.3em;background:var(--bad)" onclick="judge(false)">✗ Wrong (N)</button></div>`
+        : `<div class="big muted">Buzz in when you know it!</div>`}</div>`;
+  }
+  const status = (p) => {
+    if (rev) { const g = game.gained[p]; return g > 0 ? `<span class="good">✓ +${g}${game.streak[p] >= 3 ? ` 🔥${game.streak[p]}` : ""}</span>` : g < 0 ? `<span class="bad">✗ ${g}</span>` : `<span class="bad">✗</span>`; }
+    if (mode === "buzz") return game.buzz.out.has(p) ? `<span class="bad">✗ ${game.gained[p]} (locked out)</span>` : game.buzz.current === p ? "🔔 answering…" : "";
+    return game.answers[p] ? "🔒 locked in" : "thinking…";
+  };
+  $("#app").innerHTML = `
+  <div class="game">
+    <div class="gtop"><span class="chip">Q ${game.idx + 1} / ${game.queue.length}</span><span class="chip">${esc(card.c)}</span>
+      <div class="spacer"></div><span id="secs" class="chip"></span><button class="small noBind" onclick="togglePause()">❚❚ Pause</button></div>
+    <div class="timer" id="timer"><div id="tfill"></div></div>
+    <div class="question">${esc(card.q)}${mode === "tf" ? `<span class="proposed">→ ${esc(q.proposed)}?</span>` : ""}</div>
+    ${center}
+    ${rev && mode !== "buzz" ? `<div class="note">Answer: <b class="good">${esc(card.a)}</b></div>` : ""}
+    ${rev && card.n ? `<div class="note">💡 ${esc(card.n)}</div>` : ""}
+    <div class="pbar">${[...Array(n)].map((_, p) => `
+      <div class="pchip ${mode === "buzz" && game.buzz.current === p ? "buzzed" : ""} ${mode === "buzz" && game.buzz.out.has(p) && !rev ? "out" : ""}" style="--pc:${PCOLORS[p]}">
+        <div class="n">${esc(players[p].name)}</div><div class="s">${game.scores[p]}</div><div class="st">${status(p)}</div></div>`).join("")}</div>
+    <div class="hint">${rev ? "Any player button (or <kbd>Enter</kbd>) for the next question"
+      : mode === "buzz" ? "Host: <kbd>Y</kbd> right · <kbd>N</kbd> wrong · <kbd>Enter</kbd> reveal · <kbd>Esc</kbd> pause"
+      : "<kbd>Enter</kbd> reveal early · <kbd>Esc</kbd> pause"}</div>
+  </div>`;
+  updateTimer();
+}
+const initial = (p) => String(p + 1);
+function updateTimer() {
+  const fill = $("#tfill"); if (!fill || !game) return;
+  const frac = Math.max(0, game.remaining / game.total);
+  fill.style.width = (frac * 100) + "%";
+  $("#timer").classList.toggle("low", frac < 0.25);
+  const s = $("#secs"); if (s) s.textContent = game.phase === "reveal" ? "⏱ done" : `⏱ ${Math.ceil(game.remaining / 1000)}s`;
+}
+
+// ---------------- main loop ----------------
+let lastFrame = now();
+function loop() {
+  const t = now(), dt = t - lastFrame; lastFrame = t;
+  pollPads();
+  if (screen === "game" && game && game.phase === "question" && !game.paused && game.buzz.current === null) {
+    const before = Math.ceil(game.remaining / 1000);
+    game.remaining -= dt;
+    const after = Math.ceil(game.remaining / 1000);
+    if (after !== before && after <= 3 && after > 0) sfx.tick();
+    if (game.remaining <= 0) { game.remaining = 0; reveal(); }
+    updateTimer();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------------- results ----------------
+function renderResults() {
+  const n = game.n;
+  const order = [...Array(n).keys()].sort((a, b) => game.scores[b] - game.scores[a]);
+  const medals = ["🥇", "🥈", "🥉", "🏅"];
+  const missed = game.log.filter((l) => l.missed).map((l) => l.card);
+  const asked = game.log.length;
+  $("#app").innerHTML = `
+  <div class="wrap">
+    <div class="title" style="margin-bottom:16px">🏆 Final scores</div>
+    <div class="panel podium">${order.map((p, r) => {
+      const avg = game.times[p].length ? (game.times[p].reduce((a, b) => a + b, 0) / game.times[p].length / 1000).toFixed(1) + "s avg" : "";
+      return `<div class="prow" style="--pc:${PCOLORS[p]}"><span class="rank">${medals[r]}</span><b style="color:${PCOLORS[p]}">${esc(players[p].name)}</b>
+        <span class="muted">${game.right[p]} / ${asked} correct ${avg ? "· " + avg : ""}</span><div class="spacer"></div><span class="sc">${game.scores[p]}</span></div>`;
+    }).join("")}</div>
+    <div class="row" style="margin-bottom:18px">
+      ${missed.length ? `<button class="primary" onclick="rematchMissed()">🔁 Replay the ${missed.length} missed card${missed.length > 1 ? "s" : ""}</button>` : ""}
+      <button onclick="startGame()">New game</button>
+      <button onclick="screen='setup';render()">Back to setup</button>
+    </div>
+    ${missed.length ? `<div class="panel"><h2>Cards someone missed</h2><div class="missed">${missed.map((c) => `<div><span class="muted">${esc(c.c)}:</span> ${esc(c.q)}<br><span class="a">→ ${esc(c.a)}</span>${c.n ? `<br><span class="muted">💡 ${esc(c.n)}</span>` : ""}</div>`).join("")}</div></div>` : `<div class="panel"><h2>Perfect round, nobody missed anything 🎉</h2></div>`}
+  </div>`;
+}
+function rematchMissed() { const m = game.log.filter((l) => l.missed).map((l) => l.card); startGame(m); }
+
+// ---------------- boot ----------------
+rebuildInputMap();
+render();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
