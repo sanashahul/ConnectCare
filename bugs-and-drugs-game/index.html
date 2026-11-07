@@ -14,6 +14,8 @@
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   body { overflow-x: hidden; }
+  html.capture, html.capture body { touch-action: none; }
+  .game { user-select: none; }
   button { font: inherit; cursor: pointer; border: 0; border-radius: 10px; padding: .6em 1.1em;
     background: var(--panel2); color: var(--text); }
   button:hover { filter: brightness(1.2); }
@@ -232,18 +234,30 @@ document.addEventListener("keydown", (e) => {
   hostKey(e);
 }, true);
 
-document.addEventListener("mousedown", (e) => {
-  if (bindState) {
-    if (e.target.closest(".noBind")) return;
-    e.preventDefault();
-    handleInput("mouse:" + e.button, ["Left click", "Middle click", "Right click", "Back button", "Forward button"][e.button] || "Mouse " + e.button);
-    return;
-  }
+// Mouse / touch. Ring remotes often act like a finger swiping a touchscreen,
+// so a left-button press that MOVES becomes a directional swipe input
+// ("swipe:up" etc.), and one that doesn't move is a plain click/tap.
+const BTN_LABELS = ["Left click", "Middle click", "Right click", "Back button", "Forward button"];
+let ptr = null;
+const pointerWanted = () => !!bindState || [...inputMap.keys()].some((k) => k.startsWith("mouse:") || k.startsWith("swipe:"));
+function syncCapture() { document.documentElement.classList.toggle("capture", pointerWanted()); }
+document.addEventListener("pointerdown", (e) => {
+  if (e.target.closest(bindState ? ".noBind" : ".noBind, button, input, select, label, summary, a")) return;
+  if (e.button === 0) { ptr = { id: e.pointerId, x: e.clientX, y: e.clientY }; if (pointerWanted()) e.preventDefault(); return; }
   const id = "mouse:" + e.button;
-  if (e.target.closest(".noBind, button, input, select, label, summary")) return;
-  if (inputMap.has(id) && screen === "game") { e.preventDefault(); handleInput(id); }
-  else if (inputMap.has(id)) handleInput(id);
+  if (bindState || inputMap.has(id)) { e.preventDefault(); handleInput(id, BTN_LABELS[e.button] || "Mouse " + e.button); }
 }, true);
+document.addEventListener("pointerup", (e) => {
+  if (!ptr || e.pointerId !== ptr.id) return;
+  const dx = e.clientX - ptr.x, dy = e.clientY - ptr.y; ptr = null;
+  let id, label;
+  if (Math.hypot(dx, dy) > 30) {
+    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+    id = "swipe:" + dir; label = "Swipe " + dir;
+  } else { id = "mouse:0"; label = e.pointerType === "touch" ? "Tap" : "Left click"; }
+  if (bindState || inputMap.has(id)) { e.preventDefault(); handleInput(id, label); }
+}, true);
+document.addEventListener("pointercancel", () => { ptr = null; }, true);
 document.addEventListener("contextmenu", (e) => { if (bindState || inputMap.has("mouse:2")) e.preventDefault(); });
 
 const lastWheel = {};
@@ -258,7 +272,9 @@ document.addEventListener("wheel", (e) => {
 }, { passive: false, capture: true });
 
 // Gamepads (8BitDo-style remotes in controller mode ARE distinguishable from each other)
-const padPrev = {};
+const padPrev = {}, hatAxes = {};
+const HAT_DIRS = ["d-pad ↑", "d-pad ↗", "d-pad →", "d-pad ↘", "d-pad ↓", "d-pad ↙", "d-pad ←", "d-pad ↖"];
+const padLabel = (k) => k[0] === "b" ? "button " + k.slice(1) : k[0] === "h" ? HAT_DIRS[+k.split(":")[1]] || k : "stick " + k.slice(1);
 function pollPads() {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   for (const gp of pads) {
@@ -266,8 +282,15 @@ function pollPads() {
     const prev = padPrev[gp.index] || {};
     const cur = {};
     gp.buttons.forEach((b, i) => { cur["b" + i] = b.pressed || b.value > 0.5; });
-    gp.axes.forEach((v, i) => { cur["a" + i + "+"] = v > 0.6; cur["a" + i + "-"] = v < -0.6; });
-    for (const k in cur) if (cur[k] && !prev[k]) handleInput(`pad:${gp.index}:${k}`, `Controller ${gp.index + 1} · ${k.startsWith("b") ? "button " + k.slice(1) : "stick " + k.slice(1)}`);
+    // Some controllers (DirectInput mode) report the d-pad as ONE "hat" axis that rests
+    // at ~1.29 and takes 8 discrete values in [-1, 1]. Spot those and decode them.
+    const hats = (hatAxes[gp.index] = hatAxes[gp.index] || new Set());
+    gp.axes.forEach((v, i) => {
+      if (Math.abs(v) > 1.05) hats.add(i);
+      if (hats.has(i)) { if (Math.abs(v) <= 1.0) cur["h" + i + ":" + Math.round((v + 1) * 3.5)] = true; }
+      else { cur["a" + i + "+"] = v > 0.6; cur["a" + i + "-"] = v < -0.6; }
+    });
+    for (const k in cur) if (cur[k] && !prev[k]) handleInput(`pad:${gp.index}:${k}`, `Controller ${gp.index + 1} · ${padLabel(k)}`);
     padPrev[gp.index] = cur;
   }
 }
@@ -299,6 +322,7 @@ function captureBind(id, label) {
 }
 function renderBindModal() {
   if (!bindState) return;
+  syncCapture();
   const { p, error } = bindState, pl = players[p], mode = MODES[settings.mode];
   const slot = pl.binds.length;
   const what = mode.buttons === 1 ? "your BUZZ button" : `the button you want for <span style="color:${OCOLORS[slot]}">${mode.slots[slot]}</span>`;
@@ -332,6 +356,7 @@ const closeModal = () => { $("#modal").innerHTML = ""; };
 let screen = "setup";
 let game = null;
 function render() {
+  syncCapture();
   if (screen === "setup") renderSetup();
   else if (screen === "game") renderGame();
   else if (screen === "results") renderResults();
@@ -410,6 +435,8 @@ function renderSetup() {
             (2) If a remote supports <b>gamepad/controller mode</b> (e.g. 8BitDo Micro), use that: controllers <i>are</i> told apart.
             (3) Remotes with a companion app can be remapped to unique keys.
             (4) Worst case, one player uses the laptop keyboard (<b>use keyboard</b>: P1 = 1 2 3 4, P2 = Q W E R, P3 = A S D F, P4 = Z X C V).</li>
+          <li><b>Ring remotes</b> often act like a finger swiping a touchscreen. The game reads each swipe direction (up/down/left/right) and a tap as separate buttons, so one ring can cover all 4 answers. Swipe firmly when setting it up.</li>
+          <li><b>Controller-style remotes</b> (e.g. 8BitDo Micro): put them in <b>gamepad/controller mode</b>, not keyboard mode, so two identical controllers count as different players. Press a button once so Chrome notices each one. Face buttons are the most reliable.</li>
           <li>macOS can grab volume/media keys before the browser sees them. If a volume button does nothing, use a different mode.</li>
           <li>Use Chrome or Edge, and keep this tab in front. Controllers only appear after you press a button on them once.</li>
           <li>Host keys during a game: <kbd>Enter</kbd>/<kbd>Space</kbd> = reveal / next, <kbd>Y</kbd>/<kbd>N</kbd> = judge a buzzer answer, <kbd>Esc</kbd> = pause menu (unless a remote uses those keys).</li>
