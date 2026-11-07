@@ -1,10 +1,11 @@
 // Starter deck for Bugs & Drugs Showdown.
-// Each card: [category, clue / question, answer, optional extra note shown after the reveal]
+// Each card: [category, clue / question, answer, optional note shown after the reveal, optional [wrong choices]]
 // Wrong answer choices are drawn from other answers in the SAME category,
 // so keep every answer in a category the same "kind" of thing (all organisms, all drugs, ...).
 // This is general high-yield micro/pharm. Check it against your own lectures.
-window.STARTER_DECK = {
-  name: "Starter: Bugs & Drugs",
+(window.BUILTIN_DECKS = window.BUILTIN_DECKS || []).push({
+  id: "starter",
+  name: "Bugs & Drugs (starter)",
   cards: [
     // ---------- Name that bug ----------
     ["Name that bug", "Gram+ cocci in clusters; catalase+, coagulase+; protein A, TSST-1", "Staphylococcus aureus"],
@@ -166,4 +167,4 @@ window.STARTER_DECK = {
     ["Drug of choice", "Invasive aspergillosis", "Voriconazole"],
     ["Drug of choice", "Dog or cat bite", "Amoxicillin-clavulanate"],
   ],
-};
+});

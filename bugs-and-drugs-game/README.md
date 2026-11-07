@@ -4,7 +4,7 @@ A party quiz game for studying micro & pharm with friends, using Bluetooth **Ank
 It's one web page with no install and no internet needed.
 
 ## Play
-1. Download this folder (`index.html` + `starter-deck.js`) and open `index.html` in **Chrome or Edge**.
+1. Download this whole folder (`index.html` + the `decks/` folder) and open `index.html` in **Chrome or Edge**.
 2. Pair all the remotes with that computer over Bluetooth.
 3. Choose a mode, click **Set up remote** for each player, and press their buttons in order.
 4. Plug the laptop into a TV if you have one, click **Fullscreen**, and press **Start game**.
@@ -24,6 +24,13 @@ A browser can't tell two identical keyboards apart. If your remotes are the same
 the second one will show *"already Player 1's button"*. To fix it, put each remote in a **different mode**
 (arrows / page / volume / mouse; check the manual), use **gamepad mode** if the remote has one
 (controllers *are* told apart), or have one player use the laptop keyboard.
+
+## Built-in decks
+- **Bugs & Drugs (starter):** 150 cards: name that bug/drug, mechanisms, side effects, drug of choice
+- **Pharmacokinetics (Aggarwal lecture):** 107 cards: concepts, equations, Vd, body fluids, Phase I/II, dosing math (lecture examples), clinical concepts
+
+To add a deck, put a file in `decks/` (copy the format of an existing one) and add a `<script>` line for it in `index.html`.
+Each card is `[category, question, answer, note, [wrong choices]]`, and the last two are optional.
 
 ## Your own cards
 Click **Import deck** to load any of these:

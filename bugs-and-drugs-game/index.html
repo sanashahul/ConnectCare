@@ -111,7 +111,9 @@
 <div id="app"></div>
 <div id="modal"></div>
 
-<script src="starter-deck.js"></script>
+<!-- Built-in decks: add a file in decks/ and a line here -->
+<script src="decks/bugs-and-drugs.js"></script>
+<script src="decks/pharmacokinetics.js"></script>
 <script>
 "use strict";
 // ======================================================================
@@ -151,11 +153,22 @@ let players = store.load("players", null) || [0, 1, 2, 3].map((i) => ({ name: "P
 let userDecks = store.load("decks", []);
 const saveAll = () => { store.save("settings", settings); store.save("players", players); store.save("decks", userDecks); };
 
-const STARTER = (() => {
-  const d = window.STARTER_DECK || { name: "Starter", cards: [] };
-  return { id: "starter", name: d.name, builtin: true, cards: d.cards.map(([c, q, a, n]) => ({ c, q, a, n })) };
+const BUILTINS = (window.BUILTIN_DECKS || []).map((d) => ({
+  id: d.id, name: d.name, builtin: true,
+  cards: d.cards.map(([c, q, a, n, d2]) => ({ c, q, a, n: n || "", d: d2 })),
+}));
+const allDecks = () => [...BUILTINS, ...userDecks];
+// Newly added built-in decks start switched on, even if you'd customised your selection before.
+(() => {
+  const seen = new Set(settings.seenDecks || []);
+  const fresh = BUILTINS.filter((d) => !seen.has(d.id));
+  if (fresh.length && settings.selected) {
+    const s = new Set(settings.selected);
+    for (const d of fresh) for (const card of d.cards) s.add(d.id + "::" + card.c);
+    settings.selected = [...s];
+  }
+  settings.seenDecks = BUILTINS.map((d) => d.id);
 })();
-const allDecks = () => [STARTER, ...userDecks];
 const catKey = (deck, c) => deck.id + "::" + c;
 function categories() {
   const out = [];
