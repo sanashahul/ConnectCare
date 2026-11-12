@@ -159,3 +159,13 @@ test("the live form's separate phone, where, time and volunteer questions reach 
   );
   assert.equal(mapGooglePayload(es).profile.helperName, "Maria");
 });
+
+test("the script sends plain-ASCII JSON so accented and Vietnamese answers are signed correctly", () => {
+  const ctx: Record<string, unknown> = {};
+  vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
+  const asciiJson = ctx.asciiJson_ as (v: unknown) => string;
+  const value = { name: "José Nguyễn", note: "can’t sleep 😢", plain: "ok" };
+  const out = asciiJson(value);
+  assert.match(out, /^[\x00-\x7e]*$/);
+  assert.deepEqual(JSON.parse(out), value);
+});

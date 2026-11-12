@@ -545,9 +545,14 @@ function retryUndelivered() {
 
 function deliver_(response) {
   var cfg = config_();
-  var payload = JSON.stringify(toPayload_(response));
+  // Accented letters, Vietnamese, emoji or curly quotes could be signed in a different text encoding
+  // than the one they are sent in, which made the app reject the submission ("Bad signature").
+  // Writing them as \u escapes keeps the request plain ASCII, so both sides always agree.
+  var payload = asciiJson_(toPayload_(response));
   var timestamp = String(Math.floor(Date.now() / 1000));
-  var signature = toHex_(Utilities.computeHmacSha256Signature(timestamp + "." + payload, cfg.secret));
+  var signature = toHex_(
+    Utilities.computeHmacSha256Signature(timestamp + "." + payload, cfg.secret, Utilities.Charset.UTF_8),
+  );
 
   var res;
   try {
@@ -675,6 +680,13 @@ function config_() {
   }
   if (secret.length < 32) throw new Error("Set the CONNECTCARE_SECRET script property (at least 32 characters).");
   return { url: url, secret: secret };
+}
+
+/** JSON with every non-ASCII character written as a \u escape. */
+function asciiJson_(value) {
+  return JSON.stringify(value).replace(/[\u007f-\uffff]/g, function (c) {
+    return "\\u" + ("0000" + c.charCodeAt(0).toString(16)).slice(-4);
+  });
 }
 
 function toHex_(bytes) {
