@@ -106,3 +106,56 @@ test("needs are picked up from Spanish and Vietnamese written answers", () => {
   assert.equal(m.profile.formLanguage, "Spanish");
   assert.equal(m.profile.language, "Spanish");
 });
+
+test("the live form's separate phone, where, time and volunteer questions reach the app", () => {
+  const ctx: Record<string, unknown> = {};
+  vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
+  const toPayload = ctx.toPayload_ as (r: unknown) => unknown;
+  const response = (answers: Record<string, unknown>) => ({
+    getId: () => "r-live",
+    getTimestamp: () => new Date("2026-11-12T19:00:00Z"),
+    getItemResponses: () =>
+      Object.entries(answers).map(([title, value]) => ({ getItem: () => ({ getTitle: () => title }), getResponse: () => value })),
+  });
+
+  // Question titles copied from the live form, which no longer has "Best place or way to contact you".
+  const en = GooglePayloadSchema.parse(
+    toPayload(
+      response({
+        "Language / Idioma / Ngôn ngữ": "English",
+        "Your name": "Test Person",
+        "Phone number": "408-555-0100",
+        "Where is the best place to find you": "Hope's Corner",
+        "What time frame works best for a case manager to contact you": "Thursday mornings",
+        "Which SMOP volunteer helped you fill out this form": "Alex",
+        "What do you need most urgently?": "food",
+        Consent: ["I agree"],
+      }),
+    ),
+  );
+  const m = mapGooglePayload(en);
+  assert.equal(m.profile.phone, "408-555-0100");
+  assert.equal(m.profile.howToReach, "Hope's Corner\nBest time to contact: Thursday mornings");
+  assert.equal(m.profile.filledOutBy, "helper");
+  assert.equal(m.profile.helperName, "Alex");
+
+  // Nothing about how to reach them: still accepted (the form doesn't require it).
+  const bare = GooglePayloadSchema.parse(
+    toPayload(response({ "Your name": "Sam", "What do you need most urgently?": "food", Consent: ["I agree"] })),
+  );
+  assert.equal(mapGooglePayload(bare).profile.filledOutBy, "self");
+
+  // The Spanish volunteer question has a trailing line break in the live form.
+  const es = GooglePayloadSchema.parse(
+    toPayload(
+      response({
+        "Language / Idioma / Ngôn ngữ": "Español",
+        "Su nombre": "Prueba",
+        "¿Qué es lo que más necesita con urgencia?": "comida",
+        "¿Qué voluntario de SMOP te ayudó a completar este formulario?\n": "Maria",
+        Consentimiento: ["Acepto"],
+      }),
+    ),
+  );
+  assert.equal(mapGooglePayload(es).profile.helperName, "Maria");
+});

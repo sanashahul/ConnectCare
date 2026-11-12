@@ -24,7 +24,11 @@ var Q = {
   name: "Your name",
   pronouns: "Your pronouns",
   email: "Email",
-  contact: "Best place or way to contact you",
+  contact: "Best place or way to contact you", // older forms; newer ones ask the next three separately
+  phone: "Phone number",
+  findMe: "Where is the best place to find you",
+  contactTime: "What time frame works best for a case manager to contact you",
+  volunteer: "Which SMOP volunteer helped you fill out this form",
   language: "Preferred language",
   urgentNeed: "What do you need most urgently?",
   helpToday: "Do you need help today?",
@@ -149,6 +153,10 @@ var TRANSLATIONS = {
       area: "¿En qué zona se encuentra?",
       otherInfo: "¿Hay algo más que quiera que sepamos?",
       consent: "Consentimiento",
+      phone: "Número de teléfono",
+      findMe: "¿Dónde es el mejor lugar para encontrarle?",
+      contactTime: "¿Qué horario le funciona mejor para que un administrador de casos le contacte?",
+      volunteer: "¿Qué voluntario de SMOP te ayudó a completar este formulario?",
     },
     help: {
       name: "Basta con su nombre o apodo.",
@@ -225,6 +233,10 @@ var TRANSLATIONS = {
       area: "Bạn đang ở khu vực nào?",
       otherInfo: "Bạn có muốn cho chúng tôi biết điều gì khác không?",
       consent: "Đồng ý",
+      phone: "Số điện thoại",
+      findMe: "Nơi tốt nhất để tìm gặp bạn",
+      contactTime: "Khoảng thời gian nào thuận tiện nhất để nhân viên quản lý hồ sơ liên lạc với bạn",
+      volunteer: "Tình nguyện viên SMOP nào đã giúp bạn điền đơn này",
     },
     help: {
       name: "Chỉ cần tên hoặc biệt danh.",
@@ -570,13 +582,14 @@ function deliver_(response) {
   return true;
 }
 
-/** Which question (and in which language) an item title belongs to. */
+/** Which question (and in which language) an item title belongs to. Extra spaces are ignored. */
 function questionFor_(title) {
+  var clean = String(title).trim();
   var langs = ["en", "es", "vi"];
   for (var i = 0; i < langs.length; i++) {
     var q = strings_(langs[i]).q;
     for (var key in q) {
-      if (q[key] === title) return { key: key, lang: langs[i] };
+      if (q[key] === clean) return { key: key, lang: langs[i] };
     }
   }
   return null;
@@ -603,18 +616,28 @@ function languageChoiceOf_(response) {
 
 function toPayload_(response) {
   var answers = {
-    name: "", pronouns: "", email: "", contact: "", language: "", urgentNeed: "", helpToday: "",
-    needs: [], lgbtqCare: "", disability: "", accessNeeds: "", area: "", otherInfo: "", consent: false,
+    name: "", pronouns: "", email: "", contact: "", phone: "", language: "", urgentNeed: "", helpToday: "",
+    needs: [], lgbtqCare: "", disability: "", accessNeeds: "", area: "", otherInfo: "", volunteer: "", consent: false,
   };
+  var findMe = "";
+  var contactTime = "";
   response.getItemResponses().forEach(function (ir) {
     var found = questionFor_(ir.getItem().getTitle());
     if (!found) return;
     var key = found.key;
     var value = ir.getResponse();
     if (key === "consent") answers.consent = [].concat(value).length > 0;
+    else if (key === "findMe") findMe = String(value).trim();
+    else if (key === "contactTime") contactTime = String(value).trim();
     else if (key === "needs") answers.needs = [].concat(value).map(function (v) { return toEnglish_(found.lang, "needs", String(v)); });
     else answers[key] = toEnglish_(found.lang, key, String(value));
   });
+  // The form asks where to find them and what time works as two questions; staff see them together.
+  answers.contact = [answers.contact.trim(), findMe, contactTime && "Best time to contact: " + contactTime]
+    .filter(function (v) { return v; })
+    .join("\n");
+  // Older versions of the app require this answer, so fall back to the phone number.
+  if (!answers.contact) answers.contact = answers.phone ? "Phone: " + answers.phone : "Not given";
   var choice = languageChoiceOf_(response);
   // Older forms asked "Preferred language" again inside each section; otherwise the first question answers it.
   if (!answers.language) answers.language = choice.language;

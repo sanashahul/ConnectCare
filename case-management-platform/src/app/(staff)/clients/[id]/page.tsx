@@ -200,7 +200,7 @@ export default async function ClientPage({ params, searchParams }: {
                 />
                 <Row label="Outreach site" value={p.outreachSite} />
                 <Row label="Additional information" value={p.otherInfo} />
-                <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? " (filled by a helper)" : ""}`} />
+                <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? (p.helperName ? ` (filled with help from ${p.helperName})` : " (filled by a helper)") : ""}`} />
                 {p.consentAt && <Row label="Consent" value={`Agreed ${formatDate(p.consentAt)}`} />}
               </dl>
             </details>
