@@ -193,6 +193,7 @@ export default async function ClientPage({ params, searchParams }: {
                 <Row label="Disability" value={p.disability} />
                 <Row label="Accommodations" value={p.accessNeeds} />
                 <Row label="Insurance" value={p.insurance} />
+                <Row label="Primary care (PCP)" value={p.primaryCare} />
                 <Row label="Staying" value={p.sleeping} />
                 <Row
                   label="Other"
