@@ -39,6 +39,7 @@ export const GooglePayloadSchema = z.object({
     lgbtqCare: text(20),
     disability: text(30),
     accessNeeds: text(1000),
+    pcp: text(1000),
     email: text(200),
     // Where and when to find them. The script combines the form's separate "where" and
     // "what time" questions into this. Optional, since the current form doesn't require them.
@@ -120,6 +121,7 @@ export function mapGooglePayload(p: GooglePayload) {
     lgbtqCare: /^y/i.test(a.lgbtqCare),
     disability: DISABILITY_ANSWERS.find((d) => d.toLowerCase() === a.disability.toLowerCase()),
     accessNeeds: a.accessNeeds || undefined,
+    primaryCare: a.pcp || undefined,
     email,
     phone: a.phone || undefined,
     howToReach: a.contact || undefined,

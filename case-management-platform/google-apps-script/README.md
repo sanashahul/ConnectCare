@@ -35,6 +35,7 @@ The first question is **Language / Idioma / Ngôn ngữ** (required; saved as th
 | Would you like LGBTQ+ affirming care? | No | "Yes" adds LGBTQ+ affirming resources to their matches. Stored encrypted. |
 | Do you have a disability, or need any accommodations? | No | Yes / No / Prefer not to say, on their profile. Stored encrypted. |
 | If yes, what would help us support you? | No | "Accommodations" on their profile. Stored encrypted. |
+| If you have a PCP what is their information? | No | "Primary care (PCP)" on their profile. Stored encrypted. |
 | Which area are you in? | No | City and county, used for resource matching |
 | Anything else you'd like us to know? | No | "Additional information" on their profile. Stored encrypted. |
 | Consent | Yes | Consent date. Submissions without consent are refused. |

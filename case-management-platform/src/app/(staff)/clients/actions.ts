@@ -83,7 +83,7 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
       city: cols.city,
       needs: cols.needs,
       urgent: cols.urgent,
-      profileEnc: encryptProfile({ ...cols.profile, consentAt: client.profile.consentAt, helperName: client.profile.helperName }),
+      profileEnc: encryptProfile({ ...cols.profile, consentAt: client.profile.consentAt, helperName: client.profile.helperName, primaryCare: client.profile.primaryCare }),
       needsConfirmedAt: new Date(),
       updatedAt: new Date(),
     })

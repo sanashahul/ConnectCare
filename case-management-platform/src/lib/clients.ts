@@ -26,6 +26,8 @@ export type ClientProfile = {
   /** Accommodations that would help (wheelchair access, ASL, large print...). */
   accessNeeds?: string;
   insurance?: string;
+  /** Their primary care provider (PCP), as they wrote it on the Google Form. Encrypted like the rest. */
+  primaryCare?: string;
   outreachSite?: string;
   urgentDetails?: string;
   otherInfo?: string;

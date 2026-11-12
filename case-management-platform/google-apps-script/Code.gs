@@ -36,6 +36,7 @@ var Q = {
   lgbtqCare: "Would you like LGBTQ+ affirming care?",
   disability: "Do you have a disability, or need any accommodations?",
   accessNeeds: "If yes, what would help us support you?",
+  pcp: "If you have a PCP what is their information?",
   area: "Which area are you in?",
   otherInfo: "Anything else you'd like us to know?",
   consent: "Consent",
@@ -97,6 +98,7 @@ var HELP = {
   lgbtqCare: "Optional. Only the case management team will see your answer.",
   disability: "Optional.",
   accessNeeds: "Optional. For example: wheelchair access, ASL interpreter, large print, help filling out forms.",
+  pcp: "Optional. Your PCP (primary care provider) is your regular doctor or clinic. For example: their name, clinic, and phone number.",
   otherInfo: "Optional. Share only what you are comfortable with. Please don't include Social Security numbers.",
 };
 
@@ -150,6 +152,7 @@ var TRANSLATIONS = {
       lgbtqCare: "¿Le gustaría recibir atención que afirme a las personas LGBTQ+?",
       disability: "¿Tiene alguna discapacidad o necesita alguna adaptación?",
       accessNeeds: "Si es así, ¿qué nos ayudaría a apoyarle?",
+      pcp: "Si tiene un médico de cabecera, ¿cuál es su información?",
       area: "¿En qué zona se encuentra?",
       otherInfo: "¿Hay algo más que quiera que sepamos?",
       consent: "Consentimiento",
@@ -167,6 +170,7 @@ var TRANSLATIONS = {
       lgbtqCare: "Opcional. Solo el equipo de administración de casos verá su respuesta.",
       disability: "Opcional.",
       accessNeeds: "Opcional. Por ejemplo: acceso para silla de ruedas, intérprete de lenguaje de señas, letra grande, ayuda para llenar formularios.",
+      pcp: "Opcional. Su médico de cabecera (proveedor de atención primaria) es su doctor o clínica habitual. Por ejemplo: su nombre, la clínica y el número de teléfono.",
       otherInfo: "Opcional. Comparta solo lo que le haga sentir cómodo/a. Por favor, no incluya números de Seguro Social.",
     },
     yesNo: ["Sí", "No"],
@@ -230,6 +234,7 @@ var TRANSLATIONS = {
       lgbtqCare: "Bạn có muốn được chăm sóc thân thiện với người LGBTQ+ không?",
       disability: "Bạn có khuyết tật hoặc cần hỗ trợ đặc biệt nào không?",
       accessNeeds: "Nếu có, điều gì sẽ giúp chúng tôi hỗ trợ bạn?",
+      pcp: "Nếu bạn có bác sĩ gia đình, xin cho biết thông tin của họ?",
       area: "Bạn đang ở khu vực nào?",
       otherInfo: "Bạn có muốn cho chúng tôi biết điều gì khác không?",
       consent: "Đồng ý",
@@ -247,6 +252,7 @@ var TRANSLATIONS = {
       lgbtqCare: "Không bắt buộc. Chỉ nhóm quản lý hồ sơ mới thấy câu trả lời của bạn.",
       disability: "Không bắt buộc.",
       accessNeeds: "Không bắt buộc. Ví dụ: lối đi cho xe lăn, thông dịch viên ngôn ngữ ký hiệu, chữ in lớn, giúp điền đơn.",
+      pcp: "Không bắt buộc. Bác sĩ gia đình (bác sĩ chăm sóc chính) là bác sĩ hoặc phòng khám bạn thường đến. Ví dụ: tên, phòng khám và số điện thoại.",
       otherInfo: "Không bắt buộc. Chỉ chia sẻ những gì bạn thấy thoải mái. Xin đừng ghi số An Sinh Xã Hội.",
     },
     yesNo: ["Có", "Không"],
@@ -342,7 +348,7 @@ function strings_(lang) {
 // Question order within each language section. Consent stays last.
 var ORDER = [
   "name", "pronouns", "email", "contact", "urgentNeed", "helpToday",
-  "needs", "lgbtqCare", "disability", "accessNeeds", "area", "otherInfo", "consent",
+  "needs", "lgbtqCare", "disability", "accessNeeds", "pcp", "area", "otherInfo", "consent",
 ];
 
 /** Run once: creates the form (or reuses it) and installs the submit and retry triggers. */
@@ -418,6 +424,7 @@ function addQuestion_(form, key, lang) {
       item = form.addParagraphTextItem().setTitle(title).setRequired(true);
       break;
     case "accessNeeds":
+    case "pcp":
     case "otherInfo":
       item = form.addParagraphTextItem().setTitle(title);
       break;
@@ -462,6 +469,11 @@ function addMissingQuestions_(form) {
   if (!has(Q.disability)) place(addQuestion_(form, "disability", "en"), Q.lgbtqCare);
   if (!has(Q.accessNeeds)) place(addQuestion_(form, "accessNeeds", "en"), Q.disability);
   if (!has(Q.otherInfo)) place(addQuestion_(form, "otherInfo", "en"), Q.area);
+  // The PCP question goes after "accommodations" in each language section the form has.
+  ["en", "es", "vi"].forEach(function (lang) {
+    var S = strings_(lang);
+    if (has(S.q.accessNeeds) && !has(S.q.pcp)) place(addQuestion_(form, "pcp", lang), S.q.accessNeeds);
+  });
 }
 
 /**
@@ -622,7 +634,7 @@ function languageChoiceOf_(response) {
 function toPayload_(response) {
   var answers = {
     name: "", pronouns: "", email: "", contact: "", phone: "", language: "", urgentNeed: "", helpToday: "",
-    needs: [], lgbtqCare: "", disability: "", accessNeeds: "", area: "", otherInfo: "", volunteer: "", consent: false,
+    needs: [], lgbtqCare: "", disability: "", accessNeeds: "", pcp: "", area: "", otherInfo: "", volunteer: "", consent: false,
   };
   var findMe = "";
   var contactTime = "";

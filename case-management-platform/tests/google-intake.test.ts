@@ -169,3 +169,52 @@ test("the script sends plain-ASCII JSON so accented and Vietnamese answers are s
   assert.match(out, /^[\x00-\x7e]*$/);
   assert.deepEqual(JSON.parse(out), value);
 });
+
+test("the PCP question is added after accommodations in each language and saved to the profile", () => {
+  const ctx: Record<string, unknown> = {};
+  vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
+  const strings = ctx.strings_ as (lang: string) => { q: Record<string, string> };
+
+  // A tiny stand-in for a Google Form, laid out like the live form's three sections.
+  type Item = { title: string; getTitle: () => string; getIndex: () => number };
+  const items: Item[] = [];
+  const make = (title: string): Item => {
+    const it: Item & Record<string, unknown> = { title, getTitle: () => it.title, getIndex: () => items.indexOf(it) };
+    const chain = () => it;
+    Object.assign(it, { setTitle: (t: string) => ((it.title = t), it), setHelpText: chain, setRequired: chain });
+    return it;
+  };
+  for (const lang of ["en", "es", "vi"]) {
+    const q = strings(lang).q;
+    for (const key of ["name", "disability", "accessNeeds", "area", "consent"]) items.push(make(q[key]));
+  }
+  for (const t of [(ctx.Q as Record<string, string>).pronouns, (ctx.Q as Record<string, string>).lgbtqCare, (ctx.Q as Record<string, string>).otherInfo])
+    items.push(make(t));
+  const form = {
+    getItems: () => [...items],
+    addParagraphTextItem: () => {
+      const it = make("");
+      items.push(it);
+      return it;
+    },
+    moveItem: (from: number, to: number) => {
+      const [it] = items.splice(from, 1);
+      items.splice(to, 0, it);
+    },
+  };
+  (ctx.addMissingQuestions_ as (f: unknown) => void)(form);
+  const titles = items.map((i) => i.title);
+  for (const lang of ["en", "es", "vi"]) {
+    const q = strings(lang).q;
+    assert.equal(titles.filter((t) => t === q.pcp).length, 1, `${lang} PCP question added once`);
+    assert.equal(titles.indexOf(q.pcp), titles.indexOf(q.accessNeeds) + 1, `${lang} PCP right after accommodations`);
+  }
+  (ctx.addMissingQuestions_ as (f: unknown) => void)(form);
+  assert.equal(items.length, titles.length, "running setup again adds nothing");
+
+  const p = GooglePayloadSchema.parse({
+    responseId: "r",
+    answers: { name: "Sam", urgentNeed: "food", consent: true, pcp: "Dr. Lee, Valley Health Center, 408-555-0111" },
+  });
+  assert.equal(mapGooglePayload(p).profile.primaryCare, "Dr. Lee, Valley Health Center, 408-555-0111");
+});
