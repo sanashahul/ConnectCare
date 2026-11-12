@@ -40,7 +40,11 @@ export const GooglePayloadSchema = z.object({
     disability: text(30),
     accessNeeds: text(1000),
     email: text(200),
-    contact: z.string().trim().min(1, "Best place to contact is required").max(500),
+    // Where and when to find them. The script combines the form's separate "where" and
+    // "what time" questions into this. Optional, since the current form doesn't require them.
+    contact: text(800),
+    phone: text(40),
+    volunteer: text(120),
     urgentNeed: z.string().trim().min(1, "Urgent need is required").max(2000),
     helpToday: text(20),
     needs: z.array(z.string().max(100)).max(30).optional().default([]),
@@ -117,10 +121,12 @@ export function mapGooglePayload(p: GooglePayload) {
     disability: DISABILITY_ANSWERS.find((d) => d.toLowerCase() === a.disability.toLowerCase()),
     accessNeeds: a.accessNeeds || undefined,
     email,
-    howToReach: a.contact,
+    phone: a.phone || undefined,
+    howToReach: a.contact || undefined,
     urgentDetails: a.urgentNeed,
     otherInfo: a.otherInfo || undefined,
-    filledOutBy: "self",
+    filledOutBy: a.volunteer ? "helper" : "self",
+    helperName: a.volunteer || undefined,
     formLanguage: a.formLanguage && a.formLanguage !== "English" ? a.formLanguage : undefined,
     consentAt: p.submittedAt && !Number.isNaN(Date.parse(p.submittedAt)) ? new Date(p.submittedAt).toISOString() : new Date().toISOString(),
   };
