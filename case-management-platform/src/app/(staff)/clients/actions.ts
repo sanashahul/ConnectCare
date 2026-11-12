@@ -8,7 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
-import { hasHealthDetails, parseBoxUrl, phiInBox, stripHealth } from "@/lib/box";
+import { healthDetailsPresent, parseBoxUrl, phiInBox } from "@/lib/box";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
@@ -88,8 +88,9 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
         ...cols.profile,
         consentAt: client.profile.consentAt,
         helperName: client.profile.helperName,
-        primaryCare: client.profile.primaryCare,
         healthInBox: client.profile.healthInBox,
+        healthInBoxConfirmedAt: client.profile.healthInBoxConfirmedAt,
+        healthInBoxConfirmedBy: client.profile.healthInBoxConfirmedBy,
       }),
       needsConfirmedAt: new Date(),
       updatedAt: new Date(),
@@ -108,7 +109,7 @@ export async function setBoxFolder(clientId: string, _: ActionState, form: FormD
     return { error: "That doesn't look like a Box folder link. Open the folder in Box, click Share, and copy the link (it starts with https:// and has box.com in it)." };
   }
   if (!url && client.profile.healthInBox) {
-    return { error: "This client's health details are kept in Box, so the folder link can't be removed. You can replace it with a new link." };
+    return { error: "This client's HIPAA information is kept in Box, so the folder link can't be removed. You can replace it with a new link." };
   }
   await db.update(schema.clients).set({ boxFolderUrl: url, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
   await audit({ userId: user.id, action: url ? "client.box_folder_set" : "client.box_folder_removed", clientId });
@@ -117,19 +118,29 @@ export async function setBoxFolder(clientId: string, _: ActionState, form: FormD
 }
 
 /**
- * After a case manager copies this client's health details into their Box folder, removes
- * them from the app. Later edits keep them out (see encryptProfile).
+ * The case manager confirms they moved this client's HIPAA information into the Box folder
+ * and deleted it from the app themselves. The app deletes nothing here: it records who
+ * confirmed and when, and refuses if profile health answers are still filled in.
  */
-export async function moveHealthToBox(_: ActionState, form: FormData): Promise<ActionState> {
+export async function confirmHealthInBox(_: ActionState, form: FormData): Promise<ActionState> {
   const id = String(form.get("clientId") ?? "");
   const { user, client } = await clientOr404(id);
   if (!client.boxFolderUrl) return { error: "Add the client's Box folder link first." };
-  if (form.get("copied") !== "on") return { error: "Check the box to confirm you copied the details into Box." };
-  await db
-    .update(schema.clients)
-    .set({ profileEnc: encryptProfile(stripHealth(client.profile)), updatedAt: new Date() })
-    .where(eq(schema.clients.id, id));
-  await audit({ userId: user.id, action: "client.health_moved_to_box", clientId: id, detail: { hadDetails: hasHealthDetails(client.profile) } });
+  if (form.get("confirmed") !== "on") return { error: "Check the box to confirm." };
+  const left = healthDetailsPresent(client.profile);
+  if (left.length) {
+    return { error: `Clear ${left.join(", ")} in Edit profile first, then confirm here.` };
+  }
+  const profile = {
+    ...client.profile,
+    healthInBox: true,
+    healthInBoxConfirmedAt: new Date().toISOString(),
+    healthInBoxConfirmedBy: user.name,
+  };
+  // withProfile shows the client ID when no name is stored; don't save it back as a name.
+  if (profile.firstName === client.clientCode && !profile.lastName) profile.firstName = "";
+  await db.update(schema.clients).set({ profileEnc: encryptProfile(profile), updatedAt: new Date() }).where(eq(schema.clients.id, id));
+  await audit({ userId: user.id, action: "client.health_in_box_confirmed", clientId: id });
   revalidatePath(`/clients/${id}`);
   return { ok: true };
 }

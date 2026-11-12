@@ -19,7 +19,7 @@ import { confirmNeeds, deleteClient, setClientStatus } from "../actions";
 import { CarePlan, StepCard, type PlanStep } from "./care-plan";
 import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
 import { BoxFolder } from "./box-folder";
-import { hasHealthDetails, phiInBox } from "@/lib/box";
+import { healthDetailsPresent, phiInBox } from "@/lib/box";
 
 /** Log entries shown before "Earlier entries". */
 const RECENT_NOTES = 5;
@@ -177,8 +177,8 @@ export default async function ClientPage({ params, searchParams }: {
               clientId={id}
               clientCode={client.clientCode}
               url={client.boxFolderUrl}
-              healthInBox={!!p.healthInBox}
-              hasHealthDetails={hasHealthDetails(p)}
+              confirmed={p.healthInBox ? { by: p.healthInBoxConfirmedBy, at: p.healthInBoxConfirmedAt } : null}
+              healthLeft={healthDetailsPresent(p)}
               boxMode={phiInBox()}
             />
           </Card>
@@ -212,7 +212,7 @@ export default async function ClientPage({ params, searchParams }: {
                   value={[p.hasVehicle && "Has vehicle", p.hasPets && "Has pet", p.hasChildren && "Has children"].filter(Boolean).join(", ")}
                 />
                 <Row label="Outreach site" value={p.outreachSite} />
-                {p.healthInBox && <Row label="Health details" value="Kept in this client's Box folder" />}
+                {p.healthInBox && <Row label="HIPAA information" value="Kept in this client's Box folder" />}
                 <Row label="Additional information" value={p.otherInfo} />
                 <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? (p.helperName ? ` (filled with help from ${p.helperName})` : " (filled by a helper)") : ""}`} />
                 {p.consentAt && <Row label="Consent" value={`Agreed ${formatDate(p.consentAt)}`} />}

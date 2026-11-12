@@ -42,6 +42,8 @@ const NON_IDENTIFYING = [
   "filledOutBy",
   "consentAt",
   "healthInBox",
+  "healthInBoxConfirmedAt",
+  "healthInBoxConfirmedBy",
 ] as const satisfies readonly (keyof ClientProfile)[];
 
 /** The profile with every identifying field removed. firstName stays as "" (the app shows the client ID instead). */
@@ -59,27 +61,22 @@ export function hasIdentifying(p: ClientProfile): boolean {
   return Object.entries(p).some(([k, v]) => !keep.has(k) && v !== undefined && v !== null && v !== "" && v !== false);
 }
 
-// Health and other sensitive answers. For a single client, a case manager can move these
-// into the client's Box folder ("Move health details to Box") while the rest of the profile
-// (name, how to reach them) stays in the app for day-to-day work.
-export const HEALTH_FIELDS = [
-  "lgbtqCare",
-  "disability",
-  "accessNeeds",
-  "insurance",
-  "primaryCare",
-  "urgentDetails",
-  "otherInfo",
-] as const satisfies readonly (keyof ClientProfile)[];
+// Health and other sensitive answers in the profile. When a client has a Box folder, the case
+// manager deletes these from the profile themselves and confirms it on the Box folder card.
+// The app never deletes them on its own; it only checks they're gone before taking the confirmation.
+export const HEALTH_FIELDS = {
+  disability: "Disability",
+  accessNeeds: "Accommodations",
+  insurance: "Insurance",
+  primaryCare: "Primary care (PCP)",
+  lgbtqCare: "LGBTQ+ care",
+  urgentDetails: "Most urgent need",
+  otherInfo: "Additional information",
+} as const satisfies Partial<Record<keyof ClientProfile, string>>;
 
-/** The profile with health details removed and marked as kept in Box. */
-export function stripHealth(p: ClientProfile): ClientProfile {
-  const out: ClientProfile = { ...p, healthInBox: true };
-  for (const k of HEALTH_FIELDS) delete out[k];
-  return out;
-}
-
-/** True when the profile still holds any health details. */
-export function hasHealthDetails(p: ClientProfile): boolean {
-  return HEALTH_FIELDS.some((k) => p[k] !== undefined && p[k] !== null && p[k] !== "" && p[k] !== false);
+/** Labels of the health answers still saved in this profile. */
+export function healthDetailsPresent(p: ClientProfile): string[] {
+  return (Object.keys(HEALTH_FIELDS) as (keyof typeof HEALTH_FIELDS)[])
+    .filter((k) => p[k] !== undefined && p[k] !== null && p[k] !== "" && p[k] !== false)
+    .map((k) => HEALTH_FIELDS[k]);
 }

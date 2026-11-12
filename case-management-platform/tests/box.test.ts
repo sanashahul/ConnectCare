@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
-import { hasHealthDetails, hasIdentifying, parseBoxUrl, phiInBox, stripHealth, stripIdentifying } from "../src/lib/box";
+import { healthDetailsPresent, hasIdentifying, parseBoxUrl, phiInBox, stripIdentifying } from "../src/lib/box";
 import { displayName, encryptProfile, type ClientProfile } from "../src/lib/clients";
 import { decryptJson } from "../src/lib/crypto";
 import { GooglePayloadSchema, mapGooglePayload } from "../src/lib/google-intake";
@@ -49,16 +49,17 @@ test("only https Box links are accepted as a client's Box folder", () => {
   assert.equal(parseBoxUrl("Jane's folder"), null);
 });
 
-test("moving health details to Box removes them and keeps name and contact", () => {
-  const p = stripHealth(FULL);
-  assert.equal(p.healthInBox, true);
-  for (const k of ["lgbtqCare", "disability", "accessNeeds", "insurance", "primaryCare", "urgentDetails", "otherInfo"] as const) {
-    assert.equal(p[k], undefined, k);
-  }
-  assert.equal(p.firstName, "Test");
-  assert.equal(p.phone, "408-555-0100");
-  assert.equal(hasHealthDetails(FULL), true);
-  assert.equal(hasHealthDetails(p), false);
+test("the Box card lists health answers still in the profile", () => {
+  assert.deepEqual(healthDetailsPresent(FULL), [
+    "Disability",
+    "Accommodations",
+    "Insurance",
+    "Primary care (PCP)",
+    "LGBTQ+ care",
+    "Most urgent need",
+    "Additional information",
+  ]);
+  assert.deepEqual(healthDetailsPresent({ firstName: "A", lgbtqCare: false, disability: "" }), []);
 });
 
 test("Box mode keeps nothing that identifies the client", () => {
@@ -83,10 +84,9 @@ test("every profile save follows the Box rules", () => {
     delete process.env.PHI_IN_BOX;
     assert.equal(phiInBox(), false);
     assert.equal(decryptJson<ClientProfile>(encryptProfile(FULL)).disability, "Yes", "normal mode keeps everything");
-    // Health moved to Box for this client: an edit can't bring health details back.
-    const edited = decryptJson<ClientProfile>(encryptProfile({ ...FULL, healthInBox: true }));
-    assert.equal(edited.disability, undefined);
-    assert.equal(edited.phone, "408-555-0100");
+    // Confirming HIPAA information is in Box never deletes anything by itself: people do that.
+    const confirmed = decryptJson<ClientProfile>(encryptProfile({ ...FULL, healthInBox: true }));
+    assert.equal(confirmed.disability, "Yes");
 
     process.env.PHI_IN_BOX = "true";
     assert.equal(phiInBox(), true);

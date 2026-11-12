@@ -35,6 +35,8 @@ export const IntakeSchema = z.object({
   lgbtqCare: z.boolean(),
   disability: optionalEnum(DISABILITY_ANSWERS),
   accessNeeds: optionalText(1000),
+  // Staff form only (the Google Form asks this too).
+  primaryCare: optionalText(1000),
 });
 export type IntakeInput = z.infer<typeof IntakeSchema>;
 
@@ -68,6 +70,7 @@ export function readIntakeForm(form: FormData, opts: { nameRequired?: boolean } 
     lgbtqCare: form.get("lgbtqCare") === "on",
     disability: s("disability"),
     accessNeeds: s("accessNeeds"),
+    primaryCare: s("primaryCare"),
   });
 }
 
@@ -93,6 +96,7 @@ export function toClientColumns(input: IntakeInput) {
     lgbtqCare: input.lgbtqCare,
     disability: input.disability,
     accessNeeds: input.accessNeeds,
+    primaryCare: input.primaryCare,
     filledOutBy: input.filledOutBy,
   };
   return {

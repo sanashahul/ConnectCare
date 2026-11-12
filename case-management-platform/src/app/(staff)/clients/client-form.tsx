@@ -13,7 +13,7 @@ export function ClientForm({ action: serverAction, defaults, submitLabel, askCon
   /** New clients added by staff: the case manager confirms the client agreed. */
   askConsent?: boolean;
   /** Fields kept in Box instead of the app (see IntakeFields). */
-  hide?: "health" | "identifying";
+  hide?: "identifying";
 }) {
   const [state, action, pending] = useActionState(serverAction, undefined);
   return (

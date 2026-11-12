@@ -27,11 +27,8 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
   defaults?: Defaults;
   errors?: Record<string, string>;
   lang?: IntakeLang;
-  /**
-   * Staff form only. "health": this client's health details are kept in their Box folder.
-   * "identifying": the app keeps no identifying details at all (Box mode, PHI_IN_BOX).
-   */
-  hide?: "health" | "identifying";
+  /** Staff form only. "identifying": the app keeps no identifying details at all (Box mode, PHI_IN_BOX). */
+  hide?: "identifying";
 }) {
   const you = mode === "public";
   const showIdentifying = hide !== "identifying";
@@ -53,9 +50,8 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
 
       {hide && (
         <p className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
-          {hide === "identifying"
-            ? "Names, contact details, where they stay, and health details are kept in the client's Box folder, not here. Use the client ID when you talk about them in this app."
-            : "Health details for this client (disability, accommodations, insurance, PCP, LGBTQ+ care, and free-text notes about their needs) are kept in their Box folder, not here."}
+          Names, contact details, where they stay, and health details are kept in the client&apos;s Box folder, not here. Use
+          the client ID when you talk about them in this app.
         </p>
       )}
 
@@ -169,6 +165,12 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
           <label className={labelClass} htmlFor="accessNeeds">{T.accessNeeds}</label>
           <input id="accessNeeds" name="accessNeeds" maxLength={1000} placeholder={T.accessExample} defaultValue={defaults.accessNeeds} className={inputClass} />
         </div>
+        {!you && (
+          <div className="sm:col-span-2">
+            <label className={labelClass} htmlFor="primaryCare">Primary care provider (PCP) {opt}</label>
+            <input id="primaryCare" name="primaryCare" maxLength={1000} defaultValue={defaults.primaryCare} className={inputClass} />
+          </div>
+        )}
       </div>
       )}
 

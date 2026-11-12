@@ -83,9 +83,15 @@ Each client page has a **Box folder** card. Most clients don't need one, and the
 
 The app checks that the link is an `https://…box.com` folder or shared link. It never reads the folder, so nothing in Box passes through the app.
 
-### Move health details to Box
+### Confirm HIPAA information is in Box
 
-Once a client has a folder, **Move health details to Box** removes their disability, accommodations, insurance, PCP, LGBTQ+ care, urgent-need text, and additional information from the app. Copy anything worth keeping into the folder first. Afterwards the edit form no longer asks for those details for that client, and the link can be changed but not removed. Name, contact details, needs, the care plan, and the contact log stay in the app.
+The app never deletes a client's information on its own. Once a client has a folder, the case manager:
+
+1. Copies the client's HIPAA information into the Box folder.
+2. Deletes it from the app themselves: the profile's health answers (Edit profile), contact log notes, care plan steps, and messages.
+3. Opens **Confirm HIPAA information is in Box** on the client page, checks the box, and confirms.
+
+The card links to an in-app guide, **What counts as HIPAA information** (`/help/hipaa`). The app refuses the confirmation while profile health answers (disability, accommodations, insurance, PCP, LGBTQ+ care, urgent need, additional information) are still filled in. It can't check free-text notes, so that part is up to the case manager. The card then shows who confirmed and when, the audit log records it, and the edit form reminds staff to keep those answers in Box. The folder link can be changed but not removed after that.
 
 ### Box mode: no identifying details in the app at all
 

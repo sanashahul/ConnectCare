@@ -4,7 +4,7 @@ import { db, schema } from "@/db";
 import { canAccessClient } from "./access";
 import { generateClientCode } from "./client-code";
 import type { CurrentUser } from "./auth";
-import { phiInBox, stripHealth, stripIdentifying } from "./box";
+import { phiInBox, stripIdentifying } from "./box";
 import { decryptJson, encryptJson } from "./crypto";
 
 export type ClientProfile = {
@@ -41,16 +41,21 @@ export type ClientProfile = {
   /** Language of the form the guest filled out, when not English. Written answers are in this language. */
   formLanguage?: string;
   consentAt?: string;
-  /** Health details for this client are kept in their Box folder, not here (see src/lib/box.ts). */
+  /**
+   * A case manager confirmed they moved this client's HIPAA information into their Box folder
+   * and deleted it from the app themselves (see the Box folder card on the client page).
+   */
   healthInBox?: boolean;
+  healthInBoxConfirmedAt?: string;
+  /** Name of the staff member who confirmed. */
+  healthInBoxConfirmedBy?: string;
 };
 
 export type ClientRow = typeof schema.clients.$inferSelect;
 export type ClientWithProfile = ClientRow & { profile: ClientProfile };
 
 /** Every profile save goes through here. In Box mode, identifying fields are dropped before anything is stored. */
-export const encryptProfile = (p: ClientProfile) =>
-  encryptJson(phiInBox() ? stripIdentifying(p) : p.healthInBox ? stripHealth(p) : p);
+export const encryptProfile = (p: ClientProfile) => encryptJson(phiInBox() ? stripIdentifying(p) : p);
 
 export function withProfile(row: ClientRow): ClientWithProfile {
   const profile = decryptJson<ClientProfile>(row.profileEnc);

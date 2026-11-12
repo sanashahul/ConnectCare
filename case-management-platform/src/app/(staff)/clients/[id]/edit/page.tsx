@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -14,6 +15,13 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   return (
     <div className="max-w-3xl">
       <PageHeader title={`Edit ${displayName(client.profile)}`} back={{ href: `/clients/${id}`, label: "Back to client" }} />
+      {client.profile.healthInBox && !phiInBox() && (
+        <p className="mb-4 rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
+          This client&apos;s HIPAA information is kept in their Box folder. Leave the health questions (disability,
+          accommodations, insurance, PCP, LGBTQ+ care, urgent need, additional information) blank and write those details in
+          Box instead. <Link href="/help/hipaa" className="underline">What counts as HIPAA information?</Link>
+        </p>
+      )}
       <Card>
         <ClientForm
           action={updateClient.bind(null, id)}
@@ -25,7 +33,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
             needs: client.needs,
             urgent: client.urgent,
           }}
-          hide={phiInBox() ? "identifying" : client.profile.healthInBox ? "health" : undefined}
+          hide={phiInBox() ? "identifying" : undefined}
           submitLabel="Save changes"
         />
       </Card>
