@@ -100,6 +100,7 @@ Fill out the form yourself. Within a few seconds, the request should appear on t
 
 - `DELETE_AFTER_SEND = true`: deletes each response from Google after delivery. Leave this on.
 - `SEND_CONFIRMATION_EMAIL = true`: emails the request number to people who give an email address.
+- Script property `PHI_IN_BOX` (optional, Project Settings → Script properties): set to `true` only together with `PHI_IN_BOX=true` on the server. The script then sends the app only needs, area, language, and "help today", and keeps each full response in Google Forms until staff copy it into the client's Box folder and delete it. See "Keeping client details in Box" in [PRIVACY.md](../PRIVACY.md).
 
 ## Privacy rules for the form
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { NeedChips } from "@/components/client-row";
+import { BoxBadge, NeedChips } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass, smallButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
@@ -18,6 +18,8 @@ import { nextStep } from "@/lib/plan-order";
 import { confirmNeeds, deleteClient, setClientStatus } from "../actions";
 import { CarePlan, StepCard, type PlanStep } from "./care-plan";
 import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
+import { BoxFolder } from "./box-folder";
+import { phiInBox } from "@/lib/box";
 
 /** Log entries shown before "Earlier entries". */
 const RECENT_NOTES = 5;
@@ -69,6 +71,7 @@ export default async function ClientPage({ params, searchParams }: {
             {displayName(p)}
             {p.pronouns && <span className="text-base font-normal text-stone-600">({p.pronouns})</span>}
             <span className="font-mono text-base font-normal text-stone-400">{client.clientCode}</span>
+            {client.boxFolderUrl && <BoxBadge />}
             {client.urgent && <Badge tone="red">Urgent</Badge>}
             {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
             {client.status === "closed" && <Badge>Closed</Badge>}
@@ -170,6 +173,15 @@ export default async function ClientPage({ params, searchParams }: {
               <AssignCaseManager clientId={id} current={client.assignedToId} caseManagers={cms} variant="client" />
             </Card>
           )}
+          <Card title="Box folder">
+            <BoxFolder
+              clientId={id}
+              clientCode={client.clientCode}
+              url={client.boxFolderUrl}
+              confirmed={p.healthInBox ? { by: p.healthInBoxConfirmedBy, at: p.healthInBoxConfirmedAt } : null}
+              boxMode={phiInBox()}
+            />
+          </Card>
           <Card title="Profile">
             <NeedChips needs={matchingNeeds(client)} max={20} />
             <dl className="mt-3 space-y-2 text-sm">
@@ -200,6 +212,7 @@ export default async function ClientPage({ params, searchParams }: {
                   value={[p.hasVehicle && "Has vehicle", p.hasPets && "Has pet", p.hasChildren && "Has children"].filter(Boolean).join(", ")}
                 />
                 <Row label="Outreach site" value={p.outreachSite} />
+                {p.healthInBox && <Row label="HIPAA information" value="Kept in this client's Box folder" />}
                 <Row label="Additional information" value={p.otherInfo} />
                 <Row label="Source" value={`${SOURCE_LABELS[client.source]}${p.filledOutBy === "helper" ? (p.helperName ? ` (filled with help from ${p.helperName})` : " (filled by a helper)") : ""}`} />
                 {p.consentAt && <Row label="Consent" value={`Agreed ${formatDate(p.consentAt)}`} />}

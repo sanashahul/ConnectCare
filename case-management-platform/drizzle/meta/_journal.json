@@ -71,6 +71,13 @@
       "when": 1792701466167,
       "tag": "0009_up_next_order",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794521630193,
+      "tag": "0010_box_folder",
+      "breakpoints": true
     }
   ]
 }

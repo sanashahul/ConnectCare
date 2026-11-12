@@ -13,6 +13,11 @@
  * Privacy: after the app confirms it saved a submission, the response is deleted from
  * Google Forms so client information lives only in the encrypted ConnectCare database.
  * Do not link this form to a Google Sheet.
+ *
+ * Box mode (optional): set the script property PHI_IN_BOX to true, and PHI_IN_BOX=true on the
+ * server, to keep identifying details out of the app. The script then sends only the client's
+ * needs, area, language, and whether they need help today, and it keeps the full response in
+ * Google Forms so staff can copy it into the client's Box folder (then delete the response).
  */
 
 var DELETE_AFTER_SEND = true;
@@ -560,7 +565,7 @@ function deliver_(response) {
   // Accented letters, Vietnamese, emoji or curly quotes could be signed in a different text encoding
   // than the one they are sent in, which made the app reject the submission ("Bad signature").
   // Writing them as \u escapes keeps the request plain ASCII, so both sides always agree.
-  var payload = asciiJson_(toPayload_(response));
+  var payload = asciiJson_(toPayload_(response, cfg.boxMode));
   var timestamp = String(Math.floor(Date.now() / 1000));
   var signature = toHex_(
     Utilities.computeHmacSha256Signature(timestamp + "." + payload, cfg.secret, Utilities.Charset.UTF_8),
@@ -589,7 +594,8 @@ function deliver_(response) {
   }
   var result = JSON.parse(res.getContentText());
   if (code === 201 && SEND_CONFIRMATION_EMAIL) sendConfirmation_(response, result.clientCode);
-  if (DELETE_AFTER_SEND) {
+  // Box mode: keep the response until staff have copied it into the client's Box folder.
+  if (DELETE_AFTER_SEND && !cfg.boxMode) {
     try {
       getForm_().deleteResponse(response.getId());
     } catch (e) {
@@ -631,7 +637,14 @@ function languageChoiceOf_(response) {
   return choice;
 }
 
-function toPayload_(response) {
+// Answers that identify someone or describe their health. In Box mode they stay in Google Forms
+// (for staff to copy into Box) and are never sent to the app.
+var BOX_MODE_WITHHELD = [
+  "name", "pronouns", "email", "contact", "phone", "volunteer", "urgentNeed",
+  "lgbtqCare", "disability", "accessNeeds", "pcp", "otherInfo",
+];
+
+function toPayload_(response, boxMode) {
   var answers = {
     name: "", pronouns: "", email: "", contact: "", phone: "", language: "", urgentNeed: "", helpToday: "",
     needs: [], lgbtqCare: "", disability: "", accessNeeds: "", pcp: "", area: "", otherInfo: "", volunteer: "", consent: false,
@@ -659,6 +672,13 @@ function toPayload_(response) {
   // Older forms asked "Preferred language" again inside each section; otherwise the first question answers it.
   if (!answers.language) answers.language = choice.language;
   answers.formLanguage = FORM_LANGUAGE_NAMES[choice.section];
+  if (boxMode) {
+    BOX_MODE_WITHHELD.forEach(function (key) {
+      answers[key] = "";
+    });
+    // Other languages are typed in, so send only that it was another language.
+    if (LANGUAGE_CHOICES.indexOf(answers.language) === -1 && answers.language) answers.language = "Other";
+  }
   return {
     responseId: response.getId(),
     submittedAt: response.getTimestamp().toISOString(),
@@ -691,7 +711,7 @@ function config_() {
     throw new Error("Set the CONNECTCARE_URL script property to your app's https:// address.");
   }
   if (secret.length < 32) throw new Error("Set the CONNECTCARE_SECRET script property (at least 32 characters).");
-  return { url: url, secret: secret };
+  return { url: url, secret: secret, boxMode: /^(1|true|yes|on)$/i.test(props.getProperty("PHI_IN_BOX") || "") };
 }
 
 /** JSON with every non-ASCII character written as a \u escape. */

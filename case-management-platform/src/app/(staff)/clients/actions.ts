@@ -8,6 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
+import { parseBoxUrl, phiInBox } from "@/lib/box";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
@@ -41,7 +42,7 @@ const dateOrNull = z
 export async function createClient(_: ActionState, form: FormData): Promise<ActionState> {
   const user = await requireUser();
   if (form.get("consent") !== "on") return { error: "Confirm that the client agreed before saving." };
-  const parsed = readIntakeForm(form);
+  const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
@@ -69,7 +70,7 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
 
 export async function updateClient(id: string, _: ActionState, form: FormData): Promise<ActionState> {
   const { user, client } = await clientOr404(id);
-  const parsed = readIntakeForm(form);
+  const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
@@ -83,13 +84,61 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
       city: cols.city,
       needs: cols.needs,
       urgent: cols.urgent,
-      profileEnc: encryptProfile({ ...cols.profile, consentAt: client.profile.consentAt, helperName: client.profile.helperName, primaryCare: client.profile.primaryCare }),
+      profileEnc: encryptProfile({
+        ...cols.profile,
+        consentAt: client.profile.consentAt,
+        helperName: client.profile.helperName,
+        healthInBox: client.profile.healthInBox,
+        healthInBoxConfirmedAt: client.profile.healthInBoxConfirmedAt,
+        healthInBoxConfirmedBy: client.profile.healthInBoxConfirmedBy,
+      }),
       needsConfirmedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(schema.clients.id, id));
   await audit({ userId: user.id, action: "client.updated", clientId: id });
   redirect(`/clients/${id}`);
+}
+
+/** Saves (or clears) the link to this client's Box folder. */
+export async function setBoxFolder(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const { user, client } = await clientOr404(clientId);
+  const raw = String(form.get("boxFolderUrl") ?? "").trim();
+  const url = raw ? parseBoxUrl(raw) : null;
+  if (raw && !url) {
+    return { error: "That doesn't look like a Box folder link. Open the folder in Box, click Share, and copy the link (it starts with https:// and has box.com in it)." };
+  }
+  if (!url && client.profile.healthInBox) {
+    return { error: "This client's HIPAA information is kept in Box, so the folder link can't be removed. You can replace it with a new link." };
+  }
+  await db.update(schema.clients).set({ boxFolderUrl: url, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
+  await audit({ userId: user.id, action: url ? "client.box_folder_set" : "client.box_folder_removed", clientId });
+  revalidatePath(`/clients/${clientId}`);
+  return { ok: true };
+}
+
+/**
+ * The case manager confirms they moved this client's HIPAA information into the Box folder
+ * and deleted it from the app themselves. The app deletes and checks nothing here: it records
+ * who confirmed and when.
+ */
+export async function confirmHealthInBox(_: ActionState, form: FormData): Promise<ActionState> {
+  const id = String(form.get("clientId") ?? "");
+  const { user, client } = await clientOr404(id);
+  if (!client.boxFolderUrl) return { error: "Add the client's Box folder link first." };
+  if (form.get("confirmed") !== "on") return { error: "Check the box to confirm." };
+  const profile = {
+    ...client.profile,
+    healthInBox: true,
+    healthInBoxConfirmedAt: new Date().toISOString(),
+    healthInBoxConfirmedBy: user.name,
+  };
+  // withProfile shows the client ID when no name is stored; don't save it back as a name.
+  if (profile.firstName === client.clientCode && !profile.lastName) profile.firstName = "";
+  await db.update(schema.clients).set({ profileEnc: encryptProfile(profile), updatedAt: new Date() }).where(eq(schema.clients.id, id));
+  await audit({ userId: user.id, action: "client.health_in_box_confirmed", clientId: id });
+  revalidatePath(`/clients/${id}`);
+  return { ok: true };
 }
 
 /** "Getting started" step 2: the case manager checked the need categories with the guest. */

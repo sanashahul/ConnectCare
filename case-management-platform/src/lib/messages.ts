@@ -45,7 +45,7 @@ export async function listThreads(user: CurrentUser, opts: { resolved?: boolean;
   return rows.map(({ clientProfileEnc, ...r }) => ({
     ...r,
     subject: decryptString(r.thread.subjectEnc),
-    clientName: clientProfileEnc ? displayName(decryptJson<ClientProfile>(clientProfileEnc)) : null,
+    clientName: clientProfileEnc ? displayName(decryptJson<ClientProfile>(clientProfileEnc), r.clientCode ?? undefined) : null,
   }));
 }
 

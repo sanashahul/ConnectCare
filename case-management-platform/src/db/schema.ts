@@ -75,6 +75,10 @@ export const clients = pgTable(
     urgent: boolean("urgent").notNull().default(false),
     // Encrypted JSON: see ClientProfile in src/lib/clients.ts
     profileEnc: text("profile_enc").notNull(),
+    // Optional link to this client's folder in Stanford Box, where identifying and health
+    // details are kept (see src/lib/box.ts). The folder is named by client ID, so the
+    // link itself says nothing about the person.
+    boxFolderUrl: text("box_folder_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     assignedAt: timestamp("assigned_at", { withTimezone: true }),

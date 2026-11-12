@@ -22,13 +22,17 @@ function Select({ name, options, defaultValue, placeholder, lang = "en" }: {
 }
 
 /** Fields shared by the public intake form and the staff client form. The public form can be in Spanish or Vietnamese. */
-export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: {
+export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hide }: {
   mode: "public" | "staff";
   defaults?: Defaults;
   errors?: Record<string, string>;
   lang?: IntakeLang;
+  /** Staff form only. "identifying": the app keeps no identifying details at all (Box mode, PHI_IN_BOX). */
+  hide?: "identifying";
 }) {
   const you = mode === "public";
+  const showIdentifying = hide !== "identifying";
+  const showHealth = !hide;
   const T = INTAKE_TEXT[you ? lang : "en"];
   const opt = <span className="font-normal text-stone-500">{T.optional}</span>;
   return (
@@ -44,7 +48,15 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
       )}
       {!you && <input type="hidden" name="filledOutBy" value={defaults.filledOutBy ?? "staff"} />}
 
+      {hide && (
+        <p className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950">
+          Names, contact details, where they stay, and health details are kept in the client&apos;s Box folder, not here. Use
+          the client ID when you talk about them in this app.
+        </p>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
+        {showIdentifying && (<>
         <div>
           <label className={labelClass} htmlFor="firstName">{T.firstName}</label>
           <input id="firstName" name="firstName" required maxLength={60} defaultValue={defaults.firstName} className={inputClass} />
@@ -58,6 +70,7 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
           <label className={labelClass} htmlFor="pronouns">{T.pronouns} {opt}</label>
           <input id="pronouns" name="pronouns" maxLength={40} placeholder={T.pronounsExample} defaultValue={defaults.pronouns} className={inputClass} />
         </div>
+        </>)}
         <div>
           <label className={labelClass} htmlFor="ageRange">{T.age}</label>
           <Select name="ageRange" options={AGE_RANGES} defaultValue={defaults.ageRange} lang={lang} />
@@ -68,6 +81,7 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
         </div>
       </div>
 
+      {showIdentifying && (
       <fieldset className="space-y-4">
         <legend className="text-sm font-semibold text-stone-900">{you ? T.reachYou : "How can we reach them?"}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -93,24 +107,31 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
           </div>
         </fieldset>
       </fieldset>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="city">{you ? T.area : "Which area are they in?"}</label>
           <Select name="city" options={CITIES.map((c) => c.city)} defaultValue={defaults.city} lang={lang} />
         </div>
+        {showIdentifying && (
         <div>
           <label className={labelClass} htmlFor="sleeping">{you ? T.staying : "Where are they staying right now?"}</label>
           <Select name="sleeping" options={SLEEPING} defaultValue={defaults.sleeping} lang={lang} />
         </div>
+        )}
+        {showHealth && (
         <div>
           <label className={labelClass} htmlFor="insurance">{T.insurance}</label>
           <Select name="insurance" options={INSURANCE} defaultValue={defaults.insurance} lang={lang} />
         </div>
+        )}
+        {showIdentifying && (
         <div>
           <label className={labelClass} htmlFor="outreachSite">{you ? T.heard : "Where did they hear about us?"}</label>
           <Select name="outreachSite" options={OUTREACH_SITES} defaultValue={defaults.outreachSite} lang={lang} />
         </div>
+        )}
       </div>
 
       <fieldset>
@@ -130,10 +151,11 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
           <label className="flex items-center gap-2"><input type="checkbox" name="hasVehicle" defaultChecked={defaults.hasVehicle} /> {T.hasCar}</label>
           <label className="flex items-center gap-2"><input type="checkbox" name="hasPets" defaultChecked={defaults.hasPets} /> {T.hasPet}</label>
           <label className="flex items-center gap-2"><input type="checkbox" name="hasChildren" defaultChecked={defaults.hasChildren} /> {you ? T.hasChildren : "Has children with them"}</label>
-          <label className="flex items-center gap-2"><input type="checkbox" name="lgbtqCare" defaultChecked={defaults.lgbtqCare} /> {you ? T.lgbtq : "Would like LGBTQ+ affirming care"}</label>
+          {showHealth && <label className="flex items-center gap-2"><input type="checkbox" name="lgbtqCare" defaultChecked={defaults.lgbtqCare} /> {you ? T.lgbtq : "Would like LGBTQ+ affirming care"}</label>}
         </div>
       </fieldset>
 
+      {showHealth && (
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="disability">{you ? T.disability : "Do they have a disability, or need any accommodations?"}</label>
@@ -143,20 +165,29 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en" }: 
           <label className={labelClass} htmlFor="accessNeeds">{T.accessNeeds}</label>
           <input id="accessNeeds" name="accessNeeds" maxLength={1000} placeholder={T.accessExample} defaultValue={defaults.accessNeeds} className={inputClass} />
         </div>
+        {!you && (
+          <div className="sm:col-span-2">
+            <label className={labelClass} htmlFor="primaryCare">Primary care provider (PCP) {opt}</label>
+            <input id="primaryCare" name="primaryCare" maxLength={1000} defaultValue={defaults.primaryCare} className={inputClass} />
+          </div>
+        )}
       </div>
+      )}
 
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3">
         <label className="flex items-center gap-2 text-sm font-medium text-amber-900">
           <input type="checkbox" name="urgent" defaultChecked={defaults.urgent} /> {T.urgent}
         </label>
-        <input name="urgentDetails" maxLength={500} placeholder={T.urgentDetails} defaultValue={defaults.urgentDetails} className={`${inputClass} mt-2`} />
+        {showHealth && <input name="urgentDetails" maxLength={500} placeholder={T.urgentDetails} defaultValue={defaults.urgentDetails} className={`${inputClass} mt-2`} />}
       </div>
 
+      {showHealth && (
       <div>
         <label className={labelClass} htmlFor="otherInfo">{you ? T.otherInfo : "Anything else to note?"}</label>
         <textarea id="otherInfo" name="otherInfo" rows={3} maxLength={1500} defaultValue={defaults.otherInfo} className={inputClass} />
         {you && <p className="mt-1 text-xs text-stone-500">{T.noSsn}</p>}
       </div>
+      )}
     </div>
   );
 }

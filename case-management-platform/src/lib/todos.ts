@@ -42,7 +42,7 @@ export async function todoItemsFor(user: { id: string }): Promise<TodoItem[]> {
     .from(schema.clients)
     .where(and(eq(schema.clients.assignedToId, user.id), eq(schema.clients.status, "active")));
   const clientById = new Map(
-    myClients.map((c) => [c.id, { ...c, name: displayName(decryptJson<ClientProfile>(c.profileEnc)) }]),
+    myClients.map((c) => [c.id, { ...c, name: displayName(decryptJson<ClientProfile>(c.profileEnc), c.code) }]),
   );
   const clientIds = myClients.map((c) => c.id);
 
@@ -108,7 +108,7 @@ export async function todoItemsFor(user: { id: string }): Promise<TodoItem[]> {
       kind: "task",
       text: decryptString(task.textEnc),
       clientId: task.clientId ?? undefined,
-      clientName: profileEnc ? displayName(decryptJson<ClientProfile>(profileEnc)) : undefined,
+      clientName: profileEnc ? displayName(decryptJson<ClientProfile>(profileEnc), code ?? undefined) : undefined,
       clientCode: code ?? undefined,
       dueDate: task.dueDate ?? undefined,
       createdAt: task.createdAt.getTime(),

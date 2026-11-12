@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { count, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { ClientLabel } from "@/components/client-row";
+import { BoxBadge, ClientLabel } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { displayName, listClientsForUser, SOURCE_LABELS } from "@/lib/clients";
@@ -122,6 +122,7 @@ async function NotReached({ clients, today }: { clients: Awaited<ReturnType<type
           <li key={c.id}>
             <Link href={`/clients/${c.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm hover:bg-stone-50">
               <span className="font-medium text-stone-900">{displayName(c.profile)}</span>
+              {c.boxFolderUrl && <BoxBadge />}
               <Badge tone="amber">{days} days</Badge>
               <span className="text-stone-600">{c.assignedToId ? cmName.get(c.assignedToId) : "Unassigned"}</span>
               <span className="min-w-0 flex-1 truncate text-stone-500">

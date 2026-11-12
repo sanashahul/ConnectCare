@@ -1,3 +1,4 @@
+import { phiInBox } from "@/lib/box";
 import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "../actions";
@@ -17,7 +18,7 @@ export default async function NewClientPage() {
         }
       />
       <Card>
-        <ClientForm action={createClient} submitLabel="Save client" askConsent />
+        <ClientForm action={createClient} submitLabel="Save client" askConsent hide={phiInBox() ? "identifying" : undefined} />
       </Card>
     </div>
   );

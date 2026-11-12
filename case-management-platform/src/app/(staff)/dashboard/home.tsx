@@ -54,6 +54,7 @@ export async function loadHome(owner: { id: string }, today: string) {
       name: displayName(c.profile),
       pronouns: c.profile.pronouns,
       urgent: c.urgent,
+      hasBox: !!c.boxFolderUrl,
       isNew: !!c.assignedAt && (!seen || seen < c.assignedAt),
       lastMet: contact?.lastMet,
       lastPlace: contact?.lastPlace,

@@ -40,7 +40,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
             {supervisor ? `With ${cm?.name ?? "case manager"}` : "With the supervisors"}
             {client && (
               <Link href={`/clients/${client.id}`} className="font-semibold text-brand-700 underline">
-                {displayName(decryptJson<ClientProfile>(client.profileEnc))}
+                {displayName(decryptJson<ClientProfile>(client.profileEnc), client.clientCode)}
               </Link>
             )}
             {thread.resolved && <Badge tone="green">Resolved</Badge>}
