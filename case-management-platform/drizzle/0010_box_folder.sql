@@ -1,0 +1,1 @@
+ALTER TABLE "clients" ADD COLUMN "box_folder_url" text;

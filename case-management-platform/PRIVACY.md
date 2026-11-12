@@ -69,6 +69,39 @@ What remains with Google:
 - Use an institution-managed Google Workspace account whose agreement with Google covers this kind of data.
 - Never link the form to a Sheet, and never turn on response notification emails.
 
+## Keeping client details in Box
+
+Some information is better kept in Stanford Box than in this app: health details, documents, and scans of IDs or records. Stanford Box is covered by Stanford's agreements; a personal Box account is not. Confirm with the Privacy Office which Box account to use.
+
+### One folder per client, only when needed
+
+Each client page has a **Box folder** card. Most clients don't need one, and the card can stay empty.
+
+1. In Stanford Box, make a folder named with the client ID (for example `CC-7K3PM`). Don't put the client's name in the folder name.
+2. Share the folder with the people working that case (Box: Share → invite people). Don't use "People with the link" sharing.
+3. Paste the folder link into the client page and save. The page then shows **Open in Box**, and Box asks for a Stanford login before showing anything.
+
+The app checks that the link is an `https://…box.com` folder or shared link. It never reads the folder, so nothing in Box passes through the app.
+
+### Move health details to Box
+
+Once a client has a folder, **Move health details to Box** removes their disability, accommodations, insurance, PCP, LGBTQ+ care, urgent-need text, and additional information from the app. Copy anything worth keeping into the folder first. Afterwards the edit form no longer asks for those details for that client, and the link can be changed but not removed. Name, contact details, needs, the care plan, and the contact log stay in the app.
+
+### Box mode: no identifying details in the app at all
+
+If the Privacy Office decides that *any* client information (including names and phone numbers) must stay out of this app, turn on Box mode:
+
+- Set `PHI_IN_BOX=true` on the server, and set the script property `PHI_IN_BOX` to `true` in the Google Form script.
+- The app then stores only the client ID, area, need categories, age range, language, and the work itself (care plan, tasks, contact log). It shows the client ID wherever it used to show a name.
+- Every profile save drops names, pronouns, contact details, where the client stays, health details, and free-text answers, including for clients added earlier as soon as their profile is edited.
+- The website request form is closed. Use the Google Form or in-person intake.
+- The Google Form script sends the app only needs, area, language, and "help today". It **keeps** the full response in Google Forms so staff can copy it into the client's new Box folder; match it by the submission time. Delete the response in Google Forms once it is in Box.
+- Contact log notes are still free text. Train staff to keep names and health details in Box, not in notes.
+
+### Later: automatic folders
+
+The next step is for the Google Form script to create the client's Box folder and file the answers into it directly, so no one copies anything and nothing waits in Google Forms. That needs a Box app approved by Stanford's Box administrators. See [docs/box-app-request.md](docs/box-app-request.md).
+
 ## Go-live checklist
 
 Work through these with your privacy and security offices before entering real client data:
@@ -89,6 +122,7 @@ Work through these with your privacy and security offices before entering real c
 - [ ] **Minors.** Decide how to handle intake from people under 18 (consent and mandated reporting).
 - [ ] **Public form.** Put the public form behind your organization's domain, so guests can recognize it as yours.
 - [ ] **Google Form.** If you use it, confirm the Google Workspace account is approved for this data, and that the form is not linked to a Sheet.
+- [ ] **Box.** Confirm which Box account is approved for client health information, and whether Box mode (`PHI_IN_BOX`) is required. See "Keeping client details in Box".
 
 ## Known limits
 

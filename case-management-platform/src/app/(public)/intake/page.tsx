@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicShell } from "@/components/ui";
+import { phiInBox } from "@/lib/box";
 import { INTAKE_LANGS, INTAKE_TEXT, intakeLang } from "@/lib/intake-i18n";
 import { IntakeForm } from "./intake-form";
 
@@ -18,8 +19,15 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
         {T.crisis} <a className="underline" href="tel:988">988</a>, {T.anyTime}
       </div>
       <div className="mt-6" lang={lang}>
-        {/* key: switching language starts a fresh form */}
-        <IntakeForm key={lang} lang={lang} />
+        {phiInBox() ? (
+          // Box mode keeps names and contact details out of this app, so it can't take requests directly.
+          <p className="rounded-md border border-stone-200 bg-white p-4 text-sm text-stone-800">
+            This online form is closed. Please talk with the outreach team in person or use the outreach team&apos;s sign-up form.
+          </p>
+        ) : (
+          /* key: switching language starts a fresh form */
+          <IntakeForm key={lang} lang={lang} />
+        )}
       </div>
     </PublicShell>
   );

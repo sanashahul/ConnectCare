@@ -8,6 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
+import { hasHealthDetails, parseBoxUrl, phiInBox, stripHealth } from "@/lib/box";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
@@ -41,7 +42,7 @@ const dateOrNull = z
 export async function createClient(_: ActionState, form: FormData): Promise<ActionState> {
   const user = await requireUser();
   if (form.get("consent") !== "on") return { error: "Confirm that the client agreed before saving." };
-  const parsed = readIntakeForm(form);
+  const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
@@ -69,7 +70,7 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
 
 export async function updateClient(id: string, _: ActionState, form: FormData): Promise<ActionState> {
   const { user, client } = await clientOr404(id);
-  const parsed = readIntakeForm(form);
+  const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
@@ -83,13 +84,54 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
       city: cols.city,
       needs: cols.needs,
       urgent: cols.urgent,
-      profileEnc: encryptProfile({ ...cols.profile, consentAt: client.profile.consentAt, helperName: client.profile.helperName, primaryCare: client.profile.primaryCare }),
+      profileEnc: encryptProfile({
+        ...cols.profile,
+        consentAt: client.profile.consentAt,
+        helperName: client.profile.helperName,
+        primaryCare: client.profile.primaryCare,
+        healthInBox: client.profile.healthInBox,
+      }),
       needsConfirmedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(schema.clients.id, id));
   await audit({ userId: user.id, action: "client.updated", clientId: id });
   redirect(`/clients/${id}`);
+}
+
+/** Saves (or clears) the link to this client's Box folder. */
+export async function setBoxFolder(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const { user, client } = await clientOr404(clientId);
+  const raw = String(form.get("boxFolderUrl") ?? "").trim();
+  const url = raw ? parseBoxUrl(raw) : null;
+  if (raw && !url) {
+    return { error: "That doesn't look like a Box folder link. Open the folder in Box, click Share, and copy the link (it starts with https:// and has box.com in it)." };
+  }
+  if (!url && client.profile.healthInBox) {
+    return { error: "This client's health details are kept in Box, so the folder link can't be removed. You can replace it with a new link." };
+  }
+  await db.update(schema.clients).set({ boxFolderUrl: url, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
+  await audit({ userId: user.id, action: url ? "client.box_folder_set" : "client.box_folder_removed", clientId });
+  revalidatePath(`/clients/${clientId}`);
+  return { ok: true };
+}
+
+/**
+ * After a case manager copies this client's health details into their Box folder, removes
+ * them from the app. Later edits keep them out (see encryptProfile).
+ */
+export async function moveHealthToBox(_: ActionState, form: FormData): Promise<ActionState> {
+  const id = String(form.get("clientId") ?? "");
+  const { user, client } = await clientOr404(id);
+  if (!client.boxFolderUrl) return { error: "Add the client's Box folder link first." };
+  if (form.get("copied") !== "on") return { error: "Check the box to confirm you copied the details into Box." };
+  await db
+    .update(schema.clients)
+    .set({ profileEnc: encryptProfile(stripHealth(client.profile)), updatedAt: new Date() })
+    .where(eq(schema.clients.id, id));
+  await audit({ userId: user.id, action: "client.health_moved_to_box", clientId: id, detail: { hadDetails: hasHealthDetails(client.profile) } });
+  revalidatePath(`/clients/${id}`);
+  return { ok: true };
 }
 
 /** "Getting started" step 2: the case manager checked the need categories with the guest. */

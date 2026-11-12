@@ -35,7 +35,9 @@ export default async function PrintPage({ params, searchParams }: {
   const user = await requireUser();
   const client = await getClientForUser(user, id);
   if (!client) notFound();
-  const showName = sp.name === "1";
+  // No name is stored for clients whose details are kept in Box; the app shows their ID instead.
+  const hasName = client.profile.firstName !== client.clientCode;
+  const showName = hasName && sp.name === "1";
   const source = sp.source === "matches" ? "matches" : "plan";
 
   const resources = await getActiveResources();
@@ -117,10 +119,14 @@ export default async function PrintPage({ params, searchParams }: {
         <span className="text-stone-600">Include:</span>
         <Link href={q({ source: "plan" })} className={source === "plan" ? "font-semibold underline" : "underline"}>Steps in the care plan</Link>
         <Link href={q({ source: "matches" })} className={source === "matches" ? "font-semibold underline" : "underline"}>Top directory matches for each need</Link>
-        <span className="mx-2 text-stone-300">|</span>
-        <Link href={`?${new URLSearchParams({ source, ...(showName ? {} : { name: "1" }) })}`} className="underline">
-          {showName ? "Remove first name" : "Add first name"}
-        </Link>
+        {hasName && (
+          <>
+            <span className="mx-2 text-stone-300">|</span>
+            <Link href={`?${new URLSearchParams({ source, ...(showName ? {} : { name: "1" }) })}`} className="underline">
+              {showName ? "Remove first name" : "Add first name"}
+            </Link>
+          </>
+        )}
         <span className="ml-auto"><PrintButton /></span>
         <p className="w-full text-xs text-stone-500">The printout has no last name, contact details, or notes, in case it is lost.</p>
       </div>

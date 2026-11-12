@@ -38,9 +38,12 @@ export const IntakeSchema = z.object({
 });
 export type IntakeInput = z.infer<typeof IntakeSchema>;
 
-export function readIntakeForm(form: FormData) {
+/** Without a name (Box mode keeps names in Box), the app shows the client ID instead. */
+const NamelessIntakeSchema = IntakeSchema.extend({ firstName: z.string().trim().max(60).optional().default("") });
+
+export function readIntakeForm(form: FormData, opts: { nameRequired?: boolean } = {}) {
   const s = (k: string) => (form.get(k) as string | null) ?? undefined;
-  return IntakeSchema.safeParse({
+  return (opts.nameRequired === false ? NamelessIntakeSchema : IntakeSchema).safeParse({
     firstName: s("firstName") ?? "",
     lastName: s("lastName"),
     pronouns: s("pronouns"),

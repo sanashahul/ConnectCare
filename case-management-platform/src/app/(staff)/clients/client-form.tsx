@@ -6,17 +6,19 @@ import { buttonClass, ErrorText } from "@/components/ui";
 import type { ClientProfile } from "@/lib/clients";
 import type { ActionState } from "./actions";
 
-export function ClientForm({ action: serverAction, defaults, submitLabel, askConsent = false }: {
+export function ClientForm({ action: serverAction, defaults, submitLabel, askConsent = false, hide }: {
   action: (s: ActionState, f: FormData) => Promise<ActionState>;
   defaults?: Partial<ClientProfile> & { city?: string | null; needs?: string[]; urgent?: boolean };
   submitLabel: string;
   /** New clients added by staff: the case manager confirms the client agreed. */
   askConsent?: boolean;
+  /** Fields kept in Box instead of the app (see IntakeFields). */
+  hide?: "health" | "identifying";
 }) {
   const [state, action, pending] = useActionState(serverAction, undefined);
   return (
     <form action={action} className="space-y-6">
-      <IntakeFields mode="staff" defaults={defaults} errors={state?.fieldErrors} />
+      <IntakeFields mode="staff" defaults={defaults} errors={state?.fieldErrors} hide={hide} />
       {askConsent && (
         <label className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-stone-800">
           <input type="checkbox" name="consent" required className="mt-1" />

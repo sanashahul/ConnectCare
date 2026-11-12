@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
+import { phiInBox } from "@/lib/box";
 import { displayName, getClientForUser } from "@/lib/clients";
 import { updateClient } from "../../actions";
 import { ClientForm } from "../../client-form";
@@ -16,7 +17,15 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
       <Card>
         <ClientForm
           action={updateClient.bind(null, id)}
-          defaults={{ ...client.profile, city: client.city, needs: client.needs, urgent: client.urgent }}
+          defaults={{
+            ...client.profile,
+            // The app fills in the client ID when no name is stored; don't save that back as a name.
+            firstName: client.profile.firstName === client.clientCode ? "" : client.profile.firstName,
+            city: client.city,
+            needs: client.needs,
+            urgent: client.urgent,
+          }}
+          hide={phiInBox() ? "identifying" : client.profile.healthInBox ? "health" : undefined}
           submitLabel="Save changes"
         />
       </Card>

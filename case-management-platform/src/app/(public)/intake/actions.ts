@@ -2,10 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { audit, requestIp } from "@/lib/audit";
+import { phiInBox } from "@/lib/box";
 import { encryptProfile, insertClient } from "@/lib/clients";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
 import { INTAKE_LANGS, INTAKE_TEXT, intakeLang } from "@/lib/intake-i18n";
 import { rateLimit } from "@/lib/rate-limit";
+
+const BOX_MODE_CLOSED = "This online form is closed. Please talk with the outreach team in person or use the outreach team's sign-up form.";
 
 export type IntakeState = { error?: string; fieldErrors?: Record<string, string> } | undefined;
 
@@ -14,6 +17,8 @@ export async function submitIntake(_: IntakeState, form: FormData): Promise<Inta
   const T = INTAKE_TEXT[lang];
   const thanks = (code?: string) =>
     `/intake/thanks?${new URLSearchParams({ ...(code ? { id: code } : {}), ...(lang !== "en" ? { lang } : {}) })}`;
+  // Box mode: the app can't keep anyone's name or contact details, so the website form is closed.
+  if (phiInBox()) return { error: BOX_MODE_CLOSED };
   // Honeypot: real people never see or fill this field.
   if (String(form.get("website") ?? "") !== "") redirect(thanks());
   const ip = await requestIp();

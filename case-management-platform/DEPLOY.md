@@ -105,7 +105,8 @@ The free setup is for the pilot. For real client information:
    - **Neon Scale plan**: usage-based, with HIPAA available
 
    Or Stanford may host it for you on its own approved systems.
-3. Go through the go-live checklist in **[PRIVACY.md](PRIVACY.md)**.
+3. Decide with them where health details live. Each client can have a Stanford Box folder for health details and documents, and Box mode keeps all identifying details out of the website. See "Keeping client details in Box" in **[PRIVACY.md](PRIVACY.md)**.
+4. Go through the go-live checklist in **[PRIVACY.md](PRIVACY.md)**.
 
 ---
 

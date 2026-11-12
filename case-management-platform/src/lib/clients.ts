@@ -4,6 +4,7 @@ import { db, schema } from "@/db";
 import { canAccessClient } from "./access";
 import { generateClientCode } from "./client-code";
 import type { CurrentUser } from "./auth";
+import { phiInBox, stripHealth, stripIdentifying } from "./box";
 import { decryptJson, encryptJson } from "./crypto";
 
 export type ClientProfile = {
@@ -40,15 +41,22 @@ export type ClientProfile = {
   /** Language of the form the guest filled out, when not English. Written answers are in this language. */
   formLanguage?: string;
   consentAt?: string;
+  /** Health details for this client are kept in their Box folder, not here (see src/lib/box.ts). */
+  healthInBox?: boolean;
 };
 
 export type ClientRow = typeof schema.clients.$inferSelect;
 export type ClientWithProfile = ClientRow & { profile: ClientProfile };
 
-export const encryptProfile = (p: ClientProfile) => encryptJson(p);
+/** Every profile save goes through here. In Box mode, identifying fields are dropped before anything is stored. */
+export const encryptProfile = (p: ClientProfile) =>
+  encryptJson(phiInBox() ? stripIdentifying(p) : p.healthInBox ? stripHealth(p) : p);
 
 export function withProfile(row: ClientRow): ClientWithProfile {
-  return { ...row, profile: decryptJson<ClientProfile>(row.profileEnc) };
+  const profile = decryptJson<ClientProfile>(row.profileEnc);
+  // No name stored (Box mode): show the client ID wherever the app would show a name.
+  if (!profile.firstName && !profile.lastName) profile.firstName = row.clientCode;
+  return { ...row, profile };
 }
 
 type NewClient = Omit<typeof schema.clients.$inferInsert, "id" | "clientCode">;
@@ -75,8 +83,9 @@ export async function insertClient(values: NewClient) {
   }
 }
 
-export function displayName(p: ClientProfile) {
-  return [p.firstName, p.lastName].filter(Boolean).join(" ");
+/** The client's name, or `fallback` (usually their client ID) when no name is stored. */
+export function displayName(p: ClientProfile, fallback = "Client") {
+  return [p.firstName, p.lastName].filter(Boolean).join(" ") || fallback;
 }
 
 /** Needs used for resource matching: the plaintext list plus encrypted profile answers. */

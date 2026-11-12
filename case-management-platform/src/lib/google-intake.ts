@@ -33,7 +33,9 @@ export const GooglePayloadSchema = z.object({
   responseId: z.string().min(1).max(200),
   submittedAt: z.string().max(50).optional(),
   answers: z.object({
-    name: z.string().trim().min(1, "Name is required").max(120),
+    // Name and urgent need are left blank when the script runs in Box mode (PHI_IN_BOX):
+    // those answers stay in Google Forms for staff to copy into the client's Box folder.
+    name: text(120),
     pronouns: text(40),
     language: text(60),
     lgbtqCare: text(20),
@@ -46,7 +48,7 @@ export const GooglePayloadSchema = z.object({
     contact: text(800),
     phone: text(40),
     volunteer: text(120),
-    urgentNeed: z.string().trim().min(1, "Urgent need is required").max(2000),
+    urgentNeed: text(2000),
     helpToday: text(20),
     needs: z.array(z.string().max(100)).max(30).optional().default([]),
     area: text(100),
@@ -125,7 +127,7 @@ export function mapGooglePayload(p: GooglePayload) {
     email,
     phone: a.phone || undefined,
     howToReach: a.contact || undefined,
-    urgentDetails: a.urgentNeed,
+    urgentDetails: a.urgentNeed || undefined,
     otherInfo: a.otherInfo || undefined,
     filledOutBy: a.volunteer ? "helper" : "self",
     helperName: a.volunteer || undefined,
