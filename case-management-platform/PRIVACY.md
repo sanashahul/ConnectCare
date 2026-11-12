@@ -91,7 +91,9 @@ The app never deletes a client's information on its own. Once a client has a fol
 2. Deletes it from the app themselves: the profile's health answers (Edit profile), contact log notes, care plan steps, and messages.
 3. Opens **Confirm HIPAA information is in Box** on the client page, checks the box, and confirms.
 
-The card links to an in-app guide, **What counts as HIPAA information** (`/help/hipaa`). The app refuses the confirmation while profile health answers (disability, accommodations, insurance, PCP, LGBTQ+ care, urgent need, additional information) are still filled in. It can't check free-text notes, so that part is up to the case manager. The card then shows who confirmed and when, the audit log records it, and the edit form reminds staff to keep those answers in Box. The folder link can be changed but not removed after that.
+The card links to an in-app guide, **What counts as HIPAA information** (`/help/hipaa`). The app doesn't check or delete anything: the confirmation is the case manager's word. The card then shows who confirmed and when, the audit log records it, and the edit form reminds staff to keep health answers in Box. The folder link can be changed but not removed after that.
+
+Clients with a Box folder show a **★ Box** badge next to their name on their page and in client lists.
 
 ### Box mode: no identifying details in the app at all
 

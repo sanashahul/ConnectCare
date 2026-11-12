@@ -8,7 +8,7 @@ import { db, schema } from "@/db";
 import { aiEnabled, draftPlanWithAi, type AiProfile, type AiResult } from "@/lib/ai";
 import { audit } from "@/lib/audit";
 import { requireSupervisor, requireUser } from "@/lib/auth";
-import { healthDetailsPresent, parseBoxUrl, phiInBox } from "@/lib/box";
+import { parseBoxUrl, phiInBox } from "@/lib/box";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
 import { readIntakeForm, toClientColumns } from "@/lib/intake";
@@ -119,18 +119,14 @@ export async function setBoxFolder(clientId: string, _: ActionState, form: FormD
 
 /**
  * The case manager confirms they moved this client's HIPAA information into the Box folder
- * and deleted it from the app themselves. The app deletes nothing here: it records who
- * confirmed and when, and refuses if profile health answers are still filled in.
+ * and deleted it from the app themselves. The app deletes and checks nothing here: it records
+ * who confirmed and when.
  */
 export async function confirmHealthInBox(_: ActionState, form: FormData): Promise<ActionState> {
   const id = String(form.get("clientId") ?? "");
   const { user, client } = await clientOr404(id);
   if (!client.boxFolderUrl) return { error: "Add the client's Box folder link first." };
   if (form.get("confirmed") !== "on") return { error: "Check the box to confirm." };
-  const left = healthDetailsPresent(client.profile);
-  if (left.length) {
-    return { error: `Clear ${left.join(", ")} in Edit profile first, then confirm here.` };
-  }
   const profile = {
     ...client.profile,
     healthInBox: true,

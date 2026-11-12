@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BoxBadge } from "@/components/client-row";
 import { Badge, formatDate } from "@/components/ui";
 import { GETTING_STARTED_STEPS, type GettingStarted } from "@/lib/getting-started";
 
@@ -7,6 +8,8 @@ export type ClientCard = {
   name: string;
   pronouns?: string;
   urgent: boolean;
+  /** Has a Box folder. */
+  hasBox: boolean;
   /** Assigned to this case manager and not opened by them since. */
   isNew: boolean;
   lastMet?: string;
@@ -74,6 +77,7 @@ function Card({ c, today, readOnly }: { c: ClientCard; today: string; readOnly: 
       <div className="flex flex-wrap items-center gap-2">
         <Link href={`/clients/${c.id}`} className="font-semibold text-stone-900 hover:underline">{c.name}</Link>
         {c.pronouns && <span className="text-xs text-stone-500">({c.pronouns})</span>}
+        {c.hasBox && <BoxBadge />}
         {c.isNew && <Badge tone="blue">New</Badge>}
         {c.urgent && <Badge tone="red">Urgent</Badge>}
         {c.overdue > 0 && <Badge tone="red">{c.overdue} overdue</Badge>}

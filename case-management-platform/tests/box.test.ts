@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
-import { healthDetailsPresent, hasIdentifying, parseBoxUrl, phiInBox, stripIdentifying } from "../src/lib/box";
+import { hasIdentifying, parseBoxUrl, phiInBox, stripIdentifying } from "../src/lib/box";
 import { displayName, encryptProfile, type ClientProfile } from "../src/lib/clients";
 import { decryptJson } from "../src/lib/crypto";
 import { GooglePayloadSchema, mapGooglePayload } from "../src/lib/google-intake";
@@ -47,19 +47,6 @@ test("only https Box links are accepted as a client's Box folder", () => {
   assert.equal(parseBoxUrl("https://app.box.com/"), null, "not a folder");
   assert.equal(parseBoxUrl("javascript:alert(1)"), null);
   assert.equal(parseBoxUrl("Jane's folder"), null);
-});
-
-test("the Box card lists health answers still in the profile", () => {
-  assert.deepEqual(healthDetailsPresent(FULL), [
-    "Disability",
-    "Accommodations",
-    "Insurance",
-    "Primary care (PCP)",
-    "LGBTQ+ care",
-    "Most urgent need",
-    "Additional information",
-  ]);
-  assert.deepEqual(healthDetailsPresent({ firstName: "A", lgbtqCare: false, disability: "" }), []);
 });
 
 test("Box mode keeps nothing that identifies the client", () => {

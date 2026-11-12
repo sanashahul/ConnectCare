@@ -16,6 +16,18 @@ export function ClientCode({ code, className = "" }: { code: string; className?:
   return <span className={`font-mono font-semibold tracking-wide text-stone-900 ${className}`}>{code}</span>;
 }
 
+/** Marks clients who have a Box folder, wherever the client is listed. */
+export function BoxBadge() {
+  return (
+    <span
+      title="Has a Box folder"
+      className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800 ring-1 ring-sky-300"
+    >
+      <span aria-hidden>★</span> Box
+    </span>
+  );
+}
+
 /** Client name, with their request number in small grey text. */
 export function ClientLabel({ client, className = "" }: { client: ClientWithProfile; className?: string }) {
   return (
@@ -23,6 +35,7 @@ export function ClientLabel({ client, className = "" }: { client: ClientWithProf
       <span className="font-semibold text-stone-900">{displayName(client.profile)}</span>
       {client.profile.pronouns && <span className="text-xs text-stone-500">({client.profile.pronouns})</span>}
       <span className="font-mono text-xs text-stone-400">{client.clientCode}</span>
+      {client.boxFolderUrl && <BoxBadge />}
     </span>
   );
 }

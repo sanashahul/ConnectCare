@@ -60,23 +60,3 @@ export function hasIdentifying(p: ClientProfile): boolean {
   const keep = new Set<string>(NON_IDENTIFYING);
   return Object.entries(p).some(([k, v]) => !keep.has(k) && v !== undefined && v !== null && v !== "" && v !== false);
 }
-
-// Health and other sensitive answers in the profile. When a client has a Box folder, the case
-// manager deletes these from the profile themselves and confirms it on the Box folder card.
-// The app never deletes them on its own; it only checks they're gone before taking the confirmation.
-export const HEALTH_FIELDS = {
-  disability: "Disability",
-  accessNeeds: "Accommodations",
-  insurance: "Insurance",
-  primaryCare: "Primary care (PCP)",
-  lgbtqCare: "LGBTQ+ care",
-  urgentDetails: "Most urgent need",
-  otherInfo: "Additional information",
-} as const satisfies Partial<Record<keyof ClientProfile, string>>;
-
-/** Labels of the health answers still saved in this profile. */
-export function healthDetailsPresent(p: ClientProfile): string[] {
-  return (Object.keys(HEALTH_FIELDS) as (keyof typeof HEALTH_FIELDS)[])
-    .filter((k) => p[k] !== undefined && p[k] !== null && p[k] !== "" && p[k] !== false)
-    .map((k) => HEALTH_FIELDS[k]);
-}

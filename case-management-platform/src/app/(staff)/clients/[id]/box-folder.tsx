@@ -10,14 +10,12 @@ import { confirmHealthInBox, setBoxFolder } from "../actions";
  * make a folder in Stanford Box named with the client ID, share it with the people working
  * the case, and paste the link here.
  */
-export function BoxFolder({ clientId, clientCode, url, confirmed, healthLeft, boxMode }: {
+export function BoxFolder({ clientId, clientCode, url, confirmed, boxMode }: {
   clientId: string;
   clientCode: string;
   url: string | null;
   /** Who confirmed this client's HIPAA information is in Box, and when. */
   confirmed: { by?: string; at?: string } | null;
-  /** Profile health answers still filled in. */
-  healthLeft: string[];
   /** PHI_IN_BOX is on: every client's identifying details are kept in Box. */
   boxMode: boolean;
 }) {
@@ -77,14 +75,14 @@ export function BoxFolder({ clientId, clientCode, url, confirmed, healthLeft, bo
           </span>
         </p>
       ) : (
-        <ConfirmHealthInBox clientId={clientId} healthLeft={healthLeft} />
+        <ConfirmHealthInBox clientId={clientId} />
       ))}
     </div>
   );
 }
 
 /** The case manager moves and deletes the information themselves; this only records that they did. */
-function ConfirmHealthInBox({ clientId, healthLeft }: { clientId: string; healthLeft: string[] }) {
+function ConfirmHealthInBox({ clientId }: { clientId: string }) {
   const [state, action, pending] = useActionState(confirmHealthInBox, undefined);
   return (
     <details className="rounded-md border border-stone-200 px-3 py-2">
@@ -102,11 +100,6 @@ function ConfirmHealthInBox({ clientId, healthLeft }: { clientId: string; health
         <p>
           <Link href="/help/hipaa" target="_blank" className="text-brand-700 underline">What counts as HIPAA information?</Link>
         </p>
-        {healthLeft.length > 0 && (
-          <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-950">
-            The profile still has: <strong>{healthLeft.join(", ")}</strong>. Clear these in Edit profile first.
-          </p>
-        )}
         <label className="flex items-start gap-2">
           <input type="checkbox" name="confirmed" required className="mt-1" />
           <span>I moved all HIPAA information for this client into the Box folder and deleted it from this app.</span>

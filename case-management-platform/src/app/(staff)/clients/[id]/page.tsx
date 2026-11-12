@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { NeedChips } from "@/components/client-row";
+import { BoxBadge, NeedChips } from "@/components/client-row";
 import { Badge, buttonClass, Card, EmptyState, formatDate, PageHeader, secondaryButtonClass, smallButtonClass } from "@/components/ui";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
@@ -19,7 +19,7 @@ import { confirmNeeds, deleteClient, setClientStatus } from "../actions";
 import { CarePlan, StepCard, type PlanStep } from "./care-plan";
 import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
 import { BoxFolder } from "./box-folder";
-import { healthDetailsPresent, phiInBox } from "@/lib/box";
+import { phiInBox } from "@/lib/box";
 
 /** Log entries shown before "Earlier entries". */
 const RECENT_NOTES = 5;
@@ -71,6 +71,7 @@ export default async function ClientPage({ params, searchParams }: {
             {displayName(p)}
             {p.pronouns && <span className="text-base font-normal text-stone-600">({p.pronouns})</span>}
             <span className="font-mono text-base font-normal text-stone-400">{client.clientCode}</span>
+            {client.boxFolderUrl && <BoxBadge />}
             {client.urgent && <Badge tone="red">Urgent</Badge>}
             {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
             {client.status === "closed" && <Badge>Closed</Badge>}
@@ -178,7 +179,6 @@ export default async function ClientPage({ params, searchParams }: {
               clientCode={client.clientCode}
               url={client.boxFolderUrl}
               confirmed={p.healthInBox ? { by: p.healthInBoxConfirmedBy, at: p.healthInBoxConfirmedAt } : null}
-              healthLeft={healthDetailsPresent(p)}
               boxMode={phiInBox()}
             />
           </Card>
