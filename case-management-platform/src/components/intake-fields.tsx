@@ -70,6 +70,13 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
           <label className={labelClass} htmlFor="pronouns">{T.pronouns} {opt}</label>
           <input id="pronouns" name="pronouns" maxLength={40} placeholder={T.pronounsExample} defaultValue={defaults.pronouns} className={inputClass} />
         </div>
+        {!you && (
+          <div>
+            <label className={labelClass} htmlFor="dateOfBirth">Date of birth {opt}</label>
+            <input id="dateOfBirth" name="dateOfBirth" type="date" min="1900-01-01" defaultValue={defaults.dateOfBirth} className={inputClass} />
+            <FieldError msg={errors.dateOfBirth} />
+          </div>
+        )}
         </>)}
         <div>
           <label className={labelClass} htmlFor="ageRange">{T.age}</label>

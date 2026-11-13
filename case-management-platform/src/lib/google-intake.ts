@@ -37,6 +37,8 @@ export const GooglePayloadSchema = z.object({
     // those answers stay in Google Forms for staff to copy into the client's Box folder.
     name: text(120),
     pronouns: text(40),
+    // Google Forms date question: "YYYY-MM-DD".
+    dob: text(20),
     language: text(60),
     lgbtqCare: text(20),
     disability: text(30),
@@ -103,6 +105,14 @@ export function inferNeeds(textInput: string): string[] {
   return [...new Set([...KEYWORDS, ...OTHER_LANGUAGE_KEYWORDS].filter(([, re]) => re.test(t)).map(([k]) => k))];
 }
 
+/** A date of birth as "YYYY-MM-DD", or undefined if it isn't a real past date. */
+export function validBirthDate(input: string | undefined): string | undefined {
+  if (!input || !/^\d{4}-\d{2}-\d{2}$/.test(input)) return undefined;
+  const d = new Date(`${input}T00:00:00Z`);
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== input) return undefined;
+  return input >= "1900-01-01" && d.getTime() <= Date.now() ? input : undefined;
+}
+
 export function mapGooglePayload(p: GooglePayload) {
   const a = p.answers;
   const fromChoices = a.needs
@@ -118,6 +128,7 @@ export function mapGooglePayload(p: GooglePayload) {
     firstName,
     lastName: rest.join(" ") || undefined,
     pronouns: a.pronouns || undefined,
+    dateOfBirth: validBirthDate(a.dob),
     language: knownLanguage ?? (a.language ? "Other" : undefined),
     languageOther: !knownLanguage && a.language ? a.language : undefined,
     lgbtqCare: /^y/i.test(a.lgbtqCare),

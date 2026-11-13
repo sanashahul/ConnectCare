@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AGE_RANGES, CITIES, DISABILITY_ANSWERS, INSURANCE, LANGUAGES, NEED_KEYS, OUTREACH_SITES, SLEEPING, countyForCity } from "./options";
 import type { ClientProfile } from "./clients";
+import { validBirthDate } from "./google-intake";
 
 // Shared by the public form and the staff "new client" form.
 
@@ -16,6 +17,12 @@ export const IntakeSchema = z.object({
   firstName: z.string().trim().min(1, "Please enter a first name or nickname.").max(120),
   lastName: optionalText(120),
   pronouns: optionalText(40),
+  dateOfBirth: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => !v || validBirthDate(v), "Date of birth: enter a real date in the past.")
+    .transform((v) => (v ? v : undefined)),
   ageRange: optionalEnum(AGE_RANGES),
   phone: optionalText(40),
   email: z.union([z.literal(""), z.string().trim().email("That email doesn't look right.").max(200)]).optional(),
@@ -46,6 +53,7 @@ const FIELD_LABELS: Record<string, string> = {
   firstName: "First name",
   lastName: "Last name",
   pronouns: "Pronouns",
+  dateOfBirth: "Date of birth",
   ageRange: "Age",
   phone: "Phone",
   email: "Email",
@@ -93,6 +101,7 @@ export function readIntakeForm(form: FormData, opts: { nameRequired?: boolean } 
     firstName: s("firstName") ?? "",
     lastName: s("lastName"),
     pronouns: s("pronouns"),
+    dateOfBirth: s("dateOfBirth"),
     ageRange: s("ageRange"),
     phone: s("phone"),
     email: s("email"),
@@ -123,6 +132,7 @@ export function toClientColumns(input: IntakeInput) {
     firstName: input.firstName,
     lastName: input.lastName,
     pronouns: input.pronouns,
+    dateOfBirth: input.dateOfBirth,
     ageRange: input.ageRange,
     phone: input.phone,
     email: input.email || undefined,

@@ -195,6 +195,7 @@ export default async function ClientPage({ params, searchParams }: {
               <dl className="mt-2 space-y-2">
                 <Row label="Client ID" value={client.clientCode} />
                 <Row label="Email" value={p.email} />
+                <Row label="Date of birth" value={p.dateOfBirth && formatBirthDate(p.dateOfBirth)} />
                 <Row label="Age" value={p.ageRange} />
                 <Row label="Pronouns" value={p.pronouns} />
                 <Row
@@ -381,4 +382,9 @@ function Row({ label, value }: { label: string; value?: string | null | false })
       <dd className="col-span-2 whitespace-pre-wrap text-stone-900">{value}</dd>
     </div>
   );
+}
+
+/** "YYYY-MM-DD" shown as a date, without shifting a day for the viewer's time zone. */
+function formatBirthDate(iso: string) {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" });
 }

@@ -28,6 +28,7 @@ var FORM_TITLE = "Ask for help: Outreach Team";
 var Q = {
   name: "Your name",
   pronouns: "Your pronouns",
+  dob: "Date of birth",
   email: "Email",
   contact: "Best place or way to contact you", // older forms; newer ones ask the next three separately
   phone: "Phone number",
@@ -97,6 +98,7 @@ var CONSENT_TEXT =
 var HELP = {
   name: "First name or nickname is fine.",
   pronouns: "Optional. For example: she/her, he/him, they/them.",
+  dob: "Optional. Helps us sign you up for benefits and appointments.",
   email: "Optional. We will send your request number here.",
   contact: "A phone number, or where and when we can usually find you (for example: Hope's Corner on Thursday mornings).",
   urgentNeed: "Share only what you are comfortable with. Please don't include Social Security numbers.",
@@ -148,6 +150,7 @@ var TRANSLATIONS = {
     q: {
       name: "Su nombre",
       pronouns: "Sus pronombres",
+      dob: "Fecha de nacimiento",
       email: "Correo electrónico",
       contact: "El mejor lugar o forma de contactarle",
       language: "Idioma preferido",
@@ -169,6 +172,7 @@ var TRANSLATIONS = {
     help: {
       name: "Basta con su nombre o apodo.",
       pronouns: "Opcional. Por ejemplo: ella, él, elle.",
+      dob: "Opcional. Nos ayuda a inscribirle en beneficios y citas.",
       email: "Opcional. Le enviaremos aquí su número de solicitud.",
       contact: "Un número de teléfono, o dónde y cuándo podemos encontrarle normalmente (por ejemplo: Hope's Corner los jueves por la mañana).",
       urgentNeed: "Comparta solo lo que le haga sentir cómodo/a. Por favor, no incluya números de Seguro Social.",
@@ -230,6 +234,7 @@ var TRANSLATIONS = {
     q: {
       name: "Tên của bạn",
       pronouns: "Đại từ nhân xưng của bạn",
+      dob: "Ngày sinh",
       email: "Địa chỉ email",
       contact: "Nơi hoặc cách tốt nhất để liên lạc với bạn",
       language: "Ngôn ngữ ưa thích",
@@ -251,6 +256,7 @@ var TRANSLATIONS = {
     help: {
       name: "Chỉ cần tên hoặc biệt danh.",
       pronouns: "Không bắt buộc. Ví dụ: she/her, he/him, they/them.",
+      dob: "Không bắt buộc. Giúp chúng tôi đăng ký phúc lợi và lịch hẹn cho bạn.",
       email: "Không bắt buộc. Chúng tôi sẽ gửi mã số yêu cầu của bạn đến đây.",
       contact: "Số điện thoại, hoặc nơi và lúc chúng tôi thường có thể gặp bạn (ví dụ: Hope's Corner vào sáng thứ Năm).",
       urgentNeed: "Chỉ chia sẻ những gì bạn thấy thoải mái. Xin đừng ghi số An Sinh Xã Hội.",
@@ -352,7 +358,7 @@ function strings_(lang) {
 
 // Question order within each language section. Consent stays last.
 var ORDER = [
-  "name", "pronouns", "email", "contact", "urgentNeed", "helpToday",
+  "name", "pronouns", "dob", "email", "contact", "urgentNeed", "helpToday",
   "needs", "lgbtqCare", "disability", "accessNeeds", "pcp", "area", "otherInfo", "consent",
 ];
 
@@ -421,6 +427,9 @@ function addQuestion_(form, key, lang) {
       item = form.addTextItem().setTitle(title);
       if (key === "name") item.setRequired(true);
       break;
+    case "dob":
+      item = form.addDateItem().setTitle(title).setIncludesYear(true);
+      break;
     case "email":
       item = form.addTextItem().setTitle(title).setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
       break;
@@ -478,6 +487,11 @@ function addMissingQuestions_(form) {
   ["en", "es", "vi"].forEach(function (lang) {
     var S = strings_(lang);
     if (has(S.q.accessNeeds) && !has(S.q.pcp)) place(addQuestion_(form, "pcp", lang), S.q.accessNeeds);
+  });
+  // Date of birth goes after pronouns in each language section the form has.
+  ["en", "es", "vi"].forEach(function (lang) {
+    var S = strings_(lang);
+    if (has(S.q.pronouns) && !has(S.q.dob)) place(addQuestion_(form, "dob", lang), S.q.pronouns);
   });
 }
 
@@ -640,13 +654,13 @@ function languageChoiceOf_(response) {
 // Answers that identify someone or describe their health. In Box mode they stay in Google Forms
 // (for staff to copy into Box) and are never sent to the app.
 var BOX_MODE_WITHHELD = [
-  "name", "pronouns", "email", "contact", "phone", "volunteer", "urgentNeed",
+  "name", "pronouns", "dob", "email", "contact", "phone", "volunteer", "urgentNeed",
   "lgbtqCare", "disability", "accessNeeds", "pcp", "otherInfo",
 ];
 
 function toPayload_(response, boxMode) {
   var answers = {
-    name: "", pronouns: "", email: "", contact: "", phone: "", language: "", urgentNeed: "", helpToday: "",
+    name: "", pronouns: "", dob: "", email: "", contact: "", phone: "", language: "", urgentNeed: "", helpToday: "",
     needs: [], lgbtqCare: "", disability: "", accessNeeds: "", pcp: "", area: "", otherInfo: "", volunteer: "", consent: false,
   };
   var findMe = "";
