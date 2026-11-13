@@ -74,6 +74,35 @@ const RemoveMember = z.object({
   handTo: z.union([z.literal(""), z.string().uuid()]),
 });
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Moves every client assigned to `fromId` to `toId` (or back to the intake queue when null). Closed clients stay closed. */
+async function handOverClients(tx: Tx, fromId: string, toId: string | null) {
+  const theirs = await tx
+    .select({ id: schema.clients.id, status: schema.clients.status })
+    .from(schema.clients)
+    .where(eq(schema.clients.assignedToId, fromId));
+  const now = new Date();
+  for (const c of theirs) {
+    await tx
+      .update(schema.clients)
+      .set({
+        assignedToId: toId,
+        assignedAt: toId ? now : null,
+        status: c.status === "closed" ? "closed" : toId ? "active" : "new",
+        updatedAt: now,
+      })
+      .where(eq(schema.clients.id, c.id));
+  }
+  return theirs;
+}
+
+async function activeCaseManager(id: string) {
+  return db.query.users.findFirst({
+    where: and(eq(schema.users.id, id), eq(schema.users.active, true), eq(schema.users.role, "case_manager"), isNull(schema.users.removedAt)),
+  });
+}
+
 /**
  * Removes someone from the team: signs them out for good, hides them from the team list and every
  * picker, and hands their clients to another case manager (or back to the intake queue).
@@ -87,31 +116,12 @@ export async function removeMember(form: FormData) {
   if (userId === me.id || handTo === userId) return;
   const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
   if (!target || target.removedAt) return;
-  const assignee = handTo
-    ? await db.query.users.findFirst({
-        where: and(eq(schema.users.id, handTo), eq(schema.users.active, true), eq(schema.users.role, "case_manager"), isNull(schema.users.removedAt)),
-      })
-    : null;
+  const assignee = handTo ? await activeCaseManager(handTo) : null;
   if (handTo && !assignee) return;
 
   const moved = await db.transaction(async (tx) => {
-    const theirs = await tx
-      .select({ id: schema.clients.id, status: schema.clients.status })
-      .from(schema.clients)
-      .where(eq(schema.clients.assignedToId, userId));
-    const now = new Date();
-    for (const c of theirs) {
-      await tx
-        .update(schema.clients)
-        .set({
-          assignedToId: assignee?.id ?? null,
-          assignedAt: assignee ? now : null,
-          status: c.status === "closed" ? "closed" : assignee ? "active" : "new",
-          updatedAt: now,
-        })
-        .where(eq(schema.clients.id, c.id));
-    }
-    await tx.update(schema.users).set({ active: false, removedAt: now }).where(eq(schema.users.id, userId));
+    const theirs = await handOverClients(tx, userId, assignee?.id ?? null);
+    await tx.update(schema.users).set({ active: false, removedAt: new Date() }).where(eq(schema.users.id, userId));
     return theirs;
   });
   await destroyAllSessionsFor(userId);
@@ -130,4 +140,36 @@ export async function restoreMember(form: FormData) {
   await db.update(schema.users).set({ removedAt: null }).where(eq(schema.users.id, id));
   await audit({ userId: me.id, action: "user.restored", detail: { targetUserId: id } });
   revalidatePath("/team");
+}
+
+const ChangeRole = z.object({
+  userId: z.string().uuid(),
+  role: z.enum(["case_manager", "supervisor"]),
+  // Only used when a case manager with clients becomes a supervisor. "" = back to the intake queue.
+  handTo: z.union([z.literal(""), z.string().uuid()]),
+});
+
+/** Switch someone between case manager and supervisor. You can't change your own role. */
+export async function changeRole(form: FormData) {
+  const me = await requireSupervisor();
+  const parsed = ChangeRole.safeParse({ userId: form.get("userId"), role: form.get("role"), handTo: form.get("handTo") ?? "" });
+  if (!parsed.success) return;
+  const { userId, role, handTo } = parsed.data;
+  if (userId === me.id || handTo === userId) return;
+  const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  if (!target || target.removedAt || target.role === role) return;
+  const assignee = handTo ? await activeCaseManager(handTo) : null;
+  if (handTo && !assignee) return;
+
+  const moved = await db.transaction(async (tx) => {
+    // Supervisors don't carry a caseload, so a case manager's clients are handed over when they move up.
+    const theirs = role === "supervisor" ? await handOverClients(tx, userId, assignee?.id ?? null) : [];
+    await tx.update(schema.users).set({ role }).where(eq(schema.users.id, userId));
+    return theirs;
+  });
+  for (const c of moved) {
+    await audit({ userId: me.id, action: "client.assigned", clientId: c.id, detail: { assigneeId: assignee?.id ?? null, fromUserId: userId } });
+  }
+  await audit({ userId: me.id, action: "user.role_changed", detail: { targetUserId: userId, from: target.role, to: role, clientsMoved: moved.length } });
+  for (const path of ["/team", "/clients", "/intake-queue", "/dashboard"]) revalidatePath(path);
 }

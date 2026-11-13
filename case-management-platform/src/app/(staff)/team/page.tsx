@@ -4,7 +4,7 @@ import { db, schema } from "@/db";
 import { Badge, Card, PageHeader, smallButtonClass } from "@/components/ui";
 import { requireSupervisor } from "@/lib/auth";
 import { caseManagers } from "@/lib/followups";
-import { removeMember, restoreMember, teamAction } from "./actions";
+import { changeRole, removeMember, restoreMember, teamAction } from "./actions";
 import { NewUserForm, ResetPasswordButton } from "./forms";
 
 export default async function TeamPage() {
@@ -58,6 +58,11 @@ export default async function TeamPage() {
                     <input type="hidden" name="intent" value={u.active ? "deactivate" : "activate"} />
                     <button className={smallButtonClass}>{u.active ? "Deactivate" : "Reactivate"}</button>
                   </form>
+                  <ChangeRole
+                    user={u}
+                    clients={clientCount.get(u.id) ?? 0}
+                    others={cms.filter((c) => c.id !== u.id)}
+                  />
                   <RemoveMember
                     user={u}
                     clients={clientCount.get(u.id) ?? 0}
@@ -126,6 +131,46 @@ function RemoveMember({ user, clients, others }: {
           <input type="hidden" name="handTo" value="" />
         )}
         <button className="rounded-md bg-red-700 px-3 py-1.5 font-medium text-white hover:bg-red-800">Remove {first}</button>
+      </form>
+    </details>
+  );
+}
+
+function ChangeRole({ user, clients, others }: {
+  user: { id: string; name: string; role: string };
+  clients: number;
+  others: { id: string; name: string }[];
+}) {
+  const first = user.name.split(" ")[0];
+  const toSupervisor = user.role === "case_manager";
+  return (
+    <details>
+      <summary className={`${smallButtonClass} cursor-pointer list-none`}>Change role…</summary>
+      <form action={changeRole} className="mt-2 w-72 space-y-2 rounded-md border border-stone-200 bg-stone-50 p-3 text-sm">
+        <input type="hidden" name="userId" value={user.id} />
+        <input type="hidden" name="role" value={toSupervisor ? "supervisor" : "case_manager"} />
+        <p className="font-medium">Make {user.name} a {toSupervisor ? "supervisor" : "case manager"}?</p>
+        <p className="text-stone-600">
+          {toSupervisor
+            ? `${first} will see every client and be able to manage the team.`
+            : `${first} will only see the clients assigned to them and can no longer manage the team. You can assign them clients afterwards.`}
+        </p>
+        {toSupervisor && clients > 0 ? (
+          <label className="block">
+            <span className="text-stone-700">Supervisors don&apos;t carry a caseload. Hand their {clients} client{clients === 1 ? "" : "s"} to</span>
+            <select name="handTo" className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1">
+              <option value="">Nobody yet (back to the intake queue)</option>
+              {others.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <input type="hidden" name="handTo" value="" />
+        )}
+        <button className="rounded-md bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700">
+          Make {first} a {toSupervisor ? "supervisor" : "case manager"}
+        </button>
       </form>
     </details>
   );
