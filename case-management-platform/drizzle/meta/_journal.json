@@ -78,6 +78,13 @@
       "when": 1794521630193,
       "tag": "0010_box_folder",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794547434448,
+      "tag": "0011_remove_team_member",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/db";
@@ -22,6 +22,7 @@ export async function createUser(_: TeamState, form: FormData): Promise<TeamStat
   const parsed = NewUser.safeParse({ name: form.get("name"), email: form.get("email"), role: form.get("role") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const exists = await db.query.users.findFirst({ where: eq(schema.users.email, parsed.data.email) });
+  if (exists?.removedAt) return { error: "That person was removed from the team earlier. Open \"Removed from the team\" below to bring them back." };
   if (exists) return { error: "Someone already has that email." };
   const password = temporaryPassword();
   const [u] = await db
@@ -54,12 +55,79 @@ export async function teamAction(form: FormData) {
   const intent = String(form.get("intent"));
   if (id === me.id && intent === "deactivate") return;
   if (intent === "deactivate" || intent === "activate") {
-    await db.update(schema.users).set({ active: intent === "activate" }).where(eq(schema.users.id, id));
+    await db
+      .update(schema.users)
+      .set({ active: intent === "activate" })
+      .where(intent === "activate" ? and(eq(schema.users.id, id), isNull(schema.users.removedAt)) : eq(schema.users.id, id));
     if (intent === "deactivate") await destroyAllSessionsFor(id);
   } else if (intent === "reset2fa") {
     await db.update(schema.users).set({ totpEnabled: false, totpSecretEnc: null, totpLastStep: null }).where(eq(schema.users.id, id));
     await destroyAllSessionsFor(id);
   } else return;
   await audit({ userId: me.id, action: `user.${intent}`, detail: { targetUserId: id } });
+  revalidatePath("/team");
+}
+
+const RemoveMember = z.object({
+  userId: z.string().uuid(),
+  // "" = put their clients back in the intake queue.
+  handTo: z.union([z.literal(""), z.string().uuid()]),
+});
+
+/**
+ * Removes someone from the team: signs them out for good, hides them from the team list and every
+ * picker, and hands their clients to another case manager (or back to the intake queue).
+ * The account row is kept (deactivated) so the notes, messages and audit log they wrote keep an author.
+ */
+export async function removeMember(form: FormData) {
+  const me = await requireSupervisor();
+  const parsed = RemoveMember.safeParse({ userId: form.get("userId"), handTo: form.get("handTo") ?? "" });
+  if (!parsed.success) return;
+  const { userId, handTo } = parsed.data;
+  if (userId === me.id || handTo === userId) return;
+  const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
+  if (!target || target.removedAt) return;
+  const assignee = handTo
+    ? await db.query.users.findFirst({
+        where: and(eq(schema.users.id, handTo), eq(schema.users.active, true), eq(schema.users.role, "case_manager"), isNull(schema.users.removedAt)),
+      })
+    : null;
+  if (handTo && !assignee) return;
+
+  const moved = await db.transaction(async (tx) => {
+    const theirs = await tx
+      .select({ id: schema.clients.id, status: schema.clients.status })
+      .from(schema.clients)
+      .where(eq(schema.clients.assignedToId, userId));
+    const now = new Date();
+    for (const c of theirs) {
+      await tx
+        .update(schema.clients)
+        .set({
+          assignedToId: assignee?.id ?? null,
+          assignedAt: assignee ? now : null,
+          status: c.status === "closed" ? "closed" : assignee ? "active" : "new",
+          updatedAt: now,
+        })
+        .where(eq(schema.clients.id, c.id));
+    }
+    await tx.update(schema.users).set({ active: false, removedAt: now }).where(eq(schema.users.id, userId));
+    return theirs;
+  });
+  await destroyAllSessionsFor(userId);
+  for (const c of moved) {
+    await audit({ userId: me.id, action: "client.assigned", clientId: c.id, detail: { assigneeId: assignee?.id ?? null, fromRemovedUserId: userId } });
+  }
+  await audit({ userId: me.id, action: "user.removed", detail: { targetUserId: userId, clientsMoved: moved.length, handedTo: assignee?.id ?? null } });
+  for (const path of ["/team", "/clients", "/intake-queue", "/dashboard"]) revalidatePath(path);
+}
+
+/** Undo a removal. They come back deactivated; reactivate them when they should sign in again. */
+export async function restoreMember(form: FormData) {
+  const me = await requireSupervisor();
+  const id = String(form.get("userId"));
+  if (!z.string().uuid().safeParse(id).success) return;
+  await db.update(schema.users).set({ removedAt: null }).where(eq(schema.users.id, id));
+  await audit({ userId: me.id, action: "user.restored", detail: { targetUserId: id } });
   revalidatePath("/team");
 }

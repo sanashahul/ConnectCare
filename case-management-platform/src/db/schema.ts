@@ -40,6 +40,8 @@ export const users = pgTable("users", {
   failedLogins: integer("failed_logins").notNull().default(0),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   active: boolean("active").notNull().default(true),
+  // Set when a supervisor removes someone from the team. The row stays so their notes keep an author.
+  removedAt: timestamp("removed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
