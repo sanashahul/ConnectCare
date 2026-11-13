@@ -1,12 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ErrorText, formatDate, smallButtonClass } from "@/components/ui";
+import { formatDate, smallButtonClass } from "@/components/ui";
 import { clearNotResponding, markNotResponding } from "../actions";
 
 /**
- * The case manager's "Don't respond" button. The site is filled in from where the client was
- * last seen; the clinical manager on that site's next shift gets them on their list.
+ * The case manager's small "Don't respond" button, under Last seen. The site is filled in from
+ * where the client was last seen; the clinical manager on that site's next shift gets them on their list.
  */
 export function NotResponding({ clientId, sites, suggestedSiteId, lastPlace, current }: {
   clientId: string;
@@ -27,69 +27,59 @@ export function NotResponding({ clientId, sites, suggestedSiteId, lastPlace, cur
 
   if (current) {
     return (
-      <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p className="font-semibold">Not responding · clinical team looking at {current.siteName}</p>
-            <p className="text-amber-900">
-              Marked {formatDate(current.at)}{current.by && ` by ${current.by}`}.{" "}
-              {current.nextShift ? `Next shift there: ${current.nextShift}.` : "No shift scheduled there yet."}
-            </p>
-            {current.tip && <p className="mt-1">Tip for the clinical manager: {current.tip}</p>}
-          </div>
-          <form action={clearNotResponding}>
-            <input type="hidden" name="clientId" value={clientId} />
-            <button className={smallButtonClass}>They responded</button>
-          </form>
-        </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-amber-900">
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium">Not responding</span>
+        <span>
+          Clinical team looking at {current.siteName}
+          {current.nextShift ? ` (next shift ${current.nextShift})` : " (no shift scheduled yet)"}
+          {current.at && ` · marked ${formatDate(current.at)}${current.by ? ` by ${current.by}` : ""}`}
+          {current.tip && ` · tip: ${current.tip}`}
+        </span>
+        <form action={clearNotResponding}>
+          <input type="hidden" name="clientId" value={clientId} />
+          <button className="text-stone-600 underline hover:text-stone-900">They responded</button>
+        </form>
       </div>
     );
   }
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="rounded-md border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-900 hover:bg-amber-50">
-        Don&apos;t respond
-      </button>
+      <div className="mt-2 flex justify-end">
+        <button type="button" onClick={() => setOpen(true)} className={smallButtonClass} title="Ask the clinical team to look for this client at their outreach site">
+          Don&apos;t respond
+        </button>
+      </div>
     );
   }
 
   const suggested = sites.find((s) => s.id === suggestedSiteId);
   return (
-    <form action={action} className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
-      <p className="font-semibold text-amber-950">Ask the clinical team to look for this client</p>
+    <form action={action} className="mt-2 space-y-2 rounded-md border border-stone-200 bg-stone-50 p-2 text-xs">
+      <p className="font-medium text-stone-800">Ask the clinical team to look for them</p>
       {sites.length === 0 ? (
-        <p className="text-amber-900">No outreach sites are set up yet. Ask your supervisor to add the shift schedule under Sites &amp; shifts.</p>
+        <p className="text-stone-600">No outreach shifts are on the schedule yet. Ask your supervisor to add one.</p>
       ) : (
         <>
-          <label className="block">
-            <span className="text-stone-700">Site where they were last seen</span>
-            <select name="siteId" required defaultValue={suggested?.id ?? ""} className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1">
-              <option value="" disabled>Pick a site</option>
-              {sites.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-            <span className="mt-1 block text-xs text-stone-600">
-              {suggested
-                ? `Filled in from where they were last seen${lastPlace ? ` (“${lastPlace}”)` : ""}.`
-                : lastPlace
-                  ? `Last seen at “${lastPlace}”, which isn't one of the sites. Pick the closest one.`
-                  : "No place last seen on record. Pick the site where they usually are."}
-            </span>
-          </label>
-          <label className="block">
-            <span className="text-stone-700">Tip to help find them (optional)</span>
-            <input name="tip" maxLength={500} placeholder="e.g. usually by the side entrance, has a gray dog" className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1" />
-            <span className="mt-1 block text-xs text-stone-600">The clinical manager sees this, their first name and last initial, and where they were last seen. No health details.</span>
-          </label>
-          <ErrorText>{state?.error}</ErrorText>
-          <div className="flex gap-2">
-            <button disabled={pending} className="rounded-md bg-amber-700 px-3 py-1.5 font-medium text-white hover:bg-amber-800">Mark as not responding</button>
-            <button type="button" onClick={() => setOpen(false)} className={smallButtonClass}>Cancel</button>
-          </div>
+          <select name="siteId" required defaultValue={suggested?.id ?? ""} aria-label="Site" className="w-full rounded border border-stone-300 bg-white px-2 py-1">
+            <option value="" disabled>Pick a site</option>
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <p className="text-stone-500">
+            {suggested ? "Filled in from where they were last seen." : lastPlace ? `Last seen at “${lastPlace}”. Pick the closest site.` : "Pick the site where they usually are."}
+          </p>
+          <input name="tip" maxLength={500} aria-label="Tip" placeholder="Tip to help find them (optional, no health details)" className="w-full rounded border border-stone-300 bg-white px-2 py-1" />
+          {state?.error && <p role="alert" className="text-red-700">{state.error}</p>}
         </>
       )}
+      <div className="flex gap-2">
+        {sites.length > 0 && (
+          <button disabled={pending} className="rounded bg-amber-700 px-2 py-1 font-medium text-white hover:bg-amber-800">Send to clinical team</button>
+        )}
+        <button type="button" onClick={() => setOpen(false)} className={smallButtonClass}>Cancel</button>
+      </div>
     </form>
   );
 }

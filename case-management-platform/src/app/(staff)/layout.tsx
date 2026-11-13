@@ -15,7 +15,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const links = clinical ? [{ href: "/shift", label: "Today's shift" }] : [
     { href: "/dashboard", label: "Home" },
     ...(supervisor ? [{ href: "/intake-queue", label: "Intake queue" }, { href: "/clients", label: "All clients" }] : []),
-    ...(supervisor ? [{ href: "/sites", label: "Sites & shifts" }] : []),
+    ...(supervisor ? [{ href: "/schedule", label: "Shift schedule" }] : []),
     { href: "/resources", label: "Resources" },
     { href: "/messages", label: "Messages", badge: unread },
     ...(supervisor ? [{ href: "/reports", label: "Reports" }, { href: "/team", label: "Team" }, { href: "/audit", label: "Audit log" }, { href: "/setup", label: "Setup check" }] : []),

@@ -313,7 +313,7 @@ export async function markNotResponding(clientId: string, _: ActionState, form: 
     })
     .where(eq(schema.clients.id, clientId));
   await audit({ userId: user.id, action: "client.not_responding", clientId, detail: { siteId: site.id } });
-  for (const path of [`/clients/${clientId}`, "/dashboard", "/sites"]) revalidatePath(path);
+  for (const path of [`/clients/${clientId}`, "/dashboard", "/schedule"]) revalidatePath(path);
   return { ok: true };
 }
 
@@ -323,7 +323,7 @@ export async function clearNotResponding(form: FormData) {
   const { user } = await clientOr404(clientId);
   await db.update(schema.clients).set({ ...NOT_RESPONDING_CLEARED, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
   await audit({ userId: user.id, action: "client.responding", clientId });
-  for (const path of [`/clients/${clientId}`, "/dashboard", "/sites"]) revalidatePath(path);
+  for (const path of [`/clients/${clientId}`, "/dashboard", "/schedule"]) revalidatePath(path);
 }
 
 // ---------- Care plan ----------

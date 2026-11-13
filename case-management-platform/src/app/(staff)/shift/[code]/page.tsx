@@ -4,8 +4,9 @@ import { audit } from "@/lib/audit";
 import { pacificDate } from "@/lib/report";
 import { requireShiftViewer } from "@/lib/auth";
 import { formatShiftDate, normalizeShiftCode, shiftIsOpen } from "@/lib/shift-utils";
-import { pacificToday, recordWrongShiftCode, shiftByCode, shiftCodeLocked, shiftList, type ShiftListEntry } from "@/lib/shifts";
+import { pacificToday, recordWrongShiftCode, shiftByCode, shiftCodeLocked, shiftList, shiftNotes, type ShiftListEntry } from "@/lib/shifts";
 import { recordCheck } from "../actions";
+import { QuickNoteForm } from "../forms";
 
 export default async function ShiftListPage({ params }: { params: Promise<{ code: string }> }) {
   const user = await requireShiftViewer();
@@ -35,6 +36,7 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
 
   const { shift, site } = found;
   const list = await shiftList(shift);
+  const notes = await shiftNotes(list.map((e) => e.clientId), shift.shiftDate);
   await audit({ userId: user.id, action: "shift.viewed", detail: { shiftId: shift.id, clients: list.length } });
   const toFind = list.filter((e) => !e.check);
   const done = list.filter((e) => e.check);
@@ -42,7 +44,7 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
   return (
     <div className="space-y-5">
       <PageHeader
-        back={{ href: supervisor ? "/sites" : "/shift", label: supervisor ? "Sites & shifts" : "Enter another code" }}
+        back={{ href: supervisor ? "/schedule" : "/shift", label: supervisor ? "Shift schedule" : "Enter another code" }}
         title={site.name}
         subtitle={
           <>
@@ -59,8 +61,8 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
         </p>
       )}
       <p className="text-sm text-stone-600">
-        These people&apos;s case managers haven&apos;t been able to reach them. If you find someone, mark them <strong>Found</strong> and ask them to get in touch with their case manager.
-        Their case manager sees what you record.
+        These people&apos;s case managers haven&apos;t been able to reach them. If you find someone, mark them <strong>Found</strong>, hand them their <strong>Resource plan</strong>, and ask them to get in touch with their case manager.
+        Found, Not here and quick notes all show up in the client&apos;s contact log for their case manager.
       </p>
 
       <Card title={`To look for (${toFind.length})`}>
@@ -68,7 +70,7 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
           <EmptyState>{list.length ? "Everyone on the list has been checked. Thank you!" : "Nobody at this site is marked “Don't respond” right now."}</EmptyState>
         ) : (
           <ul className="divide-y divide-stone-100">
-            {toFind.map((e) => <Person key={e.clientId} entry={e} code={shift.code} canRecord={open} />)}
+            {toFind.map((e) => <Person key={e.clientId} entry={e} code={shift.code} canRecord={open} notes={notes.get(e.clientId) ?? []} />)}
           </ul>
         )}
       </Card>
@@ -76,16 +78,16 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
       {done.length > 0 && (
         <Card title={`Checked on this shift (${done.length})`}>
           <ul className="divide-y divide-stone-100">
-            {done.map((e) => <Person key={e.clientId} entry={e} code={shift.code} canRecord={open} />)}
+            {done.map((e) => <Person key={e.clientId} entry={e} code={shift.code} canRecord={open} notes={notes.get(e.clientId) ?? []} />)}
           </ul>
         </Card>
       )}
-      {supervisor && <p className="text-xs text-stone-500"><Link href="/sites" className="underline">Back to the schedule</Link></p>}
+      {supervisor && <p className="text-xs text-stone-500"><Link href="/schedule" className="underline">Back to the schedule</Link></p>}
     </div>
   );
 }
 
-function Person({ entry: e, code, canRecord }: { entry: ShiftListEntry; code: string; canRecord: boolean }) {
+function Person({ entry: e, code, canRecord, notes }: { entry: ShiftListEntry; code: string; canRecord: boolean; notes: { body: string; by: string; at: Date }[] }) {
   return (
     <li className="py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -108,36 +110,37 @@ function Person({ entry: e, code, canRecord }: { entry: ShiftListEntry; code: st
             {e.check && ` · ${e.check.result === "found" ? "found" : "checked"} by ${e.check.by}`}
           </p>
         </div>
-        {canRecord && (
-          e.check ? (
-            <form action={recordCheck}>
-              <input type="hidden" name="code" value={code} />
-              <input type="hidden" name="clientId" value={e.clientId} />
-              <input type="hidden" name="result" value="undo" />
-              <button className={smallButtonClass}>Undo</button>
-            </form>
-          ) : (
-            <details className="w-full sm:w-72">
-              <summary className="cursor-pointer list-none rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-brand-700">
-                Record what happened
-              </summary>
-              <form action={recordCheck} className="mt-2 space-y-2 rounded-md border border-stone-200 bg-stone-50 p-3 text-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/shift/${code}/plan/${e.clientId}`} className={smallButtonClass}>Resource plan</Link>
+          {canRecord &&
+            (e.check ? (
+              <form action={recordCheck}>
                 <input type="hidden" name="code" value={code} />
                 <input type="hidden" name="clientId" value={e.clientId} />
-                <label className="block">
-                  <span className="text-stone-700">Note for their case manager (optional)</span>
-                  <textarea name="note" rows={2} maxLength={2000} className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1" />
-                </label>
-                <p className="text-xs text-stone-500">No health details here. Those go in the client&apos;s Box folder.</p>
-                <div className="flex gap-2">
-                  <button name="result" value="found" className="flex-1 rounded-md bg-emerald-700 px-3 py-1.5 font-medium text-white hover:bg-emerald-800">Found</button>
-                  <button name="result" value="not_here" className="flex-1 rounded-md border border-stone-300 bg-white px-3 py-1.5 font-medium text-stone-800 hover:bg-stone-100">Not here</button>
-                </div>
+                <input type="hidden" name="result" value="undo" />
+                <button className={smallButtonClass}>Undo</button>
               </form>
-            </details>
-          )
-        )}
+            ) : (
+              <form action={recordCheck} className="flex gap-2">
+                <input type="hidden" name="code" value={code} />
+                <input type="hidden" name="clientId" value={e.clientId} />
+                <button name="result" value="found" className="rounded-md bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800">Found</button>
+                <button name="result" value="not_here" className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-800 hover:bg-stone-100">Not here</button>
+              </form>
+            ))}
+        </div>
       </div>
+      {notes.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {notes.map((n, i) => (
+            <li key={i} className="rounded bg-stone-50 px-2 py-1 text-sm text-stone-800">
+              <span className="whitespace-pre-wrap">{n.body}</span>
+              <span className="ml-2 text-xs text-stone-500">{n.by}, {n.at.toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit" })}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {canRecord && <QuickNoteForm code={code} clientId={e.clientId} />}
     </li>
   );
 }

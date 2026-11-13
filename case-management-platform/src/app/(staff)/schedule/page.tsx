@@ -4,28 +4,31 @@ import { Badge, Card, EmptyState, PageHeader, smallButtonClass } from "@/compone
 import { requireSupervisor } from "@/lib/auth";
 import { formatShiftCode, formatShiftDate, shiftMessage } from "@/lib/shift-utils";
 import { listSites, notRespondingCounts, pacificToday, upcomingShifts } from "@/lib/shifts";
-import { setSiteActive, shiftAction } from "./actions";
-import { AddShiftForm, AddSiteForm, CopyShiftMessage, ImportScheduleForm } from "./forms";
+import { shiftAction } from "./actions";
+import { AddShiftForm, CopyShiftMessage } from "./forms";
 
-export default async function SitesPage() {
+export default async function SchedulePage() {
   await requireSupervisor();
   const today = pacificToday();
   const [sites, shifts, counts] = await Promise.all([listSites(), upcomingShifts(today), notRespondingCounts()]);
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
   const siteUrl = host ? `${h.get("x-forwarded-proto") ?? "https"}://${host}` : "";
-  const activeSites = sites.filter((s) => s.active);
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Sites & shifts"
-        subtitle="Each shift has its own code. On the day, send the code to the clinical manager working that shift. It opens the list of clients marked “Don't respond” at that site, and only works on the shift date."
+        title="Shift schedule"
+        subtitle="Add each outreach shift. It gets its own code. On the day, send the code to the clinical manager working that shift. It opens the list of clients marked “Don't respond” at that site, and only works on the shift date."
       />
+
+      <Card title="Add one shift">
+        <AddShiftForm siteNames={sites.map((s) => s.name)} />
+      </Card>
 
       <Card title="Upcoming shifts">
         {shifts.length === 0 ? (
-          <EmptyState>No shifts scheduled. Paste rows from the schedule sheet below.</EmptyState>
+          <EmptyState>No shifts scheduled yet. Add one above.</EmptyState>
         ) : (
           <ul className="divide-y divide-stone-100">
             {shifts.map(({ shift, site }) => {
@@ -73,39 +76,6 @@ export default async function SitesPage() {
         )}
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card title="Add shifts from the schedule">
-          <ImportScheduleForm />
-        </Card>
-        <Card title="Add one shift">
-          {activeSites.length ? <AddShiftForm sites={activeSites} /> : <EmptyState>Add a site first.</EmptyState>}
-        </Card>
-      </div>
-
-      <Card title="Sites">
-        {sites.length === 0 ? (
-          <EmptyState>No sites yet. They are added automatically when you paste the schedule, or add one below.</EmptyState>
-        ) : (
-          <ul className="mb-4 divide-y divide-stone-100">
-            {sites.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm">
-                <span>
-                  <span className="font-medium">{s.name}</span>
-                  {s.address && <span className="text-stone-500"> · {s.address}</span>}
-                  {!s.active && <span className="ml-2"><Badge>Hidden</Badge></span>}
-                  {(counts.get(s.id) ?? 0) > 0 && <span className="ml-2"><Badge tone="amber">{counts.get(s.id)} not responding</Badge></span>}
-                </span>
-                <form action={setSiteActive}>
-                  <input type="hidden" name="siteId" value={s.id} />
-                  <input type="hidden" name="active" value={s.active ? "false" : "true"} />
-                  <button className={smallButtonClass}>{s.active ? "Hide" : "Show again"}</button>
-                </form>
-              </li>
-            ))}
-          </ul>
-        )}
-        <AddSiteForm />
-      </Card>
     </div>
   );
 }

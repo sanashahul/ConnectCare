@@ -23,7 +23,7 @@ export default async function ShiftHome() {
         <Card title="Today's shifts">
           {todays.length === 0 ? (
             <EmptyState>
-              No shifts today. <Link href="/sites" className="text-brand-700 underline">See the schedule</Link>
+              No shifts today. <Link href="/schedule" className="text-brand-700 underline">See the schedule</Link>
             </EmptyState>
           ) : (
             <ul className="divide-y divide-stone-100 text-sm">

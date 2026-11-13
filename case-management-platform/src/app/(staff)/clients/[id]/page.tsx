@@ -120,19 +120,17 @@ export default async function ClientPage({ params, searchParams }: {
           <div>
             <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-stone-500">Last seen</h3>
             <LastSeen contact={contact} notReached={notReached} howToReach={p.howToReach} />
+            {client.status !== "closed" && (
+              <NotResponding
+                clientId={id}
+                sites={activeSites.map((s) => ({ id: s.id, name: s.name }))}
+                suggestedSiteId={matchSite(contact.lastPlace, activeSites)?.id ?? matchSite(p.outreachSite, activeSites)?.id ?? matchSite(p.howToReach, activeSites)?.id}
+                lastPlace={contact.lastPlace ?? p.outreachSite}
+                current={notResponding}
+              />
+            )}
           </div>
         </div>
-        {client.status !== "closed" && (
-          <div className="mt-4">
-            <NotResponding
-              clientId={id}
-              sites={activeSites.map((s) => ({ id: s.id, name: s.name }))}
-              suggestedSiteId={matchSite(contact.lastPlace, activeSites)?.id ?? matchSite(p.outreachSite, activeSites)?.id ?? matchSite(p.howToReach, activeSites)?.id}
-              lastPlace={contact.lastPlace ?? p.outreachSite}
-              current={notResponding}
-            />
-          </div>
-        )}
       </Card>
 
       <div className="grid gap-5 lg:grid-cols-3">

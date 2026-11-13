@@ -9,7 +9,7 @@ import { audit } from "@/lib/audit";
 import { requireShiftViewer } from "@/lib/auth";
 import { encryptString } from "@/lib/crypto";
 import { normalizeShiftCode, shiftIsOpen } from "@/lib/shift-utils";
-import { pacificToday, recordWrongShiftCode, shiftByCode, shiftCodeLocked } from "@/lib/shifts";
+import { pacificToday, recordWrongShiftCode, shiftByCode, shiftClient, shiftCodeLocked } from "@/lib/shifts";
 
 export type CodeState = { error?: string } | undefined;
 
@@ -50,22 +50,9 @@ export async function recordCheck(form: FormData) {
   if (!parsed.success) return;
   const { code, clientId, result, note } = parsed.data;
   const today = pacificToday();
-  if (await shiftCodeLocked(user.id)) return;
-  const found = await shiftByCode(code);
-  // Results are only recorded on the shift date, even by supervisors previewing the list.
-  if (!found || !shiftIsOpen(found.shift.shiftDate, today)) {
-    await recordWrongShiftCode(user.id);
-    return;
-  }
-  const { shift, site } = found;
-
-  const client = await db.query.clients.findFirst({ where: eq(schema.clients.id, clientId) });
-  if (!client) return;
-  const existing = await db.query.shiftChecks.findFirst({
-    where: and(eq(schema.shiftChecks.shiftId, shift.id), eq(schema.shiftChecks.clientId, clientId)),
-  });
-  // Only people on this shift's list: marked at this site, or already checked on this shift.
-  if (client.notRespondingSiteId !== site.id && !existing) return;
+  const access = await shiftClient(user, code, clientId);
+  if (!access) return;
+  const { shift, site, client, check: existing } = access;
 
   if (result === "undo") {
     // Undo only removes the shift mark; the log entry stays as a record of what happened.
@@ -105,5 +92,39 @@ export async function recordCheck(form: FormData) {
     });
     await audit({ userId: user.id, action: `shift.${result}`, clientId, detail: { shiftId: shift.id } });
   }
-  for (const path of [`/shift/${shift.code}`, `/clients/${clientId}`, "/dashboard", "/sites"]) revalidatePath(path);
+  for (const path of [`/shift/${shift.code}`, `/clients/${clientId}`, "/dashboard", "/schedule"]) revalidatePath(path);
+}
+
+const QuickNoteSchema = z.object({
+  code: z.string().min(1),
+  clientId: z.string().uuid(),
+  body: z.string().trim().min(1, "Write a note.").max(2000),
+});
+
+export type QuickNoteState = { error?: string; ok?: boolean } | undefined;
+
+/**
+ * A quick note from the clinical manager about someone on the shift list. It goes into the client's
+ * contact log as an "Update", so their case manager sees it on the client page.
+ */
+export async function addQuickNote(_: QuickNoteState, form: FormData): Promise<QuickNoteState> {
+  const user = await requireShiftViewer();
+  const parsed = QuickNoteSchema.safeParse({ code: form.get("code"), clientId: form.get("clientId"), body: form.get("body") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  const access = await shiftClient(user, parsed.data.code, parsed.data.clientId);
+  if (!access) return { error: "This shift's list is closed. Notes can only be added on the day of the shift." };
+  await db.insert(schema.notes).values({
+    clientId: access.client.id,
+    authorId: user.id,
+    contactDate: pacificToday(),
+    kind: "update",
+    contactType: "other",
+    whereEnc: encryptString(access.site.name),
+    needsAddressed: [],
+    bodyEnc: encryptString(parsed.data.body),
+  });
+  await db.update(schema.clients).set({ updatedAt: new Date() }).where(eq(schema.clients.id, access.client.id));
+  await audit({ userId: user.id, action: "shift.note_added", clientId: access.client.id, detail: { shiftId: access.shift.id } });
+  for (const path of [`/shift/${access.shift.code}`, `/clients/${access.client.id}`, "/dashboard"]) revalidatePath(path);
+  return { ok: true };
 }

@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gt, gte, inArray, ne, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, inArray, ne, or } from "drizzle-orm";
 import { DatabaseError } from "pg";
 import { db, schema } from "@/db";
 import { displayName, withProfile } from "./clients";
@@ -163,4 +163,54 @@ export async function notRespondingInfo(client: typeof schema.clients.$inferSele
     tip: client.notRespondingTipEnc ? decryptString(client.notRespondingTipEnc) : undefined,
     nextShift: next ? `${formatShiftDate(next.shiftDate)}${next.meetTime ? `, ${next.meetTime}` : ""}` : undefined,
   };
+}
+
+/**
+ * The one access check for anything a clinical manager does with a person on a shift's list
+ * (record a result, add a quick note, open their resource plan). Returns null unless the code is a
+ * real shift, open today (supervisors may preview other days when `allowPreview`), and the client is
+ * on that shift's list: marked "Don't respond" at its site, or already checked on this shift.
+ * Wrong codes count toward the lockout.
+ */
+export async function shiftClient(user: { id: string; role: string }, code: string, clientId: string, opts: { allowPreview?: boolean } = {}) {
+  if (await shiftCodeLocked(user.id)) return null;
+  const found = await shiftByCode(code);
+  const open = found ? found.shift.shiftDate === pacificToday() : false;
+  if (!found || (!open && !(opts.allowPreview && user.role === "supervisor"))) {
+    await recordWrongShiftCode(user.id);
+    return null;
+  }
+  const client = await db.query.clients.findFirst({ where: eq(schema.clients.id, clientId) });
+  if (!client) return null;
+  const check = await db.query.shiftChecks.findFirst({
+    where: and(eq(schema.shiftChecks.shiftId, found.shift.id), eq(schema.shiftChecks.clientId, clientId)),
+  });
+  const onList = (client.notRespondingSiteId === found.site.id && client.status !== "closed") || !!check;
+  if (!onList) return null;
+  return { ...found, client, check: check ?? null, open };
+}
+
+/** Quick notes written on this shift's date by the clinical team, per client, newest first. */
+export async function shiftNotes(clientIds: string[], shiftDate: string) {
+  const out = new Map<string, { body: string; by: string; at: Date }[]>();
+  if (clientIds.length === 0) return out;
+  const rows = await db
+    .select({ note: schema.notes, by: schema.users.name })
+    .from(schema.notes)
+    .innerJoin(schema.users, eq(schema.notes.authorId, schema.users.id))
+    .where(
+      and(
+        inArray(schema.notes.clientId, clientIds),
+        eq(schema.notes.contactDate, shiftDate),
+        eq(schema.notes.kind, "update"),
+        inArray(schema.users.role, ["clinical_manager", "supervisor"]),
+      ),
+    )
+    .orderBy(desc(schema.notes.createdAt));
+  for (const r of rows) {
+    const list = out.get(r.note.clientId) ?? [];
+    list.push({ body: decryptString(r.note.bodyEnc), by: r.by, at: r.note.createdAt });
+    out.set(r.note.clientId, list);
+  }
+  return out;
 }
