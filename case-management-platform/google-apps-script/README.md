@@ -81,6 +81,8 @@ To add Spanish and Vietnamese to a form you made with an earlier version of the 
 2. Choose `setup` from the menu at the top and click **Run**.
 3. Open your form. It now starts with the language question, followed by English, Español and Tiếng Việt sections. The link and QR code don't change.
 
+Running `setup` again after replacing `Code.gs` also adds any new questions (such as **Date of birth**, after pronouns in each language) to the form you already have, without changing its link.
+
 If you ran the previous version, `setup` also removes the repeated "Preferred language" question from each section, so only the first language question is left.
 
 ### 4. Test it

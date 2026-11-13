@@ -181,7 +181,7 @@ test("the PCP question is added after accommodations in each language and saved 
   const make = (title: string): Item => {
     const it: Item & Record<string, unknown> = { title, getTitle: () => it.title, getIndex: () => items.indexOf(it) };
     const chain = () => it;
-    Object.assign(it, { setTitle: (t: string) => ((it.title = t), it), setHelpText: chain, setRequired: chain });
+    Object.assign(it, { setTitle: (t: string) => ((it.title = t), it), setHelpText: chain, setRequired: chain, setIncludesYear: chain });
     return it;
   };
   for (const lang of ["en", "es", "vi"]) {
@@ -193,6 +193,11 @@ test("the PCP question is added after accommodations in each language and saved 
   const form = {
     getItems: () => [...items],
     addParagraphTextItem: () => {
+      const it = make("");
+      items.push(it);
+      return it;
+    },
+    addDateItem: () => {
       const it = make("");
       items.push(it);
       return it;
@@ -209,6 +214,8 @@ test("the PCP question is added after accommodations in each language and saved 
     assert.equal(titles.filter((t) => t === q.pcp).length, 1, `${lang} PCP question added once`);
     assert.equal(titles.indexOf(q.pcp), titles.indexOf(q.accessNeeds) + 1, `${lang} PCP right after accommodations`);
   }
+  const Q = ctx.Q as Record<string, string>;
+  assert.equal(titles.indexOf(Q.dob), titles.indexOf(Q.pronouns) + 1, "date of birth right after pronouns");
   (ctx.addMissingQuestions_ as (f: unknown) => void)(form);
   assert.equal(items.length, titles.length, "running setup again adds nothing");
 
@@ -248,4 +255,35 @@ test("a client from the Google Form can always be edited and saved", async () =>
   const bad = readIntakeForm(form);
   assert.equal(bad.success, false);
   if (!bad.success) assert.equal(intakeErrorSummary(intakeFieldErrors(bad.error.issues)), "Please fix: Phone is too long (40 characters max).");
+});
+
+test("date of birth comes through from the Google Form and the staff form", async () => {
+  const { readIntakeForm } = await import("../src/lib/intake");
+  const ctx: Record<string, unknown> = {};
+  vm.runInNewContext(readFileSync(new URL("../google-apps-script/Code.gs", import.meta.url), "utf8"), ctx);
+  const toPayload = ctx.toPayload_ as (r: unknown, boxMode?: boolean) => unknown;
+  const response = (answers: Record<string, unknown>) => ({
+    getId: () => "r-dob",
+    getTimestamp: () => new Date("2026-11-12T19:00:00Z"),
+    getItemResponses: () =>
+      Object.entries(answers).map(([title, value]) => ({ getItem: () => ({ getTitle: () => title }), getResponse: () => value })),
+  });
+  const base = { "Your name": "Sam", "What do you need most urgently?": "food", Consent: ["I agree"] };
+  const en = GooglePayloadSchema.parse(toPayload(response({ ...base, "Date of birth": "1980-02-29" })));
+  assert.equal(mapGooglePayload(en).profile.dateOfBirth, "1980-02-29");
+  const es = GooglePayloadSchema.parse(toPayload(response({ "Su nombre": "Ana", "¿Qué es lo que más necesita con urgencia?": "comida", Consentimiento: ["Acepto"], "Fecha de nacimiento": "1975-06-01" })));
+  assert.equal(mapGooglePayload(es).profile.dateOfBirth, "1975-06-01");
+  for (const bad of ["1981-02-29", "2999-01-01", "1800-01-01", "June 1"]) {
+    assert.equal(mapGooglePayload(GooglePayloadSchema.parse(toPayload(response({ ...base, "Date of birth": bad })))).profile.dateOfBirth, undefined, bad);
+  }
+  // Box mode keeps it in Google Forms.
+  assert.ok(!JSON.stringify(toPayload(response({ ...base, "Date of birth": "1980-02-29" }), true)).includes("1980"));
+
+  const form = new FormData();
+  form.set("firstName", "Sam");
+  form.set("dateOfBirth", "1990-12-31");
+  const ok = readIntakeForm(form);
+  assert.ok(ok.success && ok.data.dateOfBirth === "1990-12-31");
+  form.set("dateOfBirth", "2999-01-01");
+  assert.equal(readIntakeForm(form).success, false);
 });

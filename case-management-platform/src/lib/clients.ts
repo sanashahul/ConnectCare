@@ -11,6 +11,8 @@ export type ClientProfile = {
   firstName: string;
   lastName?: string;
   pronouns?: string;
+  /** "YYYY-MM-DD". Encrypted like the rest of the profile. */
+  dateOfBirth?: string;
   ageRange?: string;
   phone?: string;
   email?: string;
