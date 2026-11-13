@@ -218,3 +218,34 @@ test("the PCP question is added after accommodations in each language and saved 
   });
   assert.equal(mapGooglePayload(p).profile.primaryCare, "Dr. Lee, Valley Health Center, 408-555-0111");
 });
+
+test("a client from the Google Form can always be edited and saved", async () => {
+  const { intakeErrorSummary, intakeFieldErrors, readIntakeForm } = await import("../src/lib/intake");
+  // Every written answer at the longest the Google Form endpoint accepts.
+  const p = GooglePayloadSchema.parse({
+    responseId: "r-max",
+    answers: {
+      name: `Maria ${"x".repeat(114)}`,
+      pronouns: "x".repeat(40),
+      email: `${"a".repeat(180)}@example.org`,
+      contact: "x".repeat(800),
+      phone: "4".repeat(40),
+      urgentNeed: "x".repeat(2000),
+      accessNeeds: "x".repeat(1000),
+      pcp: "x".repeat(1000),
+      otherInfo: "x".repeat(1500),
+      language: "Other",
+      consent: true,
+    },
+  });
+  const form = new FormData();
+  for (const [k, v] of Object.entries(mapGooglePayload(p).profile)) if (typeof v === "string") form.set(k, v);
+  const r = readIntakeForm(form);
+  assert.ok(r.success, r.success ? "" : JSON.stringify(r.error.issues));
+
+  // Anything wrong is named in the message at the top of the form.
+  form.set("phone", "4".repeat(41));
+  const bad = readIntakeForm(form);
+  assert.equal(bad.success, false);
+  if (!bad.success) assert.equal(intakeErrorSummary(intakeFieldErrors(bad.error.issues)), "Please fix: Phone is too long (40 characters max).");
+});
