@@ -11,7 +11,7 @@ import { requireSupervisor, requireUser } from "@/lib/auth";
 import { parseBoxUrl, phiInBox } from "@/lib/box";
 import { displayName, encryptProfile, getClientForUser, insertClient, matchingNeeds } from "@/lib/clients";
 import { encryptString } from "@/lib/crypto";
-import { readIntakeForm, toClientColumns } from "@/lib/intake";
+import { intakeErrorSummary, intakeFieldErrors, readIntakeForm, toClientColumns } from "@/lib/intake";
 import { CONTACT_TYPES, NEED_KEYS, NEEDS, NOTE_KINDS, PLAN_STATUSES, type NoteKind } from "@/lib/options";
 import { encryptPlanBody, decryptPlanBody, type AiSuggestion, type CustomResource } from "@/lib/plan";
 import { rateLimit } from "@/lib/rate-limit";
@@ -44,9 +44,8 @@ export async function createClient(_: ActionState, form: FormData): Promise<Acti
   if (form.get("consent") !== "on") return { error: "Confirm that the client agreed before saving." };
   const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
-    return { error: "Please fix the highlighted fields.", fieldErrors };
+    const fieldErrors = intakeFieldErrors(parsed.error.issues);
+    return { error: intakeErrorSummary(fieldErrors), fieldErrors };
   }
   const cols = toClientColumns({ ...parsed.data, filledOutBy: "staff" });
   // Case managers own the clients they add. Supervisors' new clients go to the intake queue.
@@ -72,9 +71,8 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
   const { user, client } = await clientOr404(id);
   const parsed = readIntakeForm(form, { nameRequired: !phiInBox() });
   if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const i of parsed.error.issues) fieldErrors[String(i.path[0])] = i.message;
-    return { error: "Please fix the highlighted fields.", fieldErrors };
+    const fieldErrors = intakeFieldErrors(parsed.error.issues);
+    return { error: intakeErrorSummary(fieldErrors), fieldErrors };
   }
   const cols = toClientColumns({ ...parsed.data, filledOutBy: client.profile.filledOutBy ?? "staff" });
   await db
@@ -88,6 +86,8 @@ export async function updateClient(id: string, _: ActionState, form: FormData): 
         ...cols.profile,
         consentAt: client.profile.consentAt,
         helperName: client.profile.helperName,
+        // The form has no box for an "Other" language's name; keep what the client wrote.
+        languageOther: cols.profile.language === "Other" ? client.profile.languageOther : undefined,
         healthInBox: client.profile.healthInBox,
         healthInBoxConfirmedAt: client.profile.healthInBoxConfirmedAt,
         healthInBoxConfirmedBy: client.profile.healthInBoxConfirmedBy,

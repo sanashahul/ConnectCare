@@ -59,12 +59,12 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
         {showIdentifying && (<>
         <div>
           <label className={labelClass} htmlFor="firstName">{T.firstName}</label>
-          <input id="firstName" name="firstName" required maxLength={60} defaultValue={defaults.firstName} className={inputClass} />
+          <input id="firstName" name="firstName" required maxLength={120} defaultValue={defaults.firstName} className={inputClass} />
           <FieldError msg={errors.firstName} />
         </div>
         <div>
           <label className={labelClass} htmlFor="lastName">{T.lastName} {opt}</label>
-          <input id="lastName" name="lastName" maxLength={60} defaultValue={defaults.lastName} className={inputClass} />
+          <input id="lastName" name="lastName" maxLength={120} defaultValue={defaults.lastName} className={inputClass} />
         </div>
         <div>
           <label className={labelClass} htmlFor="pronouns">{T.pronouns} {opt}</label>
@@ -87,17 +87,17 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClass} htmlFor="phone">{T.phone} {opt}</label>
-            <input id="phone" name="phone" type="tel" maxLength={30} defaultValue={defaults.phone} className={inputClass} />
+            <input id="phone" name="phone" type="tel" maxLength={40} defaultValue={defaults.phone} className={inputClass} />
           </div>
           <div>
             <label className={labelClass} htmlFor="email">{T.email} {opt}</label>
-            <input id="email" name="email" type="email" maxLength={120} defaultValue={defaults.email} className={inputClass} />
+            <input id="email" name="email" type="email" maxLength={200} defaultValue={defaults.email} className={inputClass} />
             <FieldError msg={errors.email} />
           </div>
         </div>
         <div>
           <label className={labelClass} htmlFor="howToReach">{you ? T.otherWays : "Other ways to contact them"}</label>
-          <input id="howToReach" name="howToReach" maxLength={300} placeholder={T.otherWaysExample} defaultValue={defaults.howToReach} className={inputClass} />
+          <input id="howToReach" name="howToReach" maxLength={800} placeholder={T.otherWaysExample} defaultValue={defaults.howToReach} className={inputClass} />
         </div>
         <fieldset>
           <legend className="text-sm text-stone-800">{T.okMessage}</legend>
@@ -178,7 +178,7 @@ export function IntakeFields({ mode, defaults = {}, errors = {}, lang = "en", hi
         <label className="flex items-center gap-2 text-sm font-medium text-amber-900">
           <input type="checkbox" name="urgent" defaultChecked={defaults.urgent} /> {T.urgent}
         </label>
-        {showHealth && <input name="urgentDetails" maxLength={500} placeholder={T.urgentDetails} defaultValue={defaults.urgentDetails} className={`${inputClass} mt-2`} />}
+        {showHealth && <input name="urgentDetails" maxLength={2000} placeholder={T.urgentDetails} defaultValue={defaults.urgentDetails} className={`${inputClass} mt-2`} />}
       </div>
 
       {showHealth && (
