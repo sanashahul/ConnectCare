@@ -10,7 +10,7 @@ import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
 export type PwState = { error?: string } | undefined;
 
 export async function changePassword(_: PwState, form: FormData): Promise<PwState> {
-  const user = await requireUser({ allowPasswordChange: true });
+  const user = await requireUser({ allowPasswordChange: true, allowClinicalManager: true });
   const current = String(form.get("current") ?? "");
   const next = String(form.get("next") ?? "");
   if (next !== String(form.get("confirm") ?? "")) return { error: "The new passwords don't match." };

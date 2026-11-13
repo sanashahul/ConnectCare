@@ -37,7 +37,7 @@ async function main() {
   } else {
     if (existing) throw new Error("An account with that email already exists");
     if (!values.name) throw new Error("--name is required");
-    const role = values.role === "supervisor" ? "supervisor" : "case_manager";
+    const role = values.role === "supervisor" || values.role === "clinical_manager" ? values.role : "case_manager";
     const [u] = await db
       .insert(schema.users)
       .values({ email, name: values.name, role, passwordHash: await hashPassword(password) })

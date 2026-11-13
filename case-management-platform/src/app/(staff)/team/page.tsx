@@ -2,6 +2,7 @@ import Link from "next/link";
 import { asc, count, isNotNull } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { Badge, Card, PageHeader, smallButtonClass } from "@/components/ui";
+import { ROLE_LABELS, roleLabel, type Role } from "@/lib/access";
 import { requireSupervisor } from "@/lib/auth";
 import { caseManagers } from "@/lib/followups";
 import { changeRole, removeMember, restoreMember, teamAction } from "./actions";
@@ -37,7 +38,7 @@ export default async function TeamPage() {
                   )}
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1">
-                  <Badge tone="brand">{u.role === "supervisor" ? "Supervisor" : "Case manager"}</Badge>
+                  <Badge tone="brand">{roleLabel(u.role)}</Badge>
                   {!u.active && <Badge tone="red">Deactivated</Badge>}
                   {u.totpEnabled ? <Badge tone="green">2FA on</Badge> : <Badge tone="amber">2FA not set up</Badge>}
                   {u.lockedUntil && u.lockedUntil > new Date() && <Badge tone="red">Locked</Badge>}
@@ -136,42 +137,48 @@ function RemoveMember({ user, clients, others }: {
   );
 }
 
+const ROLE_EFFECT: Record<Role, string> = {
+  supervisor: "will see every client and be able to manage the team.",
+  case_manager: "will only see the clients assigned to them and can't manage the team. You can assign them clients afterwards.",
+  clinical_manager: "will only see a shift's \"not responding\" list, using the code you send them on the day. They can't open client records.",
+};
+
 function ChangeRole({ user, clients, others }: {
   user: { id: string; name: string; role: string };
   clients: number;
   others: { id: string; name: string }[];
 }) {
   const first = user.name.split(" ")[0];
-  const toSupervisor = user.role === "case_manager";
+  const options = (Object.keys(ROLE_LABELS) as Role[]).filter((r) => r !== user.role);
   return (
     <details>
       <summary className={`${smallButtonClass} cursor-pointer list-none`}>Change role…</summary>
-      <form action={changeRole} className="mt-2 w-72 space-y-2 rounded-md border border-stone-200 bg-stone-50 p-3 text-sm">
-        <input type="hidden" name="userId" value={user.id} />
-        <input type="hidden" name="role" value={toSupervisor ? "supervisor" : "case_manager"} />
-        <p className="font-medium">Make {user.name} a {toSupervisor ? "supervisor" : "case manager"}?</p>
-        <p className="text-stone-600">
-          {toSupervisor
-            ? `${first} will see every client and be able to manage the team.`
-            : `${first} will only see the clients assigned to them and can no longer manage the team. You can assign them clients afterwards.`}
-        </p>
-        {toSupervisor && clients > 0 ? (
-          <label className="block">
-            <span className="text-stone-700">Supervisors don&apos;t carry a caseload. Hand their {clients} client{clients === 1 ? "" : "s"} to</span>
-            <select name="handTo" className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1">
-              <option value="">Nobody yet (back to the intake queue)</option>
-              {others.map((o) => (
-                <option key={o.id} value={o.id}>{o.name}</option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <input type="hidden" name="handTo" value="" />
-        )}
-        <button className="rounded-md bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700">
-          Make {first} a {toSupervisor ? "supervisor" : "case manager"}
-        </button>
-      </form>
+      <div className="mt-2 w-72 space-y-3">
+        {options.map((role) => (
+          <form key={role} action={changeRole} className="space-y-2 rounded-md border border-stone-200 bg-stone-50 p-3 text-sm">
+            <input type="hidden" name="userId" value={user.id} />
+            <input type="hidden" name="role" value={role} />
+            <p className="font-medium">Make {first} a {ROLE_LABELS[role].toLowerCase()}?</p>
+            <p className="text-stone-600">{first} {ROLE_EFFECT[role]}</p>
+            {user.role === "case_manager" && clients > 0 ? (
+              <label className="block">
+                <span className="text-stone-700">Only case managers carry a caseload. Hand their {clients} client{clients === 1 ? "" : "s"} to</span>
+                <select name="handTo" className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1">
+                  <option value="">Nobody yet (back to the intake queue)</option>
+                  {others.map((o) => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <input type="hidden" name="handTo" value="" />
+            )}
+            <button className="rounded-md bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700">
+              Make {first} a {ROLE_LABELS[role].toLowerCase()}
+            </button>
+          </form>
+        ))}
+      </div>
     </details>
   );
 }

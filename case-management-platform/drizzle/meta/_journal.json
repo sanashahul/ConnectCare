@@ -85,6 +85,13 @@
       "when": 1794547434448,
       "tag": "0011_remove_team_member",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794550584155,
+      "tag": "0012_outreach_shifts",
+      "breakpoints": true
     }
   ]
 }

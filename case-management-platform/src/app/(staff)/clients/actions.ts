@@ -256,6 +256,8 @@ export async function addNote(clientId: string, _: ActionState, form: FormData):
   const parsed = parseNote(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form." };
   await db.insert(schema.notes).values({ clientId, authorId: user.id, ...noteColumns(parsed.data) });
+  // Meeting them means they're responding again: take them off the shift lists.
+  if (parsed.data.kind === "met") await db.update(schema.clients).set(NOT_RESPONDING_CLEARED).where(eq(schema.clients.id, clientId));
   await touch(clientId);
   await audit({ userId: user.id, action: "note.created", clientId, detail: { kind: parsed.data.kind } });
   for (const path of [`/clients/${clientId}`, "/dashboard", "/clients"]) revalidatePath(path);
@@ -278,6 +280,50 @@ export async function updateNote(noteId: string, _: ActionState, form: FormData)
   await audit({ userId: user.id, action: "note.updated", clientId: note.clientId, detail: { kind: parsed.data.kind } });
   for (const path of [`/clients/${note.clientId}`, "/dashboard"]) revalidatePath(path);
   return { ok: true };
+}
+
+// ---------- Don't respond ----------
+
+const NOT_RESPONDING_CLEARED = { notRespondingSiteId: null, notRespondingAt: null, notRespondingById: null, notRespondingTipEnc: null };
+
+const NotRespondingSchema = z.object({
+  siteId: z.string().uuid("Pick the site where they were last seen."),
+  tip: z.string().trim().max(500).optional().transform((v) => v || undefined),
+});
+
+/**
+ * "Don't respond": the case manager can't reach this client, so the clinical manager on the next
+ * shift at their site looks for them. The site comes from where they were last seen.
+ */
+export async function markNotResponding(clientId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const { user, client } = await clientOr404(clientId);
+  if (client.status === "closed") return { error: "This client's case is closed." };
+  const parsed = NotRespondingSchema.safeParse({ siteId: form.get("siteId"), tip: form.get("tip") ?? undefined });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  const site = await db.query.sites.findFirst({ where: eq(schema.sites.id, parsed.data.siteId) });
+  if (!site) return { error: "Pick the site where they were last seen." };
+  await db
+    .update(schema.clients)
+    .set({
+      notRespondingSiteId: site.id,
+      notRespondingAt: new Date(),
+      notRespondingById: user.id,
+      notRespondingTipEnc: parsed.data.tip ? encryptString(parsed.data.tip) : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.clients.id, clientId));
+  await audit({ userId: user.id, action: "client.not_responding", clientId, detail: { siteId: site.id } });
+  for (const path of [`/clients/${clientId}`, "/dashboard", "/sites"]) revalidatePath(path);
+  return { ok: true };
+}
+
+export async function clearNotResponding(form: FormData) {
+  const clientId = String(form.get("clientId"));
+  if (!z.string().uuid().safeParse(clientId).success) return;
+  const { user } = await clientOr404(clientId);
+  await db.update(schema.clients).set({ ...NOT_RESPONDING_CLEARED, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
+  await audit({ userId: user.id, action: "client.responding", clientId });
+  for (const path of [`/clients/${clientId}`, "/dashboard", "/sites"]) revalidatePath(path);
 }
 
 // ---------- Care plan ----------

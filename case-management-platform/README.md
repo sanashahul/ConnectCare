@@ -37,6 +37,9 @@ Privacy is built in. Read [PRIVACY.md](PRIVACY.md) before using the app with rea
 | Case manager | Client → **Contact log** | Logs **Met with guest** (and where), **Couldn't find**, or an **Update**, plus needs and a follow-up date. |
 | Case manager | Client → **Find resources & plan** | Sees matched resources per need and the gaps. Adds resources to the plan. Optionally asks the AI for a draft plan. |
 | Case manager | Client → **Print resource sheet** | Prints a one-page sheet for the client. It contains no last name, contact details, or notes. |
+| Case manager | Client → **At a glance** → **Don't respond** | Asks the clinical team to look for a client they can't reach. The site is filled in from where the client was last seen; add an optional tip ("red jacket, gray dog"). Logging a "Met" entry or pressing **They responded** takes them off the list. |
+| Supervisor | **Sites & shifts** | Paste rows from the outreach schedule sheet (date, meet/return times, site). Each shift gets its own code. On the day, **Copy message to send** and send it to the clinical manager. **New code** replaces a code sent to the wrong person. |
+| Clinical manager | **Today's shift** | Signs in with their own account and enters the shift code. Sees only the clients marked "Don't respond" at that site (first name, last initial, last seen, tip, case manager) and records **Found** or **Not here**, which adds an entry to the client's contact log. Codes only work on the shift date; clinical managers can't open client records. |
 | Anyone on staff | **Resources** → Report a problem | Flags a wrong phone number or changed hours. |
 | Supervisor | **Home** → Not reached in 14+ days | Sees guests nobody has met recently and who their case manager is. |
 | Supervisor | **Reports** | Monthly program report for team check-ins and funders. **Download PDF** saves it. |
