@@ -7,9 +7,17 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { audit } from "@/lib/audit";
 import { requireShiftViewer } from "@/lib/auth";
+import { guestCodeFor, readShiftPass } from "@/lib/shift-guest";
 import { encryptString } from "@/lib/crypto";
 import { normalizeShiftCode, shiftIsOpen } from "@/lib/shift-utils";
 import { pacificToday, recordWrongShiftCode, shiftByCode, shiftClient, shiftCodeLocked } from "@/lib/shifts";
+
+/** Shift-code sessions share one account, so notes start with the name they typed. */
+async function signedBody(user: { email: string }, body: string) {
+  if ((await guestCodeFor(user)) === null) return body;
+  const name = (await readShiftPass())?.name;
+  return name ? `From ${name} (clinical manager): ${body}` : body;
+}
 
 export type CodeState = { error?: string } | undefined;
 
@@ -17,6 +25,11 @@ export async function openShift(_: CodeState, form: FormData): Promise<CodeState
   const user = await requireShiftViewer();
   const code = normalizeShiftCode(String(form.get("code") ?? ""));
   if (!code) return { error: "Enter the code you were sent." };
+  const guestCode = await guestCodeFor(user);
+  if (guestCode !== null) {
+    if (code === guestCode) redirect(`/shift/${code}`);
+    return { error: "To open a different shift, sign out and enter the new code." };
+  }
   if (await shiftCodeLocked(user.id)) return { error: "Too many wrong codes. Wait an hour, or ask your supervisor for help." };
   const found = await shiftByCode(code);
   const valid = found && (user.role === "supervisor" || shiftIsOpen(found.shift.shiftDate, pacificToday()));
@@ -79,7 +92,7 @@ export async function recordCheck(form: FormData) {
         contactType: "outreach_site",
         whereEnc: encryptString(site.name),
         needsAddressed: [],
-        bodyEnc: encryptString(body),
+        bodyEnc: encryptString(await signedBody(user, body)),
       });
       await tx
         .update(schema.clients)
@@ -121,7 +134,7 @@ export async function addQuickNote(_: QuickNoteState, form: FormData): Promise<Q
     contactType: "other",
     whereEnc: encryptString(access.site.name),
     needsAddressed: [],
-    bodyEnc: encryptString(parsed.data.body),
+    bodyEnc: encryptString(await signedBody(user, parsed.data.body)),
   });
   await db.update(schema.clients).set({ updatedAt: new Date() }).where(eq(schema.clients.id, access.client.id));
   await audit({ userId: user.id, action: "shift.note_added", clientId: access.client.id, detail: { shiftId: access.shift.id } });

@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { Card, EmptyState, PageHeader } from "@/components/ui";
+import { redirect } from "next/navigation";
 import { requireShiftViewer } from "@/lib/auth";
+import { guestCodeFor } from "@/lib/shift-guest";
 import { formatShiftCode } from "@/lib/shift-utils";
 import { pacificToday, upcomingShifts } from "@/lib/shifts";
 import { ShiftCodeForm } from "./forms";
 
 export default async function ShiftHome() {
   const user = await requireShiftViewer();
+  const guestCode = await guestCodeFor(user);
+  if (guestCode) redirect(`/shift/${guestCode}`);
   const supervisor = user.role === "supervisor";
   const today = pacificToday();
   const todays = supervisor ? (await upcomingShifts(today)).filter((r) => r.shift.shiftDate === today) : [];

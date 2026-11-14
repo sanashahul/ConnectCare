@@ -64,5 +64,5 @@ export function formatShiftDate(iso: string, opts: { year?: boolean } = {}) {
 /** The text a supervisor copies to send the clinical manager on the day. */
 export function shiftMessage(s: { siteName: string; shiftDate: string; meetTime?: string | null; code: string }, siteUrl: string) {
   const when = `${formatShiftDate(s.shiftDate)}${s.meetTime ? `, ${s.meetTime}` : ""}`;
-  return `ConnectCare shift code for ${s.siteName} (${when}): ${formatShiftCode(s.code)}\nSign in at ${siteUrl}/shift and enter the code to see who to look for. The code works today only.`;
+  return `ConnectCare shift code for ${s.siteName} (${when}): ${formatShiftCode(s.code)}\nGo to ${siteUrl}/shift-code, enter the code and your name to see who to look for. The code works today only, so please don't share it.`
 }

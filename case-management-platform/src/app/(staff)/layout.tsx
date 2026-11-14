@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/(public)/login/actions";
 import { roleLabel } from "@/lib/access";
 import { requireUser } from "@/lib/auth";
+import { isShiftGuest, readShiftPass } from "@/lib/shift-guest";
 import { unreadThreadCount } from "@/lib/messages";
 import { NavLinks } from "./nav-links";
 
@@ -11,6 +12,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const user = await requireUser({ allowPasswordChange: true, allowClinicalManager: true });
   const supervisor = user.role === "supervisor";
   const clinical = user.role === "clinical_manager";
+  const pass = isShiftGuest(user) ? await readShiftPass() : null;
   const unread = clinical ? 0 : await unreadThreadCount(user);
   const links = clinical ? [{ href: "/shift", label: "Today's shift" }] : [
     { href: "/dashboard", label: "Home" },
@@ -30,9 +32,15 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </Link>
           <NavLinks links={links} />
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <Link href="/account/password" className="text-stone-600 hover:underline">
-              {user.name} <span className="text-stone-400">({roleLabel(user.role)})</span>
-            </Link>
+            {pass ? (
+              <span className="text-stone-600">
+                {pass.name} <span className="text-stone-400">(Clinical manager, shift code)</span>
+              </span>
+            ) : (
+              <Link href="/account/password" className="text-stone-600 hover:underline">
+                {user.name} <span className="text-stone-400">({roleLabel(user.role)})</span>
+              </Link>
+            )}
             <form action={logout}>
               <button className="text-stone-600 underline hover:text-stone-900">Sign out</button>
             </form>

@@ -26,6 +26,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         )}
         <LoginForm />
       </div>
+      <Link
+        href="/shift-code"
+        className="mx-auto mt-4 block w-full max-w-sm rounded-lg border border-brand-100 bg-brand-50 p-4 text-center text-sm font-medium text-brand-800 hover:bg-brand-100"
+      >
+        Clinical manager? Enter your shift code →
+      </Link>
       <p className="mt-6 text-center text-sm text-stone-600">
         Looking for help? <Link className="text-brand-700 underline" href="/intake">Fill out the request form</Link>.
       </p>

@@ -5,6 +5,7 @@ import { displayName, withProfile } from "./clients";
 import { contactSummaries } from "./contacts";
 import { decryptString } from "./crypto";
 import { pacificDate } from "./report";
+import { guestCodeFor } from "./shift-guest";
 import { formatShiftDate, generateShiftCode, normalizeShiftCode } from "./shift-utils";
 
 export type Site = typeof schema.sites.$inferSelect;
@@ -172,12 +173,16 @@ export async function notRespondingInfo(client: typeof schema.clients.$inferSele
  * on that shift's list: marked "Don't respond" at its site, or already checked on this shift.
  * Wrong codes count toward the lockout.
  */
-export async function shiftClient(user: { id: string; role: string }, code: string, clientId: string, opts: { allowPreview?: boolean } = {}) {
-  if (await shiftCodeLocked(user.id)) return null;
+export async function shiftClient(user: { id: string; role: string; email: string }, code: string, clientId: string, opts: { allowPreview?: boolean } = {}) {
+  // A shift-code session (no account) may only use the code it signed in with.
+  const guestCode = await guestCodeFor(user);
+  if (guestCode !== null) {
+    if (normalizeShiftCode(code) !== guestCode) return null;
+  } else if (await shiftCodeLocked(user.id)) return null;
   const found = await shiftByCode(code);
   const open = found ? found.shift.shiftDate === pacificToday() : false;
   if (!found || (!open && !(opts.allowPreview && user.role === "supervisor"))) {
-    await recordWrongShiftCode(user.id);
+    if (guestCode === null) await recordWrongShiftCode(user.id);
     return null;
   }
   const client = await db.query.clients.findFirst({ where: eq(schema.clients.id, clientId) });

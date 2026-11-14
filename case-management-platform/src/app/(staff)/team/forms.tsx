@@ -35,7 +35,7 @@ export function NewUserForm() {
             <option value="supervisor">Supervisor</option>
             <option value="clinical_manager">Clinical manager</option>
           </select>
-          <p className="mt-1 text-xs text-stone-500">Clinical managers only see a shift&apos;s &quot;not responding&quot; list, with the code you send them.</p>
+          <p className="mt-1 text-xs text-stone-500">Clinical managers don&apos;t need an account: they can use the shift code alone. Add one only if you want them to have their own sign-in.</p>
         </div>
       </div>
       <ErrorText>{state?.error}</ErrorText>

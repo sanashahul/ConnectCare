@@ -3,6 +3,7 @@ import { Badge, Card, EmptyState, formatDate, PageHeader, smallButtonClass } fro
 import { audit } from "@/lib/audit";
 import { pacificDate } from "@/lib/report";
 import { requireShiftViewer } from "@/lib/auth";
+import { guestCodeFor } from "@/lib/shift-guest";
 import { formatShiftDate, normalizeShiftCode, shiftIsOpen } from "@/lib/shift-utils";
 import { pacificToday, recordWrongShiftCode, shiftByCode, shiftCodeLocked, shiftList, shiftNotes, type ShiftListEntry } from "@/lib/shifts";
 import { recordCheck } from "../actions";
@@ -14,17 +15,22 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
   const code = normalizeShiftCode((await params).code);
   const today = pacificToday();
 
-  const locked = !supervisor && (await shiftCodeLocked(user.id));
-  const found = locked ? null : await shiftByCode(code);
+  // A shift-code session (no account) may only open the code it signed in with; it never counts toward the lockout.
+  const guestCode = await guestCodeFor(user);
+  const wrongForGuest = guestCode !== null && code !== guestCode;
+  const locked = !supervisor && guestCode === null && (await shiftCodeLocked(user.id));
+  const found = locked || wrongForGuest ? null : await shiftByCode(code);
   const open = found ? shiftIsOpen(found.shift.shiftDate, today) : false;
   // Supervisors can preview any shift's list. Clinical managers only see it on the day.
   if (!found || (!open && !supervisor)) {
-    if (!locked && !supervisor) await recordWrongShiftCode(user.id);
+    if (!locked && !supervisor && guestCode === null) await recordWrongShiftCode(user.id);
     return (
       <div className="space-y-5">
         <PageHeader title="Code not valid" back={{ href: "/shift", label: "Enter a code" }} />
         <EmptyState>
-          {locked
+          {wrongForGuest
+            ? "You signed in with a different shift code. To open this one, sign out and enter the new code."
+            : locked
             ? "Too many wrong codes. Wait an hour, or ask your supervisor for help."
             : found
               ? "This code is for a different day. Codes only work on the day of the shift."
@@ -44,7 +50,7 @@ export default async function ShiftListPage({ params }: { params: Promise<{ code
   return (
     <div className="space-y-5">
       <PageHeader
-        back={{ href: supervisor ? "/schedule" : "/shift", label: supervisor ? "Shift schedule" : "Enter another code" }}
+        back={guestCode !== null ? undefined : { href: supervisor ? "/schedule" : "/shift", label: supervisor ? "Shift schedule" : "Enter another code" }}
         title={site.name}
         subtitle={
           <>

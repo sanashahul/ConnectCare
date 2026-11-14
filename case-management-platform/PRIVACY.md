@@ -53,10 +53,11 @@ This document describes what the software does. It is not legal advice. Before u
 
 ## Clinical managers and shift codes
 
-- Clinical managers have their own accounts (password and two-step verification, like everyone else). They can't open client records, the client list, messages or reports.
-- They see a shift's list only after entering that shift's code, and only on the shift date (Pacific time). The list shows first name and last initial, pronouns, client ID, where and when the client was last seen, the case manager's tip, and the case manager's name. They can also open the person's printable resource sheet (the same one-page sheet case managers print: no last name, contact details or notes). No needs list, contact details, health details or case notes.
-- Ten wrong codes in an hour lock code entry for that person for the hour. Every list view and result is in the audit log.
-- Send codes by a channel your program approves. A code alone opens nothing without a clinical manager account.
+- Clinical managers can open a shift's list with **just the shift code** and their name, without an account. That means anyone who has the code can open that day's list, so send each code only to the person working that shift, and use **New code** on the Shift schedule if one goes to the wrong person.
+- A code only opens its own shift's list, only on the shift date (Pacific time). A code session can't open client records, the client list, messages, reports, or any other shift, and it can't set a password. Ten code attempts per 15 minutes from one network are allowed; after that, code entry is blocked for a while.
+- The list shows first name and last initial, pronouns, client ID, where and when the client was last seen, the case manager's tip, and the case manager's name, plus the person's printable resource sheet (the same one-page sheet case managers print: no last name, contact details or notes). No needs list, contact details, health details or case notes.
+- Notes and results from a code session are stored under a built-in "Clinical team" account and start with the name the person typed. Every code sign-in, list view and result is in the audit log with its network address.
+- A supervisor can still give a clinical manager their own account (password and two-step verification) on the Team page.
 
 ## Google Form intake
 

@@ -35,7 +35,7 @@ test("shift codes are easy to read and only open on the shift date", () => {
   assert.equal(shiftIsOpen("2026-11-14", "2026-11-13"), false);
   const msg = shiftMessage({ siteName: "Hope's Corner", shiftDate: "2026-11-14", meetTime: "7:15 am", code: "7K3PMQ" }, "https://cc.example.org");
   assert.match(msg, /Hope's Corner \(Sat, Nov 14, 7:15 am\): 7K3-PMQ/);
-  assert.match(msg, /https:\/\/cc\.example\.org\/shift/);
+  assert.match(msg, /https:\/\/cc\.example\.org\/shift-code/);
 });
 
 test("clinical managers can't open client records; they open shift lists", () => {
@@ -62,4 +62,11 @@ test("every staff page and action except the shift and password pages keeps clin
   const allowed = files.filter((f) => readFileSync(f, "utf8").includes("allowClinicalManager"));
   const rel = allowed.map((f) => f.slice(root.length + 1)).sort();
   assert.deepEqual(rel, ["account/password/actions.ts", "account/password/page.tsx", "layout.tsx"]);
+});
+
+test("the shared shift-code account can't set a password", () => {
+  for (const f of ["account/password/actions.ts", "account/password/page.tsx"]) {
+    const src = readFileSync(join(__dirname, "../src/app/(staff)", f), "utf8");
+    assert.match(src, /if \(isShiftGuest\(user\)\) redirect/);
+  }
 });
