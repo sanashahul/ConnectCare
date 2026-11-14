@@ -15,7 +15,7 @@ import { contactSummaries, daysNotReached, type ContactSummary } from "@/lib/con
 import { GETTING_STARTED_STEPS, gettingStartedFor, showGettingStarted, type GettingStarted } from "@/lib/getting-started";
 import { decryptPlanBody } from "@/lib/plan";
 import { nextStep } from "@/lib/plan-order";
-import { confirmNeeds, deleteClient, setClientStatus } from "../actions";
+import { confirmNeeds, deleteClient, deleteNote, setClientStatus } from "../actions";
 import { CarePlan, StepCard, type PlanStep } from "./care-plan";
 import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
 import { BoxFolder } from "./box-folder";
@@ -66,7 +66,7 @@ export default async function ClientPage({ params, searchParams }: {
   const gs = started.get(id);
   const next = nextStep(steps);
   const logHref = `/clients/${id}?log=1#log`;
-  const noteListProps = { userId: user.id, clientId: id, needs: client.needs };
+  const noteListProps = { userId: user.id, clientId: id, needs: client.needs, canDelete: supervisor };
 
   return (
     <div className="space-y-5">
@@ -308,7 +308,7 @@ function GettingStartedList({ clientId, gs, needs, logHref }: { clientId: string
 
 type NoteRow = { note: typeof schema.notes.$inferSelect; author: string };
 
-function NoteList({ rows, userId, clientId, needs }: { rows: NoteRow[]; userId: string; clientId: string; needs: string[] }) {
+function NoteList({ rows, userId, clientId, needs, canDelete }: { rows: NoteRow[]; userId: string; clientId: string; needs: string[]; canDelete: boolean }) {
   return (
     <ul className="mt-3 divide-y divide-stone-100">
       {rows.map(({ note, author }) => {
@@ -350,6 +350,16 @@ function NoteList({ rows, userId, clientId, needs }: { rows: NoteRow[]; userId: 
               </EditableNote>
             ) : (
               entry
+            )}
+            {canDelete && (
+              <details className="mt-1 text-xs">
+                <summary className="cursor-pointer text-stone-500 hover:text-red-700">Delete…</summary>
+                <form action={deleteNote} className="mt-1 flex flex-wrap items-center gap-2 rounded-md border border-red-200 bg-red-50 p-2">
+                  <input type="hidden" name="noteId" value={note.id} />
+                  <span className="text-red-900">Delete this entry for good? This can&apos;t be undone.</span>
+                  <button className="rounded bg-red-700 px-2 py-1 font-medium text-white hover:bg-red-800">Delete entry</button>
+                </form>
+              </details>
             )}
           </li>
         );

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
@@ -324,6 +324,38 @@ export async function clearNotResponding(form: FormData) {
   await db.update(schema.clients).set({ ...NOT_RESPONDING_CLEARED, updatedAt: new Date() }).where(eq(schema.clients.id, clientId));
   await audit({ userId: user.id, action: "client.responding", clientId });
   for (const path of [`/clients/${clientId}`, "/dashboard", "/schedule"]) revalidatePath(path);
+}
+
+/**
+ * Supervisors can delete a contact log entry (for example a test entry). If it was a clinical
+ * manager's Found / Not here from a shift, that shift's mark for the client is cleared too.
+ */
+export async function deleteNote(form: FormData) {
+  const user = await requireSupervisor();
+  const noteId = String(form.get("noteId"));
+  if (!z.string().uuid().safeParse(noteId).success) return;
+  const note = await db.query.notes.findFirst({ where: eq(schema.notes.id, noteId) });
+  if (!note) return;
+  await db.delete(schema.notes).where(eq(schema.notes.id, noteId));
+  if (note.contactType === "outreach_site" && (note.kind === "met" || note.kind === "not_found")) {
+    const shiftsThatDay = await db
+      .select({ id: schema.shifts.id })
+      .from(schema.shifts)
+      .where(eq(schema.shifts.shiftDate, note.contactDate));
+    if (shiftsThatDay.length) {
+      await db
+        .delete(schema.shiftChecks)
+        .where(
+          and(
+            eq(schema.shiftChecks.clientId, note.clientId),
+            eq(schema.shiftChecks.byId, note.authorId),
+            inArray(schema.shiftChecks.shiftId, shiftsThatDay.map((s) => s.id)),
+          ),
+        );
+    }
+  }
+  await audit({ userId: user.id, action: "note.deleted", clientId: note.clientId, detail: { kind: note.kind, authorId: note.authorId } });
+  for (const path of [`/clients/${note.clientId}`, "/dashboard"]) revalidatePath(path);
 }
 
 // ---------- Care plan ----------
