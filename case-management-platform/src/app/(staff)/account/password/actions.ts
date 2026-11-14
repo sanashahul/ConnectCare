@@ -5,12 +5,16 @@ import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { audit } from "@/lib/audit";
 import { requireUser } from "@/lib/auth";
+import { isShiftGuest } from "@/lib/shift-guest";
 import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
 
 export type PwState = { error?: string } | undefined;
 
 export async function changePassword(_: PwState, form: FormData): Promise<PwState> {
   const user = await requireUser({ allowPasswordChange: true, allowClinicalManager: true });
+  // The shared shift-code account has no password of its own; letting someone set one would turn a
+  // one-day code into a permanent login.
+  if (isShiftGuest(user)) redirect("/shift");
   const current = String(form.get("current") ?? "");
   const next = String(form.get("next") ?? "");
   if (next !== String(form.get("confirm") ?? "")) return { error: "The new passwords don't match." };

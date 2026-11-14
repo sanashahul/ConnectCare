@@ -4,6 +4,7 @@ import { db, schema } from "@/db";
 import { Badge, Card, PageHeader, smallButtonClass } from "@/components/ui";
 import { ROLE_LABELS, roleLabel, type Role } from "@/lib/access";
 import { requireSupervisor } from "@/lib/auth";
+import { isShiftGuest } from "@/lib/shift-guest";
 import { caseManagers } from "@/lib/followups";
 import { changeRole, removeMember, restoreMember, teamAction } from "./actions";
 import { NewUserForm, ResetPasswordButton } from "./forms";
@@ -20,8 +21,10 @@ export default async function TeamPage() {
     caseManagers(),
   ]);
   const clientCount = new Map(loads.map((r) => [r.id, r.n]));
-  const users = all.filter((u) => !u.removedAt);
-  const removed = all.filter((u) => u.removedAt);
+  // The built-in shift-code account isn't a person on the team.
+  const people = all.filter((u) => !isShiftGuest(u));
+  const users = people.filter((u) => !u.removedAt);
+  const removed = people.filter((u) => u.removedAt);
   return (
     <div className="space-y-5">
       <PageHeader title="Team" subtitle="Only people with an account here can see client information. Deactivate accounts as soon as someone leaves." />
