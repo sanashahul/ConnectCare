@@ -10,6 +10,8 @@ export type ClientCard = {
   urgent: boolean;
   /** Has a Box folder. */
   hasBox: boolean;
+  /** Marked "Don't respond": the clinical team is looking for them at an outreach site. */
+  notResponding?: boolean;
   /** Assigned to this case manager and not opened by them since. */
   isNew: boolean;
   lastMet?: string;
@@ -82,6 +84,7 @@ function Card({ c, today, readOnly }: { c: ClientCard; today: string; readOnly: 
         {c.urgent && <Badge tone="red">Urgent</Badge>}
         {c.overdue > 0 && <Badge tone="red">{c.overdue} overdue</Badge>}
         {c.notReached !== null && <Badge tone="amber">Not reached {c.notReached}d</Badge>}
+        {c.notResponding && <Badge tone="amber">Not responding</Badge>}
       </div>
       <p className="mt-1 text-xs text-stone-500">
         {c.lastMet ? `Last seen ${formatDate(c.lastMet)}${c.lastPlace ? ` · ${c.lastPlace}` : ""}` : "Not met yet"}

@@ -33,7 +33,9 @@ export function NewUserForm() {
           <select id="role" name="role" className={inputClass}>
             <option value="case_manager">Case manager</option>
             <option value="supervisor">Supervisor</option>
+            <option value="clinical_manager">Clinical manager</option>
           </select>
+          <p className="mt-1 text-xs text-stone-500">Clinical managers only see a shift&apos;s &quot;not responding&quot; list, with the code you send them.</p>
         </div>
       </div>
       <ErrorText>{state?.error}</ErrorText>

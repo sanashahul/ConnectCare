@@ -52,6 +52,7 @@ export function ClientRow({ client, followUp, assignee, today }: {
       <Link href={`/clients/${client.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-3 hover:bg-stone-50">
         <ClientLabel client={client} className="min-w-44" />
         {client.urgent && <Badge tone="red">Urgent</Badge>}
+        {client.notRespondingSiteId && client.status !== "closed" && <Badge tone="amber">Not responding</Badge>}
         {client.status === "closed" && <Badge>Closed</Badge>}
         {client.status === "new" && <Badge tone="amber">Unassigned</Badge>}
         <span className="text-sm text-stone-600">{client.city ?? "Area unknown"}</span>

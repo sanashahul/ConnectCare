@@ -18,7 +18,9 @@ import {
 // Plaintext columns are limited to what the app needs to filter and count:
 // status, assignment, coarse location, and need categories.
 
-export const roleEnum = pgEnum("role", ["supervisor", "case_manager"]);
+// clinical_manager = field staff who look for "not responding" clients during an outreach shift.
+// They see no client records directly, only the list for a shift whose code they were given.
+export const roleEnum = pgEnum("role", ["supervisor", "case_manager", "clinical_manager"]);
 export const clientStatusEnum = pgEnum("client_status", ["new", "active", "closed"]);
 export const intakeSourceEnum = pgEnum("intake_source", ["public_form", "staff", "google_form"]);
 export const contactTypeEnum = pgEnum("contact_type", ["in_person", "phone", "text", "outreach_site", "other"]);
@@ -87,8 +89,19 @@ export const clients = pgTable(
     // When a case manager confirmed the need categories ("Getting started" step 2).
     needsConfirmedAt: timestamp("needs_confirmed_at", { withTimezone: true }),
     closedAt: timestamp("closed_at", { withTimezone: true }),
+    // Case manager pressed "Don't respond": clinical managers look for this client at this
+    // outreach site during the next shift there. Cleared when someone meets them.
+    notRespondingSiteId: uuid("not_responding_site_id").references(() => sites.id, { onDelete: "set null" }),
+    notRespondingAt: timestamp("not_responding_at", { withTimezone: true }),
+    notRespondingById: uuid("not_responding_by_id").references(() => users.id),
+    // Encrypted tip for whoever looks for them ("red jacket, usually near the side door").
+    notRespondingTipEnc: text("not_responding_tip_enc"),
   },
-  (t) => [index("clients_assigned_idx").on(t.assignedToId), index("clients_status_idx").on(t.status)],
+  (t) => [
+    index("clients_assigned_idx").on(t.assignedToId),
+    index("clients_status_idx").on(t.status),
+    index("clients_not_responding_idx").on(t.notRespondingSiteId),
+  ],
 );
 
 export const notes = pgTable(
@@ -257,4 +270,45 @@ export const threadReads = pgTable(
     lastReadAt: timestamp("last_read_at", { withTimezone: true }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.threadId, t.userId] })],
+);
+
+// ---------- Outreach sites and shifts ----------
+
+// Places the outreach team visits (Hope's Corner, Neighborhood Hands...). Public information.
+export const sites = pgTable("sites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  address: text("address"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// One visit to a site on the outreach schedule. The code is sent to the clinical manager
+// on the day; it opens that site's "not responding" list on the shift date only.
+export const shifts = pgTable(
+  "shifts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+    shiftDate: date("shift_date").notNull(),
+    meetTime: text("meet_time"),
+    returnTime: text("return_time"),
+    code: text("code").notNull().unique(),
+    createdById: uuid("created_by_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("shifts_date_idx").on(t.shiftDate)],
+);
+
+// What the clinical manager found for each client on a shift's list.
+export const shiftChecks = pgTable(
+  "shift_checks",
+  {
+    shiftId: uuid("shift_id").notNull().references(() => shifts.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+    result: text("result", { enum: ["found", "not_here"] }).notNull(),
+    byId: uuid("by_id").notNull().references(() => users.id),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.shiftId, t.clientId] })],
 );

@@ -4,7 +4,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { PasswordForm } from "./password-form";
 
 export default async function PasswordPage() {
-  const user = await requireUser({ allowPasswordChange: true });
+  const user = await requireUser({ allowPasswordChange: true, allowClinicalManager: true });
   return (
     <div className="max-w-md">
       <PageHeader

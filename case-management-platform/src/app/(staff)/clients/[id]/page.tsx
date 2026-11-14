@@ -20,6 +20,9 @@ import { CarePlan, StepCard, type PlanStep } from "./care-plan";
 import { AddPlanItemForm, EditableNote, NoteForm } from "./forms";
 import { BoxFolder } from "./box-folder";
 import { phiInBox } from "@/lib/box";
+import { matchSite } from "@/lib/shift-utils";
+import { listSites, notRespondingInfo } from "@/lib/shifts";
+import { NotResponding } from "./not-responding";
 
 /** Log entries shown before "Earlier entries". */
 const RECENT_NOTES = 5;
@@ -38,7 +41,7 @@ export default async function ClientPage({ params, searchParams }: {
   const supervisor = user.role === "supervisor";
   const p = client.profile;
   const today = todayIso();
-  const [noteRows, planRows, assignee, resourceRows, contacts, started] = await Promise.all([
+  const [noteRows, planRows, assignee, resourceRows, contacts, started, allSites] = await Promise.all([
     db
       .select({ note: schema.notes, author: schema.users.name })
       .from(schema.notes)
@@ -50,7 +53,10 @@ export default async function ClientPage({ params, searchParams }: {
     db.select({ id: schema.resources.id, data: schema.resources.data }).from(schema.resources).where(eq(schema.resources.active, true)),
     contactSummaries([id]),
     gettingStartedFor([client]),
+    listSites(),
   ]);
+  const notResponding = await notRespondingInfo(client);
+  const activeSites = allSites.filter((s) => s.active);
   const resourceName = new Map(resourceRows.map((r) => [r.id, (r.data as { name: string }).name]));
   const steps: PlanStep[] = planRows.map((r) => ({ ...r, body: decryptPlanBody(r.bodyEnc) }));
   const unverified = steps.filter((i) => !i.verified).length;
@@ -114,6 +120,15 @@ export default async function ClientPage({ params, searchParams }: {
           <div>
             <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-stone-500">Last seen</h3>
             <LastSeen contact={contact} notReached={notReached} howToReach={p.howToReach} />
+            {client.status !== "closed" && (
+              <NotResponding
+                clientId={id}
+                sites={activeSites.map((s) => ({ id: s.id, name: s.name }))}
+                suggestedSiteId={matchSite(contact.lastPlace, activeSites)?.id ?? matchSite(p.outreachSite, activeSites)?.id ?? matchSite(p.howToReach, activeSites)?.id}
+                lastPlace={contact.lastPlace ?? p.outreachSite}
+                current={notResponding}
+              />
+            )}
           </div>
         </div>
       </Card>

@@ -14,7 +14,7 @@ export type TeamState = { error?: string; created?: { email: string; password: s
 const NewUser = z.object({
   name: z.string().trim().min(1, "Enter a name.").max(100),
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  role: z.enum(["case_manager", "supervisor"]),
+  role: z.enum(["case_manager", "supervisor", "clinical_manager"]),
 });
 
 export async function createUser(_: TeamState, form: FormData): Promise<TeamState> {
@@ -144,12 +144,12 @@ export async function restoreMember(form: FormData) {
 
 const ChangeRole = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["case_manager", "supervisor"]),
+  role: z.enum(["case_manager", "supervisor", "clinical_manager"]),
   // Only used when a case manager with clients becomes a supervisor. "" = back to the intake queue.
   handTo: z.union([z.literal(""), z.string().uuid()]),
 });
 
-/** Switch someone between case manager and supervisor. You can't change your own role. */
+/** Switch someone between case manager, supervisor and clinical manager. You can't change your own role. */
 export async function changeRole(form: FormData) {
   const me = await requireSupervisor();
   const parsed = ChangeRole.safeParse({ userId: form.get("userId"), role: form.get("role"), handTo: form.get("handTo") ?? "" });
@@ -162,8 +162,8 @@ export async function changeRole(form: FormData) {
   if (handTo && !assignee) return;
 
   const moved = await db.transaction(async (tx) => {
-    // Supervisors don't carry a caseload, so a case manager's clients are handed over when they move up.
-    const theirs = role === "supervisor" ? await handOverClients(tx, userId, assignee?.id ?? null) : [];
+    // Only case managers carry a caseload, so their clients are handed over when they change role.
+    const theirs = role !== "case_manager" ? await handOverClients(tx, userId, assignee?.id ?? null) : [];
     await tx.update(schema.users).set({ role }).where(eq(schema.users.id, userId));
     return theirs;
   });

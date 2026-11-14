@@ -22,8 +22,10 @@ export type PrintEntry = {
   note?: string;
 };
 
-export function PrintSheet({ title, prepared, clientCode, hotlines, entries }: {
+export function PrintSheet({ title, prepared, clientCode, hotlines, entries, emptyText }: {
   title: string;
+  /** Shown on screen when there is nothing to print. */
+  emptyText?: string;
   prepared: string;
   clientCode: string;
   hotlines: { number: string; label: string }[];
@@ -64,7 +66,7 @@ export function PrintSheet({ title, prepared, clientCode, hotlines, entries }: {
         </section>
 
         {entries.length === 0 && (
-          <p className="no-print text-stone-500">Nothing in the care plan yet. Add steps on the client page, or switch to &quot;Top directory matches&quot;.</p>
+          <p className="no-print text-stone-500">{emptyText ?? "Nothing in the care plan yet. Add steps on the client page, or switch to \"Top directory matches\"."}</p>
         )}
 
         {needs.map((need) => {

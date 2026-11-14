@@ -51,6 +51,13 @@ This document describes what the software does. It is not legal advice. Before u
   - Unverified suggestions stay off printouts until a case manager records how they checked them.
 - **Caveat on de-identification.** County plus a detailed need profile is *not* the same as HIPAA "Safe Harbor" de-identification, because a county is a geographic area smaller than a state. Confirm with your privacy office that the AI account you use is covered by an approved agreement (for example, a BAA or your institution's approved AI service).
 
+## Clinical managers and shift codes
+
+- Clinical managers have their own accounts (password and two-step verification, like everyone else). They can't open client records, the client list, messages or reports.
+- They see a shift's list only after entering that shift's code, and only on the shift date (Pacific time). The list shows first name and last initial, pronouns, client ID, where and when the client was last seen, the case manager's tip, and the case manager's name. They can also open the person's printable resource sheet (the same one-page sheet case managers print: no last name, contact details or notes). No needs list, contact details, health details or case notes.
+- Ten wrong codes in an hour lock code entry for that person for the hour. Every list view and result is in the audit log.
+- Send codes by a channel your program approves. A code alone opens nothing without a clinical manager account.
+
 ## Google Form intake
 
 The Google Form ([setup guide](google-apps-script/README.md)) is built so that Google holds client information for as short a time as possible:
