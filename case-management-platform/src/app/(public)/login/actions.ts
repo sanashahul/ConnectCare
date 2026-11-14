@@ -8,6 +8,7 @@ import { decryptString } from "@/lib/crypto";
 import { verifyPassword } from "@/lib/password";
 import { rateLimit } from "@/lib/rate-limit";
 import { createSession, destroySession, readSession } from "@/lib/session";
+import { clearShiftPass, isShiftGuest } from "@/lib/shift-guest";
 import { verifyTotp } from "@/lib/totp";
 
 export type FormState = { error?: string; email?: string } | undefined;
@@ -90,5 +91,6 @@ export async function logout() {
   const s = await readSession();
   if (s) await audit({ userId: s.user.id, action: "logout" });
   await destroySession();
-  redirect("/login");
+  await clearShiftPass();
+  redirect(s && isShiftGuest(s.user) ? "/shift-code" : "/login");
 }
