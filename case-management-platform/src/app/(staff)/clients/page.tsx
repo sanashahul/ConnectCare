@@ -13,9 +13,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const user = await requireUser();
   const sp = await searchParams;
   const supervisor = user.role === "supervisor";
-  const status = sp.status === "closed" ? "closed" : sp.status === "all" ? "all" : "open";
+  const status = sp.status === "closed" || sp.status === "all" || sp.status === "not_responding" ? sp.status : "open";
   const clients = await listClientsForUser(user, {
-    statuses: status === "open" ? ["new", "active"] : status === "closed" ? ["closed"] : undefined,
+    statuses: status === "closed" ? ["closed"] : status === "all" ? undefined : ["new", "active"],
     assignedToId: supervisor && sp.cm ? sp.cm : undefined,
   });
   const q = (sp.q ?? "").trim().toLowerCase();
@@ -24,7 +24,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const filtered = clients.filter(
     (c) =>
       (!q || c.clientCode.startsWith(code) || displayName(c.profile).toLowerCase().includes(q)) &&
-      (!sp.need || c.needs.includes(sp.need)),
+      (!sp.need || c.needs.includes(sp.need)) &&
+      (status !== "not_responding" || !!c.notRespondingSiteId),
   );
   const followUps = await followUpsFor(filtered.map((c) => c.id));
   const cms = supervisor ? await caseManagers() : [];
@@ -42,6 +43,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           <input name="q" defaultValue={sp.q} placeholder="Name or client ID" className={`${inputClass} max-w-xs`} />
           <select name="status" defaultValue={status} className={`${inputClass} w-auto`}>
             <option value="open">Open</option>
+            <option value="not_responding">Not responding</option>
             <option value="closed">Closed</option>
             <option value="all">All</option>
           </select>
@@ -58,7 +60,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           <button className={secondaryButtonClass}>Filter</button>
         </form>
         {filtered.length === 0 ? (
-          <EmptyState>No clients match.</EmptyState>
+          <EmptyState>{status === "not_responding" ? "Nobody is marked “Don't respond” right now." : "No clients match."}</EmptyState>
         ) : (
           <ul className="-mx-3 divide-y divide-stone-100">
             {filtered.map((c) => (
